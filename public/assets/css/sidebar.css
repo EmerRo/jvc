@@ -1,0 +1,558 @@
+/* public\assets\css\sidebar.css Variables */
+:root {
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 70px;
+  --header-height: 70px;
+  --primary-color: #556ee6;
+  --text-color: #495057;
+  --border-color: #f1f1f1;
+  --scroll-color: #dc3545;
+}
+
+/* Sidebar base */
+.jvc-sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: #ffffff;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+/* Personalización del scroll */
+.jvc-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.jvc-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.jvc-sidebar::-webkit-scrollbar-thumb {
+  background: #e05353;
+  border-radius: 4px;
+}
+
+.jvc-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.jvc-sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* Header del sidebar */
+.jvc-sidebar-header {
+  padding: 15px 20px;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.jvc-logo-container {
+  position: relative;
+  width: 100%;
+  height: 80px; /* Aumenta este valor para dar más espacio al logo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.jvc-sidebar-logo {
+  max-width: 100%;
+  height: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.jvc-logo-expanded {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.jvc-logo-collapsed {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+.jvc-sidebar.collapsed .jvc-logo-expanded {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.jvc-sidebar.collapsed .jvc-logo-collapsed {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Ajustes para el sidebar colapsado */
+.jvc-sidebar.collapsed .jvc-sidebar-header {
+  padding: 10px;
+}
+
+.jvc-sidebar.collapsed .jvc-logo-container {
+  height: 40px; /* Ajusta según el tamaño del logo colapsado */
+}
+
+/* Menú del sidebar */
+.jvc-sidebar-menu {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.menu-title {
+  padding: 20px 24px 10px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  cursor: default;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.collapsed .menu-title {
+  display: none;
+}
+
+.jvc-sidebar-item {
+  position: relative;
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+.jvc-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  color: #495057;
+  font-size: 13px;
+  font-family: "Poppins", sans-serif;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  margin: 0;
+  gap: 12px;
+  font-weight: 400;
+}
+
+.jvc-sidebar-link i {
+  min-width: 16px;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #e74c3c;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.jvc-sidebar-link span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jvc-sidebar-link:hover {
+  color: var(--primary-color);
+}
+
+.jvc-sidebar-link:hover i {
+  color: #c0392b;
+}
+
+.jvc-sidebar-link:hover i {
+  color: #c0392b;
+}
+
+.jvc-sidebar-dropdown-toggle::after {
+  content: "›";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+  color: #6c757d;
+}
+
+.jvc-sidebar-item.active > .jvc-sidebar-dropdown-toggle::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.jvc-sidebar-item.active > .jvc-sidebar-link i {
+  color: #c0392b;
+}
+
+.jvc-sidebar-dropdown {
+  display: none;
+  list-style: none;
+  padding: 5px 0 5px 52px;
+  margin: 0;
+  background: transparent;
+}
+
+.jvc-sidebar-item.active > .jvc-sidebar-dropdown {
+  display: block;
+}
+
+.jvc-sidebar-dropdown-item {
+  display: block;
+  padding: 8px 24px 8px 0;
+  color: #6c757d;
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 400;
+  position: relative;
+  padding-left: 16px;
+}
+
+.jvc-sidebar-dropdown-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #e74c3c;
+  margin-right: 8px;
+}
+
+.jvc-sidebar-dropdown-item:hover {
+  color: var(--primary-color);
+}
+
+/* Ajuste para modo colapsado */
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown-item {
+  padding: 8px 16px 8px 32px;
+}
+
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown-item::before {
+  left: 16px;
+}
+
+/* Collapsed state styles */
+.collapsed .jvc-sidebar-link {
+  padding: 10px 0;
+  justify-content: center;
+  position: relative;
+}
+
+.collapsed .jvc-sidebar-link i {
+  margin: 0;
+  font-size: 16px;
+  min-width: auto;
+}
+
+.collapsed .jvc-sidebar-link span {
+  display: none;
+}
+
+/* Modificar los estilos para el estado colapsado */
+.collapsed .jvc-sidebar-item {
+  position: relative;
+}
+
+/* Ajustar el estilo del enlace en estado colapsado */
+.collapsed .jvc-sidebar-link {
+  padding: 10px;
+  justify-content: center;
+}
+
+/* Mostrar el texto al hacer hover en estado colapsado */
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-link span {
+  display: block;
+  position: absolute;
+  left: calc(100% + 10px); /* Aumentar la separación */
+  top: 0;
+  background: #ffffff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  z-index: 1000;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Ajustar el submenu en estado colapsado */
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown {
+  display: block !important;
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 100%;
+  min-width: 200px;
+  background: #ffffff;
+  padding: 8px 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  z-index: 999;
+}
+
+/* Ajustar los items del submenu */
+.collapsed .jvc-sidebar-dropdown-item {
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+/* Asegurar que los submenús permanezcan visibles al hover */
+.collapsed .jvc-sidebar-item:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Añadir una pequeña animación */
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-link span,
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Ajuste de la flecha en modo colapsado */
+.collapsed .jvc-sidebar-dropdown-toggle::after {
+  display: none;
+}
+
+/* Ajuste del título en modo colapsado */
+.collapsed .menu-title {
+  display: none;
+}
+
+/* Ajuste del hover para items con submenú */
+.collapsed .jvc-sidebar-item:hover > .jvc-sidebar-link {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Asegurar que los submenús aparezcan al hover */
+.collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown {
+  display: block !important;
+}
+
+/* Estilos para el contenedor del submenu */
+.collapsed .jvc-sidebar-dropdown {
+  margin: 0;
+  padding: 0;
+}
+
+/* Contenido principal */
+.main-content {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  padding: 20px;
+  padding-top: calc(var(--header-height) + 20px);
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
+}
+.notification-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.notification-icon {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--text-muted);
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.has-notifications .notification-icon {
+  color: #ff4444;
+}
+
+.has-notifications .notification-badge {
+  background-color: #ff4444;
+  transform: scale(1.1);
+}
+
+/* Estilos para móvil */
+@media (max-width: 768px) {
+  .jvc-sidebar {
+    transform: translateX(-100%);
+    width: 260px !important;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 9999;
+    transition: transform 0.3s ease-in-out;
+    background: #ffffff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+  }
+
+  .jvc-sidebar.show-mobile {
+    transform: translateX(0);
+  }
+
+  /* Quitamos el overlay */
+  body.sidebar-open::before {
+    display: none;
+  }
+
+  /* Ajustes del header y contenido */
+  .jvc-header {
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 999;
+  }
+
+  /* Ajustes del logo en móvil */
+  .jvc-sidebar-header {
+    padding: 15px 20px;
+    background: #fff;
+    position: relative;
+    z-index: 9999;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .jvc-logo-container {
+    height: 60px;
+    margin: 0;
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .jvc-sidebar-logo {
+    max-height: 50px;
+    width: auto;
+  }
+
+  /* Ajustes del botón de menú */
+  .jvc-menu-toggle {
+    display: block !important;
+    z-index: 9999;
+    position: relative;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  /* Ajustes de los enlaces en móvil */
+  .jvc-sidebar-menu {
+    background: #fff;
+    padding-bottom: 20px;
+  }
+
+  .jvc-sidebar-link {
+    padding: 12px 24px;
+    color: #333;
+    background: #fff;
+  }
+
+  .jvc-sidebar-dropdown {
+    position: static !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    background: #fff;
+    padding-left: 30px;
+  }
+
+  .jvc-sidebar-dropdown-item {
+    padding: 10px 24px 10px 40px;
+    color: #555;
+    background: #fff;
+  }
+
+  /* Ajuste del menú title en móvil */
+  .menu-title {
+    color: #e74c3c;
+    padding: 15px 24px 8px;
+    font-size: 12px;
+    background: #fff;
+    margin-top: 5px;
+  }
+
+  /* Mejorar la visibilidad de los íconos en móvil */
+  .jvc-sidebar-link i {
+    color: #e74c3c;
+    font-size: 20px;
+    min-width: 24px;
+  }
+
+  /* Asegurar que el contenido principal no se vea afectado */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: var(--header-height);
+  }
+}
+
+/* Ajustes para PC */
+@media (min-width: 769px) {
+  .jvc-sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+  }
+
+  .sidebar-collapsed .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+
+  .jvc-sidebar.collapsed .jvc-sidebar-link {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .jvc-sidebar.collapsed .jvc-sidebar-link span {
+    display: none;
+  }
+}
+/* Agregar al final de tu archivo sidebar.css */
+.jvc-sidebar-menu {
+  padding-bottom: 50px;
+}
+
+.jvc-sidebar-menu::after {
+  content: "";
+  display: block;
+  height: 100px;
+  width: 100%;
+}

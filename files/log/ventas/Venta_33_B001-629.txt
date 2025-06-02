@@ -1,0 +1,7 @@
+Venta: 33, fecha: 2025-04-24
+
+Prod: insert into productos_ventas 
+        values ('30', '33', '2', '4602.00', '', '') - false 
+Incorrect decimal value: '' for column `factura_jvc1`.`productos_ventas`.`costo` at row 1
+
+

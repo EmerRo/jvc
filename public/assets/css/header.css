@@ -1,0 +1,224 @@
+/* Header */
+.jvc-header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    height: var(--header-height);
+    background: #e4e2e2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    z-index: 999;
+    transition: left 0.3s ease;
+  }
+  
+  .sidebar-collapsed .jvc-header {
+    left: var(--sidebar-collapsed-width);
+  }
+  
+  .jvc-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0 1.5rem;
+  }
+  
+  /* Navegación izquierda */
+  .jvc-nav-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .jvc-menu-toggle {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #1a1c2d;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .jvc-menu-toggle:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-accent);
+  }
+  
+  /* Navegación derecha */
+  .jvc-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .jvc-nav-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #1a1c2d;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .jvc-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--sidebar-accent);
+  }
+  
+  .jvc-nav-btn i {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Dropdown */
+  .jvc-dropdown {
+    position: relative;
+  }
+  
+  .jvc-dropdown-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 220px;
+    background: #858282;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    display: none;
+    animation: dropdownFade 0.2s ease;
+  }
+  
+  @keyframes dropdownFade {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .jvc-dropdown.active .jvc-dropdown-content {
+    display: block;
+  }
+  
+  .jvc-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #1a1c2d;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+  
+  .jvc-dropdown-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-accent);
+  }
+  
+  .jvc-dropdown-item i {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.75rem;
+  }
+  
+  .dropdown-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .jvc-sidebar {
+      transform: translateX(-100%);
+    }
+  
+    .jvc-header {
+      left: 0;
+    }
+  
+    .main-content {
+      margin-left: 0;
+    }
+  
+    .sidebar-open .jvc-sidebar {
+      transform: translateX(0);
+      width: var(--sidebar-width);
+    }
+  
+    .sidebar-open .jvc-header {
+      left: var(--sidebar-width);
+    }
+  
+    .sidebar-open .main-content {
+      margin-left: var(--sidebar-width);
+    }
+  }
+  .jvc-user-info {
+    margin-right: 1rem;
+    font-size: 0.95rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .jvc-user-info .empresa {
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .jvc-user-info .role {
+    font-weight: 700;
+    color: #e74c3c;
+  }
+  
+  /* Estilos responsivos para el header */
+  @media (max-width: 768px) {
+    .jvc-header {
+        left: 0;
+        width: 100%;
+    }
+
+    .jvc-navbar {
+        padding: 0 1rem;
+    }
+
+    .jvc-user-info {
+        font-size: 0.9rem;
+    }
+
+    .jvc-nav-right {
+        gap: 0.5rem;
+    }
+
+    .jvc-fullscreen-btn {
+        display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .jvc-user-info {
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .jvc-nav-right {
+        gap: 0.25rem;
+    }
+  }
+  
+  

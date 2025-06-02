@@ -1,0 +1,7 @@
+Venta: 31, fecha: 2025-04-24
+
+Prod: insert into productos_ventas 
+        values ('2', '31', '1', '29.72972972973', '125.00', '0.27027027027027') - false 
+Data too long for column 'precio_usado' at row 1
+
+

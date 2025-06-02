@@ -1,0 +1,157 @@
+   /* Estilos específicos para los modales de marca, modelo y equipo */
+   #modalMarca .modal-content,
+   #modalModelo .modal-content,
+   #modalEquipo .modal-content,
+   #modalTecnico .modal-content {
+       background-color: #f8f9fa;
+       border: none;
+       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+   }
+
+   #modalMarca .modal-header,
+   #modalModelo .modal-header,
+   #modalEquipo .modal-header,
+   #modalTecnico .modal-header {
+ 
+       border-bottom: none;
+       border-radius: 0;
+   }
+
+   #modalMarca .modal-body,
+   #modalModelo .modal-body,
+   #modalEquipo .modal-body,
+   #modalTecnico .modal-body {
+       background-color: #fff;
+       padding: 20px;
+   }
+
+   #modalMarca .table-responsive,
+   #modalModelo .table-responsive,
+   #modalEquipo .table-responsive,
+   #modalTecnico .table-responsive {
+       background-color: #fff;
+       border-radius: 8px;
+       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+   }
+
+   #modalMarca .table thead th,
+   #modalModelo .table thead th,
+   #modalTecnico .table thead th,
+   #modalEquipo .table thead th {
+       background-color: #f8f9fa;
+       border-bottom: 2px solid #dee2e6;
+   }
+
+   #modalMarca .btn-close,
+   #modalModelo .btn-close,
+   #modalEquipo .btn-close,
+   #modalTecnico .btn-close {
+       color: white;
+       filter: brightness(0) invert(1);
+   }
+
+   #modalMarca .input-group,
+   #modalModelo .input-group,
+   #modalEquipo .input-group,
+   #modalTecnico .input-group {
+       margin-bottom: 1rem;
+   }
+
+   #modalMarca .input-group .form-control,
+   #modalModelo .input-group .form-control,
+   #modalEquipo .input-group .form-control,
+   #modalTecnico .input-group .form-control {
+       border-right: none;
+   }
+
+   #modalMarca .input-group .btn,
+   #modalModelo .input-group .btn,
+   #modalEquipo .input-group .btn,
+   #modalTecnico .input-group .btn {
+       border-left: none;
+   }
+
+   /* Estilo para el modal principal cuando está en segundo plano */
+   .modal-backdrop-blur {
+       opacity: 0.3 !important;
+       transition: opacity 0.3s ease;
+   }
+
+   /* Estilo para hacer semi-transparente el modal principal */
+   .modal.blur-background {
+       opacity: 0.7;
+       transition: opacity 0.3s ease;
+   }
+
+   /* Asegurar que el modal secundario esté por encima */
+   #modalMarca,
+   #modalModelo,
+   #modalEquipo,
+   #modalTecnico {
+       z-index: 1060 !important;
+   }
+
+   /* Asegurar que el backdrop del modal secundario esté por encima */
+   #modalMarca+.modal-backdrop,
+   #modalModelo+.modal-backdrop,
+   #modalEquipo+.modal-backdrop,
+   #modalTecnico+.modal-backdrop {
+       z-index: 1055 !important;
+   }
+
+   /* Asegurar que el contenido del modal esté bien formateado */
+   #modalMarca .modal-content,
+   #modalModelo .modal-content,
+   #modalEquipo .modal-content,
+   #modalTecnico .modal-content {
+       border-radius: 8px;
+       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+       border: none;
+       max-height: 90vh;
+       overflow-y: auto;
+   }
+
+   .cotizacion-notificacion {
+    animation: parpadeo 1s infinite;
+}
+
+@keyframes parpadeo {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Modal styling */
+.modal-content {
+    background-color: #f8f9fa !important;
+}
+
+
+
+.modal-body {
+    background-color: #fff;
+}
+/* Table scrolling */
+.table-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Modal backdrop styling for stacked modals */
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+.modal-stacked .modal-content {
+    background-color: #e9ecef !important;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+

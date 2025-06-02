@@ -1,0 +1,212 @@
+ /* Estilos para validación de números de serie */
+ .is-valid {
+    border-color: #28a745 !important;
+    padding-right: calc(1.5em + 0.75rem) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    padding-right: calc(1.5em + 0.75rem) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23dc3545' viewBox='-2 -2 7 7'%3e%3cpath stroke='%23dc3545' d='M0 0l3 3m0-3L0 3'/%3e%3ccircle r='.5'/%3e%3ccircle cx='3' r='.5'/%3e%3ccircle cy='3' r='.5'/%3e%3ccircle cx='3' cy='3' r='.5'/%3e%3c/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+}
+
+.valid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #28a745;
+}
+
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #dc3545;
+}
+
+.series-duplicadas {
+    background-color: #ffe9e9;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #dc3545;
+    display: block;
+}
+
+/* Estilo para series repetidas */
+.series-repetidas {
+    background-color: #ffe9e9;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #dc3545;
+    display: block;
+    border-left: 4px solid #dc3545;
+}
+
+/* Estilos existentes */
+.equipos-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.equipos-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.equipos-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.equipos-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.equipos-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Estilos para las tarjetas de equipos */
+.equipo-item {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.equipo-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Estilos para botones de acción */
+.btn-action {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo para el checkbox personalizado */
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f0f7ff;
+    border-radius: 5px;
+    border-left: 4px solid #0d6efd;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+}
+
+.custom-checkbox label {
+    margin-bottom: 0;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.seccion-maquinas-identicas {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.series-counter {
+    background-color: #e9f7fe;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #0d6efd;
+    display: inline-block;
+}
+
+/* Estilo para contador de series con error */
+.series-counter.error {
+    background-color: #ffe9e9;
+    color: #dc3545;
+}
+
+/* Estilos mejorados para el modal de detalles */
+.detalle-equipo {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.detalle-equipo:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detalle-equipo h6 {
+    color: #0d6efd;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.detalle-info {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.detalle-info-item {
+    flex: 1 0 50%;
+    margin-bottom: 10px;
+    min-width: 200px;
+}
+
+.detalle-info-item strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 3px;
+}
+
+.detalle-info-item span {
+    font-size: 1rem;
+}
+
+.detalle-header {
+    background-color: #f0f7ff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #0d6efd;
+}
+
+/* Estilo para resaltar series repetidas en el textarea */
+textarea.has-duplicates {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
