@@ -78,16 +78,16 @@
             <div class="card-header">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <a href="/registro/activos" class="btn btn-primary button-link">
+                        <a href="/registro/activos" class="btn bg-rojo text-white button-link">
                             <i class="fa fa-plus"></i> Añadir Registro De Gestión Activos
                         </a>
                     </div>
                     <div class="col-md-6">
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="/motivo" class="btn btn-primary button-link">
+                            <a href="/motivo" class="btn border-rojo button-link">
                                 <i class="fa fa-plus"></i> Motivo
                             </a>
-                            <a href="/maquina" class="btn btn-success button-link">
+                            <a href="/maquina" class="btn border-rojo button-link">
                                 <i class="fa fa-plus"></i> Máquina
                             </a>
                         </div>

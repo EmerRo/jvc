@@ -33,7 +33,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <button type="button" data-bs-toggle="modal" data-bs-target="#modalMaquina"
-                            class="btn btn-primary"><i class="fa fa-plus"></i> Nueva Maquina</button>
+                            class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Nueva Maquina</button>
                     </div>
                     <div class="col-md-6 text-end">
                         <a href="gestion/activos" class="btn btn-warning"><i class="fa fa-arrow-left"></i> Regresar</a>

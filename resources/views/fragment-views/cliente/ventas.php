@@ -11,23 +11,7 @@
                 <li class="breadcrumb-item active" aria-current="page"  style="font-weight: 500; color: #CA3438;">Ventas</li>
             </ol>
         </div>
-        <div class="col-md-4">
-            <div class="float-end d-none d-md-block">
-                <div hidden class="dropdown">
-                    <button class="btn btn-primary  dropdown-toggle" type="button" id="dropdownMenuButton"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="mdi mdi-cog me-2"></i> Settings
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Separated link</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    
     </div>
 </div>
 <!-- end page title -->
@@ -58,7 +42,7 @@
                             data-bs-target="#ventas-xls-reporte-rvta">Reporte RVTA "xls"</button>
                         <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
                             data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
-                        <a  href="/ventas/servicios" class="btn btn-primary button-link"><i
+                        <a  href="/ventas/servicios" class="btn bg-rojo text-white button-link"><i
                                 class="fa fa-plus"></i> Facturar Servicios</a>
                     </div>
                     <table id="datatable" class="table"
@@ -858,7 +842,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                       <input require name="num" value="${num}" type="text" class="form-control" placeholder="00000" >
                         <input type="hidden" name="link" value="${link}">
                       <div class="input-group-prepend">
-                        <button class="btn btn-primary"><i class="fa fa-send"></i> Enviar</button>
+                        <button class="btn bg-rojo text-white"><i class="fa fa-send"></i> Enviar</button>
                       </div>
                     </div>
                 </div>

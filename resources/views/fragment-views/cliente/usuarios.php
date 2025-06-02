@@ -25,9 +25,9 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             <div class="card-header bg-white py-2">
                 <div class="row">
                     <div class="col-md-6">
-                        <button type="button" id="add-user" class="btn btn-primary btn-sm"><i
-                                class="fa fa-plus me-1"></i>Agregar</button>
-                        <button type="button" id="manage-roles" class="btn btn-info btn-sm ms-2"><i
+                        <button type="button" id="add-user" class="btn bg-rojo text-white "><i
+                                class="fa fa-plus me-1 "></i>Agregar</button>
+                        <button type="button" id="manage-roles" class="btn border-rojo"><i
                                 class="fa fa-cogs me-1"></i>Gestionar Roles</button>
                     </div>
                 </div>
@@ -153,14 +153,14 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     <div class="row g-3">
                         <!-- Primera fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-user-tag me-1"></i>Rol
                             </label>
                             <select name="rol" id="rol" class="form-select form-select-sm">
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-signature me-1"></i>Nombres
                             </label>
                             <input type="text" name="nombres" id="nombres" class="form-control form-control-sm"
@@ -169,13 +169,13 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                         <!-- Segunda fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-id-card me-1"></i>Número de documento
                             </label>
                             <input type="text" name="ndoc" id="ndoc" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-user-circle me-1"></i>Usuario
                             </label>
                             <input type="text" name="usuario" id="usuario" class="form-control form-control-sm"
@@ -184,14 +184,14 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                         <!-- Tercera fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-key me-1"></i>Clave
                             </label>
                             <input type="password" name="clave" id="clave" class="form-control form-control-sm"
                                 required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-phone me-1"></i>Teléfono
                             </label>
                             <input type="text" name="telefono" id="telefono" class="form-control form-control-sm">
@@ -199,13 +199,13 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                         <!-- Cuarta fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-envelope me-1"></i>Correo
                             </label>
                             <input type="email" name="email" id="email" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
+                            <label class="form-label ">
                                 <i class="fa fa-store me-1"></i>Tienda
                             </label>
                             <select name="tienda" id="tiendau" class="form-select form-select-sm">
@@ -214,7 +214,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             </select>
                         </div>
                         <!-- <div class="col-md-3">
-                            <label class="form-label small">Rotativo</label>
+                            <label class="form-label ">Rotativo</label>
                             <select name="rotativo" id="rotativou" class="form-select form-select-sm">
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
@@ -224,10 +224,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 </form>
             </div>
             <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                     <i class="fa fa-times me-1"></i>Cerrar
                 </button>
-                <button type="button" id="submitButton" class="btn btn-primary btn-sm">
+                <button type="button" id="submitButton" class="btn bg-rojo text-white ">
                     <i class="fa fa-save me-1"></i>Crear
                 </button>
             </div>
