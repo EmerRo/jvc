@@ -127,16 +127,40 @@ class CartaTemplate
         return $result;
     }
 
-    public function actualizarTemplate()
-    {
+ public function actualizarTemplate()
+{
+    try {
         $sql = "UPDATE carta_templates 
-                SET titulo = ?, contenido = ?, header_image = ?, footer_image = ? 
+                SET titulo = ?, contenido = ?, header_image = ?, footer_image = ?, 
+                    fecha_modificacion = CURRENT_TIMESTAMP 
                 WHERE id = ?";
         
         $stmt = $this->conectar->prepare($sql);
         
-        $stmt->bind_param("ssssi", $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->id);
+        if (!$stmt) {
+            throw new Exception("Error preparando consulta: " . $this->conectar->error);
+        }
         
-        return $stmt->execute();
+        $stmt->bind_param("ssssi", 
+            $this->titulo, 
+            $this->contenido, 
+            $this->header_image, 
+            $this->footer_image, 
+            $this->id
+        );
+        
+        $resultado = $stmt->execute();
+        
+        if (!$resultado) {
+            throw new Exception("Error ejecutando consulta: " . $stmt->error);
+        }
+        
+        error_log("Template actualizado correctamente. ID: " . $this->id);
+        return $resultado;
+        
+    } catch (Exception $e) {
+        error_log("Error en actualizarTemplate: " . $e->getMessage());
+        throw $e;
     }
+}
 }

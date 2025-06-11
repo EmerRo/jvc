@@ -23,18 +23,22 @@ class InformePDF extends Controller
             'margin_top' => 0,
             'margin_bottom' => 0,
             'margin_header' => 0,
-            'margin_footer' => 0
+            'margin_footer' => 0,
         ]);
         $this->conexion = (new Conexion())->getConexion();
     }
     
+// REEMPLAZAR el método generarInformePDF completo
 public function generarInformePDF($id_informe)
 {
     $informe = new Informe();
     $informe->setIdInforme($id_informe);
     $informe->obtenerInforme();
 
-    $this->mpdf->SetTitle($informe->getTitulo());
+    // Generar número correlativo
+    $numeroCorrelativo = $informe->generarNumeroCorrelativo($informe->getTipo());
+    
+    $this->mpdf->SetTitle($informe->getTitulo() . " " . $numeroCorrelativo);
     
     // Obtener las URLs de las imágenes
     $headerImageUrl = $informe->getHeaderImage();
@@ -68,24 +72,66 @@ public function generarInformePDF($id_informe)
     $this->mpdf->SetHTMLFooter($footerHTML);
     
     // Configurar márgenes
-    $headerHeight = 50; // altura aproximada en mm
-    $footerHeight = 30; // altura aproximada en mm
+    $headerHeight = 50;
+    $footerHeight = 30;
     
-    // Corregir el uso de SetMargins (izquierda, derecha, superior)
     $this->mpdf->SetMargins(15, 15, $headerHeight);
-    
-    // Configurar el salto de página automático
     $this->mpdf->SetAutoPageBreak(true, $footerHeight);
     
     // Añadir la página
     $this->mpdf->AddPage();
     
-    // HTML con márgenes laterales para el título
+    // Construir el HTML del contenido con la información completa
     $html = "
-    <div style='margin-top: 30px;'></div>  <!-- Espacio adicional después del encabezado -->
+    <div style='margin-top: 30px;'></div>
     
-    <h2 style='text-align: center; color: #000; margin-top: 20px; margin-bottom: 20px; margin-left: 15mm; margin-right: 15mm; font-size: 16pt;'>" . $informe->getTitulo() . "</h2>
+    <!-- Información del informe -->
+<div style='text-align: center; margin-bottom: 30px;'>
+        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px; '>" . strtoupper($informe->getTitulo()) . " " . $numeroCorrelativo . "</h1>
+     <!-- <h2 style='color: #000; font-size: 12pt; margin-bottom: 5px;'>" . $informe->getTitulo() . "</h2> -->
+    </div>
     
+    <!-- Información de la empresa y cliente -->
+    <div style='margin: 0 15mm; margin-bottom: 5px;'>
+        <table style='width: 100%; border-collapse: collapse; font-size: 12px;'>
+            <tr>
+                <td style='width: 15%; font-weight: bold; padding: 5px 0;'>DE:</td>
+                <td style='width: 85%; padding: 5px 0;'>" . ($informe->getEmpresaRazonSocial() ?: 'COMERCIAL & INDUSTRIAL J.V.C. S.A.C.') . "</td>
+            </tr>";
+    
+    // Agregar información del cliente si existe
+    if ($informe->getClienteNombre()) {
+        $html .= "
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>A:</td>
+                <td style='padding: 5px 0;'>" . $informe->getClienteNombre() . "  </td>
+            </tr>";
+             
+    }
+    
+    $html .= "
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Documento:</td>
+                <td style='padding: 5px 0;'>" . $informe->getClienteDocumento() . "</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
+                <td style='padding: 5px 0;'>" . $informe->getTitulo() . "</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Tipo:</td>
+                <td style='padding: 5px 0;'>" . $informe->getTipo() . "</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
+               <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y', strtotime($informe->getFechaCreacion())) . "</td>
+            </tr>
+        </table>
+    </div>
+    
+    <hr style='margin: 0 15mm; border: none; border-top: 1px solid #ccc;'>
+    
+    <!-- Contenido del informe -->
     <div style='font-size: 12px; text-align: justify; padding: 10px; margin: 0 15mm;'>";
     
     // Agregar el contenido del informe
@@ -93,11 +139,16 @@ public function generarInformePDF($id_informe)
     $html .= "</div>";
 
     $this->mpdf->WriteHTML($html);
-    $this->mpdf->Output("Informe_" . $informe->getTipo() . ".pdf", "I");
+    $this->mpdf->Output("Informe_" . $numeroCorrelativo . ".pdf", "I");
 }
+// REEMPLAZAR el método generarVistaPreviaPDF completo
 public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image)
 {
-    $this->mpdf->SetTitle($titulo);
+    // Para vista previa, generar un número correlativo de ejemplo
+    $anio = date('Y');
+    $numeroEjemplo = "NRO.XXX-$anio-JVC";
+    
+    $this->mpdf->SetTitle($titulo . " " . $numeroEjemplo);
     
     // Definir el HTML del encabezado y pie de página
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
@@ -112,25 +163,50 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     $this->mpdf->SetHTMLHeader($headerHTML);
     $this->mpdf->SetHTMLFooter($footerHTML);
     
-    // Aumentar el valor del margen superior para dar más espacio
-    $headerHeight = 50; // aumentado de 40 a 50mm
-    $footerHeight = 30; // altura aproximada en mm
+    $headerHeight = 50;
+    $footerHeight = 30;
     
-    // Corregido: solo 3 parámetros para SetMargins
     $this->mpdf->SetMargins(0, 0, $headerHeight);
-    
-    // Configurar el salto de página automático
     $this->mpdf->SetAutoPageBreak(true, $footerHeight);
     
     // Añadir la página
     $this->mpdf->AddPage();
     
-    // Construir el HTML del contenido con más espacio después del encabezado
+    // Construir el HTML del contenido
     $html = "
-    <div style='margin-top: 30px;'></div>  <!-- Espacio adicional después del encabezado -->
+    <div style='margin-top: 30px;'></div>
     
-    <h2 style='text-align: center; color: #000; margin-top: 20px; margin-bottom: 20px; font-size: 16pt;'>" . $titulo . "</h2>
+    <!-- Información del informe -->
+    <div style='text-align: center; margin-bottom: 30px;'>
+        <h1 style='color: #000; font-size: 18pt; margin-bottom: 10px;'>VISTA PREVIA " . $numeroEjemplo . "</h1>
+        <h2 style='color: #000; font-size: 16pt; margin-bottom: 20px;'>" . $titulo . "</h2>
+    </div>
     
+    <!-- Información de ejemplo -->
+    <div style='margin: 0 15mm; margin-bottom: 20px;'>
+        <table style='width: 100%; border-collapse: collapse; font-size: 12px;'>
+            <tr>
+                <td style='width: 15%; font-weight: bold; padding: 5px 0;'>DE:</td>
+                <td style='width: 85%; padding: 5px 0;'>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>A:</td>
+                <td style='padding: 5px 0;'>CLIENTE DE EJEMPLO</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
+                <td style='padding: 5px 0;'>" . $titulo . "</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
+                <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y') . "</td>
+            </tr>
+        </table>
+    </div>
+    
+    <hr style='margin: 20px 15mm; border: none; border-top: 1px solid #ccc;'>
+    
+    <!-- Contenido del informe -->
     <div style='font-size: 12px; text-align: justify; padding: 10px; margin: 0 15mm;'>";
     
     // Agregar el contenido del informe

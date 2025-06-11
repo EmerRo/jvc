@@ -2,6 +2,7 @@
 
 require_once "app/models/Informe.php";
 require_once "app/models/InformeTemplate.php";
+require_once "app/models/TipoInforme.php";
 require_once "app/http/controllers/InformePDF.php";
 
 class InformeController extends Controller
@@ -9,6 +10,7 @@ class InformeController extends Controller
     private $informe;
     private $informeTemplate;
     private $informePDF;
+    private $tipoInforme;
     private $conectar;
 
     public function __construct()
@@ -16,6 +18,7 @@ class InformeController extends Controller
         $this->informe = new Informe();
         $this->informeTemplate = new InformeTemplate();
         $this->informePDF = new InformePDF();
+        $this->tipoInforme = new TipoInforme();
         $this->conectar = (new Conexion())->getConexion();
     }
 
@@ -383,4 +386,85 @@ public function render()
         
         return $base64;
     }
+    // Nuevos métodos para gestionar tipos de informe
+public function obtenerTiposInforme()
+{
+    try {
+        $tipos = $this->tipoInforme->obtenerTodos();
+        echo json_encode(['success' => true, 'tipos' => $tipos]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+public function insertarTipoInforme()
+{
+    if (!empty($_POST)) {
+        try {
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
+            
+            if (empty($nombre)) {
+                throw new Exception("El nombre del tipo es obligatorio");
+            }
+            
+            $this->tipoInforme->setNombre($nombre);
+            // $this->tipoInforme->setDescripcion($descripcion);
+            
+            if ($this->tipoInforme->insertar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de informe creado correctamente']);
+            } else {
+                throw new Exception("Error al guardar el tipo de informe");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+public function editarTipoInforme()
+{
+    if (!empty($_POST)) {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
+            
+            if (empty($id) || empty($nombre)) {
+                throw new Exception("ID y nombre son obligatorios");
+            }
+            
+            $this->tipoInforme->setId($id);
+            $this->tipoInforme->setNombre($nombre);
+            // $this->tipoInforme->setDescripcion($descripcion);
+            
+            if ($this->tipoInforme->actualizar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de informe actualizado correctamente']);
+            } else {
+                throw new Exception("Error al actualizar el tipo de informe");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+public function eliminarTipoInforme()
+{
+    if (isset($_POST['id'])) {
+        try {
+            $id = intval($_POST['id']);
+            $this->tipoInforme->setId($id);
+            
+            if ($this->tipoInforme->eliminar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de informe eliminado correctamente']);
+            } else {
+                throw new Exception("Error al eliminar el tipo de informe");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
 }

@@ -173,6 +173,10 @@ Route::post( "/ajs/informe/guardar-template",  "InformeController@guardarTemplat
 Route::post( "/ajs/informe/vista-previa",  "InformeController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/getTipos",  "InformeController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
 
+Route::get("/ajs/informe/obtener-tipos-informe", "InformeController@obtenerTiposInforme")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/informe/insertar-tipo-informe", "InformeController@insertarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/informe/editar-tipo-informe", "InformeController@editarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/informe/eliminar-tipo-informe", "InformeController@eliminarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
 
 // Rutas para cartas
 Route::get( "/ajs/carta/render",  "CartaController@render")->Middleware([ValidarTokenMiddleware::class]);
@@ -185,6 +189,13 @@ Route::get( "/ajs/carta/obtener-template",  "CartaController@obtenerTemplate")->
 Route::post( "/ajs/carta/guardar-template",  "CartaController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/carta/vista-previa",  "CartaController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/carta/getTipos",  "CartaController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
+Route::get( "/ajs/carta/obtener-membretes",  "CartaController@obtenerMembretes")->Middleware([ValidarTokenMiddleware::class]);
+Route::post( "/ajs/carta/guardar-membretes",  "CartaController@guardarMembretes")->Middleware([ValidarTokenMiddleware::class]);
+Route::get( "/ajs/carta/obtener-tipos-cartas",  "CartaController@obtenerTiposCartas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post( "/ajs/carta/insertar-tipo-carta",  "CartaController@insertarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
+Route::post( "/ajs/carta/editar-tipo-carta",  "CartaController@editarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
+Route::post( "/ajs/carta/eliminar-tipo-carta",  "CartaController@eliminarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
+
 // Rutas para constancias
 Route::get( "/ajs/constancia/render",  "ConstanciaController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/constancia/getOne",  "ConstanciaController@getOne")->Middleware([ValidarTokenMiddleware::class]);
@@ -221,3 +232,5 @@ Route::post( "/ajs/otro-archivo/vista-previa",  "OtroArchivoController@vistaPrev
 Route::get( "/ajs/otro-archivo/getTipos",  "OtroArchivoController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/otro-archivo/getMotivos",  "OtroArchivoController@getMotivos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/otro-archivo/compartir-whatsapp",  "OtroArchivoController@compartirWhatsApp")->Middleware([ValidarTokenMiddleware::class]);
+
+Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);

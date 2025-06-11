@@ -111,6 +111,10 @@ class Carta
     {
         $this->estado = $estado;
     }
+    public function getFechaCreacion()
+{
+    return $this->fecha_creacion;
+}
 
     // Métodos para obtener URLs de imágenes
     public function getHeaderImageUrl()
@@ -313,4 +317,24 @@ class Carta
         
         return $tipos;
     }
+   public function generarNumeroCorrelativo($tipo)
+{
+    // Obtener el año actual
+    $anio = date('Y');
+    
+    // Contar cuántos cartas del mismo tipo existen en el año actual
+    $sql = "SELECT COUNT(*) as total FROM cartas 
+            WHERE tipo = ? AND YEAR(fecha_creacion) = ?";
+    $stmt = $this->conectar->prepare($sql);
+    $stmt->bind_param("si", $tipo, $anio);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    
+    // El siguiente número será el total + 1
+    $numero = $row['total'] + 1;
+    
+    // Formatear el número correlativo: NRO.015-2025-JVC
+    return sprintf("NRO.%03d-%d-JVC", $numero, $anio);
+}
 }

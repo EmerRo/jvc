@@ -846,6 +846,44 @@ class ProductosController extends Controller
 
         return json_encode($respuesta);
     }
+    public function aumentarStock()
+{
+    $respuesta = ["res" => false];
+    
+    try {
+        $producto_id = $_POST['producto_id'];
+        $cantidad = intval($_POST['cantidad']);
+        $fecha_actual = date('Y-m-d H:i:s');
+        
+        // Actualizar stock del producto
+        $sql = "UPDATE productos SET 
+                cantidad = cantidad + ?, 
+                fecha_ultimo_ingreso = ?
+                WHERE id_producto = ?";
+        
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('isi', $cantidad, $fecha_actual, $producto_id);
+        
+        if ($stmt->execute()) {
+            // Registrar el movimiento en historial (opcional)
+            $sql_historial = "INSERT INTO historial_stock 
+                             (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario) 
+                             VALUES (?, 'INGRESO', ?, ?, ?)";
+            
+            $stmt_hist = $this->conexion->prepare($sql_historial);
+            $usuario = $_SESSION['usuario'] ?? 'Sistema';
+            $stmt_hist->bind_param('iiss', $producto_id, $cantidad, $fecha_actual, $usuario);
+            $stmt_hist->execute();
+            
+            $respuesta["res"] = true;
+        }
+        
+    } catch (Exception $e) {
+        $respuesta["error"] = $e->getMessage();
+    }
+    
+    return json_encode($respuesta);
+}
 
 }
 

@@ -244,3 +244,54 @@ AFTER `estado`;
 
 
 ALTER TABLE numero_series ADD COLUMN cliente_documento VARCHAR(11) AFTER cliente_ruc_dni;
+
+
+<VirtualHost *:80>
+        ServerAdmin admin@magus-ecommerce.com
+        DocumentRoot /var/www/magus-ecommerce.com
+        ServerName magus-ecommerce.com
+
+        <Directory /var/www/magus-ecommerce.com>
+             Order Deny,Allow
+             Allow from All
+        </Directory>
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =magus-ecommerce.com
+RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [L,NE,R=permanent]
+</VirtualHost>
+
+
+<VirtualHost *:443>
+    ServerAdmin admin@magus-ecommerce.com
+    ServerName magus-ecommerce.com
+   DocumentRoot /var/www/html/ecommerce/dist/marketpro/browser
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/magus-ecommerce.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/magus-ecommerce.com/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+
+   <Directory /var/www/html/ecommerce/dist/marketpro/browser>
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+    
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</Directory>
+    ErrorLog /var/log/httpd/magus-ecommerce_error.log
+    CustomLog /var/log/httpd/magus-ecommerce_access.log combined
+</VirtualHost>
+
+-- laravel.conf
+<VirtualHost *:80>
+   ServerName magus-ecommerce.com
+   DocumentRoot /var/www/html/magus-ecommerce/public
+   <Directory /var/www/html/magus-ecommerce>
+          AllowOverride All
+   </Directory>
+</VirtualHost>

@@ -2,58 +2,362 @@
 <?php
 $empresa = $_SESSION['id_empresa'];
 
-// Configuración de fechas para comparativas
-$anio1 = date("Y");
-$mes1 = date("m");
-$anio2 = '';
-$mes2 = '';
-if ($mes1 == 1) {
-    $mes2 = '12';
-    $anio2 = $anio1 - 1;
-} else {
-    $anio2 = $anio1;
-    $mes2 = $mes1 - 1;
+// Obtener el período actual desde la URL o usar 'mes' por defecto
+$periodo_actual = $_GET['periodo'] ?? 'mes';
+$fecha_inicio = $_GET['fecha_inicio'] ?? null;
+$fecha_fin = $_GET['fecha_fin'] ?? null;
+
+// Configurar fechas y textos según el período
+$ahora = new DateTime();
+$textos_periodo = [];
+$categorias_grafico = [];
+$datos_ventas = [];
+
+switch ($periodo_actual) {
+    case 'hoy':
+        $fecha_inicio = $ahora->format('Y-m-d');
+        $fecha_fin = $ahora->format('Y-m-d');
+        $textos_periodo = [
+            'titulo_principal' => 'Ventas de Hoy',
+            'comparativa' => 'vs. Día Anterior',
+            'periodo_comparativo' => 'ayer'
+        ];
+        $categorias_grafico = ['Hoy'];
+        break;
+
+    case 'semana':
+        $diaSemana = $ahora->format('N'); // 1 (lunes) a 7 (domingo)
+        $inicioSemana = clone $ahora;
+        $inicioSemana->modify('-' . ($diaSemana - 1) . ' days');
+        $fecha_inicio = $inicioSemana->format('Y-m-d');
+        $fecha_fin = $ahora->format('Y-m-d');
+        $textos_periodo = [
+            'titulo_principal' => 'Ventas de Esta Semana',
+            'comparativa' => 'vs. Semana Anterior',
+            'periodo_comparativo' => 'semana_anterior'
+        ];
+        $categorias_grafico = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+        break;
+
+    case 'mes':
+        $inicioMes = new DateTime($ahora->format('Y-m-01'));
+        $fecha_inicio = $inicioMes->format('Y-m-d');
+        $finMes = new DateTime($ahora->format('Y-m-t'));
+        $fecha_fin = $finMes->format('Y-m-d');
+        $textos_periodo = [
+            'titulo_principal' => 'Ventas de Este Mes',
+            'comparativa' => 'vs. Mes Anterior',
+            'periodo_comparativo' => 'mes_anterior'
+        ];
+        // Para mes, mostrar semanas del mes
+        $categorias_grafico = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5'];
+        break;
+
+    case 'anio':
+        $inicioAnio = new DateTime($ahora->format('Y-01-01'));
+        $fecha_inicio = $inicioAnio->format('Y-m-d');
+        $finAnio = new DateTime($ahora->format('Y-12-31'));
+        $fecha_fin = $finAnio->format('Y-m-d');
+        $textos_periodo = [
+            'titulo_principal' => 'Ventas Anuales',
+            'comparativa' => 'vs. Año Anterior',
+            'periodo_comparativo' => 'anio_anterior'
+        ];
+        $categorias_grafico = [
+            'Enero',
+            'Febrero',
+            'Marzo',
+            'Abril',
+            'Mayo',
+            'Junio',
+            'Julio',
+            'Agosto',
+            'Septiembre',
+            'Octubre',
+            'Noviembre',
+            'Diciembre'
+        ];
+        break;
+
+    default: // personalizado
+        if ($fecha_inicio && $fecha_fin) {
+            $inicio = new DateTime($fecha_inicio);
+            $fin = new DateTime($fecha_fin);
+            $diff = $inicio->diff($fin);
+
+            // Formatear fechas para mostrar
+            $fecha_inicio_formato = $inicio->format('d/m/Y');
+            $fecha_fin_formato = $fin->format('d/m/Y');
+
+            $textos_periodo = [
+                'titulo_principal' => "Ventas del $fecha_inicio_formato - $fecha_fin_formato",
+                'comparativa' => 'vs. Período Anterior',
+                'periodo_comparativo' => 'periodo_anterior'
+            ];
+
+            if ($diff->days == 0) {
+                $categorias_grafico = [$inicio->format('d/m')];
+            } elseif ($diff->days <= 7) {
+                $categorias_grafico = [];
+                for ($i = 0; $i <= $diff->days; $i++) {
+                    $fecha_temp = clone $inicio;
+                    $fecha_temp->modify("+$i days");
+                    $categorias_grafico[] = $fecha_temp->format('d/m');
+                }
+            } else {
+                // Para períodos largos, agrupar por semanas
+                $categorias_grafico = [];
+                $fecha_actual = clone $inicio;
+                while ($fecha_actual <= $fin) {
+                    $categorias_grafico[] = $fecha_actual->format('d/m');
+                    $fecha_actual->modify('+7 days');
+                }
+            }
+
+            // Establecer período actual como personalizado
+            $periodo_actual = 'personalizado';
+        } else {
+            // Valores por defecto si no hay fechas
+            $textos_periodo = [
+                'titulo_principal' => 'Ventas del Período',
+                'comparativa' => 'vs. Período Anterior',
+                'periodo_comparativo' => 'periodo_anterior'
+            ];
+            $categorias_grafico = ['Sin datos'];
+        }
+        break;
+}
+
+// Configuración de fechas para comparativas según el período
+$fecha_inicio_comparativa = '';
+$fecha_fin_comparativa = '';
+
+switch ($textos_periodo['periodo_comparativo']) {
+    case 'ayer':
+        $ayer = clone $ahora;
+        $ayer->modify('-1 day');
+        $fecha_inicio_comparativa = $ayer->format('Y-m-d');
+        $fecha_fin_comparativa = $ayer->format('Y-m-d');
+        break;
+
+    case 'semana_anterior':
+        $inicioSemanaAnterior = clone $ahora;
+        $inicioSemanaAnterior->modify('-1 week')->modify('-' . ($ahora->format('N') - 1) . ' days');
+        $finSemanaAnterior = clone $inicioSemanaAnterior;
+        $finSemanaAnterior->modify('+6 days');
+        $fecha_inicio_comparativa = $inicioSemanaAnterior->format('Y-m-d');
+        $fecha_fin_comparativa = $finSemanaAnterior->format('Y-m-d');
+        break;
+
+    case 'mes_anterior':
+        $mesAnterior = clone $ahora;
+        $mesAnterior->modify('-1 month');
+        $fecha_inicio_comparativa = $mesAnterior->format('Y-m-01');
+        $fecha_fin_comparativa = $mesAnterior->format('Y-m-t');
+        break;
+
+    case 'anio_anterior':
+        $anioAnterior = clone $ahora;
+        $anioAnterior->modify('-1 year');
+        $fecha_inicio_comparativa = $anioAnterior->format('Y-01-01');
+        $fecha_fin_comparativa = $anioAnterior->format('Y-12-31');
+        break;
 }
 
 // Conexión a la base de datos
 $conexion = (new Conexion())->getConexion();
 
-// Consulta principal para datos del dashboard
+// Consulta principal adaptada al período
 $sql = "SELECT 
-  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' AND estado = '1' and sucursal='{$_SESSION['sucursal']}' AND YEAR(fecha_emision)='$anio1' AND MONTH(fecha_emision)='$mes1') totalv,
+  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' AND estado = '1' and sucursal='{$_SESSION['sucursal']}' AND fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin') totalv,
   (SELECT COUNT(*) FROM clientes WHERE id_empresa = '$empresa') cnt_cli,
-  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' and id_tido =2 AND estado = '1' AND YEAR(fecha_emision)='$anio1' AND MONTH(fecha_emision)='$mes1') totalvF,
-  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' and id_tido =1 AND estado = '1' AND YEAR(fecha_emision)='$anio1' AND MONTH(fecha_emision)='$mes1') totalvB,
-  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' AND estado = '1' AND YEAR(fecha_emision)='$anio2' AND MONTH(fecha_emision)='$mes2') totalvMA,
-  (SELECT productos.detalle FROM `productos_ventas` inner join productos on productos_ventas.id_producto = productos.id_producto GROUP BY productos.id_producto ORDER BY SUM(productos_ventas.cantidad) DESC limit 1) prodVen,
-  (SELECT SUM(cantidad) FROM productos_ventas GROUP BY id_producto ORDER BY SUM(cantidad) DESC limit 1) prodVenCan";
+  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' and id_tido =2 AND estado = '1' AND fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin') totalvF,
+  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' and id_tido =1 AND estado = '1' AND fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin') totalvB,
+  (SELECT SUM(total) FROM ventas WHERE id_empresa='$empresa' and sucursal='{$_SESSION['sucursal']}' AND estado = '1' AND fecha_emision BETWEEN '$fecha_inicio_comparativa' AND '$fecha_fin_comparativa') totalvMA,
+  (SELECT SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) 
+   FROM productos_ventas pv 
+   INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+   WHERE v.id_empresa='$empresa' AND v.estado = '1' AND v.sucursal='{$_SESSION['sucursal']}' 
+   AND v.fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin') utilidad_bruta_actual,
+  (SELECT SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) 
+   FROM productos_ventas pv 
+   INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+   WHERE v.id_empresa='$empresa' AND v.estado = '1' AND v.sucursal='{$_SESSION['sucursal']}' 
+   AND v.fecha_emision BETWEEN '$fecha_inicio_comparativa' AND '$fecha_fin_comparativa') utilidad_bruta_anterior";
 
 $data = $conexion->query($sql)->fetch_assoc();
 
-// Datos para gráfico de ventas anuales
-$dataListVen = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+// Generar datos para el gráfico según el período
+function generarDatosGrafico($periodo, $categorias, $fecha_inicio, $fecha_fin, $empresa, $sucursal, $conexion)
+{
+    $datos = [];
 
-$sql = "SELECT 
-  MONTH(fecha_emision) mes,
-  SUM(total) total
-FROM
-  ventas 
-WHERE id_empresa = '$empresa' 
-  AND estado = '1' 
-  and sucursal='{$_SESSION['sucursal']}'
-  AND YEAR(fecha_emision) = '$anio1'
-  GROUP BY mes";
-$resultList = $conexion->query($sql);
+    switch ($periodo) {
+        case 'hoy':
+            $sql = "SELECT SUM(total) as total FROM ventas 
+                   WHERE id_empresa = '$empresa' AND estado = '1' AND sucursal = '$sucursal' 
+                   AND fecha_emision = '$fecha_inicio'";
+            $result = $conexion->query($sql);
+            $row = $result->fetch_assoc();
+            $datos = [$row['total'] ?? 0];
+            break;
 
-foreach ($resultList as $dtTemp) {
-    $tempValue = 0;
-    if (doubleval($dtTemp['total']) > 0) {
-        $tempValue = doubleval($dtTemp['total']);
+        case 'semana':
+            // Obtener ventas por día de la semana
+            $inicio = new DateTime($fecha_inicio);
+            for ($i = 0; $i < 7; $i++) {
+                $fecha_dia = clone $inicio;
+                $fecha_dia->modify("+$i days");
+                $fecha_str = $fecha_dia->format('Y-m-d');
+
+                $sql = "SELECT SUM(total) as total FROM ventas 
+                       WHERE id_empresa = '$empresa' AND estado = '1' AND sucursal = '$sucursal' 
+                       AND fecha_emision = '$fecha_str'";
+                $result = $conexion->query($sql);
+                $row = $result->fetch_assoc();
+                $datos[] = floatval($row['total'] ?? 0);
+            }
+            break;
+
+        case 'mes':
+            // Obtener ventas por semana del mes
+            $inicio = new DateTime($fecha_inicio);
+            $fin = new DateTime($fecha_fin);
+
+            for ($semana = 1; $semana <= 5; $semana++) {
+                $inicio_semana = clone $inicio;
+                $inicio_semana->modify('+' . (($semana - 1) * 7) . ' days');
+                $fin_semana = clone $inicio_semana;
+                $fin_semana->modify('+6 days');
+
+                if ($fin_semana > $fin) {
+                    $fin_semana = $fin;
+                }
+
+                $sql = "SELECT SUM(total) as total FROM ventas 
+                       WHERE id_empresa = '$empresa' AND estado = '1' AND sucursal = '$sucursal' 
+                       AND fecha_emision BETWEEN '{$inicio_semana->format('Y-m-d')}' AND '{$fin_semana->format('Y-m-d')}'";
+                $result = $conexion->query($sql);
+                $row = $result->fetch_assoc();
+                $datos[] = floatval($row['total'] ?? 0);
+
+                if ($fin_semana >= $fin)
+                    break;
+            }
+            break;
+
+        case 'anio':
+            // Mantener el comportamiento original para año (por meses)
+            $datos = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            $anio = date('Y', strtotime($fecha_inicio));
+
+            $sql = "SELECT MONTH(fecha_emision) mes, SUM(total) total
+                   FROM ventas 
+                   WHERE id_empresa = '$empresa' AND estado = '1' AND sucursal = '$sucursal'
+                   AND YEAR(fecha_emision) = '$anio'
+                   GROUP BY mes";
+            $result = $conexion->query($sql);
+
+            while ($row = $result->fetch_assoc()) {
+                $datos[intval($row['mes']) - 1] = floatval($row['total']);
+            }
+            break;
     }
-    $dataListVen[intval($dtTemp['mes']) - 1] = $tempValue;
+
+    return $datos;
+}
+// Función para generar datos de utilidad bruta según el período
+function generarDatosUtilidadBruta($periodo, $categorias, $fecha_inicio, $fecha_fin, $empresa, $sucursal, $conexion)
+{
+    $datos = [];
+
+    switch ($periodo) {
+        case 'hoy':
+            $sql = "SELECT SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) as utilidad 
+                   FROM productos_ventas pv 
+                   INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+                   WHERE v.id_empresa = '$empresa' AND v.estado = '1' AND v.sucursal = '$sucursal' 
+                   AND v.fecha_emision = '$fecha_inicio'";
+            $result = $conexion->query($sql);
+            $row = $result->fetch_assoc();
+            $datos = [$row['utilidad'] ?? 0];
+            break;
+
+        case 'semana':
+            // Obtener utilidad por día de la semana
+            $inicio = new DateTime($fecha_inicio);
+            for ($i = 0; $i < 7; $i++) {
+                $fecha_dia = clone $inicio;
+                $fecha_dia->modify("+$i days");
+                $fecha_str = $fecha_dia->format('Y-m-d');
+
+                $sql = "SELECT SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) as utilidad 
+                       FROM productos_ventas pv 
+                       INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+                       WHERE v.id_empresa = '$empresa' AND v.estado = '1' AND v.sucursal = '$sucursal' 
+                       AND v.fecha_emision = '$fecha_str'";
+                $result = $conexion->query($sql);
+                $row = $result->fetch_assoc();
+                $datos[] = floatval($row['utilidad'] ?? 0);
+            }
+            break;
+
+        case 'mes':
+            // Obtener utilidad por semana del mes
+            $inicio = new DateTime($fecha_inicio);
+            $fin = new DateTime($fecha_fin);
+
+            for ($semana = 1; $semana <= 5; $semana++) {
+                $inicio_semana = clone $inicio;
+                $inicio_semana->modify('+' . (($semana - 1) * 7) . ' days');
+                $fin_semana = clone $inicio_semana;
+                $fin_semana->modify('+6 days');
+
+                if ($fin_semana > $fin) {
+                    $fin_semana = $fin;
+                }
+
+                $sql = "SELECT SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) as utilidad 
+                       FROM productos_ventas pv 
+                       INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+                       WHERE v.id_empresa = '$empresa' AND v.estado = '1' AND v.sucursal = '$sucursal' 
+                       AND v.fecha_emision BETWEEN '{$inicio_semana->format('Y-m-d')}' AND '{$fin_semana->format('Y-m-d')}'";
+                $result = $conexion->query($sql);
+                $row = $result->fetch_assoc();
+                $datos[] = floatval($row['utilidad'] ?? 0);
+
+                if ($fin_semana >= $fin)
+                    break;
+            }
+            break;
+
+        case 'anio':
+            // Utilidad por meses del año
+            $datos = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            $anio = date('Y', strtotime($fecha_inicio));
+
+            $sql = "SELECT MONTH(v.fecha_emision) mes, SUM(pv.precio * pv.cantidad - pv.costo * pv.cantidad) utilidad
+                   FROM productos_ventas pv 
+                   INNER JOIN ventas v ON pv.id_venta = v.id_venta 
+                   WHERE v.id_empresa = '$empresa' AND v.estado = '1' AND v.sucursal = '$sucursal'
+                   AND YEAR(v.fecha_emision) = '$anio'
+                   GROUP BY mes";
+            $result = $conexion->query($sql);
+
+            while ($row = $result->fetch_assoc()) {
+                $datos[intval($row['mes']) - 1] = floatval($row['utilidad']);
+            }
+            break;
+    }
+
+    return $datos;
 }
 
-// Productos más vendidos
+$dataListVen = generarDatosGrafico($periodo_actual, $categorias_grafico, $fecha_inicio, $fecha_fin, $empresa, $_SESSION['sucursal'], $conexion);
+
+$dataUtilidadBruta = generarDatosUtilidadBruta($periodo_actual, $categorias_grafico, $fecha_inicio, $fecha_fin, $empresa, $_SESSION['sucursal'], $conexion);
+
+// Productos más vendidos (mantener la lógica existente pero filtrada por período)
 $sql_productos = "SELECT 
   p.id_producto,
   p.codigo,
@@ -71,6 +375,7 @@ WHERE
   v.id_empresa = '$empresa' 
   AND v.estado = '1'
   AND v.sucursal = '{$_SESSION['sucursal']}'
+  AND v.fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin'
 GROUP BY 
   p.id_producto
 HAVING 
@@ -85,14 +390,13 @@ $productos_cantidades = [];
 
 if ($productos_top && $productos_top->num_rows > 0) {
     while ($producto = $productos_top->fetch_assoc()) {
-        // Limpiar caracteres de tabulación y espacios extra
         $productos_nombres[] = trim(str_replace(["\t", "\n", "\r"], '', $producto['nombre']));
-        $productos_cantidades[] = intval($producto['total_vendido']); // Convertir a entero
+        $productos_cantidades[] = intval($producto['total_vendido']);
     }
-    // Reiniciar el puntero del resultado para usarlo después
     $productos_top->data_seek(0);
 }
-// Productos con stock bajo
+
+// Productos con stock bajo (mantener igual)
 $sql_stock_bajo = "SELECT 
   id_producto, 
   codigo,
@@ -111,7 +415,7 @@ LIMIT 5";
 
 $productos_stock_bajo = $conexion->query($sql_stock_bajo);
 
-// Clientes top
+// Clientes top (filtrado por período)
 $sql_clientes = "SELECT 
   c.id_cliente,
   c.datos,
@@ -124,6 +428,7 @@ JOIN
 WHERE 
   v.id_empresa = '$empresa' 
   AND v.estado = '1'
+  AND v.fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin'
 GROUP BY 
   c.id_cliente
 ORDER BY 
@@ -136,38 +441,38 @@ $clientes_compras = [];
 
 if ($clientes_top && $clientes_top->num_rows > 0) {
     while ($cliente = $clientes_top->fetch_assoc()) {
-        // Limpiar caracteres de tabulación y espacios extra
         $clientes_nombres[] = trim(str_replace(["\t", "\n", "\r"], '', $cliente['datos']));
-        $clientes_compras[] = floatval($cliente['total_compras']); // Convertir a float para montos
+        $clientes_compras[] = floatval($cliente['total_compras']);
     }
-    // Reiniciar el puntero del resultado para usarlo después
     $clientes_top->data_seek(0);
 }
 
-// Ingresos y Egresos (simulados para este ejemplo)
+// Ingresos y Egresos
 $ingresos_mensuales = $data["totalv"] ?? 0;
-$egresos_mensuales = $ingresos_mensuales * 0.6; // Simulado: 60% de los ingresos
+$egresos_mensuales = $ingresos_mensuales * 0.6;
 $ganancia_mensual = $ingresos_mensuales - $egresos_mensuales;
 
-// Datos para gráfico de ventas por período (día, quincena, mes, etc.)
+// Datos para gráfico de ventas por período
 $periodos = ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimestral', 'Trimestral', 'Semestral', 'Anual'];
 $ventasPorPeriodo = [];
 
-// Simulamos datos para cada período (en una implementación real, esto vendría de la BD)
 $ventasPorPeriodo = [
-    number_format($data["totalv"] / 30 ?? 0, 2, ".", ""), // Diario (aproximado)
-    number_format($data["totalv"] / 4 ?? 0, 2, ".", ""),  // Semanal (aproximado)
-    number_format($data["totalv"] / 2 ?? 0, 2, ".", ""),  // Quincenal (aproximado)
-    number_format($data["totalv"] ?? 0, 2, ".", ""),      // Mensual
-    number_format($data["totalv"] * 2 ?? 0, 2, ".", ""),  // Bimestral (aproximado)
-    number_format($data["totalv"] * 3 ?? 0, 2, ".", ""),  // Trimestral (aproximado)
-    number_format($data["totalv"] * 6 ?? 0, 2, ".", ""),  // Semestral (aproximado)
-    number_format($data["totalv"] * 12 ?? 0, 2, ".", "") // Anual (aproximado)
+    number_format($data["totalv"] / 30 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] / 4 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] / 2 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] ?? 0, 2, ".", ""),
+    number_format($data["totalv"] * 2 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] * 3 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] * 6 ?? 0, 2, ".", ""),
+    number_format($data["totalv"] * 12 ?? 0, 2, ".", "")
 ];
 
 // Convertir datos PHP a JSON para usar en Vue
 $dashboardData = [
     'ventasAnuales' => $dataListVen,
+    'categoriasGrafico' => $categorias_grafico,
+    'textosPeriodo' => $textos_periodo,
+    'periodoActual' => $periodo_actual,
     'periodos' => $periodos,
     'ventasPorPeriodo' => array_map('floatval', $ventasPorPeriodo),
     'productosNombres' => $productos_nombres,
@@ -180,7 +485,11 @@ $dashboardData = [
     'totalMesAnterior' => $data["totalvMA"] ?? 0,
     'ingresosMensuales' => $ingresos_mensuales,
     'egresosMensuales' => $egresos_mensuales,
-    'gananciaMensual' => $ganancia_mensual
+    'gananciaMensual' => $ganancia_mensual,
+    // para utilidad bruta
+    'utilidadBrutaActual' => $data["utilidad_bruta_actual"] ?? 0,
+    'utilidadBrutaAnterior' => $data["utilidad_bruta_anterior"] ?? 0,
+    'utilidadBrutaPorPeriodo' => $dataUtilidadBruta
 ];
 ?>
 <!DOCTYPE html>
@@ -213,8 +522,8 @@ $dashboardData = [
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="btn-group me-2">
-                            <button type="button" class="btn bg-rojo text-white dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">
+                            <button type="button" class="btn bg-rojo text-white dropdown-toggle"
+                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-calendar-alt me-1"></i> {{ periodoTexto }}
                             </button>
                             <ul class="dropdown-menu">
@@ -279,117 +588,132 @@ $dashboardData = [
                             </div>
                         </div>
                     </div>
-                 <!-- Modal Descargar Reporte -->
-<div class="modal fade" id="descargarReporteModal" tabindex="-1"
-    aria-labelledby="descargarReporteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-rojo">
-            <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="descargarReporteModalLabel">
-                    <i class="fas fa-file-download me-2"></i>Descargar Reporte
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formReporte">
-                    <div class="mb-3">
-                        <label for="tipoReporte" class="form-label">Tipo de Reporte</label>
-                        <select class="form-select" id="tipoReporte" v-model="reporteSeleccionado" required>
-                            <option value="">Seleccione un tipo de reporte</option>
-                            <option value="ventas">Reporte de Ventas</option>
-                            <option value="productos">Reporte de Productos</option>
-                            <option value="stock">Reporte de Stock</option>
-                            <option value="clientes">Reporte de Clientes</option>
-                            <option value="metas">Reporte de Metas de Ventas</option>
-                            <option value="completo">Reporte Completo</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Selector de período -->
-                    <div class="mb-3">
-                        <label for="tipoPeriodo" class="form-label">Período del Reporte</label>
-                        <select class="form-select" id="tipoPeriodo" v-model="tipoPeriodoReporte" @change="cambiarTipoPeriodo" required>
-                            <option value="rango">Rango de Fechas</option>
-                            <option value="anual">Por Año</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Selector de fechas (mostrar solo si es rango) -->
-                    <div v-show="tipoPeriodoReporte === 'rango'" class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="reporteFechaInicio" class="form-label">Fecha Inicio</label>
-                                <input type="date" class="form-control" id="reporteFechaInicio"
-                                    v-model="filtroFechas.inicio" :required="tipoPeriodoReporte === 'rango'">
+                    <!-- Modal Descargar Reporte -->
+                    <div class="modal fade" id="descargarReporteModal" tabindex="-1"
+                        aria-labelledby="descargarReporteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content border-rojo">
+                                <div class="modal-header bg-rojo text-white">
+                                    <h5 class="modal-title" id="descargarReporteModalLabel">
+                                        <i class="fas fa-file-download me-2"></i>Descargar Reporte
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formReporte">
+                                        <div class="mb-3">
+                                            <label for="tipoReporte" class="form-label">Tipo de Reporte</label>
+                                            <select class="form-select" id="tipoReporte" v-model="reporteSeleccionado"
+                                                required>
+                                                <option value="">Seleccione un tipo de reporte</option>
+                                                <option value="ventas">Reporte de Ventas</option>
+                                                <option value="productos">Reporte de Productos</option>
+                                                <option value="stock">Reporte de Stock</option>
+                                                <option value="clientes">Reporte de Clientes</option>
+                                                <option value="metas">Reporte de Metas de Ventas</option>
+                                                <option value="completo">Reporte Completo</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Selector de período -->
+                                        <div class="mb-3">
+                                            <label for="tipoPeriodo" class="form-label">Período del Reporte</label>
+                                            <select class="form-select" id="tipoPeriodo" v-model="tipoPeriodoReporte"
+                                                @change="cambiarTipoPeriodo" required>
+                                                <option value="rango">Rango de Fechas</option>
+                                                <option value="anual">Por Año</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Selector de fechas (mostrar solo si es rango) -->
+                                        <div v-show="tipoPeriodoReporte === 'rango'" class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="reporteFechaInicio" class="form-label">Fecha
+                                                        Inicio</label>
+                                                    <input type="date" class="form-control" id="reporteFechaInicio"
+                                                        v-model="filtroFechas.inicio"
+                                                        :required="tipoPeriodoReporte === 'rango'">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="reporteFechaFin" class="form-label">Fecha Fin</label>
+                                                    <input type="date" class="form-control" id="reporteFechaFin"
+                                                        v-model="filtroFechas.fin"
+                                                        :required="tipoPeriodoReporte === 'rango'">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Selector de año (mostrar solo si es anual) -->
+                                        <div v-show="tipoPeriodoReporte === 'anual'" class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="reporteAnio" class="form-label">Año</label>
+                                                    <select class="form-select" id="reporteAnio"
+                                                        v-model="anioSeleccionado"
+                                                        :required="tipoPeriodoReporte === 'anual'">
+                                                        <option value="">Seleccione un año</option>
+                                                        <option v-for="anio in aniosDisponibles" :key="anio"
+                                                            :value="anio">{{ anio }}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="reporteMes" class="form-label">Mes (Opcional)</label>
+                                                    <select class="form-select" id="reporteMes"
+                                                        v-model="mesSeleccionado">
+                                                        <option value="">Todo el año</option>
+                                                        <option value="1">Enero</option>
+                                                        <option value="2">Febrero</option>
+                                                        <option value="3">Marzo</option>
+                                                        <option value="4">Abril</option>
+                                                        <option value="5">Mayo</option>
+                                                        <option value="6">Junio</option>
+                                                        <option value="7">Julio</option>
+                                                        <option value="8">Agosto</option>
+                                                        <option value="9">Septiembre</option>
+                                                        <option value="10">Octubre</option>
+                                                        <option value="11">Noviembre</option>
+                                                        <option value="12">Diciembre</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Información adicional para reportes anuales -->
+                                        <div v-show="tipoPeriodoReporte === 'anual'" class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Reporte Anual:</strong>
+                                            <span v-if="mesSeleccionado">
+                                                Se generará el reporte para {{ obtenerNombreMes(mesSeleccionado) }} de
+                                                {{ anioSeleccionado }}
+                                            </span>
+                                            <span v-else>
+                                                Se generará el reporte para todo el año {{ anioSeleccionado }}
+                                            </span>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                                        <i class="fas fa-times me-1"></i>Cancelar
+                                    </button>
+                                    <button type="button" class="btn bg-rojo text-white" @click="descargarReporte">
+                                        <i class="fas fa-download me-1"></i>Descargar PDF
+                                    </button>
+                                    <!-- NUEVO BOTÓN PARA EXCEL -->
+                                    <button type="button" class="btn bg-success text-white"
+                                        @click="descargarReporteExcel">
+                                        <i class="fas fa-file-excel me-1"></i>Descargar Excel
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="reporteFechaFin" class="form-label">Fecha Fin</label>
-                                <input type="date" class="form-control" id="reporteFechaFin"
-                                    v-model="filtroFechas.fin" :required="tipoPeriodoReporte === 'rango'">
-                            </div>
-                        </div>
                     </div>
-                    
-                    <!-- Selector de año (mostrar solo si es anual) -->
-                    <div v-show="tipoPeriodoReporte === 'anual'" class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="reporteAnio" class="form-label">Año</label>
-                                <select class="form-select" id="reporteAnio" v-model="anioSeleccionado" :required="tipoPeriodoReporte === 'anual'">
-                                    <option value="">Seleccione un año</option>
-                                    <option v-for="anio in aniosDisponibles" :key="anio" :value="anio">{{ anio }}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="reporteMes" class="form-label">Mes (Opcional)</label>
-                                <select class="form-select" id="reporteMes" v-model="mesSeleccionado">
-                                    <option value="">Todo el año</option>
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Información adicional para reportes anuales -->
-                    <div v-show="tipoPeriodoReporte === 'anual'" class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Reporte Anual:</strong> 
-                        <span v-if="mesSeleccionado">
-                            Se generará el reporte para {{ obtenerNombreMes(mesSeleccionado) }} de {{ anioSeleccionado }}
-                        </span>
-                        <span v-else>
-                            Se generará el reporte para todo el año {{ anioSeleccionado }}
-                        </span>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Cancelar
-                </button>
-                <button type="button" class="btn bg-rojo text-white" @click="descargarReporte">
-                    <i class="fas fa-download me-1"></i>Descargar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
                 </div>
             </div>
@@ -520,11 +844,13 @@ $dashboardData = [
                                         </h1>
                                     </div>
                                     <div class="pt-2">
-                                        <p class="mb-0 mt-1 text-end">vs. Mes Anterior</p>
+                                        <p class="mb-0 mt-1 text-end">{{ dashboardData.textosPeriodo ?
+                                            dashboardData.textosPeriodo.comparativa : 'vs. Mes Anterior' }}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- Gráficos de ventas -->
@@ -532,7 +858,8 @@ $dashboardData = [
                         <div class="col-xl-8">
                             <div class="card slide-in-left">
                                 <div class="card-body">
-                                    <h4 class="card-title mb-4">Ventas Anuales</h4>
+                                    <h4 class="card-title mb-4">{{ dashboardData.textosPeriodo ?
+                                        dashboardData.textosPeriodo.titulo_principal : 'Ventas Anuales' }}</h4>
                                     <div class="chart-container">
                                         <div id="ventasAnualesChartLoading" class="chart-loading" v-if="loadingCharts">
                                             <div class="spinner"></div>
@@ -567,12 +894,12 @@ $dashboardData = [
                         </div>
                     </div>
 
-                    <!-- Comparativa con años anteriores -->
+                    <!-- Comparativa con años anteriores y Utilidad Bruta -->
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-xl-8">
                             <div class="card fade-in-up">
                                 <div class="card-body">
-                                    <h4 class="card-title mb-4">Comparativa con Años Anteriores</h4>
+                                    <h4 class="card-title mb-4">{{ obtenerTituloComparativa() }}</h4>
                                     <div class="chart-container">
                                         <div id="comparativaAnualChartLoading" class="chart-loading"
                                             v-if="loadingCharts">
@@ -582,6 +909,40 @@ $dashboardData = [
                                             <div v-if="!hayDatosVentasAnuales" class="no-data-message">
                                                 <i class="fas fa-chart-line"></i>
                                                 <p>No hay datos disponibles</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4">
+                            <div class="card fade-in-up">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-4">Utilidad Bruta - {{ dashboardData.textosPeriodo ?
+                                        dashboardData.textosPeriodo.titulo_principal : 'Período Actual' }}</h4>
+                                    <div class="chart-container">
+                                        <div id="utilidadBrutaChartLoading" class="chart-loading" v-if="loadingCharts">
+                                            <div class="spinner"></div>
+                                        </div>
+                                        <div ref="utilidadBrutaChart" class="chart-container">
+                                            <div v-if="!hayDatosUtilidadBruta" class="no-data-message">
+                                                <i class="fas fa-chart-bar"></i>
+                                                <p>No hay datos disponibles</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Resumen de utilidad -->
+                                    <div class="mt-3 p-3 bg-light rounded">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <h5 class="text-success mb-1">S/ {{
+                                                    formatNumber(dashboardData.utilidadBrutaActual) }}</h5>
+                                                <small class="text-muted">Utilidad Actual</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <h5 class="mb-1" :class="porcentajeUtilidadClass">{{ porcentajeUtilidad
+                                                    }}%</h5>
+                                                <small class="text-muted">Margen Bruto</small>
                                             </div>
                                         </div>
                                     </div>
@@ -729,7 +1090,7 @@ $dashboardData = [
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-4 col-md-12">
+                        <div class="col-xl-4 col-md-6">
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title mb-4">Alertas de Stock</h4>
@@ -738,7 +1099,7 @@ $dashboardData = [
                                         <strong>¡Atención!</strong> Hay productos con stock crítico.
                                     </div>
 
-                                    <div class="overflow-auto" style="max-height: 300px;">
+                                    <div class="overflow-auto" style="max-height: 260px;">
                                         <ul class="list-group">
                                             <?php if ($productos_stock_bajo && $productos_stock_bajo->num_rows > 0): ?>
                                                 <?php while ($producto = $productos_stock_bajo->fetch_assoc()): ?>
@@ -1210,7 +1571,7 @@ $dashboardData = [
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                                 <i class="fas fa-times me-1"></i>Cerrar
                             </button>
                         </div>
@@ -1241,7 +1602,7 @@ $dashboardData = [
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                                 <i class="fas fa-times me-1"></i>Cerrar
                             </button>
                         </div>
@@ -1272,7 +1633,7 @@ $dashboardData = [
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                                 <i class="fas fa-times me-1"></i>Cerrar
                             </button>
                         </div>
@@ -1303,7 +1664,7 @@ $dashboardData = [
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                                 <i class="fas fa-times me-1"></i>Cerrar
                             </button>
                         </div>
@@ -1343,17 +1704,17 @@ $dashboardData = [
                 },
                 meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
                 mesesAbrev: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                periodoActual: 'mes',
-                periodoTexto: 'Este mes',
+                periodoActual: <?= json_encode($periodo_actual) ?>,
+                periodoTexto: <?= json_encode($textos_periodo['titulo_principal'] ?? 'Este mes') ?>,
                 filtroFechas: {
                     inicio: '',
                     fin: ''
                 },
                 reporteSeleccionado: '',
                 tipoPeriodoReporte: 'rango',
-    anioSeleccionado: '',
-    mesSeleccionado: '',
-    aniosDisponibles: [],
+                anioSeleccionado: '',
+                mesSeleccionado: '',
+                aniosDisponibles: [],
             },
             computed: {
                 calcularPorcentajeFacturas() {
@@ -1423,6 +1784,24 @@ $dashboardData = [
 
                 hayDatosVendedores() {
                     return this.vendedores && this.vendedores.length > 0;
+                },
+                hayDatosUtilidadBruta() {
+                    return this.dashboardData.utilidadBrutaPorPeriodo &&
+                        this.dashboardData.utilidadBrutaPorPeriodo.some(valor => valor > 0);
+                },
+
+                porcentajeUtilidad() {
+                    if (this.dashboardData.totalVentas > 0 && this.dashboardData.utilidadBrutaActual > 0) {
+                        return ((this.dashboardData.utilidadBrutaActual / this.dashboardData.totalVentas) * 100).toFixed(1);
+                    }
+                    return '0.0';
+                },
+
+                porcentajeUtilidadClass() {
+                    const porcentaje = parseFloat(this.porcentajeUtilidad);
+                    if (porcentaje >= 30) return 'text-success';
+                    if (porcentaje >= 15) return 'text-warning';
+                    return 'text-danger';
                 }
             },
             methods: {
@@ -1499,7 +1878,7 @@ $dashboardData = [
                                 text: null
                             },
                             xAxis: {
-                                categories: this.meses,
+                                categories: this.dashboardData.categoriasGrafico || this.meses,
                                 labels: {
                                     style: {
                                         color: '#6c757d',
@@ -1631,7 +2010,7 @@ $dashboardData = [
                                 text: null
                             },
                             xAxis: {
-                                categories: this.meses,
+                                categories: this.dashboardData.categoriasGrafico || this.meses,
                                 labels: {
                                     style: {
                                         color: '#6c757d',
@@ -1699,6 +2078,72 @@ $dashboardData = [
                             ]
                         });
                     }
+                    if (this.$refs.utilidadBrutaChart && this.hayDatosUtilidadBruta) {
+                        this.charts.utilidadBruta = Highcharts.chart(this.$refs.utilidadBrutaChart, {
+                            chart: {
+                                type: 'column',
+                                style: {
+                                    fontFamily: 'Poppins, sans-serif'
+                                },
+                                animation: {
+                                    duration: 1000
+                                }
+                            },
+                            title: {
+                                text: null
+                            },
+                            xAxis: {
+                                categories: this.dashboardData.categoriasGrafico || this.meses,
+                                labels: {
+                                    style: {
+                                        color: '#6c757d',
+                                        fontSize: '12px'
+                                    }
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: null
+                                },
+                                labels: {
+                                    formatter: function () {
+                                        return 'S/ ' + Highcharts.numberFormat(this.value, 0);
+                                    },
+                                    style: {
+                                        color: '#6c757d',
+                                        fontSize: '12px'
+                                    }
+                                },
+                                gridLineDashStyle: 'Dash'
+                            },
+                            tooltip: {
+                                formatter: function () {
+                                    return '<b>' + this.x + '</b><br>Utilidad: S/ ' + Highcharts.numberFormat(this.y, 2);
+                                }
+                            },
+                            plotOptions: {
+                                column: {
+                                    borderRadius: 5,
+                                    color: this.colors.success,
+                                    dataLabels: {
+                                        enabled: true,
+                                        formatter: function () {
+                                            return 'S/ ' + Highcharts.numberFormat(this.y, 0);
+                                        },
+                                        style: {
+                                            fontSize: '10px'
+                                        }
+                                    }
+                                }
+                            },
+                            series: [{
+                                name: 'Utilidad Bruta',
+                                data: this.dashboardData.utilidadBrutaPorPeriodo,
+                                showInLegend: false
+                            }]
+                        });
+                    }
+
                 },
                 inicializarGraficosProductos() {
                     console.log('Productos nombres:', this.dashboardData.productosNombres);
@@ -1839,6 +2284,24 @@ $dashboardData = [
                         // Generar datos simulados de rotación basados en los productos reales
                         const rotacionDias = productosRotacion.map(() => Math.floor(Math.random() * 30) + 5);
 
+                        // En lugar de solo pasar rotacionDias, crear un array de objetos:
+                        const datosConColores = rotacionDias.map(dias => {
+                            let color;
+                            if (dias < 10) {
+                                color = '#28a745'; // Verde - Rotación alta
+                            } else if (dias <= 20) {
+                                color = '#ffc107'; // Amarillo - Aceptable  
+                            } else {
+                                color = '#dc3545'; // Rojo - Baja rotación
+                            }
+
+                            return {
+                                y: dias,
+                                color: color
+                            };
+                        });
+
+
                         this.charts.rotacionInventario = Highcharts.chart(this.$refs.rotacionInventarioChart, {
                             chart: {
                                 type: 'column',
@@ -1884,17 +2347,17 @@ $dashboardData = [
                             },
                             plotOptions: {
                                 column: {
-                                    borderRadius: 5,
-                                    colorByPoint: true,
-                                    colors: [
-                                        this.colors.primary, this.colors.secondary, this.colors.success,
-                                        this.colors.warning, this.colors.danger
-                                    ]
+                                    borderRadius: 5
+                                    // colorByPoint: true,
+                                    // colors: [
+                                    //     this.colors.primary, this.colors.secondary, this.colors.success,
+                                    //     this.colors.warning, this.colors.danger
+                                    // ]
                                 }
                             },
                             series: [{
                                 name: 'Días promedio',
-                                data: rotacionDias,
+                                data: datosConColores,
                                 showInLegend: false
                             }]
                         });
@@ -1931,7 +2394,12 @@ $dashboardData = [
                                     allowPointSelect: true,
                                     cursor: 'pointer',
                                     dataLabels: {
-                                        enabled: false
+                                        enabled: true,  // CAMBIO: activar las etiquetas
+                                        format: '<b>{point.name}</b><br>{point.percentage:.1f}%',  // CAMBIO: formato de las etiquetas
+                                        style: {
+                                            fontSize: '12px',
+                                            fontWeight: 'bold'
+                                        }
                                     },
                                     showInLegend: true
                                 }
@@ -3036,34 +3504,29 @@ $dashboardData = [
                 },
                 cambiarPeriodo(periodo) {
                     this.periodoActual = periodo;
-                    const ahora = new Date();
-                    let fechaInicio = new Date();
-                    let fechaFin = new Date();
 
+                    // Actualizar texto del botón
                     switch (periodo) {
                         case 'hoy':
                             this.periodoTexto = 'Hoy';
                             break;
                         case 'semana':
                             this.periodoTexto = 'Esta semana';
-                            const diaSemana = ahora.getDay() || 7;
-                            fechaInicio.setDate(ahora.getDate() - diaSemana + 1);
                             break;
                         case 'mes':
                             this.periodoTexto = 'Este mes';
-                            fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-                            fechaFin = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0);
                             break;
                         case 'anio':
                             this.periodoTexto = 'Este año';
-                            fechaInicio = new Date(ahora.getFullYear(), 0, 1);
-                            fechaFin = new Date(ahora.getFullYear(), 11, 31);
+                            break;
+                        case 'personalizado':
+                            // No cambiar el texto aquí, se maneja en aplicarPeriodoPersonalizado
                             break;
                     }
 
-                    this.filtroFechas.inicio = this.formatearFecha(fechaInicio);
-                    this.filtroFechas.fin = this.formatearFecha(fechaFin);
-                    this.cargarDatosConFiltro();
+                    // Recargar la página con el nuevo período
+                    const params = new URLSearchParams({ periodo: periodo });
+                    window.location.href = `${window.location.pathname}?${params}`;
                 },
 
                 formatearFecha(fecha) {
@@ -3094,135 +3557,203 @@ $dashboardData = [
                         return;
                     }
 
+                    // Formatear fechas para el botón
                     const fInicio = new Date(this.filtroFechas.inicio);
                     const fFin = new Date(this.filtroFechas.fin);
-                    this.periodoTexto = `${fInicio.getDate()}/${fInicio.getMonth() + 1} - ${fFin.getDate()}/${fFin.getMonth() + 1}`;
+                    const fechaInicioTexto = `${fInicio.getDate().toString().padStart(2, '0')}/${(fInicio.getMonth() + 1).toString().padStart(2, '0')}`;
+                    const fechaFinTexto = `${fFin.getDate().toString().padStart(2, '0')}/${(fFin.getMonth() + 1).toString().padStart(2, '0')}`;
+
+                    this.periodoTexto = `${fechaInicioTexto} - ${fechaFinTexto}`;
+                    this.periodoActual = 'personalizado';
 
                     bootstrap.Modal.getInstance(document.getElementById('periodoPersonalizadoModal')).hide();
                     this.cargarDatosConFiltro();
                 },
 
                 cargarDatosConFiltro() {
-                    this.loadingCharts = true;
+                    // Recargar la página con los nuevos parámetros
                     const params = new URLSearchParams({
+                        periodo: 'personalizado',
                         fecha_inicio: this.filtroFechas.inicio,
-                        fecha_fin: this.filtroFechas.fin,
-                        periodo: this.periodoActual
+                        fecha_fin: this.filtroFechas.fin
                     });
 
-                    fetch(`${_URL}/ajs/dashboard/datos?${params}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                this.dashboardData = data.dashboardData;
-                                this.$nextTick(() => {
-                                    this.inicializarGraficos();
-                                });
-                            } else {
-                                alert('Error: ' + data.message);
-                            }
-                        })
-                        .catch(error => console.error('Error:', error))
-                        .finally(() => this.loadingCharts = false);
+                    window.location.href = `${window.location.pathname}?${params}`;
                 },
-              abrirModalReporte() {
-        // Generar años disponibles (últimos 5 años + año actual + próximo año)
-        const anioActual = new Date().getFullYear();
-        this.aniosDisponibles = [];
-        for (let i = anioActual - 5; i <= anioActual + 1; i++) {
-            this.aniosDisponibles.push(i);
-        }
-        this.aniosDisponibles.reverse(); // Mostrar años más recientes primero
-        
-        // Establecer año actual por defecto
-        this.anioSeleccionado = anioActual;
-        
-        // Usar las mismas fechas que el filtro actual
-        const modal = new bootstrap.Modal(document.getElementById('descargarReporteModal'));
-        modal.show();
-    },
-    
-    cambiarTipoPeriodo() {
-        // Limpiar selecciones cuando cambia el tipo de período
-        if (this.tipoPeriodoReporte === 'anual') {
-            this.anioSeleccionado = new Date().getFullYear();
-            this.mesSeleccionado = '';
-        } else {
-            // Usar las fechas actuales del filtro
-            if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
-                const ahora = new Date();
-                this.filtroFechas.inicio = this.formatearFecha(new Date(ahora.getFullYear(), ahora.getMonth(), 1));
-                this.filtroFechas.fin = this.formatearFecha(new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0));
-            }
-        }
-    },
-    
-    obtenerNombreMes(numeroMes) {
-        const meses = [
-            '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
-        return meses[parseInt(numeroMes)];
-    },
-    
-    descargarReporte() {
-        // Validar el formulario
-        const form = document.getElementById('formReporte');
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-        
-        let params;
-        
-        if (this.tipoPeriodoReporte === 'anual') {
-            // Validar que se haya seleccionado un año
-            if (!this.anioSeleccionado) {
-                alert('Por favor seleccione un año');
-                return;
-            }
-            
-            // Construir parámetros para reporte anual
-            params = new URLSearchParams({
-                tipo: this.reporteSeleccionado,
-                periodo_tipo: 'anual',
-                anio: this.anioSeleccionado
-            });
-            
-            // Agregar mes si está seleccionado
-            if (this.mesSeleccionado) {
-                params.append('mes', this.mesSeleccionado);
-            }
-        } else {
-            // Validar fechas para rango
-            if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
-                alert('Por favor seleccione las fechas de inicio y fin');
-                return;
-            }
-            
-            if (new Date(this.filtroFechas.inicio) > new Date(this.filtroFechas.fin)) {
-                alert('La fecha de inicio no puede ser mayor que la fecha fin');
-                return;
-            }
-            
-            // Construir parámetros para rango de fechas
-            params = new URLSearchParams({
-                tipo: this.reporteSeleccionado,
-                periodo_tipo: 'rango',
-                fecha_inicio: this.filtroFechas.inicio,
-                fecha_fin: this.filtroFechas.fin
-            });
-        }
-        
-        // Crear la URL completa
-        const url = `${_URL}/r/dashboard/reporte?${params}`;
-        
-        // Abrir en una nueva ventana/pestaña
-        window.open(url, '_blank');
-        
-        // Cerrar el modal
-        bootstrap.Modal.getInstance(document.getElementById('descargarReporteModal')).hide();
-    }
+                abrirModalReporte() {
+                    // Generar años disponibles (últimos 5 años + año actual + próximo año)
+                    const anioActual = new Date().getFullYear();
+                    this.aniosDisponibles = [];
+                    for (let i = anioActual - 5; i <= anioActual + 1; i++) {
+                        this.aniosDisponibles.push(i);
+                    }
+                    this.aniosDisponibles.reverse(); // Mostrar años más recientes primero
+
+                    // Establecer año actual por defecto
+                    this.anioSeleccionado = anioActual;
+
+                    // Usar las mismas fechas que el filtro actual
+                    const modal = new bootstrap.Modal(document.getElementById('descargarReporteModal'));
+                    modal.show();
+                },
+
+                cambiarTipoPeriodo() {
+                    // Limpiar selecciones cuando cambia el tipo de período
+                    if (this.tipoPeriodoReporte === 'anual') {
+                        this.anioSeleccionado = new Date().getFullYear();
+                        this.mesSeleccionado = '';
+                    } else {
+                        // Usar las fechas actuales del filtro
+                        if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
+                            const ahora = new Date();
+                            this.filtroFechas.inicio = this.formatearFecha(new Date(ahora.getFullYear(), ahora.getMonth(), 1));
+                            this.filtroFechas.fin = this.formatearFecha(new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0));
+                        }
+                    }
+                },
+
+                obtenerNombreMes(numeroMes) {
+                    const meses = [
+                        '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                    ];
+                    return meses[parseInt(numeroMes)];
+                },
+
+                descargarReporte() {
+                    // Validar el formulario
+                    const form = document.getElementById('formReporte');
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    let params;
+
+                    if (this.tipoPeriodoReporte === 'anual') {
+                        // Validar que se haya seleccionado un año
+                        if (!this.anioSeleccionado) {
+                            alert('Por favor seleccione un año');
+                            return;
+                        }
+
+                        // Construir parámetros para reporte anual
+                        params = new URLSearchParams({
+                            tipo: this.reporteSeleccionado,
+                            periodo_tipo: 'anual',
+                            anio: this.anioSeleccionado
+                        });
+
+                        // Agregar mes si está seleccionado
+                        if (this.mesSeleccionado) {
+                            params.append('mes', this.mesSeleccionado);
+                        }
+                    } else {
+                        // Validar fechas para rango
+                        if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
+                            alert('Por favor seleccione las fechas de inicio y fin');
+                            return;
+                        }
+
+                        if (new Date(this.filtroFechas.inicio) > new Date(this.filtroFechas.fin)) {
+                            alert('La fecha de inicio no puede ser mayor que la fecha fin');
+                            return;
+                        }
+
+                        // Construir parámetros para rango de fechas
+                        params = new URLSearchParams({
+                            tipo: this.reporteSeleccionado,
+                            periodo_tipo: 'rango',
+                            fecha_inicio: this.filtroFechas.inicio,
+                            fecha_fin: this.filtroFechas.fin
+                        });
+                    }
+
+                    // Crear la URL completa
+                    const url = `${_URL}/r/dashboard/reporte?${params}`;
+
+                    // Abrir en una nueva ventana/pestaña
+                    window.open(url, '_blank');
+
+                    // Cerrar el modal
+                    bootstrap.Modal.getInstance(document.getElementById('descargarReporteModal')).hide();
+                },
+                descargarReporteExcel() {
+                    // Validar el formulario
+                    const form = document.getElementById('formReporte');
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    let params;
+
+                    if (this.tipoPeriodoReporte === 'anual') {
+                        // Validar que se haya seleccionado un año
+                        if (!this.anioSeleccionado) {
+                            alert('Por favor seleccione un año');
+                            return;
+                        }
+
+                        // Construir parámetros para reporte anual
+                        params = new URLSearchParams({
+                            tipo: this.reporteSeleccionado,
+                            periodo_tipo: 'anual',
+                            anio: this.anioSeleccionado
+                        });
+
+                        // Agregar mes si está seleccionado
+                        if (this.mesSeleccionado) {
+                            params.append('mes', this.mesSeleccionado);
+                        }
+                    } else {
+                        // Validar fechas para rango
+                        if (!this.filtroFechas.inicio || !this.filtroFechas.fin) {
+                            alert('Por favor seleccione las fechas de inicio y fin');
+                            return;
+                        }
+
+                        if (new Date(this.filtroFechas.inicio) > new Date(this.filtroFechas.fin)) {
+                            alert('La fecha de inicio no puede ser mayor que la fecha fin');
+                            return;
+                        }
+
+                        // Construir parámetros para rango de fechas
+                        params = new URLSearchParams({
+                            tipo: this.reporteSeleccionado,
+                            periodo_tipo: 'rango',
+                            fecha_inicio: this.filtroFechas.inicio,
+                            fecha_fin: this.filtroFechas.fin
+                        });
+                    }
+
+                    // Crear la URL completa para Excel
+                    const url = `${_URL}/r/dashboard/reporte-excel?${params}`;
+
+                    // Abrir en una nueva ventana/pestaña
+                    window.open(url, '_blank');
+
+                    // Cerrar el modal
+                    bootstrap.Modal.getInstance(document.getElementById('descargarReporteModal')).hide();
+                },
+                obtenerTituloComparativa() {
+                    if (!this.dashboardData.textosPeriodo) {
+                        return 'Comparativa con Años Anteriores';
+                    }
+
+                    switch (this.dashboardData.periodoActual) {
+                        case 'hoy':
+                            return 'Comparativa con Días Anteriores';
+                        case 'semana':
+                            return 'Comparativa con Semanas Anteriores';
+                        case 'mes':
+                            return 'Comparativa con Meses Anteriores';
+                        case 'anio':
+                            return 'Comparativa con Años Anteriores';
+                        default:
+                            return 'Comparativa con Períodos Anteriores';
+                    }
+                },
             },
             mounted() {
                 // Esperar a que Vue termine de renderizar

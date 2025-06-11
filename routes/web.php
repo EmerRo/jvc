@@ -160,6 +160,8 @@ Route::get("/r/garantia/certificado/:id_cotizacion","CertificadoGarantia@garanti
 Route::get("/r/detalle/prealerta/:id_prealerta","DetallePrealertaController@generarPDF");
 
 Route::get("/r/dashboard/reporte", "ReporteDashboardController@generateReport");
+Route::get("/r/dashboard/reporte-excel", "ReporteExcelDashboardController@generateExcelReport");
+
 Route::postBase("/agregar/imagenes","FragmentController@fotosTaller");
 Route::postBase("/taller/coti/view","FragmentController@vistacotiTaller");
 Route::postBase("/edt/coti/taller","FragmentController@edtTaller");

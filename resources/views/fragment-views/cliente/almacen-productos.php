@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\almacen-productos.php -->
 <?php
 
 require_once "app/models/Producto.php";
@@ -72,6 +73,69 @@ $almacenProducto = 1;
     .table-light th {
         padding: 0.5rem !important;
     }
+
+    /* Estilos personalizados para el autocomplete */
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid #e9ecef !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        background: white !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        z-index: 9999 !important;
+        padding: 4px 0 !important;
+    }
+
+    .ui-autocomplete .ui-menu-item {
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        border: none !important;
+        color: #495057 !important;
+        background: transparent !important;
+        margin: 0 2px !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+        background: #f8f9fa !important;
+        border: 1px solid #CA3438 !important;
+        color: #CA3438 !important;
+        font-weight: 500 !important;
+    }
+
+    /* Asegurar que el autocomplete esté dentro del modal */
+    #modal-aumentar-stock .ui-autocomplete {
+        position: absolute !important;
+        max-width: calc(100% - 24px) !important;
+    }
+
+    /* Mejorar el estilo del input de búsqueda */
+    #buscar-producto-stock {
+        border: 2px solid #e9ecef !important;
+        border-radius: 6px !important;
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        transition: border-color 0.3s ease !important;
+    }
+
+    #buscar-producto-stock:focus {
+        border-color: #CA3438 !important;
+        box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.25) !important;
+        outline: none !important;
+    }
 </style>
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -127,6 +191,10 @@ $almacenProducto = 1;
                                 Importar</button>
                             <button class="btn bg-rojo text-white" id="add-prod"><i class="fa fa-plus"></i> Agregar
                                 Producto</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
+                                data-bs-target="#modal-aumentar-stock">
+                                <i class="fa fa-plus"></i> Aumentar Stock de Productos
+                            </button>
 
                             <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i
                                     class="fa fa-plus"></i>Unidades</a>
@@ -737,6 +805,59 @@ $almacenProducto = 1;
             </div>
         </div>
     </div>
+    <!-- Modal Aumentar Stock de Productos -->
+    <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-rojo text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-box me-2"></i>Aumentar Stock de Productos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form @submit.prevent="aumentarStockProducto">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle me-2"></i>
+                            Aquí Debes Buscar y Seleccionar un Producto:
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><i class="fa fa-search me-1"></i>Buscar Producto:</label>
+                            <input type="text" id="buscar-producto-stock" class="form-control"
+                                placeholder="Buscar por código o nombre...">
+                            <input type="hidden" id="producto-seleccionado-id" v-model="stockData.producto_id">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label><i class="fa fa-cubes me-1"></i>Stock Actual:</label>
+                                    <input type="text" class="form-control" v-model="stockData.stock_actual" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label><i class="fa fa-plus-circle me-1"></i>Cant. a Ingresar *:</label>
+                                    <input type="number" class="form-control" v-model="stockData.cantidad_ingresar"
+                                        min="1" required placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                            <i class="fa fa-times me-1"></i>Cerrar
+                        </button>
+                        <button type="submit" class="btn bg-rojo text-white">
+                            <i class="fa fa-check me-1"></i>Aumentar Stock Ahora
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="modal-restock" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1252,6 +1373,12 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 listaIdsss: [],
                 units: [], // Will store available units
                 imagePreview: null,
+                stockData: {
+                    producto_id: '',
+                    stock_actual: '',
+                    cantidad_ingresar: '',
+                    producto_nombre: ''
+                },
             },
             methods: {
                 agregarPrecio() {
@@ -1783,8 +1910,44 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) { // 46 is dot
                         $event.preventDefault();
                     }
+                },
+                aumentarStockProducto() {
+                    if (!this.stockData.producto_id) {
+                        alertAdvertencia("Debe seleccionar un producto");
+                        return;
+                    }
+
+                    if (!this.stockData.cantidad_ingresar || this.stockData.cantidad_ingresar <= 0) {
+                        alertAdvertencia("Debe ingresar una cantidad válida");
+                        return;
+                    }
+
+                    const data = {
+                        producto_id: this.stockData.producto_id,
+                        cantidad: this.stockData.cantidad_ingresar
+                    };
+
+                    _ajax("/ajs/data/producto/aumentar/stock", "POST", data, function (resp) {
+                        if (resp.res) {
+                            alertExito("Stock aumentado exitosamente").then(() => {
+                                $("#modal-aumentar-stock").modal("hide");
+                                datatable.ajax.reload(null, false);
+                                // Limpiar formulario
+                                app._data.stockData = {
+                                    producto_id: '',
+                                    stock_actual: '',
+                                    cantidad_ingresar: '',
+                                    producto_nombre: ''
+                                };
+                                $('#buscar-producto-stock').val('');
+                            });
+                        } else {
+                            alertAdvertencia("Error al aumentar el stock");
+                        }
+                    });
                 }
-            }
+            },
+
         })
 
         datatable = $("#datatable").DataTable({
@@ -1878,6 +2041,76 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 }
             ],
         });
+        // Reemplazar el autocomplete existente con esta versión mejorada
+        $("#buscar-producto-stock").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: _URL + "/ajs/cargar/productos/" + almacenCod,
+                    data: { term: request.term },
+                    success: function (data) {
+                        response(JSON.parse(data));
+                    }
+                });
+            },
+            minLength: 2,
+            appendTo: "#modal-aumentar-stock .modal-body",
+            select: function (event, ui) {
+                // Actualizar el valor del input con el nombre del producto
+                $(this).val(ui.item.label || ui.item.nombre);
+
+                // Actualizar los datos de Vue
+                app._data.stockData.producto_id = ui.item.codigo;
+                app._data.stockData.stock_actual = ui.item.cnt;
+                app._data.stockData.producto_nombre = ui.item.nombre;
+                $('#producto-seleccionado-id').val(ui.item.codigo);
+
+                // Cerrar el autocomplete inmediatamente después de la selección
+                $(this).autocomplete("close");
+
+                return false; // Prevenir comportamiento por defecto
+            }
+            ,
+            open: function () {
+                $('.ui-autocomplete').css({
+                    'z-index': 9999,
+                    'max-width': $('#buscar-producto-stock').outerWidth() + 'px',
+                    'font-size': '13px'
+                });
+
+                var input = $('#buscar-producto-stock');
+                var inputOffset = input.position();
+
+                $('.ui-autocomplete').css({
+                    'left': inputOffset.left + 'px',
+                    'top': (inputOffset.top + input.outerHeight() + 2) + 'px'
+                });
+            },
+            close: function () {
+                // Asegurar que el dropdown se oculte completamente
+                $('.ui-autocomplete').hide();
+            }
+        });
+        // Agregar después de la configuración del autocomplete
+        $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
+            // Limpiar el autocomplete cuando se cierre el modal
+            $('#buscar-producto-stock').val('');
+            $('.ui-autocomplete').hide();
+
+            // Limpiar los datos de Vue
+            app._data.stockData = {
+                producto_id: '',
+                stock_actual: '',
+                cantidad_ingresar: '',
+                producto_nombre: ''
+            };
+        });
+
+        // Limpiar autocomplete cuando se abra el modal
+        $('#modal-aumentar-stock').on('shown.bs.modal', function () {
+            $('.ui-autocomplete').hide();
+            $('#buscar-producto-stock').focus();
+        });
+
 
 
         // Update filter handling

@@ -4,12 +4,14 @@
 require_once "app/models/Carta.php";
 require_once "app/models/CartaTemplate.php";
 require_once "app/http/controllers/CartaPDF.php";
+require_once "app/models/TipoCarta.php";
 
 class CartaController extends Controller
 {
     private $carta;
     private $cartaTemplate;
     private $cartaPDF;
+    private $tipoCarta;
     private $conectar;
 
     public function __construct()
@@ -17,6 +19,7 @@ class CartaController extends Controller
         $this->carta = new Carta();
         $this->cartaTemplate = new CartaTemplate();
         $this->cartaPDF = new CartaPDF();
+        $this->tipoCarta= new TipoCarta();
         $this->conectar = (new Conexion())->getConexion();
     }
 
@@ -271,57 +274,60 @@ public function render()
         }
     }
 
-    // Método para generar vista previa
     public function vistaPreviaPDF()
-    {
-        if (!empty($_POST)) {
-            try {
-                // Validar datos
-                $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
-                $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
-                
-                // Procesar imágenes si se proporcionan
-                $header_image = null;
-                $footer_image = null;
-                
-                if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagen($_FILES['header_image']);
-                } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
-                    $header_image = $_POST['header_image'];
-                } else {
-                    // Usar la imagen de la plantilla
-                    $this->cartaTemplate->obtenerTemplateActual();
-                    $header_image = $this->cartaTemplate->getHeaderImageUrl();
-                }
-                
-                if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagen($_FILES['footer_image']);
-                } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
-                    $footer_image = $_POST['footer_image'];
-                } else {
-                    // Usar la imagen de la plantilla
-                    if (!$this->cartaTemplate->getId()) {
-                        $this->cartaTemplate->obtenerTemplateActual();
-                    }
-                    $footer_image = $this->cartaTemplate->getFooterImageUrl();
-                }
-                
-                // Generar vista previa
-                $pdfBase64 = $this->cartaPDF->generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image);
-                
-                echo json_encode([
-                    'success' => true,
-                    'pdfBase64' => $pdfBase64
-                ]);
-                
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+{
+    if (!empty($_POST)) {
+        try {
+            // Validar datos
+            $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : 'Vista Previa';
+            $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
+            
+            // Si no hay contenido, usar el de la plantilla
+            if (empty($contenido)) {
+                $this->cartaTemplate->obtenerTemplateActual();
+                $contenido = $this->cartaTemplate->getContenido();
+                $titulo = $this->cartaTemplate->getTitulo();
             }
-        } else {
-            echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
+            
+            // Procesar imágenes
+            $header_image = null;
+            $footer_image = null;
+            
+            // Obtener imágenes de la plantilla actual
+            $this->cartaTemplate->obtenerTemplateActual();
+            
+            if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
+                $header_image = $this->procesarImagen($_FILES['header_image']);
+            } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
+                $header_image = $_POST['header_image'];
+            } else {
+                $header_image = $this->cartaTemplate->getHeaderImageUrl();
+            }
+            
+            if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
+                $footer_image = $this->procesarImagen($_FILES['footer_image']);
+            } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
+                $footer_image = $_POST['footer_image'];
+            } else {
+                $footer_image = $this->cartaTemplate->getFooterImageUrl();
+            }
+            
+            // Generar vista previa
+            $pdfBase64 = $this->cartaPDF->generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image);
+            
+            echo json_encode([
+                'success' => true,
+                'pdfBase64' => $pdfBase64
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error en vistaPreviaPDF: " . $e->getMessage());
+            echo json_encode(['success' => false, 'msg' => 'Error al generar vista previa: ' . $e->getMessage()]);
         }
+    } else {
+        echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
     }
-
+}
     // Método para obtener la plantilla actual
     public function obtenerTemplate()
     {
@@ -437,4 +443,158 @@ public function render()
         
         return $base64;
     }
+    // Método para obtener membretes
+public function obtenerMembretes()
+{
+    try {
+        // Obtener la plantilla actual que contiene los membretes
+        $this->cartaTemplate->obtenerTemplateActual();
+        
+        $data = [
+            'success' => true,
+            'data' => [
+                'header_image' => $this->cartaTemplate->getHeaderImage(),
+                'footer_image' => $this->cartaTemplate->getFooterImage(),
+                'header_image_url' => $this->cartaTemplate->getHeaderImageUrl(),
+                'footer_image_url' => $this->cartaTemplate->getFooterImageUrl()
+            ]
+        ];
+        
+        echo json_encode($data);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+public function guardarMembretes()
+{
+    if (!empty($_POST) || !empty($_FILES)) {
+        try {
+            // Obtener la plantilla actual
+            if (!$this->cartaTemplate->obtenerTemplateActual()) {
+                throw new Exception("No se pudo obtener la plantilla actual");
+            }
+            
+            // Mantener valores actuales como respaldo
+            $header_image = $this->cartaTemplate->getHeaderImage();
+            $footer_image = $this->cartaTemplate->getFooterImage();
+            
+            // Verificar archivos de imagen PRIMERO
+            if (isset($_FILES['header_image_file']) && $_FILES['header_image_file']['error'] === UPLOAD_ERR_OK) {
+                $header_image = $this->procesarImagen($_FILES['header_image_file']);
+                error_log("Nueva imagen de cabecera procesada desde archivo");
+            } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
+                $header_image = $_POST['header_image'];
+                error_log("Nueva imagen de cabecera desde POST data");
+            }
+            
+            if (isset($_FILES['footer_image_file']) && $_FILES['footer_image_file']['error'] === UPLOAD_ERR_OK) {
+                $footer_image = $this->procesarImagen($_FILES['footer_image_file']);
+                error_log("Nueva imagen de pie procesada desde archivo");
+            } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
+                $footer_image = $_POST['footer_image'];
+                error_log("Nueva imagen de pie desde POST data");
+            }
+            
+            // Actualizar solo las imágenes de la plantilla
+            $this->cartaTemplate->setHeaderImage($header_image);
+            $this->cartaTemplate->setFooterImage($footer_image);
+            
+            // Guardar la plantilla actualizada
+            $resultado = $this->cartaTemplate->actualizarTemplate();
+            
+            if ($resultado) {
+                echo json_encode([
+                    'success' => true,
+                    'mensaje' => 'Membretes guardados correctamente'
+                ]);
+            } else {
+                throw new Exception("Error al actualizar la plantilla en la base de datos");
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error en guardarMembretes: " . $e->getMessage());
+            echo json_encode(['success' => false, 'msg' => 'Error al guardar los membretes: ' . $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
+    }
+}
+public function obtenerTiposCartas()
+{
+    try {
+        $tipos = $this->tipoCarta->obtenerTodos();
+        echo json_encode(['success' => true, 'tipos' => $tipos]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+// Método para insertar tipo de carta
+public function insertarTipoCarta()
+{
+    if (!empty($_POST)) {
+        try {
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            
+            if (empty($nombre)) {
+                throw new Exception("El nombre del tipo es obligatorio");
+            }
+            
+            $this->tipoCarta->setNombre($nombre);
+            
+            if ($this->tipoCarta->insertar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de carta creado correctamente']);
+            } else {
+                throw new Exception("Error al guardar el tipo de carta");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+// Método para editar tipo de carta
+public function editarTipoCarta()
+{
+    if (!empty($_POST)) {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            
+            if (empty($id) || empty($nombre)) {
+                throw new Exception("ID y nombre son obligatorios");
+            }
+            
+            $this->tipoCarta->setId($id);
+            $this->tipoCarta->setNombre($nombre);
+            
+            if ($this->tipoCarta->actualizar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de carta actualizado correctamente']);
+            } else {
+                throw new Exception("Error al actualizar el tipo de carta");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+// Método para eliminar tipo de carta
+public function eliminarTipoCarta()
+{
+    if (isset($_POST['id'])) {
+        try {
+            $id = intval($_POST['id']);
+            $this->tipoCarta->setId($id);
+            
+            if ($this->tipoCarta->eliminar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de carta eliminado correctamente']);
+            } else {
+                throw new Exception("Error al eliminar el tipo de carta");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
 }
