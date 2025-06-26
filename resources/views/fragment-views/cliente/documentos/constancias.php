@@ -1,13 +1,10 @@
 <!-- resources/views/fragment-views/cliente/documentos/componentes/constancias.php -->
 <style>
-    /* Estilos para las vistas */
-    .vista {
-        display: none;
-    }
+    /* Estilos generales */
 
-    .vista.active {
-        display: block;
-    }
+
+    /* Contenedor de la vista previa del documento */
+
 
     /* Estilos para las imágenes de cabecera y pie */
     .image-preview {
@@ -31,6 +28,15 @@
         border: 1px solid #dee2e6;
     }
 
+    /* Estilos para las vistas */
+    .vista {
+        display: none;
+    }
+
+    .vista.active {
+        display: block;
+    }
+
     /* Estilos para las tarjetas de constancias */
     .constancia-card {
         transition: all 0.3s ease;
@@ -50,8 +56,44 @@
         margin-bottom: 20px;
         border-radius: 4px;
     }
+    .document-preview {
+        height: 250px;
+        overflow: hidden;
+        display: block;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Estilo para el canvas de PDF */
+    .pdf-preview-canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Asegurar que los botones sean clickeables */
+    .btn-outline-secondary {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto;
+    }
 </style>
 
+<!-- Añadir PDF.js para la vista previa de documentos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script>
+    // Configurar el worker de PDF.js
+    window.pdfjsLib = window.pdfjsLib || {};
+    window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+</script>
+<!-- Actualizar Quill.js a versión más reciente -->
+<link href="https://cdn.quilljs.com/2.0.2/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/2.0.2/quill.min.js"></script>
 <!-- Botones de acción -->
 <div class="mb-4">
     <button class="btn btn-rojo" id="btn-lista-constancias">
@@ -60,18 +102,21 @@
     <button class="btn btn-outline-danger" id="btn-nueva-constancia">
         <i class="fas fa-plus me-1"></i> Nueva Constancia
     </button>
-    <button class="btn btn-outline-danger" id="btn-editar-plantilla-constancia">
+    <button class="btn btn-outline-danger" id="btn-editar-plantilla">
         <i class="fas fa-file-alt me-1"></i> Editar Plantilla
+    </button>
+    <button class="btn bg-rojo text-white" id="btn-gestionar-membretes">
+        <i class="fas fa-image me-1"></i> Gestionar Membretes
     </button>
 </div>
 
 <!-- Vista de lista de constancias -->
 <div id="vista-lista-constancias" class="vista active">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Constancias y Certificados</h3>
+        <h3>Constancias</h3>
         <div class="input-group" style="max-width: 300px;">
-            <input type="text" class="form-control" id="buscar-constancia" placeholder="Buscar constancias...">
-            <button class="btn btn-rojo" type="button">
+            <input type="text" class="form-control border-rojo" id="buscar-constancia" placeholder="Buscar constancias...">
+            <button class="btn bg-rojo text-white" type="button">
                 <i class="fas fa-search"></i>
             </button>
         </div>
@@ -102,7 +147,7 @@
         <input type="hidden" id="footer_image_data" name="footer_image">
 
         <div class="row mb-4">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="mb-3">
                     <label for="titulo_constancia" class="form-label">Título de la Constancia</label>
                     <input type="text" class="form-control" id="titulo_constancia" name="titulo" required>
@@ -110,17 +155,20 @@
 
                 <div class="mb-3">
                     <label for="tipo_constancia" class="form-label">Tipo de Constancia</label>
-                    <select class="form-select" id="tipo_constancia" name="tipo">
-                        <option value="">Seleccione un tipo</option>
-                        <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                        <option value="ANTIGÜEDAD DE EQUIPO">ANTIGÜEDAD DE EQUIPO</option>
-                        <option value="GARANTÍA">GARANTÍA</option>
-                        <option value="SERVICIO">SERVICIO</option>
-                        <option value="CAPACITACIÓN">CAPACITACIÓN</option>
-                        <option value="OTRO">OTRO</option>
-                    </select>
+                    <div class="input-group">
+                        <select class="form-select" id="tipo_constancia" name="tipo" required>
+                            <option value="">Seleccione un tipo</option>
+                        </select>
+                        <button class="btn bg-rojo text-white" type="button" id="btn-gestionar-tipos-constancia"
+                            onclick="abrirModalTiposConstancias()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="form-text text-gris small">Este campo se usará para categorizar las constancias.</div>
                 </div>
+            </div>
 
+            <div class="col-md-6">
                 <div class="mb-3">
                     <label for="cliente_search" class="form-label">Cliente</label>
                     <div class="input-group">
@@ -140,44 +188,7 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label class="form-label">Imagen de Cabecera</label>
-                    <div class="input-group mb-2">
-                        <input type="file" class="form-control" id="header_image" name="header_image_file"
-                            accept="image/*">
-                        <button class="btn btn-outline-secondary" type="button" id="reset-header-constancia">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="image-placeholder" id="header-placeholder-constancia">
-                        <i class="fas fa-image fa-2x mb-2"></i><br>
-                        Sin imagen
-                    </div>
-                    <img id="header-preview-constancia" class="image-preview" alt="Vista previa de cabecera">
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label class="form-label">Imagen de Pie</label>
-                    <div class="input-group mb-2">
-                        <input type="file" class="form-control" id="footer_image" name="footer_image_file"
-                            accept="image/*">
-                        <button class="btn btn-outline-secondary" type="button" id="reset-footer-constancia">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="image-placeholder" id="footer-placeholder-constancia">
-                        <i class="fas fa-image fa-2x mb-2"></i><br>
-                        Sin imagen
-                    </div>
-                    <img id="footer-preview-constancia" class="image-preview" alt="Vista previa de pie">
-                </div>
-            </div>
         </div>
-
         <div class="mb-3">
             <label for="editor-container-constancia" class="form-label">Contenido de la Constancia</label>
             <div id="editor-container-constancia" class="editor-container"></div>
@@ -187,7 +198,7 @@
             <button type="button" class="btn btn-secondary" id="btn-cancel-constancia">
                 <i class="fas fa-times me-1"></i> Cancelar
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="btn-preview-constancia">
+            <button type="button" class="btn border-rojo" id="btn-preview-constancia">
                 <i class="fas fa-eye me-1"></i> Vista Previa
             </button>
             <button type="button" class="btn btn-rojo" id="btn-save-constancia">
@@ -195,6 +206,100 @@
             </button>
         </div>
     </form>
+</div>
+<!-- Modal para Gestionar Tipos de Constancia -->
+<div class="modal fade" id="gestionarTiposConstanciaModal" tabindex="-1" aria-labelledby="gestionarTiposConstanciaModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title" id="gestionarTiposConstanciaModalLabel">Gestionar Tipos de Constancia</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar nuevo tipo -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Agregar Nuevo Tipo</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="nuevo-tipo-constancia-nombre" class="form-label">Nombre del Tipo <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nuevo-tipo-constancia-nombre"
+                                    placeholder="Ej: COMERCIAL, FORMAL, NOTIFICACIÓN">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn bg-rojo text-white w-100" onclick="agregarTipoConstancia()">
+                                    <i class="fas fa-plus me-2"></i>Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de tipos existentes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Tipos Existentes</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th width="120">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-tipos-constancia">
+                                    <tr>
+                                        <td colspan="2" class="text-center">
+                                            <div class="spinner-border spinner-border-sm text-rojo" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Tipo -->
+<div class="modal fade" id="editarTipoConstanciaModal" tabindex="-1" aria-labelledby="editarTipoConstanciaModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title" id="editarTipoConstanciaModalLabel">Editar Tipo de Constancia</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editar-tipo-constancia-id">
+                <div class="mb-3">
+                    <label for="editar-tipo-constancia-nombre" class="form-label">Nombre del Tipo <span
+                            class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="editar-tipo-constancia-nombre">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoConstanciaEditado()">Guardar
+                    Cambios</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal de Vista Previa -->
@@ -238,10 +343,90 @@
         </div>
     </div>
 </div>
+<!-- Modal de Gestión de Membretes -->
+<div class="modal fade" id="gestionarMembretesModal" tabindex="-1" aria-labelledby="gestionarMembretesModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title" id="gestionarMembretesModalLabel">
+                    <i class="fas fa-image me-2"></i>Gestionar Membretes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Información:</strong> Las imágenes configuradas aquí se aplicarán automáticamente a todas
+                    las constancias y plantillas.
+                </div>
 
+                <form id="formMembretes" enctype="multipart/form-data">
+                    <input type="hidden" id="membrete_header_image_data" name="header_image">
+                    <input type="hidden" id="membrete_footer_image_data" name="footer_image">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-arrow-up me-1"></i>Imagen de Cabecera
+                                </label>
+                                <div class="input-group mb-2">
+                                    <input type="file" class="form-control" id="membrete_header_image"
+                                        name="header_image_file" accept="image/*">
+                                    <button class="btn btn-outline-danger" type="button" id="reset-membrete-header">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="image-placeholder" id="header-placeholder-membrete">
+                                    <i class="fas fa-image fa-2x mb-2"></i><br>
+                                    Sin imagen de cabecera
+                                </div>
+                                <img id="membrete-header-preview" class="image-preview" alt="Vista previa de cabecera">
+                                <small class="text-muted">Recomendado: 800x200 píxeles</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-arrow-down me-1"></i>Imagen de Pie
+                                </label>
+                                <div class="input-group mb-2">
+                                    <input type="file" class="form-control" id="membrete_footer_image"
+                                        name="footer_image_file" accept="image/*">
+                                    <button class="btn btn-outline-danger" type="button" id="reset-membrete-footer">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="image-placeholder" id="footer-placeholder-membrete">
+                                    <i class="fas fa-image fa-2x mb-2"></i><br>
+                                    Sin imagen de pie
+                                </div>
+                                <img id="membrete-footer-preview" class="image-preview" alt="Vista previa de pie">
+                                <small class="text-muted">Recomendado: 800x100 píxeles</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                <button type="button" class="btn btn-outline-primary" id="btn-preview-membretes">
+                    <i class="fas fa-eye me-1"></i> Vista Previa
+                </button>
+
+                <button type="button" class="btn bg-rojo text-white" id="btn-save-membretes">
+                    <i class="fas fa-save me-1"></i> Guardar Membretes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Modal de Edición de Plantilla -->
-<div class="modal fade" id="editarPlantillaConstanciaModal" tabindex="-1"
-    aria-labelledby="editarPlantillaConstanciaModalLabel" aria-hidden="true">
+<div class="modal fade" id="editarPlantillaConstanciaModal" tabindex="-1" aria-labelledby="editarPlantillaConstanciaModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
@@ -261,48 +446,6 @@
                         <input type="text" class="form-control" id="titulo_plantilla" name="titulo" required>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Imagen de Cabecera</label>
-                                <div class="input-group mb-2">
-                                    <input type="file" class="form-control" id="plantilla_header_image"
-                                        name="header_image_file" accept="image/*">
-                                    <button class="btn btn-outline-secondary" type="button" id="reset-plantilla-header">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div class="image-placeholder" id="header-placeholder-plantilla">
-                                    <i class="fas fa-image fa-2x mb-2"></i><br>
-                                    Sin imagen
-                                </div>
-                                <img id="plantilla-header-preview" class="image-preview" alt="Vista previa de cabecera">
-                                <small class="text-muted">Si no selecciona una imagen, se usará la de la
-                                    plantilla.</small>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Imagen de Pie</label>
-                                <div class="input-group mb-2">
-                                    <input type="file" class="form-control" id="plantilla_footer_image"
-                                        name="footer_image_file" accept="image/*">
-                                    <button class="btn btn-outline-secondary" type="button" id="reset-plantilla-footer">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div class="image-placeholder" id="footer-placeholder-plantilla">
-                                    <i class="fas fa-image fa-2x mb-2"></i><br>
-                                    Sin imagen
-                                </div>
-                                <img id="plantilla-footer-preview" class="image-preview" alt="Vista previa de pie">
-                                <small class="text-muted">Si no selecciona una imagen, se usará la de la
-                                    plantilla.</small>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="mb-3">
                         <label for="editor-container-plantilla" class="form-label">Contenido de la Plantilla</label>
                         <div id="editor-container-plantilla" class="editor-container"></div>
@@ -311,6 +454,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-outline-primary" id="btn-preview-plantilla">
+                    <i class="fas fa-eye me-1"></i> Vista Previa
+                </button>
                 <button type="button" class="btn btn-rojo" id="btn-save-plantilla">
                     <i class="fas fa-save me-1"></i> Guardar Plantilla
                 </button>
@@ -334,6 +480,15 @@
 
         console.log("Inicializando módulo de constancias...");
 
+        // Verificar compatibilidad del navegador
+        if (!window.MutationObserver) {
+            console.warn('MutationObserver no está disponible en este navegador');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Navegador no compatible',
+                text: 'Su navegador no es compatible con todas las funciones. Por favor, actualice su navegador.'
+            });
+        }
         // Variables del módulo (no globales)
         var constancias = [];
         var filtroActual = '';
@@ -342,6 +497,7 @@
         var templateEditor = null;
         var quillLoaded = false;
         var quillCssLoaded = false;
+        var procesandoAccion = false;
 
         // Inicializar cuando el DOM esté listo
         $(document).ready(function () {
@@ -351,12 +507,18 @@
             $("#btn-lista-constancias").on("click", function () {
                 mostrarVistaListaConstancias();
             });
-
             $("#btn-nueva-constancia").on("click", function () {
+                if (procesandoAccion) return; // Evitar múltiples clics
+                procesandoAccion = true;
+
                 mostrarFormularioNuevoConstancia();
+
+                setTimeout(function () {
+                    procesandoAccion = false;
+                }, 500);
             });
 
-            $("#btn-editar-plantilla-constancia").on("click", function () {
+            $("#btn-editar-plantilla").on("click", function () {
                 editarPlantillaConstancia();
             });
 
@@ -385,45 +547,47 @@
             });
 
             $("#btn-preview-constancia").on("click", function () {
-                mostrarVistaPrevia();
+                mostrarVistaPreviaConstancia();
             });
 
-            // Configurar eventos para las imágenes
-            $("#header_image").on("change", function (e) {
-                manejarCambioImagen(e, 'header_image_data', 'header-preview-constancia', 'header-placeholder-constancia');
-            });
-
-            $("#footer_image").on("change", function (e) {
-                manejarCambioImagen(e, 'footer_image_data', 'footer-preview-constancia', 'footer-placeholder-constancia');
-            });
-
-            $("#reset-header-constancia").on("click", function () {
-                restablecerImagen('header_image_data', 'header-preview-constancia', 'header-placeholder-constancia');
-            });
-
-            $("#reset-footer-constancia").on("click", function () {
-                restablecerImagen('footer_image_data', 'footer-preview-constancia', 'footer-placeholder-constancia');
-            });
 
             // Configurar eventos para el formulario de plantilla
             $("#btn-save-plantilla").on("click", function () {
                 guardarPlantilla();
             });
 
-            $("#plantilla_header_image").on("change", function (e) {
-                manejarCambioImagen(e, 'plantilla_header_image_data', 'plantilla-header-preview', 'header-placeholder-plantilla');
+
+
+
+            $("#btn-gestionar-membretes").on("click", function () {
+                gestionarMembretes();
             });
 
-            $("#plantilla_footer_image").on("change", function (e) {
-                manejarCambioImagen(e, 'plantilla_footer_image_data', 'plantilla-footer-preview', 'footer-placeholder-plantilla');
+            // Configurar eventos para el formulario de membretes
+            $("#btn-save-membretes").on("click", function () {
+                guardarMembretes();
             });
 
-            $("#reset-plantilla-header").on("click", function () {
-                restablecerImagen('plantilla_header_image_data', 'plantilla-header-preview', 'header-placeholder-plantilla');
+            $("#membrete_header_image").on("change", function (e) {
+                manejarCambioImagen(e, 'membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
             });
 
-            $("#reset-plantilla-footer").on("click", function () {
-                restablecerImagen('plantilla_footer_image_data', 'plantilla-footer-preview', 'footer-placeholder-plantilla');
+            $("#membrete_footer_image").on("change", function (e) {
+                manejarCambioImagen(e, 'membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
+            });
+
+            $("#reset-membrete-header").on("click", function () {
+                restablecerImagen('membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
+            });
+
+            $("#reset-membrete-footer").on("click", function () {
+                restablecerImagen('membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
+            });
+            $("#btn-preview-plantilla").on("click", function () {
+                mostrarVistaPreviewPlantilla();
+            });
+            $("#btn-preview-membretes").on("click", function () {
+                mostrarVistaPreviewMembretes();
             });
 
             // Cargar constancias
@@ -433,29 +597,6 @@
             cargarQuillSiNoExiste();
         });
 
-        function destruirEditor() {
-            if (constanciaEditor) {
-                try {
-                    constanciaEditor.off('text-change');
-
-                    //remover el contenido del editor
-                    constanciaEditor.container.innerHTML = '';
-                    //remover el toolbar so existe 
-                    const toolbarElement = document.querySelector('.ql-toolbar');
-                    if (toolbarElement && toolbarElement.parentNode) {
-                        toolbarElement.parentNode.removeChild(toolbarElement);
-                    }
-                    // limpiar el contenedor del editor
-                    $('#editor-container-constancia').html('');
-
-                    // establecer la variable a null
-                    constanciaEditor = null;
-                } catch (error) {
-                    console.error("Error al destruir el editor:", error);
-                }
-            }
-        }
-
         // Función para mostrar la vista de lista de constancias
         function mostrarVistaListaConstancias() {
             $(".vista").removeClass("active");
@@ -464,13 +605,15 @@
             // Actualizar estado de los botones
             $("#btn-lista-constancias").removeClass("btn-outline-danger").addClass("btn-rojo");
             $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla-constancia").addClass("btn-outline-danger").removeClass("btn-rojo");
+            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
 
+            // Destruir el editor correctamente
             destruirEditor();
 
             // Recargar la lista de constancias
             cargarConstancias();
         }
+
 
         // Función para cargar Quill si no existe
         function cargarQuillSiNoExiste() {
@@ -481,14 +624,14 @@
                 if (!quillCssLoaded) {
                     var quillCSS = document.createElement('link');
                     quillCSS.rel = 'stylesheet';
-                    quillCSS.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+                    quillCSS.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css';
                     document.head.appendChild(quillCSS);
                     quillCssLoaded = true;
                 }
 
                 // Cargar JavaScript de Quill
                 var quillScript = document.createElement('script');
-                quillScript.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+                quillScript.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js';
                 quillScript.onload = function () {
                     console.log("Quill cargado correctamente");
                     quillLoaded = true;
@@ -508,13 +651,13 @@
 
             // Mostrar indicador de carga
             $("#lista-constancias-container").html(`
-            <div class="text-center py-5">
-                <div class="spinner-border text-rojo" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-2 text-muted">Cargando constancias...</p>
+        <div class="text-center py-5">
+            <div class="spinner-border text-rojo" role="status">
+                <span class="visually-hidden">Cargando...</span>
             </div>
-        `);
+            <p class="mt-2 text-muted">Cargando constancias...</p>
+        </div>
+    `);
 
             // Construir la URL con los filtros
             let url = _URL + "/ajs/constancia/render";
@@ -532,28 +675,28 @@
                 success: function (data) {
                     console.log("Respuesta de constancias:", data);
 
-                    // Asegurarse de que data sea un array
-                    if (data === null || data === undefined) {
+                    // Asegurarse de que data.constancias sea un array
+                    if (!data || !data.constancias) {
                         console.log("No se recibieron datos, mostrando mensaje de no hay constancias");
                         mostrarNoHayConstancias();
                         return;
                     }
 
-                    constancias = Array.isArray(data) ? data : [];
+                    constancias = Array.isArray(data.constancias) ? data.constancias : [];
                     console.log("Constancias procesadas:", constancias);
                     renderizarConstancias();
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al cargar constancias:", status, error);
                     $("#lista-constancias-container").html(`
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error al cargar las constancias. Por favor, intente nuevamente.
-                    </div>
-                    <button class="btn btn-rojo mt-3" onclick="window.recargarConstancias()">
-                        <i class="fas fa-sync me-2"></i>Reintentar
-                    </button>
-                `);
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error al cargar las constancias. Por favor, intente nuevamente.
+                </div>
+                <button class="btn btn-rojo mt-3" onclick="window.recargarConstancias()">
+                    <i class="fas fa-sync me-2"></i>Reintentar
+                </button>
+            `);
                 }
             });
         }
@@ -577,73 +720,89 @@
         }
 
         // Función para renderizar las constancias
-        function renderizarConstancias() {
-            if (!constancias || constancias.length === 0) {
-                mostrarNoHayConstancias();
-                return;
-            }
+       function renderizarConstancias() {
+    if (!constancias || constancias.length === 0) {
+        mostrarNoHayConstancias();
+        return;
+    }
 
-            let html = '<div class="row row-cols-1 row-cols-md-3 g-4">';
+    let html = '<div class="row row-cols-1 row-cols-md-3 g-4">';
 
-            constancias.forEach(function (constancia) {
-                const fecha = new Date(constancia.fecha_creacion).toLocaleDateString();
-                const cliente = constancia.cliente_nombre || 'Sin cliente';
+    constancias.forEach(function (constancia) {
+        const fecha = new Date(constancia.fecha_creacion).toLocaleDateString();
+        const cliente = constancia.cliente_nombre || 'Sin cliente';
+        
+        // Generar un ID único para el canvas de PDF
+        const canvasId = `pdf-preview-constancia-${constancia.id}`;
 
-                html += `
-                <div class="col">
-                    <div class="card constancia-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge bg-rojo">${constancia.tipo || 'Sin tipo'}</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownConstancia${constancia.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownConstancia${constancia.id}">
-                                    <li><a class="dropdown-item" href="${_URL}/ajs/constancia/generarPDF?id=${constancia.id}" target="_blank">
-                                        <i class="fas fa-file-pdf me-2"></i> Ver PDF
-                                    </a></li>
-                                    <li><a class="dropdown-item constancia-editar" href="#" data-id="${constancia.id}">
-                                        <i class="fas fa-edit me-2"></i> Editar
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmarEliminarConstanciaModal" data-id="${constancia.id}">
-                                        <i class="fas fa-trash-alt me-2"></i> Eliminar
-                                    </a></li>
-                                </ul>
-                            </div>
+        html += `
+            <div class="col">
+                <div class="card constancia-card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge bg-rojo">${constancia.tipo || 'Sin tipo'}</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownConstancia${constancia.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownConstancia${constancia.id}">
+                                <li><a class="dropdown-item" href="${_URL}/ajs/constancia/generarPDF?id=${constancia.id}" target="_blank">
+                                    <i class="fas fa-file-pdf me-2"></i> Ver PDF
+                                </a></li>
+                                <li><a class="dropdown-item constancia-editar" href="#" data-id="${constancia.id}">
+                                    <i class="fas fa-edit me-2"></i> Editar
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmarEliminarConstanciaModal" data-id="${constancia.id}">
+                                    <i class="fas fa-trash-alt me-2"></i> Eliminar
+                                </a></li>
+                            </ul>
                         </div>
-                        <div class="card-body">
-                            <h5 class="card-title">${constancia.titulo}</h5>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-user me-1"></i> ${cliente}<br>
-                                    <i class="fas fa-calendar-alt me-1"></i> ${fecha}
-                                </small>
-                            </p>
+                    </div>
+                    <!-- Vista previa del PDF -->
+                    <div class="card-body p-0">
+                        <div class="document-preview">
+                            <canvas id="${canvasId}" class="pdf-preview-canvas"></canvas>
                         </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <a href="${_URL}/ajs/constancia/generarPDF?id=${constancia.id}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                    </div>
+                    <div class="card-footer">
+                        <h5 class="card-title">${constancia.titulo}</h5>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i> ${cliente}<br>
+                                <i class="fas fa-calendar-alt me-1"></i> ${fecha}
+                            </small>
+                        </p>
+                        <div class="d-flex justify-content-between mt-2">
+                            <a href="${_URL}/ajs/constancia/generarPDF?id=${constancia.id}" class="btn btn-sm btn-outline-primary" target="_blank">
                                 <i class="fas fa-file-pdf me-1"></i> Ver PDF
                             </a>
-                            <button class="btn btn-sm btn-rojo constancia-editar" data-id="${constancia.id}">
+                            <button class="btn btn-sm btn-outline-secondary constancia-editar" data-id="${constancia.id}">
                                 <i class="fas fa-edit me-1"></i> Editar
                             </button>
                         </div>
                     </div>
                 </div>
-            `;
-            });
+            </div>
+        `;
+    });
 
-            html += '</div>';
+    html += '</div>';
+    $("#lista-constancias-container").html(html);
 
-            $("#lista-constancias-container").html(html);
+    // Agregar eventos a los botones de editar
+    $(".constancia-editar").on("click", function () {
+        const id = $(this).data('id');
+        editarConstancia(id);
+    });
 
-            // Agregar eventos a los botones de editar
-            $(".constancia-editar").on("click", function () {
-                const id = $(this).data('id');
-                editarConstancia(id);
-            });
-        }
+    // Inicializar la carga de PDFs después de que el HTML esté en el DOM
+    constancias.forEach(function (constancia) {
+        const canvasId = `pdf-preview-constancia-${constancia.id}`;
+        setTimeout(() => {
+            renderPdfPreviewConstancia(`${_URL}/ajs/constancia/generarPDF?id=${constancia.id}`, canvasId);
+        }, 100);
+    });
+}
 
         // Función para buscar constancias
         function buscarConstancias() {
@@ -664,6 +823,131 @@
             cargarConstancias();
         }
 
+        function destruirEditor() {
+            if (constanciaEditor) {
+                try {
+                    // Remover event listeners de forma segura
+                    if (constanciaEditor.off) {
+                        constanciaEditor.off();
+                    }
+
+                    // Limpiar DOM de manera segura
+                    const container = constanciaEditor.container;
+                    if (container && container.parentNode) {
+                        // Remover toolbars
+                        const toolbars = container.parentNode.querySelectorAll('.ql-toolbar');
+                        toolbars.forEach(toolbar => {
+                            if (toolbar && toolbar.parentNode) {
+                                try {
+                                    toolbar.parentNode.removeChild(toolbar);
+                                } catch (e) {
+                                    console.warn('Error removiendo toolbar:', e);
+                                }
+                            }
+                        });
+
+                        // Limpiar contenedor
+                        try {
+                            container.innerHTML = '';
+                        } catch (e) {
+                            console.warn('Error limpiando contenedor:', e);
+                        }
+                    }
+
+                    // Limpiar con jQuery como respaldo
+                    $('#editor-container-constancia').empty();
+                    constanciaEditor = null;
+                } catch (error) {
+                    console.error("Error al destruir el editor:", error);
+                    // Forzar limpieza
+                    $('#editor-container-constancia').empty();
+                    constanciaEditor = null;
+                }
+            }
+
+            // Ocultar autocomplete si existe
+            const autocompleteResults = elementoSeguro('autocomplete-results');
+            if (autocompleteResults) {
+                autocompleteResults.style.display = 'none';
+            }
+        }
+        function mostrarVistaPreviewMembretes() {
+            // Marcar que debemos regresar al modal de membretes
+            window.regresarAMembretes = true;
+
+            // CERRAR el modal de membretes PRIMERO
+            const modalMembretes = bootstrap.Modal.getInstance(document.getElementById('gestionarMembretesModal'));
+            if (modalMembretes) {
+                modalMembretes.hide();
+            }
+
+            // Esperar a que el modal se cierre completamente
+            $('#gestionarMembretesModal').on('hidden.bs.modal', function () {
+                $(this).off('hidden.bs.modal');
+
+                // Obtener las imágenes ACTUALES del formulario
+                const headerImageData = document.getElementById('membrete_header_image_data').value;
+                const footerImageData = document.getElementById('membrete_footer_image_data').value;
+
+                // Mostrar indicador de carga
+                Swal.fire({
+                    title: 'Generando vista previa',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Crear FormData para enviar las imágenes
+                const formData = new FormData();
+                formData.append('titulo', 'Vista Previa de Membretes');
+                formData.append('contenido', 'Contenido de ejemplo para mostrar los membretes configurados.');
+
+                // Solo agregar imágenes si existen
+                if (headerImageData && headerImageData.trim() !== '') {
+                    formData.append('header_image', headerImageData);
+                }
+                if (footerImageData && footerImageData.trim() !== '') {
+                    formData.append('footer_image', footerImageData);
+                }
+
+                $.ajax({
+                    url: _URL + "/ajs/constancia/vista-previa",
+                    method: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function (data) {
+                        Swal.close();
+
+                        if (data.success && data.pdfBase64) {
+                            document.getElementById('preview-frame-constancia').src = "data:application/pdf;base64," + data.pdfBase64;
+                            const modal = new bootstrap.Modal(document.getElementById('previewConstanciaModal'));
+                            modal.show();
+                        } else {
+                            window.regresarAMembretes = false; // Cancelar regreso si hay error
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.msg || 'Error al generar la vista previa'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.close();
+                        window.regresarAMembretes = false; // Cancelar regreso si hay error
+                        console.error("Error en vista previa:", status, error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al generar la vista previa'
+                        });
+                    }
+                });
+            });
+        }
         // Función para mostrar el formulario de nueva constancia
         function mostrarFormularioNuevoConstancia() {
             console.log("Mostrando formulario de nueva constancia...");
@@ -671,8 +955,7 @@
             // Actualizar estado de los botones
             $("#btn-lista-constancias").removeClass("btn-rojo").addClass("btn-outline-danger");
             $("#btn-nueva-constancia").removeClass("btn-outline-danger").addClass("btn-rojo");
-            $("#btn-editar-plantilla-constancia").addClass("btn-outline-danger").removeClass("btn-rojo");
-
+            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
             // Mostrar la vista de edición
             $(".vista").removeClass("active");
             $("#vista-editar-constancia").addClass("active");
@@ -694,7 +977,7 @@
             // Actualizar título
             $("#titulo-pagina-constancia").text("Nueva Constancia");
 
-            // inicializar autocomplete para clientes
+            // Inicializar autocomplete para clientes
             inicializarAutocompletarClientes();
 
             // Esperar a que Quill esté cargado
@@ -705,39 +988,56 @@
                 // Cargar plantilla actual
                 cargarPlantillaConstancia();
             });
+            cargarTiposConstanciasSelect();
         }
 
         // Función para esperar a que Quill esté cargado
         function esperarPorQuill(callback) {
-            if (quillLoaded) {
+            if (typeof Quill !== 'undefined') {
+                quillLoaded = true;
                 callback();
-            } else {
-                console.log("Esperando a que Quill se cargue...");
-                cargarQuillSiNoExiste();
-
-                // Verificar cada 100ms si Quill ya está cargado
-                var checkQuill = setInterval(function () {
-                    if (typeof Quill !== 'undefined') {
-                        clearInterval(checkQuill);
-                        quillLoaded = true;
-                        console.log("Quill ya está disponible, continuando...");
-                        callback();
-                    }
-                }, 100);
-
-                // Establecer un tiempo límite de 5 segundos
-                setTimeout(function () {
-                    clearInterval(checkQuill);
-                    if (!quillLoaded) {
-                        console.error("Tiempo de espera agotado para cargar Quill");
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'No se pudo cargar el editor. Por favor, recargue la página e intente nuevamente.'
-                        });
-                    }
-                }, 5000);
+                return;
             }
+
+            console.log("Esperando a que Quill se cargue...");
+            cargarQuillSiNoExiste();
+
+            // Usar una promesa en lugar de setInterval
+            const checkQuill = () => {
+                return new Promise((resolve, reject) => {
+                    if (typeof Quill !== 'undefined') {
+                        resolve();
+                        return;
+                    }
+
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Tiempo de espera agotado para cargar Quill'));
+                    }, 5000);
+
+                    const interval = setInterval(() => {
+                        if (typeof Quill !== 'undefined') {
+                            clearInterval(interval);
+                            clearTimeout(timeout);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            };
+
+            checkQuill()
+                .then(() => {
+                    quillLoaded = true;
+                    console.log("Quill ya está disponible, continuando...");
+                    callback();
+                })
+                .catch((error) => {
+                    console.error(error.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cargar el editor. Por favor, recargue la página e intente nuevamente.'
+                    });
+                });
         }
 
         // Función para editar una constancia existente
@@ -745,9 +1045,9 @@
             console.log("Editando constancia ID:", id);
 
             // Actualizar estado de los botones
-            $("#btn-lista-constancias").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla-constancia").addClass("btn-outline-danger").removeClass("btn-rojo");
+            $("#btn-lista-constancias").removeClass("btn-rojo").addClass("btn-outline-secondary");
+            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-secondary");
+            $("#btn-editar-plantilla").addClass("btn-outline-secondary").removeClass("btn-rojo");
 
             // Mostrar la vista de edición
             $(".vista").removeClass("active");
@@ -756,9 +1056,8 @@
             // Actualizar título
             $("#titulo-pagina-constancia").text("Editar Constancia");
 
-            // inicializar el autocomplete para clientes
+            // Inicializar autocomplete para clientes
             inicializarAutocompletarClientes();
-
             // Esperar a que Quill esté cargado
             esperarPorQuill(function () {
                 // Inicializar el editor
@@ -768,65 +1067,40 @@
                 cargarDatosConstancia(id);
             });
         }
-        function destruirEditorPlantilla() {
-            if (templateEditor) {
-                try {
-                    // Desconectar todos los eventos del editor
-                    templateEditor.off('text-change');
-
-                    // Remover el contenido del editor
-                    templateEditor.container.innerHTML = '';
-
-                    // Remover todas las toolbars de Quill que puedan existir
-                    const toolbars = document.querySelectorAll('.ql-toolbar');
-                    toolbars.forEach(toolbar => {
-                        if (toolbar.parentNode) {
-                            toolbar.parentNode.removeChild(toolbar);
-                        }
-                    });
-
-                    // Remover todos los contenedores de editor que puedan existir
-                    const editors = document.querySelectorAll('.ql-editor');
-                    editors.forEach(editor => {
-                        if (editor.parentNode) {
-                            editor.parentNode.removeChild(editor);
-                        }
-                    });
-
-                    // Limpiar el contenedor del editor
-                    $('#editor-container-plantilla').html('');
-
-                    // Establecer la variable a null
-                    templateEditor = null;
-                } catch (error) {
-                    console.error("Error al destruir el editor de plantilla:", error);
-                }
-            }
-        }
 
         // Función para editar la plantilla de constancia
         function editarPlantillaConstancia() {
             console.log("Editando plantilla de constancia...");
-             destruirEditorPlantilla();
+
+            // Destruir cualquier instancia existente del editor antes de continuar
+            destruirEditorPlantilla();
+
             // Actualizar estado de los botones
             $("#btn-lista-constancias").removeClass("btn-rojo").addClass("btn-outline-danger");
             $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla-constancia").removeClass("btn-outline-danger").addClass("btn-rojo");
+            $("#btn-editar-plantilla").removeClass("btn-outline-danger").addClass("btn-rojo");
 
-            // Esperar a que Quill esté cargado
-            esperarPorQuill(function () {
-                // Inicializar el editor de plantilla
-                inicializarEditorPlantilla();
+            // Mostrar el modal PRIMERO
+            const modal = new bootstrap.Modal(document.getElementById('editarPlantillaConstanciaModal'));
+            modal.show();
 
-                // Cargar datos de la plantilla
-                cargarDatosPlantilla();
+            // Esperar a que el modal esté completamente visible
+            $('#editarPlantillaConstanciaModal').on('shown.bs.modal', function () {
+                // Remover el event listener para evitar múltiples ejecuciones
+                $(this).off('shown.bs.modal');
 
-                // Mostrar el modal
-                const modal = new bootstrap.Modal(document.getElementById('editarPlantillaConstanciaModal'));
-                modal.show();
+                // Esperar a que Quill esté cargado
+                esperarPorQuill(function () {
+                    // Inicializar el editor PRIMERO
+                    inicializarEditorPlantilla();
+
+                    // Luego cargar los datos con un pequeño delay
+                    setTimeout(() => {
+                        cargarDatosPlantilla();
+                    }, 200);
+                });
             });
         }
-
         // Función para inicializar el editor Quill
         function inicializarEditorConstancia() {
             console.log("Inicializando editor Quill...");
@@ -836,9 +1110,14 @@
                 console.error("Error: No se encontró el contenedor del editor #editor-container-constancia");
                 return;
             }
+
+            // Destruir el editor existente si hay uno
             destruirEditor();
 
             try {
+                // Asegurarse de que el contenedor esté vacío
+                $("#editor-container-constancia").html('');
+
                 // Inicializar Quill
                 constanciaEditor = new Quill('#editor-container-constancia', {
                     modules: {
@@ -880,40 +1159,67 @@
                 });
             }
         }
-
-        // Función para inicializar el editor Quill para la plantilla
-        function inicializarEditorPlantilla() {
-            console.log("Inicializando editor de plantilla Quill...");
-
+        function destruirEditorPlantilla() {
             if (templateEditor) {
                 try {
-                    // Desconectar todos los eventos del editor
-                    templateEditor.off('text-change');
-
-                    // Remover el contenido del editor
-                    templateEditor.container.innerHTML = '';
-
-                    // Remover la toolbar si existe
-                    const toolbarElement = document.querySelector('#editor-container-plantilla + .ql-toolbar');
-                    if (toolbarElement && toolbarElement.parentNode) {
-                        toolbarElement.parentNode.removeChild(toolbarElement);
+                    // Remover todos los event listeners de manera segura
+                    if (templateEditor.off) {
+                        templateEditor.off();
                     }
 
-                    // Limpiar el contenedor del editor
-                    $('#editor-container-plantilla').html('');
+                    // Limpiar el DOM de manera más segura
+                    const container = templateEditor.container;
+                    if (container && container.parentNode) {
+                        // Remover todas las toolbars relacionadas de manera segura
+                        const toolbars = container.parentNode.querySelectorAll('.ql-toolbar');
+                        toolbars.forEach(toolbar => {
+                            if (toolbar && toolbar.parentNode) {
+                                toolbar.parentNode.removeChild(toolbar);
+                            }
+                        });
+
+                        // Limpiar el contenedor
+                        if (container) {
+                            while (container.firstChild) {
+                                container.removeChild(container.firstChild);
+                            }
+                        }
+                    }
+
+                    // Limpiar el contenedor del editor con jQuery
+                    $('#editor-container-plantilla').empty();
 
                     // Establecer la variable a null
                     templateEditor = null;
                 } catch (error) {
                     console.error("Error al destruir el editor de plantilla:", error);
+                    // Forzar limpieza en caso de error
+                    $('#editor-container-plantilla').empty();
+                    templateEditor = null;
                 }
             }
 
-            // Asegurarse de que el contenedor esté vacío
-            $("#editor-container-plantilla").html('');
+            // Asegúrate de que el dropdown de autocompletado esté oculto
+            if ($("#autocomplete-results").length) {
+                $("#autocomplete-results").hide();
+            }
+        }
+        function inicializarEditorPlantilla() {
+            console.log("Inicializando editor de plantilla Quill...");
 
+            // Verificar que el contenedor exista
+            if ($("#editor-container-plantilla").length === 0) {
+                console.error("Error: No se encontró el contenedor del editor #editor-container-plantilla");
+                return;
+            }
+
+            // Destruir el editor existente si hay uno
+            destruirEditorPlantilla();
 
             try {
+                // Asegurarse de que el contenedor esté vacío de manera segura
+                $("#editor-container-plantilla").empty();
+
                 // Inicializar Quill
                 templateEditor = new Quill('#editor-container-plantilla', {
                     modules: {
@@ -935,13 +1241,18 @@
 
                 console.log("Editor de plantilla Quill inicializado correctamente");
 
-                // Asignar el evento de cambio de texto solo si el editor se inicializó correctamente
+                // Asignar el evento de cambio de texto usando el API moderno de Quill
                 if (templateEditor && templateEditor.on) {
                     templateEditor.on('text-change', function () {
-                        var contenidoInput = document.getElementById('contenido_plantilla');
+                        var contenidoInput = elementoSeguro('contenido_plantilla');
                         if (contenidoInput) {
                             contenidoInput.value = templateEditor.root.innerHTML;
                         }
+                    });
+
+                    // Evento cuando el editor está listo
+                    templateEditor.on('editor-change', function () {
+                        console.log("Editor de plantilla listo para recibir contenido");
                     });
                 } else {
                     console.error("Error: El editor de plantilla Quill no se inicializó correctamente");
@@ -956,47 +1267,172 @@
             }
         }
 
+        // Reemplazar los eventos existentes del modal por estos:
+        $('#editarPlantillaConstanciaModal').on('hidden.bs.modal', function () {
+            console.log("Modal de plantilla cerrado, destruyendo editor");
+            destruirEditorPlantilla();
+            // Limpiar completamente el contenedor
+            $('#editor-container-plantilla').empty();
+        });
+
+        $('#editarPlantillaConstanciaModal').on('show.bs.modal', function () {
+            console.log("Modal de plantilla abriéndose");
+            // Asegurarse de que no haya instancias previas
+            destruirEditorPlantilla();
+        });
+        // Evento para regresar al modal de membretes después de cerrar vista previa
+        $('#previewConstanciaModal').on('hidden.bs.modal', function () {
+            // Verificar si venimos del modal de membretes
+            if (window.regresarAMembretes) {
+                window.regresarAMembretes = false;
+
+                // Reabrir el modal de membretes
+                setTimeout(() => {
+                    const modal = new bootstrap.Modal(document.getElementById('gestionarMembretesModal'));
+                    modal.show();
+                }, 300);
+            }
+        });
         // Función para inicializar el autocomplete de clientes
         function inicializarAutocompletarClientes() {
-            $("#cliente_search").autocomplete({
-                source: _URL + "/ajs/buscar/cliente/datos", // Usamos la ruta existente
-                minLength: 2,
-                select: function (event, ui) {
-                    event.preventDefault();
+            let timeoutId;
+            let currentRequest;
 
-                    // Establecer los valores seleccionados
-                    $("#cliente_id").val(ui.item.codigo); // Usamos 'codigo' que es el campo que devuelve la API
-                    $("#cliente_nombre").text(ui.item.datos);
-                    $("#cliente_documento").text("Documento: " + ui.item.documento);
-                    $("#cliente_direccion").text("Dirección: " + (ui.item.direccion || "No especificada"));
+            // Limpiar cualquier autocomplete previo
+            $("#cliente_search").off('input keyup');
+            $("#cliente_search").removeData('autocomplete-initialized');
 
-                    // Mostrar la información del cliente
-                    $("#cliente_info").show();
+            // Crear contenedor para resultados si no existe
+            if (!$("#autocomplete-results").length) {
+                $("body").append('<div id="autocomplete-results" class="autocomplete-dropdown" style="display: none; position: absolute; z-index: 9999; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto;"></div>');
+            }
 
-                    // Establecer el valor en el campo de búsqueda
-                    $(this).val(ui.item.datos);
+            const $input = $("#cliente_search");
+            const $results = $("#autocomplete-results");
 
-                    return false;
+            // Función para buscar clientes
+            function buscarClientes(query) {
+                // Cancelar petición anterior si existe
+                if (currentRequest) {
+                    currentRequest.abort();
                 }
-            }).autocomplete("instance")._renderItem = function (ul, item) {
-                return $("<li>")
-                    .append("<div class='autocomplete-item'><strong>" + item.documento + "</strong> | " + item.datos + "</div>")
-                    .appendTo(ul);
-            };
 
-            // Agregar botón para limpiar la selección
-            $("#btn-search-cliente").on("click", function () {
-                if ($("#cliente_search").val().trim() === "") {
-                    // Si está vacío, limpiar la selección
-                    $("#cliente_id").val("");
-                    $("#cliente_info").hide();
-                } else {
-                    // Si tiene texto, iniciar búsqueda
-                    $("#cliente_search").autocomplete("search", $("#cliente_search").val());
+                if (query.length < 2) {
+                    $results.hide();
+                    return;
+                }
+
+                currentRequest = $.ajax({
+                    url: _URL + "/ajs/buscar/cliente/datos",
+                    method: "GET",
+                    data: { term: query },
+                    dataType: 'json',
+                    success: function (data) {
+                        mostrarResultados(data);
+                    },
+                    error: function (xhr) {
+                        if (xhr.statusText !== 'abort') {
+                            console.error("Error en búsqueda de clientes:", xhr);
+                        }
+                    },
+                    complete: function () {
+                        currentRequest = null;
+                    }
+                });
+            }
+
+            // Función para mostrar resultados
+            function mostrarResultados(items) {
+                $results.empty();
+
+                if (!items || items.length === 0) {
+                    $results.hide();
+                    return;
+                }
+
+                items.forEach(function (item) {
+                    const $item = $('<div class="autocomplete-item" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;">')
+                        .html('<strong>' + item.documento + '</strong> | ' + item.datos)
+                        .on('click', function () {
+                            seleccionarCliente(item);
+                        })
+                        .on('mouseenter', function () {
+                            $(this).css('background-color', '#f5f5f5');
+                        })
+                        .on('mouseleave', function () {
+                            $(this).css('background-color', 'white');
+                        });
+
+                    $results.append($item);
+                });
+
+                // Posicionar el dropdown
+                const inputOffset = $input.offset();
+                $results.css({
+                    top: inputOffset.top + $input.outerHeight(),
+                    left: inputOffset.left,
+                    width: $input.outerWidth(),
+                    display: 'block'
+                });
+            }
+
+            // Función para seleccionar cliente
+            function seleccionarCliente(item) {
+                $("#cliente_id").val(item.codigo);
+                $("#cliente_nombre").text(item.datos);
+                $("#cliente_documento").text("Documento: " + item.documento);
+                $("#cliente_direccion").text("Dirección: " + (item.direccion || "No especificada"));
+                $("#cliente_info").show();
+                $input.val(item.datos);
+                $results.hide();
+            }
+
+            // Event listeners
+            $input.on('input', function () {
+                const query = $(this).val().trim();
+
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(function () {
+                    buscarClientes(query);
+                }, 300);
+            });
+
+            $input.on('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    $results.hide();
                 }
             });
+
+            $input.on('blur', function () {
+                // Delay para permitir clicks en resultados
+                setTimeout(function () {
+                    $results.hide();
+                }, 200);
+            });
+
+            // Botón de búsqueda
+            $("#btn-search-cliente").off('click').on("click", function () {
+                const query = $input.val().trim();
+                if (query === "") {
+                    $("#cliente_id").val("");
+                    $("#cliente_info").hide();
+                    $results.hide();
+                } else {
+                    buscarClientes(query);
+                }
+            });
+
+            // Marcar como inicializado
+            $input.data('autocomplete-initialized', true);
         }
-        // Función para cargar la plantilla de constancia
+        function elementoSeguro(id) {
+            const elemento = document.getElementById(id);
+            if (!elemento) {
+                console.warn(`Elemento con ID '${id}' no encontrado en el DOM`);
+                return null;
+            }
+            return elemento;
+        }
         function cargarPlantillaConstancia() {
             $.ajax({
                 url: _URL + "/ajs/constancia/obtener-template",
@@ -1009,20 +1445,29 @@
                         // Establecer contenido predeterminado basado en la plantilla
                         if (constanciaEditor) {
                             constanciaEditor.root.innerHTML = plantillaActual.contenido;
-                            document.getElementById('contenido_constancia').value = plantillaActual.contenido;
+                            const contenidoInput = elementoSeguro('contenido_constancia');
+                            if (contenidoInput) {
+                                contenidoInput.value = plantillaActual.contenido;
+                            }
                         }
 
-                        // Mostrar imágenes de la plantilla en las vistas previas
-                        if (plantillaActual.header_image_url) {
-                            document.getElementById('header-preview-constancia').src = plantillaActual.header_image_url;
-                            document.getElementById('header-preview-constancia').style.display = 'block';
-                            document.getElementById('header-placeholder-constancia').style.display = 'none';
+                        // Usar la función segura para todos los elementos
+                        const headerPreview = elementoSeguro('header-preview-constancia');
+                        const footerPreview = elementoSeguro('footer-preview-constancia');
+                        const headerPlaceholder = elementoSeguro('header-placeholder-constancia');
+                        const footerPlaceholder = elementoSeguro('footer-placeholder-constancia');
+
+                        // Mostrar imágenes solo si los elementos existen
+                        if (plantillaActual.header_image_url && headerPreview && headerPlaceholder) {
+                            headerPreview.src = plantillaActual.header_image_url;
+                            headerPreview.style.display = 'block';
+                            headerPlaceholder.style.display = 'none';
                         }
 
-                        if (plantillaActual.footer_image_url) {
-                            document.getElementById('footer-preview-constancia').src = plantillaActual.footer_image_url;
-                            document.getElementById('footer-preview-constancia').style.display = 'block';
-                            document.getElementById('footer-placeholder-constancia').style.display = 'none';
+                        if (plantillaActual.footer_image_url && footerPreview && footerPlaceholder) {
+                            footerPreview.src = plantillaActual.footer_image_url;
+                            footerPreview.style.display = 'block';
+                            footerPlaceholder.style.display = 'none';
                         }
                     }
                 },
@@ -1036,8 +1481,6 @@
                 }
             });
         }
-
-        // Función para cargar datos de la plantilla
         function cargarDatosPlantilla() {
             $.ajax({
                 url: _URL + "/ajs/constancia/obtener-template",
@@ -1047,29 +1490,56 @@
                     if (data.success && data.data) {
                         plantillaActual = data.data;
 
-                        // Llenar formulario
-                        document.getElementById('id_plantilla_constancia').value = plantillaActual.id;
-                        document.getElementById('titulo_plantilla').value = plantillaActual.titulo;
-                        document.getElementById('plantilla_header_image_data').value = plantillaActual.header_image || '';
-                        document.getElementById('plantilla_footer_image_data').value = plantillaActual.footer_image || '';
+                        // Llenar formulario usando elementos seguros
+                        const idPlantilla = elementoSeguro('id_plantilla_constancia');
+                        const tituloPlantilla = elementoSeguro('titulo_plantilla');
+                        const headerImageData = elementoSeguro('plantilla_header_image_data');
+                        const footerImageData = elementoSeguro('plantilla_footer_image_data');
 
-                        // Mostrar imágenes
-                        if (plantillaActual.header_image_url) {
-                            document.getElementById('plantilla-header-preview').src = plantillaActual.header_image_url;
-                            document.getElementById('plantilla-header-preview').style.display = 'block';
-                            document.getElementById('header-placeholder-plantilla').style.display = 'none';
+                        if (idPlantilla) idPlantilla.value = plantillaActual.id;
+                        if (tituloPlantilla) tituloPlantilla.value = plantillaActual.titulo;
+                        if (headerImageData) headerImageData.value = plantillaActual.header_image || '';
+                        if (footerImageData) footerImageData.value = plantillaActual.footer_image || '';
+
+                        // Verificar elementos de vista previa
+                        const headerPreview = elementoSeguro('plantilla-header-preview');
+                        const footerPreview = elementoSeguro('plantilla-footer-preview');
+                        const headerPlaceholder = elementoSeguro('header-placeholder-plantilla');
+                        const footerPlaceholder = elementoSeguro('footer-placeholder-plantilla');
+
+                        // Mostrar imágenes si existen los elementos
+                        if (plantillaActual.header_image_url && headerPreview && headerPlaceholder) {
+                            headerPreview.src = plantillaActual.header_image_url;
+                            headerPreview.style.display = 'block';
+                            headerPlaceholder.style.display = 'none';
                         }
 
-                        if (plantillaActual.footer_image_url) {
-                            document.getElementById('plantilla-footer-preview').src = plantillaActual.footer_image_url;
-                            document.getElementById('plantilla-footer-preview').style.display = 'block';
-                            document.getElementById('footer-placeholder-plantilla').style.display = 'none';
+                        if (plantillaActual.footer_image_url && footerPreview && footerPlaceholder) {
+                            footerPreview.src = plantillaActual.footer_image_url;
+                            footerPreview.style.display = 'block';
+                            footerPlaceholder.style.display = 'none';
                         }
 
-                        // Establecer contenido en el editor
-                        if (templateEditor) {
-                            templateEditor.root.innerHTML = plantillaActual.contenido;
-                            document.getElementById('contenido_plantilla').value = plantillaActual.contenido;
+                        // CRÍTICO: Establecer contenido en el editor con verificación
+                        if (templateEditor && templateEditor.root) {
+                            // Verificar que el editor esté completamente inicializado
+                            const checkEditorReady = () => {
+                                if (templateEditor.root && templateEditor.root.innerHTML !== undefined) {
+                                    templateEditor.root.innerHTML = plantillaActual.contenido;
+                                    const contenidoInput = elementoSeguro('contenido_plantilla');
+                                    if (contenidoInput) {
+                                        contenidoInput.value = plantillaActual.contenido;
+                                    }
+                                    console.log("Contenido establecido en el editor:", plantillaActual.contenido.substring(0, 100) + "...");
+                                } else {
+                                    // Si el editor no está listo, esperar un poco más
+                                    setTimeout(checkEditorReady, 100);
+                                }
+                            };
+
+                            checkEditorReady();
+                        } else {
+                            console.warn("Editor de plantilla no está inicializado al cargar datos");
                         }
                     } else {
                         Swal.fire({
@@ -1089,8 +1559,6 @@
                 }
             });
         }
-
-        // Función para manejar el cambio de imagen
         function manejarCambioImagen(event, inputId, previewId, placeholderId) {
             const file = event.target.files[0];
 
@@ -1098,13 +1566,26 @@
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
-                    document.getElementById(inputId).value = e.target.result;
-                    document.getElementById(previewId).src = e.target.result;
-                    document.getElementById(previewId).style.display = 'block';
-
-                    if (placeholderId) {
-                        document.getElementById(placeholderId).style.display = 'none';
+                    // Actualizar el campo oculto
+                    const hiddenInput = document.getElementById(inputId);
+                    if (hiddenInput) {
+                        hiddenInput.value = e.target.result;
                     }
+
+                    // Actualizar la vista previa
+                    const previewImg = document.getElementById(previewId);
+                    const placeholder = document.getElementById(placeholderId);
+
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                    }
+
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+
+                    console.log('Imagen cargada correctamente:', inputId);
                 };
 
                 reader.readAsDataURL(file);
@@ -1148,7 +1629,7 @@
                             $("#cliente_direccion").text("Dirección: " + (constanciaActual.cliente_direccion || "No especificada"));
                             $("#cliente_info").show();
                         }
-                        document.getElementById('tipo_constancia').value = constanciaActual.tipo || '';
+                     cargarTiposConstanciasSelect(constanciaActual.tipo || '');
                         document.getElementById('titulo_constancia').value = constanciaActual.titulo;
                         document.getElementById('header_image_data').value = constanciaActual.header_image || '';
                         document.getElementById('footer_image_data').value = constanciaActual.footer_image || '';
@@ -1202,15 +1683,6 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'El título es obligatorio'
-                });
-                return;
-            }
-
-            if (!tipo) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El tipo es obligatorio'
                 });
                 return;
             }
@@ -1345,9 +1817,9 @@
                             modal.hide();
 
                             // Actualizar estado de los botones
-                            $("#btn-lista-constancias").addClass("btn-rojo").removeClass("btn-outline-danger");
-                            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
-                            $("#btn-editar-plantilla-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
+                            $("#btn-lista-constancias").addClass("btn-rojo").removeClass("btn-outline-secondary");
+                            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-secondary");
+                            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-secondary");
 
                             // Recargar constancias
                             mostrarVistaListaConstancias();
@@ -1372,7 +1844,7 @@
         }
 
         // Función para mostrar la vista previa de una constancia
-        function mostrarVistaPrevia() {
+        function mostrarVistaPreviaConstancia() {
             // Validar que haya contenido
             const contenido = document.getElementById('contenido_constancia').value.trim();
 
@@ -1449,6 +1921,75 @@
                         text: 'Error al generar la vista previa'
                     });
                 }
+            });
+        }
+        function mostrarVistaPreviewPlantilla() {
+            // CERRAR el modal de edición de plantilla PRIMERO
+            const modalPlantilla = bootstrap.Modal.getInstance(document.getElementById('editarPlantillaConstanciaModal'));
+            if (modalPlantilla) {
+                modalPlantilla.hide();
+            }
+
+            // Esperar a que el modal se cierre completamente
+            $('#editarPlantillaConstanciaModal').on('hidden.bs.modal', function () {
+                $(this).off('hidden.bs.modal');
+
+                // Obtener contenido ACTUAL del editor
+                let contenidoActual = '';
+                let tituloActual = 'Vista Previa de Plantilla';
+
+                if (templateEditor && templateEditor.root) {
+                    contenidoActual = templateEditor.root.innerHTML;
+                }
+
+                const tituloInput = elementoSeguro('titulo_plantilla');
+                if (tituloInput && tituloInput.value.trim()) {
+                    tituloActual = tituloInput.value.trim();
+                }
+
+                // Mostrar indicador de carga
+                Swal.fire({
+                    title: 'Generando vista previa',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: _URL + "/ajs/constancia/vista-previa",
+                    method: "POST",
+                    data: {
+                        titulo: tituloActual,
+                        contenido: contenidoActual
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        Swal.close();
+
+                        if (data.success && data.pdfBase64) {
+                            document.getElementById('preview-frame-constancia').src = "data:application/pdf;base64," + data.pdfBase64;
+                            const modal = new bootstrap.Modal(document.getElementById('previewConstanciaModal'));
+                            modal.show();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.msg || 'Error al generar la vista previa'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.close();
+                        console.error("Error en vista previa:", status, error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al generar la vista previa'
+                        });
+                    }
+                });
             });
         }
 
@@ -1528,6 +2069,436 @@
                 }
             });
         }
+        // Función para gestionar membretes
+        function gestionarMembretes() {
+            console.log("Gestionando membretes...");
+
+            // Actualizar estado de los botones
+            $("#btn-lista-constancias").removeClass("btn-rojo").addClass("btn-outline-danger");
+            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
+            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-danger");
+            $("#btn-gestionar-membretes").removeClass("btn-outline-warning").addClass("btn-warning");
+
+            // Cargar datos actuales de membretes
+            cargarDatosMembretes();
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('gestionarMembretesModal'));
+            modal.show();
+        }
+
+        // Función para cargar datos de membretes
+        function cargarDatosMembretes() {
+            $.ajax({
+                url: _URL + "/ajs/constancia/obtener-membretes",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.data) {
+                        const membretes = data.data;
+
+                        // Llenar campos ocultos
+                        document.getElementById('membrete_header_image_data').value = membretes.header_image || '';
+                        document.getElementById('membrete_footer_image_data').value = membretes.footer_image || '';
+
+                        // Mostrar imágenes si existen
+                        if (membretes.header_image_url) {
+                            document.getElementById('membrete-header-preview').src = membretes.header_image_url;
+                            document.getElementById('membrete-header-preview').style.display = 'block';
+                            document.getElementById('header-placeholder-membrete').style.display = 'none';
+                        } else {
+                            document.getElementById('membrete-header-preview').style.display = 'none';
+                            document.getElementById('header-placeholder-membrete').style.display = 'block';
+                        }
+
+                        if (membretes.footer_image_url) {
+                            document.getElementById('membrete-footer-preview').src = membretes.footer_image_url;
+                            document.getElementById('membrete-footer-preview').style.display = 'block';
+                            document.getElementById('footer-placeholder-membrete').style.display = 'none';
+                        } else {
+                            document.getElementById('membrete-footer-preview').style.display = 'none';
+                            document.getElementById('footer-placeholder-membrete').style.display = 'block';
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar membretes:", status, error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al cargar los membretes'
+                    });
+                }
+            });
+        }
+
+        function guardarMembretes() {
+            // Recopilar datos del formulario
+            const formData = new FormData(document.getElementById('formMembretes'));
+
+            // Agregar archivos de imagen si existen
+            const headerFile = document.getElementById('membrete_header_image').files[0];
+            const footerFile = document.getElementById('membrete_footer_image').files[0];
+
+            if (headerFile) {
+                formData.append('header_image_file', headerFile);
+                console.log('Archivo de cabecera agregado:', headerFile.name);
+            }
+
+            if (footerFile) {
+                formData.append('footer_image_file', footerFile);
+                console.log('Archivo de pie agregado:', footerFile.name);
+            }
+
+            // Agregar datos base64 si existen
+            const headerData = document.getElementById('membrete_header_image_data').value;
+            const footerData = document.getElementById('membrete_footer_image_data').value;
+
+            if (headerData && headerData.trim() !== '') {
+                formData.append('header_image', headerData);
+                console.log('Datos base64 de cabecera agregados');
+            }
+
+            if (footerData && footerData.trim() !== '') {
+                formData.append('footer_image', footerData);
+                console.log('Datos base64 de pie agregados');
+            }
+
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Guardando',
+                text: 'Guardando membretes...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Enviar datos al servidor
+            $.ajax({
+                url: _URL + "/ajs/constancia/guardar-membretes",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    console.log('Respuesta del servidor:', data);
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.mensaje || 'Membretes guardados correctamente'
+                        }).then(() => {
+                            // Cerrar modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('gestionarMembretesModal'));
+                            modal.hide();
+
+                            // Restaurar estado de botones
+                            $("#btn-lista-constancias").addClass("btn-rojo").removeClass("btn-outline-danger");
+                            $("#btn-nueva-constancia").removeClass("btn-rojo").addClass("btn-outline-danger");
+                            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-danger");
+                            $("#btn-gestionar-membretes").removeClass("bg-rojo text-white").addClass("btn-outline-warning");
+
+                            // Volver a la lista
+                            mostrarVistaListaConstancias();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.msg || 'Error al guardar los membretes'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en la solicitud:", status, error);
+                    console.error("Respuesta del servidor:", xhr.responseText);
+
+                    // Intentar parsear la respuesta para más detalles
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        console.error("Error detallado:", response);
+                    } catch (e) {
+                        console.error("No se pudo parsear la respuesta de error");
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error de conexión al guardar los membretes'
+                    });
+                }
+            });
+        }
+        // Función para abrir el modal de tipos
+function abrirModalTiposConstancias() {
+    cargarTiposConstanciasModal();
+    $('#gestionarTiposConstanciaModal').modal('show');
+}
+
+// Función para cargar tipos de constancia en el select
+function cargarTiposConstanciasSelect(tipoSeleccionado = '') {
+    $.ajax({
+        url: _URL + "/ajs/constancia/obtener-tipos-constancias",
+        method: "GET",
+        dataType: 'json',
+        success: function(data) {
+            if (data.success && data.tipos) {
+                let options = '<option value="">Seleccione un tipo</option>';
+                data.tipos.forEach(function(tipo) {
+                    const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
+                    options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
+                });
+                $("#tipo_constancia").html(options);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al cargar tipos:", error);
+        }
+    });
+}
+
+// Función para cargar tipos en el modal
+function cargarTiposConstanciasModal() {
+    $.ajax({
+        url: _URL + "/ajs/constancia/obtener-tipos-constancias",
+        method: "GET",
+        dataType: 'json',
+        success: function(data) {
+            if (data.success && data.tipos) {
+                let html = '';
+                data.tipos.forEach(function(tipo) {
+                    html += `
+                        <tr>
+                            <td>${tipo.nombre}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTipoConstancia(${tipo.id}, '${tipo.nombre}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarTipoConstancia(${tipo.id}, '${tipo.nombre}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $("#lista-tipos-constancia").html(html);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al cargar tipos:", error);
+        }
+    });
+}
+
+// Función para agregar nuevo tipo
+function agregarTipoConstancia() {
+    const nombre = $("#nuevo-tipo-constancia-nombre").val().trim();
+    
+    if (!nombre) {
+        Swal.fire('Error', 'El nombre es obligatorio', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: _URL + "/ajs/constancia/insertar-tipo-constancia",
+        method: "POST",
+        data: {
+            nombre: nombre
+        },
+        dataType: 'json',
+        success: function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', data.msg, 'success');
+                $("#nuevo-tipo-constancia-nombre").val('');
+                cargarTiposConstanciasModal();
+                cargarTiposConstanciasSelect(); // Actualizar el select también
+            } else {
+                Swal.fire('Error', data.msg, 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        }
+    });
+}
+
+// Función para editar tipo
+function editarTipoConstancia(id, nombre) {
+    $("#editar-tipo-constancia-id").val(id);
+    $("#editar-tipo-constancia-nombre").val(nombre);
+    $("#editarTipoConstanciaModal").modal('show');
+}
+
+// Función para guardar tipo editado
+function guardarTipoConstanciaEditado() {
+    const id = $("#editar-tipo-constancia-id").val();
+    const nombre = $("#editar-tipo-constancia-nombre").val().trim();
+    
+    if (!nombre) {
+        Swal.fire('Error', 'El nombre es obligatorio', 'error');
+        return;
+    }
+    
+    $.ajax({
+        url: _URL + "/ajs/constancia/editar-tipo-constancia",
+        method: "POST",
+        data: {
+            id: id,
+            nombre: nombre
+        },
+        dataType: 'json',
+        success: function(data) {
+            if (data.success) {
+                Swal.fire('Éxito', data.msg, 'success');
+                $("#editarTipoConstanciaModal").modal('hide');
+                cargarTiposConstanciasModal();
+                cargarTiposConstanciasSelect(); // Actualizar el select también
+            } else {
+                Swal.fire('Error', data.msg, 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        }
+    });
+}
+
+// Función para eliminar tipo
+function eliminarTipoConstancia(id, nombre) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: `¿Desea eliminar el tipo "${nombre}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: _URL + "/ajs/constancia/eliminar-tipo-constancia",
+                method: "POST",
+                data: { id: id },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success) {
+                        Swal.fire('Eliminado', data.msg, 'success');
+                        cargarTiposConstanciasModal();
+                        cargarTiposConstanciasSelect(); // Actualizar el select también
+                    } else {
+                        Swal.fire('Error', data.msg, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                }
+            });
+        }
+    });
+}
+function renderPdfPreviewConstancia(pdfUrl, canvasId) {
+    console.log('Renderizando PDF de constancia:', pdfUrl, 'en canvas:', canvasId);
+
+    // Verificar que pdfjsLib esté disponible
+    if (typeof pdfjsLib === 'undefined') {
+        console.error('Error: PDF.js no está cargado');
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            canvas.parentNode.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
+                    <p class="mt-2">Error: PDF.js no disponible</p>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    // Cargar el documento PDF
+    pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+        // Obtener la primera página
+        pdf.getPage(1).then(function (page) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('Canvas no encontrado:', canvasId);
+                return;
+            }
+
+            const context = canvas.getContext('2d');
+
+            // Obtener el tamaño del contenedor padre
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // Establecer el tamaño del canvas al tamaño del contenedor
+            canvas.width = containerWidth * 2;
+            canvas.height = containerHeight * 2;
+
+            // Obtener el viewport original del PDF
+            const viewport = page.getViewport({ scale: 1.0 });
+
+            // Calcular la escala para que el PDF llene el ancho del canvas
+            const scale = (canvas.width / viewport.width) * 1.0;
+
+            // Crear un nuevo viewport con la escala calculada
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            // Calcular el desplazamiento horizontal para centrar el contenido
+            const offsetX = (canvas.width - scaledViewport.width) / 2;
+            const offsetY = 0; // Esto hace que se muestre desde arriba
+
+            // Renderizar la página en el canvas con alta calidad
+            const renderContext = {
+                canvasContext: context,
+                viewport: scaledViewport,
+                transform: [1, 0, 0, 1, offsetX, offsetY],
+                intent: 'display'
+            };
+
+            // Limpiar el canvas antes de renderizar
+            context.fillStyle = 'white';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Renderizar la página
+            page.render(renderContext).promise.then(function () {
+                console.log('PDF de constancia renderizado correctamente en', canvasId);
+            }).catch(function (error) {
+                console.error('Error al renderizar el PDF de constancia:', error);
+            });
+        }).catch(function (error) {
+            console.error('Error al obtener la página del PDF de constancia:', error);
+            // Mostrar un icono de PDF en caso de error
+            const canvas = document.getElementById(canvasId);
+            if (canvas) {
+                canvas.parentNode.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                        <p class="mt-2">Ver PDF</p>
+                    </div>
+                `;
+            }
+        });
+    }).catch(function (error) {
+        console.error('Error al cargar el PDF de constancia:', error);
+        // Mostrar un icono de PDF en caso de error
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            canvas.parentNode.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                    <p class="mt-2">Ver PDF</p>
+                </div>
+            `;
+        }
+    });
+}
+        // Agregar a las funciones globales
+        window.gestionarMembretes = gestionarMembretes;
 
         // Exponer algunas funciones al ámbito global para poder llamarlas desde HTML
         window.recargarConstancias = cargarConstancias;
@@ -1536,5 +2507,12 @@
         window.editarPlantillaConstancia = editarPlantillaConstancia;
         window.mostrarFormularioNuevoConstancia = mostrarFormularioNuevoConstancia;
         window.mostrarVistaListaConstancias = mostrarVistaListaConstancias;
+        window.mostrarVistaPreviewPlantilla = mostrarVistaPreviewPlantilla;
+        window.mostrarVistaPreviewMembretes = mostrarVistaPreviewMembretes;
+        window.abrirModalTiposConstancias = abrirModalTiposConstancias;
+window.agregarTipoConstancia = agregarTipoConstancia;
+window.editarTipoConstancia = editarTipoConstancia;
+window.guardarTipoConstanciaEditado = guardarTipoConstanciaEditado;
+window.eliminarTipoConstancia = eliminarTipoConstancia;
     })();
 </script>

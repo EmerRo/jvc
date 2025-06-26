@@ -4,12 +4,14 @@
 require_once "app/models/Constancia.php";
 require_once "app/models/ConstanciaPlantilla.php";
 require_once "app/http/controllers/ConstanciaPDF.php";
+require_once "app/models/TipoConstancia.php";
 
 class ConstanciaController extends Controller
 {
     private $constancia;
     private $constanciaPlantilla;
     private $constanciaPDF;
+    private $tipoConstancia;
     private $conectar;
 
     public function __construct()
@@ -17,30 +19,32 @@ class ConstanciaController extends Controller
         $this->constancia = new Constancia();
         $this->constanciaPlantilla = new ConstanciaPlantilla();
         $this->constanciaPDF = new ConstanciaPDF();
+        $this->tipoConstancia = new TipoConstancia();
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    // Método para obtener todas las constancias (con filtro opcional)
-    public function render()
-    {
-        try {
-            // Obtener parámetros de filtro
-            $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
-            $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : null;
-            
-            // Intentar obtener los datos
-            $constancias = $this->constancia->listarConstancias($filtro, $tipo_busqueda);
-            
-            // Devolver los datos en formato JSON
-            echo json_encode($constancias ?: []);
-        } catch (Exception $e) {
-            echo json_encode([
-                'error' => true,
-                'message' => 'Error al procesar la solicitud',
-                'debug_info' => $e->getMessage()
-            ]);
-        }
+  public function render()
+{
+    try {
+        // Obtener parámetros de filtro
+        $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
+        $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : null;
+        
+        // Intentar obtener los datos
+        $constancias = $this->constancia->listarConstancias($filtro, $tipo_busqueda);
+        
+        // IMPORTANTE: Devolver en el formato que espera el frontend
+        $response = ['constancias' => $constancias ?: []];
+        echo json_encode($response);
+    } catch (Exception $e) {
+        echo json_encode([
+            'error' => true,
+            'message' => 'Error al procesar la solicitud',
+            'debug_info' => $e->getMessage(),
+            'constancias' => []
+        ]);
     }
+}
 
     // Método para obtener una constancia específica
     public function getOne()
@@ -57,7 +61,7 @@ class ConstanciaController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $this->constancia->getId(),
-                    'cliente_id' => $this->constancia->getClienteId(),
+                    'cliente_id' => $this->constancia->getIdCliente(),
                     'usuario_id' => $this->constancia->getUsuarioId(),
                     'tipo' => $this->constancia->getTipo(),
                     'titulo' => $this->constancia->getTitulo(),
@@ -85,7 +89,7 @@ public function insertar()
             $tipo = isset($_POST['tipo']) ? trim($_POST['tipo']) : '';
             $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
             $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
-            $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+          $id_cliente = isset($_POST['id_cliente']) ? intval($_POST['id_cliente']) : 0;
             
             // Verificar si el usuario está en sesión
             if (!isset($_SESSION['usuario_id'])) {
@@ -104,7 +108,7 @@ public function insertar()
             }
             
             // Agregar información de depuración
-            error_log("Datos a insertar - Tipo: $tipo, Titulo: $titulo, Cliente ID: $cliente_id, Usuario ID: $usuario_id");
+            error_log("Datos a insertar - Tipo: $tipo, Titulo: $titulo, Cliente ID: $id_cliente, Usuario ID: $usuario_id");
             
             // Configurar el objeto constancia
             $this->constancia->setTipo($tipo);
@@ -112,7 +116,7 @@ public function insertar()
             $this->constancia->setContenido($contenido);
             $this->constancia->setHeaderImage(isset($_POST['header_image']) ? $_POST['header_image'] : null);
             $this->constancia->setFooterImage(isset($_POST['footer_image']) ? $_POST['footer_image'] : null);
-            $this->constancia->setClienteId($cliente_id);
+            $this->constancia->setIdCliente($id_cliente);
             $this->constancia->setUsuarioId($usuario_id);
             $this->constancia->setEstado('borrador');
             
@@ -166,7 +170,7 @@ public function insertar()
                 $tipo = isset($_POST['tipo']) ? trim($_POST['tipo']) : '';
                 $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
                 $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
-                $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+          $id_cliente = isset($_POST['id_cliente']) ? intval($_POST['id_cliente']) : 0;
                 $estado = isset($_POST['estado']) ? $_POST['estado'] : 'borrador';
                 
                 // Validar que los campos obligatorios no estén vacíos
@@ -202,7 +206,7 @@ public function insertar()
                 $this->constancia->setContenido($contenido);
                 $this->constancia->setHeaderImage($header_image);
                 $this->constancia->setFooterImage($footer_image);
-                $this->constancia->setClienteId($cliente_id);
+               $this->constancia->setIdCliente($id_cliente);
                 $this->constancia->setEstado($estado);
                 
                 // Actualizar la constancia
@@ -416,4 +420,151 @@ public function insertar()
         
         return $base64;
     }
+    public function obtenerTipoConstancias() 
+    {
+        try {
+            $tipos =$this->tipoConstancia->obtenerTodos();
+            echo json_encode(['success' => true, 'tipos' => $tipos]);
+        }catch(Exception $e) {
+            echo json_encode(['success'=> false, 'error' => $e->getMessage()]);
+        }
+    }
+    public function insertarTipoConstancia () 
+    {
+        if (!empty($_POST)) {
+            try {
+                $nombre =isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+                if (empty($nombre)) {
+                    throw new Exception("El nombre del tipo es obligatorio");
+                }
+                $this->tipoConstancia->setNombre($nombre);
+                if($this->tipoConstancia->insertar())
+                {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de constancia creada correctamente']);
+                }else {
+                    throw new Exception("Error al guardar el tipo de constancia");
+                }
+            }catch(Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+            }
+        }
+    }
+public function editarTipoConstancia()
+{
+    if (!empty($_POST)) {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            
+            if (empty($id) || empty($nombre)) {
+                throw new Exception("ID y nombre son obligatorios");
+            }
+            
+            $this->tipoConstancia->setId($id);
+            $this->tipoConstancia->setNombre($nombre);
+            
+            if ($this->tipoConstancia->actualizar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de constancia actualizado correctamente']);
+            } else {
+                throw new Exception("Error al actualizar el tipo de constancia");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+
+public function eliminarTipoConstancia()
+{
+    if (isset($_POST['id'])) {
+        try {
+            $id = intval($_POST['id']);
+            $this->tipoConstancia->setId($id);
+            
+            if ($this->tipoConstancia->eliminar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de constancia eliminado correctamente']);
+            } else {
+                throw new Exception("Error al eliminar el tipo de constancia");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+public function obtenerMembretes()
+{
+    try {
+        // Obtener la plantilla actual que contiene los membretes
+        $this->constanciaPlantilla->obtenerTemplateActual();
+        
+        $data = [
+            'success' => true,
+            'data' => [
+                'header_image' => $this->constanciaPlantilla->getHeaderImage(),
+                'footer_image' => $this->constanciaPlantilla->getFooterImage(),
+                'header_image_url' => $this->constanciaPlantilla->getHeaderImageUrl(),
+                'footer_image_url' => $this->constanciaPlantilla->getFooterImageUrl()
+            ]
+        ];
+        
+        echo json_encode($data);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+public function guardarMembretes()
+{
+    if (!empty($_POST) || !empty($_FILES)) {
+        try {
+            // Obtener la plantilla actual
+            if (!$this->constanciaPlantilla->obtenerTemplateActual()) {
+                throw new Exception("No se pudo obtener la plantilla actual");
+            }
+            
+            // Mantener valores actuales como respaldo
+            $header_image = $this->constanciaPlantilla->getHeaderImage();
+            $footer_image = $this->constanciaPlantilla->getFooterImage();
+            
+            // Verificar archivos de imagen PRIMERO
+            if (isset($_FILES['header_image_file']) && $_FILES['header_image_file']['error'] === UPLOAD_ERR_OK) {
+                $header_image = $this->procesarImagen($_FILES['header_image_file']);
+                error_log("Nueva imagen de cabecera procesada desde archivo");
+            } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
+                $header_image = $_POST['header_image'];
+                error_log("Nueva imagen de cabecera desde POST data");
+            }
+            
+            if (isset($_FILES['footer_image_file']) && $_FILES['footer_image_file']['error'] === UPLOAD_ERR_OK) {
+                $footer_image = $this->procesarImagen($_FILES['footer_image_file']);
+                error_log("Nueva imagen de pie procesada desde archivo");
+            } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
+                $footer_image = $_POST['footer_image'];
+                error_log("Nueva imagen de pie desde POST data");
+            }
+            
+            // Actualizar solo las imágenes de la plantilla
+            $this->constanciaPlantilla->setHeaderImage($header_image);
+            $this->constanciaPlantilla->setFooterImage($footer_image);
+            
+            // Guardar la plantilla actualizada
+            $resultado = $this->constanciaPlantilla->actualizarTemplate();
+            
+            if ($resultado) {
+                echo json_encode([
+                    'success' => true,
+                    'mensaje' => 'Membretes guardados correctamente'
+                ]);
+            } else {
+                throw new Exception("Error al actualizar la plantilla en la base de datos");
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error en guardarMembretes: " . $e->getMessage());
+            echo json_encode(['success' => false, 'msg' => 'Error al guardar los membretes: ' . $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
+    }
+}
 }

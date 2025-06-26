@@ -6,7 +6,7 @@ class Constancia
     private $id;
     private $titulo;
     private $tipo;
-    private $cliente_id;
+    private $id_cliente;
     private $usuario_id;
     private $contenido;
     private $header_image;
@@ -55,14 +55,14 @@ class Constancia
         $this->tipo = $tipo;
     }
     
-    public function getClienteId()
+   public function getIdCliente()
     {
-        return $this->cliente_id;
+        return $this->id_cliente;
     }
-    
-    public function setClienteId($cliente_id)
+
+    public function setIdCliente($id_cliente)
     {
-        $this->cliente_id = $cliente_id;
+        $this->id_cliente = $id_cliente;
     }
     
     public function getUsuarioId()
@@ -114,6 +114,10 @@ class Constancia
     {
         $this->estado = $estado;
     }
+        public function getFechaCreacion()
+{
+    return $this->fecha_creacion;
+}
     
     public function getHeaderImageUrl()
     {
@@ -137,9 +141,7 @@ class Constancia
 public function insertarConstancia()
 {
     try {
-        // Asegurarse de que cliente_id sea NULL si es 0
-        $cliente_id = ($this->cliente_id > 0) ? $this->cliente_id : null;
-        
+       
         // Verificar que usuario_id exista en la tabla usuarios
         $checkUserSql = "SELECT COUNT(*) as count FROM usuarios WHERE usuario_id = ?";
         $checkUserStmt = $this->conectar->prepare($checkUserSql);
@@ -154,7 +156,7 @@ public function insertarConstancia()
             return false;
         }
         
-        $sql = "INSERT INTO constancias (titulo, tipo, cliente_id, usuario_id, contenido, header_image, footer_image, estado) 
+        $sql = "INSERT INTO constancias (titulo, tipo, id_cliente, usuario_id, contenido, header_image, footer_image, estado) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conectar->prepare($sql);
         
@@ -168,7 +170,7 @@ public function insertarConstancia()
         $bindResult = $stmt->bind_param("ssiissss", 
             $this->titulo, 
             $this->tipo, 
-            $cliente_id,
+          $this->id_cliente,
             $this->usuario_id, 
             $this->contenido, 
             $this->header_image, 
@@ -202,95 +204,87 @@ public function insertarConstancia()
     public function actualizarConstancia()
     {
         $sql = "UPDATE constancias 
-                SET titulo = ?, tipo = ?, cliente_id = ?, contenido = ?, header_image = ?, footer_image = ?, estado = ? 
+                SET titulo = ?, tipo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, estado = ? 
                 WHERE id = ?";
         
         $stmt = $this->conectar->prepare($sql);
         
-        $stmt->bind_param("sssisssi", $this->titulo, $this->tipo, $this->cliente_id, $this->contenido, $this->header_image, $this->footer_image, $this->estado, $this->id);
+        $stmt->bind_param("sssisssi", $this->titulo, $this->tipo, $this->id_cliente, $this->contenido, $this->header_image, $this->footer_image, $this->estado, $this->id);
         
         return $stmt->execute();
     }
     
-    public function obtenerConstancia($id = null)
+     public function obtenerConstancia($id)
     {
-        if ($id !== null) {
-            $this->id = $id;
-        }
-        
-        $sql = "SELECT c.*, cl.datos as cliente_nombre 
-                FROM constancias c
-                LEFT JOIN clientes cl ON c.cliente_id = cl.id_cliente
-                WHERE c.id = ?";
-        
+        $sql = "SELECT * FROM constancias WHERE id = ?";
         $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("i", $this->id);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($fila = $result->fetch_assoc()) {
-            $this->titulo = $fila['titulo'];
+            $this->id = $fila['id'];
+            $this->id_cliente = $fila['id_cliente'];
+            $this->id_usuario = $fila['id_usuario'];
             $this->tipo = $fila['tipo'];
-            $this->cliente_id = $fila['cliente_id'];
-            $this->usuario_id = $fila['usuario_id'];
+            $this->titulo = $fila['titulo'];
             $this->contenido = $fila['contenido'];
             $this->header_image = $fila['header_image'];
             $this->footer_image = $fila['footer_image'];
             $this->estado = $fila['estado'];
             $this->fecha_creacion = $fila['fecha_creacion'];
             $this->fecha_modificacion = $fila['fecha_modificacion'];
-            $this->cliente_nombre = $fila['cliente_nombre'];
             return true;
         }
         return false;
     }
-    
-    public function listarConstancias($filtro = null, $tipo_busqueda = null)
-    {
-        try {
-            // Construir la consulta SQL base
-            $sql = "SELECT c.*, cl.datos as cliente_nombre, u.nombres as usuario_nombre 
-                    FROM constancias c
-                    LEFT JOIN clientes cl ON c.cliente_id = cl.id_cliente
-                    LEFT JOIN usuarios u ON c.usuario_id = u.usuario_id";
-            
-            // Si hay un filtro de búsqueda, añadimos la condición WHERE
-            if ($filtro && $tipo_busqueda) {
-                if ($tipo_busqueda == 'cliente') {
-                    $sql .= " WHERE cl.datos LIKE ?";
-                } else if ($tipo_busqueda == 'tipo') {
-                    $sql .= " WHERE c.tipo LIKE ?";
-                } else if ($tipo_busqueda == 'titulo') {
-                    $sql .= " WHERE c.titulo LIKE ?";
-                }
+
+   public function listarConstancias($filtro = null, $tipo_busqueda = null)
+{
+    try {
+        // Construir la consulta SQL base
+        $sql = "SELECT c.*, cl.datos as cliente_nombre, u.nombres as usuario_nombre 
+                FROM constancias c
+                LEFT JOIN clientes cl ON c.id_cliente = cl.id_cliente
+                LEFT JOIN usuarios u ON c.usuario_id = u.usuario_id";
+        
+        // Si hay un filtro de búsqueda, añadimos la condición WHERE
+        if ($filtro && $tipo_busqueda) {
+            if ($tipo_busqueda == 'cliente') {
+                $sql .= " WHERE cl.datos LIKE ?";
+            } else if ($tipo_busqueda == 'tipo') {
+                $sql .= " WHERE c.tipo LIKE ?";
+            } else if ($tipo_busqueda == 'titulo') {
+                $sql .= " WHERE c.titulo LIKE ?";
             }
-            
-            $sql .= " ORDER BY c.fecha_creacion DESC";
-            
-            if ($filtro && $tipo_busqueda) {
-                $stmt = $this->conectar->prepare($sql);
-                $param = "%$filtro%";
-                $stmt->bind_param("s", $param);
-                $stmt->execute();
-                $result = $stmt->get_result();
-            } else {
-                $result = $this->conectar->query($sql);
-            }
-            
-            // Verificar si $result es un objeto válido
-            if ($result === false) {
-                error_log("Error en la consulta SQL: " . $this->conectar->error);
-                return [];
-            }
-            
-            // Todo está bien, devolver los resultados
-            return $result->fetch_all(MYSQLI_ASSOC);
-        } catch (Exception $e) {
-            // Capturar y registrar cualquier excepción
-            error_log("Excepción en listarConstancias: " . $e->getMessage());
+        }
+        
+        $sql .= " ORDER BY c.fecha_creacion DESC";
+        
+        if ($filtro && $tipo_busqueda) {
+            $stmt = $this->conectar->prepare($sql);
+            $param = "%$filtro%";
+            $stmt->bind_param("s", $param);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
+            $result = $this->conectar->query($sql);
+        }
+        
+        // Verificar si $result es un objeto válido
+        if ($result === false) {
+            error_log("Error en la consulta SQL: " . $this->conectar->error);
             return [];
         }
+        
+        // Todo está bien, devolver los resultados
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } catch (Exception $e) {
+        // Capturar y registrar cualquier excepción
+        error_log("Excepción en listarConstancias: " . $e->getMessage());
+        return [];
     }
+}
     
     public function eliminarConstancia($id = null)
     {
@@ -332,4 +326,24 @@ public function insertarConstancia()
             return [];
         }
     }
+       public function generarNumeroCorrelativo($tipo)
+{
+    // Obtener el año actual
+    $anio = date('Y');
+    
+    // Contar cuántos constancias del mismo tipo existen en el año actual
+    $sql = "SELECT COUNT(*) as total FROM constancias 
+            WHERE tipo = ? AND YEAR(fecha_creacion) = ?";
+    $stmt = $this->conectar->prepare($sql);
+    $stmt->bind_param("si", $tipo, $anio);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    
+    // El siguiente número será el total + 1
+    $numero = $row['total'] + 1;
+    
+    // Formatear el número correlativo: NRO.015-2025-JVC
+    return sprintf("NRO.%03d-%d-JVC", $numero, $anio);
+}
 }

@@ -359,6 +359,31 @@ public function setIdCotizacion($id_cotizacion)
 
  public function insertar()
 {
+    // Escapar todas las propiedades de cadena para prevenir SQL injection y errores de sintaxis
+    $id_venta_escaped = $this->id_venta ? "'" . $this->conectar->real_escape_string($this->id_venta) . "'" : "NULL";
+    $id_cotizacion_escaped = $this->id_cotizacion ? "'" . $this->conectar->real_escape_string($this->id_cotizacion) . "'" : "NULL";
+    $destinatario_nombre_escaped = $this->destinatario_nombre ? "'" . $this->conectar->real_escape_string($this->destinatario_nombre) . "'" : "NULL";
+    $destinatario_documento_escaped = $this->destinatario_documento ? "'" . $this->conectar->real_escape_string($this->destinatario_documento) . "'" : "NULL";
+    $fecha_escaped = $this->conectar->real_escape_string($this->fecha);
+    $dir_partida_escaped = $this->conectar->real_escape_string($this->dir_partida);
+    $motivo_traslado_escaped = $this->conectar->real_escape_string($this->motivo_traslado);
+    $dir_llegada_escaped = $this->conectar->real_escape_string($this->dir_llegada);
+    $ubigeo_escaped = $this->conectar->real_escape_string($this->ubigeo);
+    $tipo_transporte_escaped = $this->conectar->real_escape_string($this->tipo_transporte);
+    $ruc_transporte_escaped = $this->conectar->real_escape_string($this->ruc_transporte);
+    $raz_transporte_escaped = $this->conectar->real_escape_string($this->raz_transporte);
+    $vehiculo_escaped = $this->conectar->real_escape_string($this->vehiculo);
+    $chofer_escaped = $this->conectar->real_escape_string($this->chofer);
+    $chofer_datos_escaped = $this->conectar->real_escape_string($this->chofer_datos);
+    $observaciones_escaped = $this->conectar->real_escape_string($this->observaciones);
+    $doc_referencia_escaped = $this->conectar->real_escape_string($this->doc_referencia);
+    $serie_escaped = $this->conectar->real_escape_string($this->serie);
+    $numero_escaped = $this->conectar->real_escape_string($this->numero);
+    $peso_escaped = $this->conectar->real_escape_string($this->peso);
+    $nro_bultos_escaped = $this->conectar->real_escape_string($this->nro_bultos);
+    $id_empresa_escaped = $this->conectar->real_escape_string($this->id_empresa);
+    $sucursal_escaped = $this->conectar->real_escape_string($_SESSION['sucursal']);
+
     $sql = "INSERT INTO guia_remision (
         id_venta,
         id_cotizacion,
@@ -388,38 +413,39 @@ public function setIdCotizacion($id_cotizacion)
         id_empresa,
         sucursal
     ) VALUES (
-        " . ($this->id_venta ? "'$this->id_venta'" : "NULL") . ",
-        " . ($this->id_cotizacion ? "'$this->id_cotizacion'" : "NULL") . ",
-        " . ($this->destinatario_nombre ? "'$this->destinatario_nombre'" : "NULL") . ",
-        " . ($this->destinatario_documento ? "'$this->destinatario_documento'" : "NULL") . ",
-        '$this->fecha',
-        '$this->dir_partida',
-        '$this->motivo_traslado',
-        '$this->dir_llegada',
-        '$this->ubigeo',
-        '$this->tipo_transporte',
-        '$this->ruc_transporte',
-        '$this->raz_transporte',
-        '$this->vehiculo',
-        '$this->chofer',
-        '$this->chofer_datos',
-        '$this->observaciones',
-        '$this->doc_referencia',
+        $id_venta_escaped,
+        $id_cotizacion_escaped,
+        $destinatario_nombre_escaped,
+        $destinatario_documento_escaped,
+        '$fecha_escaped',
+        '$dir_partida_escaped',
+        '$motivo_traslado_escaped',
+        '$dir_llegada_escaped',
+        '$ubigeo_escaped',
+        '$tipo_transporte_escaped',
+        '$ruc_transporte_escaped',
+        '$raz_transporte_escaped',
+        '$vehiculo_escaped',
+        '$chofer_escaped',
+        '$chofer_datos_escaped',
+        '$observaciones_escaped',
+        '$doc_referencia_escaped',
         '0',
         '',
         '',
-        '$this->serie',
-        '$this->numero',
-        '$this->peso',
-        '$this->nro_bultos',
+        '$serie_escaped',
+        '$numero_escaped',
+        '$peso_escaped',
+        '$nro_bultos_escaped',
         '1',
-        '$this->id_empresa',
-        '{$_SESSION['sucursal']}'
+        '$id_empresa_escaped',
+        '$sucursal_escaped'
     )";
-    
+
     $result = $this->conectar->query($sql);
     if ($result) {
         $this->id_guia = $this->conectar->insert_id;
+    } else {
     }
     return $result;
 }
@@ -442,7 +468,7 @@ public function setIdCotizacion($id_cotizacion)
         return $this->conectar->query($sql);
     }
 
-  public function verFilas()
+public function verFilas()
 {
     $sql = "SELECT 
         gr.fecha_emision, 
@@ -459,6 +485,12 @@ public function setIdCotizacion($id_cotizacion)
             WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.datos
             ELSE gr.destinatario_nombre
         END as datos,
+        -- NUEVO: Obtener el documento del cliente para determinar el tipo
+        CASE 
+            WHEN gr.id_venta IS NOT NULL THEN c_venta.documento
+            WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.documento
+            ELSE gr.destinatario_documento
+        END as documento_cliente,
         COALESCE(v.serie, '') as serie_venta,
         e.ruc as ruc_empresa,
         COALESCE(v.numero, '') as numero_venta,
@@ -482,6 +514,7 @@ public function setIdCotizacion($id_cotizacion)
 
     return $this->conectar->query($sql);
 }
-    
-    
+
+
+
 }

@@ -182,7 +182,7 @@ if (isset($_GET["guia"])) {
                                                         type="button"
                                                         :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
                                                         aria-expanded="false" @click="mostrarMensajeProducto"
-                                                        style="background-color: #CA3438; color: white;">
+                                                      style="background-color: #CA3438; color: white; height: 38px;">
                                                         <i class="fa fa-chevron-down"></i>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end"
@@ -550,9 +550,20 @@ if (isset($_GET["guia"])) {
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Campo Doc. de Referencia - solo visible cuando viene de cotización -->
+<div class="form-group mb-3" v-if="vieneDesCotizacion">
+    <div class="col-lg-12">
+        <label>Doc. de Referencia</label>
+        <div class="input-group">
+            <input v-model="venta.doc_referencia" type="text" placeholder="Ingrese documento de referencia" 
+                   class="form-control ui-autocomplete-input" autocomplete="off">
+        </div>
+    </div>
+</div>
+
                                     <div class="form-group  mb-3">
 
-                                        <div class="col-lg-12">
+                                        <!-- <div class="col-lg-12">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group ">
@@ -574,7 +585,7 @@ if (isset($_GET["guia"])) {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
 
                                     <div class="form-group  mb-3">
@@ -948,13 +959,15 @@ if (isset($_GET["guia"])) {
                     metodo2: 12,
                     moneda: 1,
                     tc: '',
+                     doc_referencia: '',
                 },
                 dataKey: '',
                 listaTempProd: [],
                 itemsLista: [],
                 numeroCuotas: 1,
                 cuotas: [],
-                pointSel: 1
+                pointSel: 1,
+                 vieneDesCotizacion: false,
             },
             watch: {
 
@@ -1995,22 +2008,24 @@ if (isset($_GET["guia"])) {
 
             },
             created() {
-                console.log("Component created");
+    console.log("Component created");
+    
+    // Verificar si viene de cotización
+    const cotiId = $("#cotizacion").val();
+    if (cotiId) {
+        console.log("Quote ID found:", cotiId);
+        this.vieneDesCotizacion = true; // Mostrar el campo
+        this.cargarCotizacion();
+    }
+    
+    // Check for guide ID
+    const guiaId = $("#guia").val();
+    if (guiaId) {
+        console.log("Guide ID found:", guiaId);
+        this.cargarDatosGuia();
+    }
+},
 
-                // Check for guide ID
-                const guiaId = $("#guia").val();
-                if (guiaId) {
-                    console.log("Guide ID found:", guiaId);
-                    this.cargarDatosGuia();
-                }
-
-                // Check for quote ID
-                const cotiId = $("#cotizacion").val();
-                if (cotiId) {
-                    console.log("Quote ID found:", cotiId);
-                    this.cargarCotizacion();
-                }
-            },
 
             computed: {
                 totalValorCuotas() {
@@ -2237,7 +2252,7 @@ if (isset($_GET["guia"])) {
         })
 
         $('#modalImprimirComprobante').on('hidden.bs.modal', function (e) {
-            location.reload();
+            window.location.href = _URL + '/ventas';
         })
     })
 </script>

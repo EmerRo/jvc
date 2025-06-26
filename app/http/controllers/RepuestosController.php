@@ -295,6 +295,12 @@ class RepuestosController extends Controller
                 }
             }
 
+            // ACTUALIZADO: Manejo del código de barras
+            $codigoBar = null;
+            if (isset($_POST['usar_barra']) && $_POST['usar_barra'] == 1) {
+                $codigoBar = $_POST['codigo'];
+            }
+
             // Insertar repuesto
             $sql = "INSERT INTO repuestos SET 
                 nombre = '{$_POST['nombre']}',
@@ -320,6 +326,8 @@ class RepuestosController extends Controller
                 subcategoria= '{$_POST['subcategoria']}',
                 unidad= '{$_POST['unidad']}',
                 usar_multiprecio = '{$usar_multiprecio}',
+                usar_barra = '" . (isset($_POST['usar_barra']) ? $_POST['usar_barra'] : '0') . "',
+                cod_barra = " . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
                 codigo = ?";
 
             if ($nombreImagen) {
@@ -370,12 +378,19 @@ class RepuestosController extends Controller
         try {
             $this->conexion->begin_transaction();
 
+            // ACTUALIZADO: Manejo del código de barras
+            $codigoBar = null;
+            if ($_POST['usar_barra'] == 1) {
+                // Usar el código del repuesto como código de barras
+                $codigoBar = $_POST['codigo'];
+            }
+
             $sql = "select * from repuestos where id_repuesto='{$_POST['cod']}'";
             $result = $this->conexion->query($sql);
             if ($row = $result->fetch_assoc()) {
                 $almacenTemp = $row["almacen"] == "1" ? 2 : 1;
                 $sql = "update repuestos set 
-                     cod_barra='',
+                     cod_barra=" . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
                      usar_barra='{$_POST['usar_barra']}',
                      usar_multiprecio='{$usar_multiprecio}',
                      precio='{$_POST['precio']}',
@@ -410,7 +425,7 @@ class RepuestosController extends Controller
             }
 
             $sql = "update repuestos set 
-                 cod_barra='',
+                 cod_barra=" . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
                  nombre = '{$_POST['nombre']}',
                  usar_barra='{$_POST['usar_barra']}',
                  usar_multiprecio='{$usar_multiprecio}',
@@ -442,6 +457,7 @@ class RepuestosController extends Controller
 
             $this->conexion->commit();
             $respuesta["res"] = true;
+            $respuesta["cod_barra"] = $codigoBar; // devolver el nuevo código de barras
 
         } catch (Exception $e) {
             $this->conexion->rollback();
@@ -643,6 +659,43 @@ class RepuestosController extends Controller
         return json_encode($respuesta);
     }
 
-
-
+    public function aumentarStock()
+    {
+        $respuesta = ["res" => false];
+        
+        try {
+            $repuesto_id = $_POST['repuesto_id'];
+            $cantidad = intval($_POST['cantidad']);
+            $fecha_actual = date('Y-m-d H:i:s');
+            
+            // Actualizar stock del repuesto
+            $sql = "UPDATE repuestos SET 
+                    cantidad = cantidad + ?,    
+                    fecha_ultimo_ingreso = ?
+                    WHERE id_repuesto = ?";
+            
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param('isi', $cantidad, $fecha_actual, $repuesto_id);
+            
+            if ($stmt->execute()) {
+                // Registrar el movimiento en historial_stock_repuestos
+                $sql_historial = "INSERT INTO historial_stock_repuestos 
+                                 (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario) 
+                                 VALUES (?, 'INGRESO', ?, ?, ?)";
+                
+                $stmt_hist = $this->conexion->prepare($sql_historial);
+                $usuario = $_SESSION['usuario'] ?? 'Sistema';
+                $stmt_hist->bind_param('iiss', $repuesto_id, $cantidad, $fecha_actual, $usuario);
+                $stmt_hist->execute();
+                
+                $respuesta["res"] = true;
+            }
+            
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+        
+        return json_encode($respuesta);
+    }
+    
 }

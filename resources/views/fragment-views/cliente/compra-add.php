@@ -197,7 +197,9 @@
                                                                                             </td>
                                                                                             <td
                                                                                                 style="text-align: center;">
-                                                                                                {{product.nombre}}
+                                                                                                {{product.codigo_pp}} |
+                                                                                                {{product.nom_prod ||
+                                                                                                product.descripcion}}
                                                                                             </td>
                                                                                             <td
                                                                                                 style="text-align: center;">
@@ -260,7 +262,7 @@
                                                                 <tbody>
                                                                     <tr v-for="(item,index) in productos">
                                                                         <td>{{index+1}}</td>
-                                                                        <td>{{item.codigo_app}} |{{item.descripcion}}
+                                                                        <td>{{item.codigo_app}} | {{item.nom_prod}}
                                                                         </td>
                                                                         <td>{{item.cantidad}}</td>
                                                                         <td>{{item.precio}}</td>
@@ -289,61 +291,57 @@
                                                             <div class="padding-20 text-center">
                                                                 <form v-on:submit.prevent role="form"
                                                                     class="form-horizontal">
-                                                                    <div class="row form-group">
-                                                                        <div class="col-md-6 form-group">
-                                                                            <label
-                                                                                class="control-label">Documento</label>
-                                                                            <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <div class="row">
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label
+                                                                                    class="form-label w-100">Documento</label>
                                                                                 <select @change="onChangeTiDoc($event)"
                                                                                     v-model="venta.tipo_doc"
-                                                                                    class="form-control">
-
+                                                                                    class="form-control text-center">
                                                                                     <option value="2">FACTURA</option>
                                                                                     <option value="12">NOTA DE COMPRA
                                                                                     </option>
                                                                                 </select>
                                                                             </div>
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label class="form-label w-100">Tipo
+                                                                                    Pago</label>
+                                                                                <select v-model="venta.tipo_pago"
+                                                                                    @change="changeTipoPago"
+                                                                                    class="form-control text-center">
+                                                                                    <option value="1">Contado</option>
+                                                                                    <option value="2">Credito</option>
+                                                                                </select>
+                                                                            </div>
                                                                         </div>
-                                                                        <div class="col-md-6">
-                                                                            <label class="control-label">Tipo
-                                                                                Pago</label>
-                                                                            <select v-model="venta.tipo_pago"
-                                                                                @change="changeTipoPago"
-                                                                                class="form-control">
-                                                                                <option value="1">Contado</option>
-                                                                                <option value="2">Credito</option>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <div class="col-lg-12 row">
-                                                                            <div class="col-lg-6">
+                                                                        <div class="row mt-2">
+                                                                            <div class="col-md-6 text-center">
                                                                                 <label
-                                                                                    class="text-center col-md-12">Serie</label>
+                                                                                    class="form-label w-100">Serie</label>
                                                                                 <input v-model="venta.serie" type="text"
                                                                                     class="form-control text-center">
                                                                             </div>
-                                                                            <div class="col-lg-6">
+                                                                            <div class="col-md-6 text-center">
                                                                                 <label
-                                                                                    class="text-center col-md-12">Numero</label>
+                                                                                    class="form-label w-100">Numero</label>
                                                                                 <input v-model="venta.numero"
                                                                                     type="text"
                                                                                     class="form-control text-center">
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-lg-12 row"
-                                                                            style="margin-top: 15px;">
-                                                                            <div class="col-lg-6">
+                                                                        <div class="row mt-2">
+                                                                            <div class="col-md-6 text-center">
                                                                                 <label
-                                                                                    class="text-center col-md-12">Moneda</label>
+                                                                                    class="form-label w-100">Moneda</label>
                                                                                 <select v-model="venta.moneda"
                                                                                     @change="chageMoneda"
-                                                                                    class="form-control">
+                                                                                    class="form-control text-center">
                                                                                     <option value="1">PEN</option>
                                                                                     <option value="2">USD</option>
                                                                                 </select>
                                                                             </div>
-
+                                                                            <div class="col-md-6"></div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="form-group">
@@ -1342,31 +1340,26 @@
                     }
                 },
                 addProduct() {
-                    if (this.producto.descripcion.length > 0 && this.producto.cantidad.length > 0 && this.producto.precio.length > 0) {
+                    if (this.producto.descripcion.length > 0 &&
+                        this.producto.cantidad.length > 0 &&
+                        this.producto.precio.length > 0) {
+
                         const prod = {
                             ...this.producto
                         }
-                        // Guardar el tipo (producto o repuesto)
+
+                        // IMPORTANTE: Asegurar que el tipo se mantenga
                         prod.tipo = this.producto.tipo;
+                        prod.id_item = this.producto.productoid; // Para referencia
 
                         this.productos.push(prod);
-                        console.log("addproduct", prod);
+                        console.log("Producto agregado con tipo:", prod.tipo);
                         this.limpiasDatos();
-                        $("#producto").empty();
-                        $('#producto')
-                            .find('option')
-                            .remove()
-                            .end()
-                            .append('<option value=""></option>');
                     } else {
-                        alertAdvertencia("Llene todos los campos")
-                            .then(function () {
-                                setTimeout(function () {
-                                    $("#input_buscar_productos").focus();
-                                }, 500);
-                            });
+                        alertAdvertencia("Llene todos los campos");
                     }
-                },
+                }
+                ,
                 onChangeSelect(event) {
 
                     var self = this;
@@ -1400,64 +1393,37 @@
                     });
                 },
                 actualizarAutocomplete() {
-                    console.log(`Actualizando autocomplete para ${this.producto.tipo} en almacén: ${this.producto.almacen}`);
+                    console.log(`Actualizando para ${this.producto.tipo} en almacén: ${this.producto.almacen}`);
 
-                    // Determinar la URL según el tipo seleccionado
+                    // Determinar URL según el tipo
                     let sourceUrl = '';
                     if (this.producto.tipo === 'producto') {
                         sourceUrl = _URL + `/ajs/cargar/productos/${this.producto.almacen}`;
-                    } else {
+                    } else if (this.producto.tipo === 'repuesto') {
                         sourceUrl = _URL + `/ajs/cargar/repuestos/${this.producto.almacen}`;
                     }
 
-                    // Destruir y reinicializar el autocomplete
+                    // Destruir y recrear autocomplete
                     $("#descripcionBuscar").autocomplete("destroy");
                     $("#descripcionBuscar").autocomplete({
                         source: sourceUrl,
                         minLength: 1,
                         select: function (event, ui) {
                             event.preventDefault();
-                            console.log(ui.item);
 
-                            // Asignar valores comunes
-                            app.producto.productoid = ui.item.codigo;
+                            app.producto.productoid = ui.item.id || ui.item.codigo;
                             app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre;
                             app.producto.nom_prod = ui.item.nombre;
-                            app.producto.codigo_app = ui.item.codigo_pp;
-                            app.producto.cantidad = '';
-                            app.producto.stock = ui.item.cnt;
-                            app.producto.precio = ui.item.precio == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio + "").toFixed(2);
+                            app.producto.stock = ui.item.cantidad || ui.item.cnt;
+                            app.producto.precio = parseFloat(ui.item.precio || 0).toFixed(2);
                             app.producto.codigo = ui.item.codigo;
                             app.producto.costo = ui.item.costo;
 
-                            // Asignar valores específicos según el tipo
-                            if (app.producto.tipo === 'producto') {
-                                app.producto.precio2 = ui.item.precio2 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio2 + "").toFixed(2);
-                                app.producto.precio3 = ui.item.precio3 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio3 + "").toFixed(2);
-                                app.producto.precio4 = ui.item.precio4 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio4 + "").toFixed(2);
-                                app.producto.precio_unidad = ui.item.precio_unidad == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio_unidad + "").toFixed(2);
-                                app.producto.precioVenta = parseFloat(ui.item.precio_unidad + "").toFixed(2);
-                            }
-
-                            // Crear array de precios
-                            let array = [{
-                                precio: app.producto.precio
-                            }];
-
-                            if (app.producto.tipo === 'producto') {
-                                array.push(
-                                    { precio: app.producto.precio2 || 0 },
-                                    { precio: app.producto.precio3 || 0 },
-                                    { precio: app.producto.precio4 || 0 },
-                                    { precio: app.producto.precio_unidad || 0 }
-                                );
-                            }
-
-                            app.precioProductos = array;
-                            $('#input_buscar_productos').val("");
+                            console.log("Tipo seleccionado:", app.producto.tipo);
                         }
                     });
                 }
+
 
             },
             computed: {

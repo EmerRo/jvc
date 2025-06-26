@@ -5,7 +5,7 @@
     <div class="row align-items-center">
         <div class="col-md-12">
             <h6 class="page-title text-center">
-                REGISTRO DE LAS MAQUINAS A PRODUCIR
+              REGISTRO DE MAQUINAS A REPARAR 
             </h6>
         </div>
     </div>

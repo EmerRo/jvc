@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\intercambio-productos.php -->
 <?php
 require_once "app/http/controllers/VentasController.php";
 $c_venta = new VentasController();
@@ -7,7 +8,6 @@ $getAll = $c_venta->ingresosEgresosRender();
     .ui-autocomplete {
         z-index: 1065;
     }
-
 </style>
 
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
@@ -19,218 +19,232 @@ $getAll = $c_venta->ingresosEgresosRender();
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Almacen</a></li>
                 <li class="breadcrumb-item"><a href="/ventas" class="button-link" style="color: #CA3438;">Intercambio
                         productos</a></li>
-                <!-- <li class="breadcrumb-item active" aria-current="page">Productos</li> -->
             </ol>
         </div>
     </div>
 </div>
-<div class="row m-0 p-0" id="container-vue">
-    <div class="row m-0 p-0">
-        <div class="col-12 p-0 m-0">
-            <div class="card m-0">
-                <div class="card-header">
-                    <div class="clearfix">
-                        <h4 class="card-title float-start">Intercambio de Productos</h4>
-                        <button data-bs-toggle="modal" data-bs-target="#nuevoIngreso"
-                            class="btn bg-rojo text-white float-end" @click="btnCerrar"><i class="fa fa-plus"></i> Nuevo
-                            Ingreso</button>
-                        <button data-bs-toggle="modal" data-bs-target="#nuevaSalida"
-                            class="btn btn-white border-rojo text-rojo float-end me-2" @click="btnCerrar"><i
-                                class="fa fa-plus"></i> Nueva
-                            Salida</button>
-                    </div>
+
+<!-- CAMBIO PRINCIPAL: Seguir la estructura de compras.php -->
+<div class="row">
+    <div class="col-12">
+        <div class="card"
+            style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
+            <div class="card-body" id="container-vue">
+
+                <!-- CAMBIO 1: Usar la misma estructura de botones que compras.php -->
+                <div class="card-title-desc text-end">
+                    <button data-bs-toggle="modal" data-bs-target="#nuevaSalida" class="btn bg-white text-rojo"
+                        @click="btnCerrar"
+                        style="border-radius: 10px; padding: 8px 16px; font-weight: 500; border: 1px solid #CA3438; margin-right: 8px; transition: all 0.3s ease;">
+                        <i class="fa fa-plus"></i> Nueva Salida
+                    </button>
+                    <button data-bs-toggle="modal" data-bs-target="#nuevoIngreso" class="btn bg-rojo text-white"
+                        @click="btnCerrar" style="border-radius: 10px; padding: 8px 16px; font-weight: 500;">
+                        <i class="fa fa-plus"></i> Nuevo Ingreso
+                    </button>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table id="datatable"
-                            class="table table-bordered dt-responsive nowrap text-center table-sm table-hover m-0"
-                            style="border: 2px solid white; border-collapse: collapse; border-spacing: 0; width: 100%;">
-                            <thead>
+
+                  <div class="table-responsive">
+                    <table id="datatable"
+                        class="table table-bordered dt-responsive nowrap text-center table-sm"
+                        style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">#</th>
+                                <th style="text-align: center;">Producto</th>
+                                <th style="text-align: center;">Cantidad</th>
+                                <th style="text-align: center;">Tipo</th>
+                                <th style="text-align: center;">Usuario</th>
+                                <th style="text-align: center;">Egreso</th>
+                                <th style="text-align: center;">Ingreso</th>
+                                <th style="text-align: center;">Fecha Creación</th>
+                                <th style="text-align: center;">Fecha Actualización</th>
+                                <th style="text-align: center;">Confirmar <br> Traslado</th>
+                                <th style="text-align: center;">Reporte</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($getAll as $row): ?>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Producto</th>
-                                    <th>Cantidad</th>
-                                    <th>Tipo</th>
-                                    <th>Usuario</th>
-                                    <th>Egreso</th>
-                                    <th>Ingreso</th>
-                                    <th>Confirmar <br> Traslado</th>
-                                    <th>Reporte</th>
+                                    <td><?php echo $row['intercambio_id'] ?></td>
+                                    <td class="text-start"><?php echo $row['codigo'] ?> | <?php echo $row['nombre'] ?>
+                                    </td>
+                                    <td><?php echo $row['cantidad'] ?></td>
+                                    <?php
+                                    $tipo = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida';
+                                    ?>
+                                    <td><?php echo $tipo ?></td>
+                                   <td><?php echo $row["nombres"] ?></td>
+                                    <td><?php echo $row['almacen_egreso_nombre'] ?></td>
+                                    <td><?php echo $row['almacen_ingreso_nombre'] ?></td>
+                                    <td><?php echo isset($row['fecha_creacion_formatted']) ? $row['fecha_creacion_formatted'] : 'N/A' ?></td>
+                                    <td><?php echo isset($row['fecha_actualizacion_formatted']) ? $row['fecha_actualizacion_formatted'] : 'N/A' ?></td>
+                                    <td class="text-center">
+                                        <?php if ($row['tipo'] == 'e' && $row['estado'] == '0'): ?>
+                                            <button data-item="<?= $row['intercambio_id'] ?>"
+                                                class="btn-confirmar btn btn-sm btn-success">
+                                                <i class="fa fa-check"></i>
+                                            </button>
+                                        <?php endif ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <a target="_blank"
+                                            href="<?= URL::to('reporte/ingresos/egresos/' . $row['intercambio_id'] . '') ?>"
+                                            class="btn-reporte btn btn-sm btn-primary">
+                                            <i class="fa fa-file"></i>
+                                        </a>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($getAll as $row): ?>
-                                    <tr>
-                                        <td><?php echo $row['intercambio_id'] ?></td>
-                                        <td class="text-start"><?php echo $row['codigo'] ?> | <?php echo $row['nombre'] ?>
-                                        </td>
-                                        <td><?php echo $row['cantidad'] ?></td>
-                                        <?php
-                                        $tipo = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida';
-                                        ?>
-                                        <td><?php echo $tipo ?></td>
-                                        <td><?php echo $row["nombres"] ?></td>
-                                        <td><?php echo $row['almacen_egreso_nombre'] ?></td>
-                                        <td><?php echo $row['almacen_ingreso_nombre'] ?></td>
-                                        <td class="text-center">
-                                            <?php if ($row['tipo'] == 'e' && $row['estado'] == '0'): ?>
-                                                <button data-item="<?= $row['intercambio_id'] ?>"
-                                                    class="btn-confirmar btn btn-sm btn-success">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                            <?php endif ?>
-                                        </td>
-                                        <td class="text-center">
-                                            <a target="_blank"
-                                                href="<?= URL::to('reporte/ingresos/egresos/' . $row['intercambio_id'] . '') ?>"
-                                                class="btn-reporte btn btn-sm btn-primary">
-                                                <i class="fa fa-file"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal Nuevo Ingreso -->
-    <div class="modal fade" id="nuevoIngreso" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Nuevo Ingreso</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form v-on:submit.prevent="addIngreso" class="form-horizontal">
-                    <div class="modal-body">
-                        <div class="row">
-                            <canvas hidden="" id="qr-canvas2" v-show="toggleCamara2"
-                                style="width: 300px; padding: 10px;"></canvas>
-                            <div class="mb-3 col-md-12">
-                                <label class="">
-                                    <input id="btn-scan-qr2" v-model="usar_scaner2" @click="toggleCamara2"
-                                        type="checkbox"> Usar Scanner
-                                </label>
+                <!-- Modal Nuevo Ingreso -->
+                <div class="modal fade" id="nuevoIngreso" tabindex="-1" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-rojo text-white">
+                                <h5 class="modal-title" id="exampleModalLabel">Nuevo Ingreso</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
-                            <div class="mb-3 col-md-12">
-                                <label class="control-label">Producto</label>
-                                <input type="text" placeholder="Consultar Productos"
-                                    class="form-control ui-autocomplete-input" id="input_buscar_productos"
-                                    autocomplete="off">
-                            </div>
-                            <div class="mb-3">
-                                <label class="control-label">Nombre</label>
-                                <input required v-model="producto.nombre" type="text" placeholder="Nombre"
-                                    class="form-control" readonly="true">
-                            </div>
-                            <div class="mb-3 col-md-3">
-                                <label class="control-label">Cantidad</label>
-                                <input required v-model="producto.cantidad" type="text" class="form-control"
-                                    @keypress="onlyNumber">
-                            </div>
-                            <div class="mb-3 col-md-6">
-                                <label class="control-label">Ingreso Almacén</label>
-                                <select name="almacen" id="almacen" v-model="producto.almacen" class="form-control"
-                                    @change="onChangeAlmacen($event)">
-                                    <option value="1">Almacen 1</option>
-                                    <option value="2">Almacen 2</option>
-                                    <option value="3">Almacen 3</option>
-                                </select>
-                            </div>
-                            <div class="mb-3 col-md-3">
-                                <label class="control-label">Stock Act.</label>
-                                <input v-model="producto.stock" type="text" class="form-control" readonly="true">
-                            </div>
-                            <div class="mb-3 col-md-12">
-                                <label class="control-label">Observaciones</label>
-                                <textarea v-model="producto.observaciones" class="form-control" rows="3"
-                                    placeholder="Ingrese observaciones (opcional)"></textarea>
-                            </div>
+                            <form v-on:submit.prevent="addIngreso" class="form-horizontal">
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <canvas hidden="" id="qr-canvas2" v-show="toggleCamara2"
+                                            style="width: 300px; padding: 10px;"></canvas>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="">
+                                                <input id="btn-scan-qr2" v-model="usar_scaner2" @click="toggleCamara2"
+                                                    type="checkbox"> Usar Scanner
+                                            </label>
+                                        </div>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="control-label">Producto</label>
+                                            <input type="text" placeholder="Consultar Productos"
+                                                class="form-control ui-autocomplete-input" id="input_buscar_productos"
+                                                autocomplete="off">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="control-label">Nombre</label>
+                                            <input required v-model="producto.nombre" type="text" placeholder="Nombre"
+                                                class="form-control" readonly="true">
+                                        </div>
+                                        <div class="mb-3 col-md-3">
+                                            <label class="control-label">Cantidad</label>
+                                            <input required v-model="producto.cantidad" type="text" class="form-control"
+                                                @keypress="onlyNumber">
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label class="control-label">Ingreso Almacén</label>
+                                            <select name="almacen" id="almacen" v-model="producto.almacen"
+                                                class="form-control" @change="onChangeAlmacen($event)">
+                                                <option value="1">Almacen 1</option>
+                                                <option value="2">Almacen 2</option>
+                                                <option value="3">Almacen 3</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3 col-md-3">
+                                            <label class="control-label">Stock Act.</label>
+                                            <input v-model="producto.stock" type="text" class="form-control"
+                                                readonly="true">
+                                        </div>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="control-label">Observaciones</label>
+                                            <textarea v-model="producto.observaciones" class="form-control" rows="3"
+                                                placeholder="Ingrese observaciones (opcional)"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn border-rojo text-rojo" @click="btnCerrar"
+                                        data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="submit" class="btn bg-rojo text-white">Guardar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn border-rojo text-rojo" @click="btnCerrar"
-                        data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn bg-rojo text-white">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Nueva Salida -->
-    <div class="modal fade" id="nuevaSalida" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Nueva Salida</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form v-on:submit.prevent="addSalida" class="form-horizontal">
-                    <div class="modal-body">
-                        <div class="row">
-                            <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
-                                style="width: 300px; padding: 10px;"></canvas>
-                            <div class="mb-3 col-md-12">
-                                <label class="">
-                                    <input id="btn-scan-qr" v-model="usar_scaner" @click="toggleCamara" type="checkbox">
-                                    Usar Scanner
-                                </label>
+
+                <!-- Modal Nueva Salida -->
+                <div class="modal fade" id="nuevaSalida" tabindex="-1" aria-labelledby="exampleModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-rojo text-white">
+                                <h5 class="modal-title" id="exampleModalLabel">Nueva Salida</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
-                            <div class="mb-3 col-md-12">
-                                <label class="control-label">Producto</label>
-                                <input type="text" placeholder="Consultar Productos"
-                                    class="form-control ui-autocomplete-input" id="input_buscar_productos_salida"
-                                    autocomplete="off">
-                            </div>
-                            <div class="mb-3">
-                                <label class="control-label">Nombre</label>
-                                <input required v-model="producto.nombre" type="text" placeholder="Nombre"
-                                    class="form-control" readonly="true">
-                            </div>
-                            <div class="mb-3 col-md-6">
-                                <label class="control-label">Del Almacén</label>
-                                <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
-                                    class="form-control" @change="onChangeAlmacen($event)">
-                                    <option value="1">Almacén 1</option>
-                                    <option value="2">Almacén 2</option>
-                                    <option value="3">Almacén 3</option>
-                                </select>
-                            </div>
-                            <div class="mb-3 col-md-6">
-                                <label class="control-label">Al Almacén</label>
-                                <select v-model="producto.alAlmacen" class="form-control">
-                                    <option value="1" v-if="producto.almacen !== '1'">Almacén 1</option>
-                                    <option value="2" v-if="producto.almacen !== '2'">Almacén 2</option>
-                                    <option value="3" v-if="producto.almacen !== '3'">Almacén 3</option>
-                                </select>
-                            </div>
-                            <div class="mb-3 col-md-6">
-                                <label class="control-label">Cantidad</label>
-                                <input required v-model="producto.cantidad" type="text" class="form-control"
-                                    @keypress="onlyNumber">
-                            </div>
-                            <div class="mb-3 col-md-6">
-                                <label class="control-label">Stock Act.</label>
-                                <input v-model="producto.stock" type="text" class="form-control" readonly="true">
-                            </div>
-                            <div class="mb-3 col-md-12">
-                                <label class="control-label">Observaciones</label>
-                                <textarea v-model="producto.observaciones" class="form-control" rows="3"
-                                    placeholder="Ingrese observaciones (opcional)"></textarea>
-                            </div>
+                            <form v-on:submit.prevent="addSalida" class="form-horizontal">
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
+                                            style="width: 300px; padding: 10px;"></canvas>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="">
+                                                <input id="btn-scan-qr" v-model="usar_scaner" @click="toggleCamara"
+                                                    type="checkbox">
+                                                Usar Scanner
+                                            </label>
+                                        </div>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="control-label">Producto</label>
+                                            <input type="text" placeholder="Consultar Productos"
+                                                class="form-control ui-autocomplete-input"
+                                                id="input_buscar_productos_salida" autocomplete="off">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="control-label">Nombre</label>
+                                            <input required v-model="producto.nombre" type="text" placeholder="Nombre"
+                                                class="form-control" readonly="true">
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label class="control-label">Del Almacén</label>
+                                            <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
+                                                class="form-control" @change="onChangeAlmacen($event)">
+                                                <option value="1">Almacén 1</option>
+                                                <option value="2">Almacén 2</option>
+                                                <option value="3">Almacén 3</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label class="control-label">Al Almacén</label>
+                                            <select v-model="producto.alAlmacen" class="form-control">
+                                                <option value="1" v-if="producto.almacen !== '1'">Almacén 1</option>
+                                                <option value="2" v-if="producto.almacen !== '2'">Almacén 2</option>
+                                                <option value="3" v-if="producto.almacen !== '3'">Almacén 3</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label class="control-label">Cantidad</label>
+                                            <input required v-model="producto.cantidad" type="text" class="form-control"
+                                                @keypress="onlyNumber">
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label class="control-label">Stock Act.</label>
+                                            <input v-model="producto.stock" type="text" class="form-control"
+                                                readonly="true">
+                                        </div>
+                                        <div class="mb-3 col-md-12">
+                                            <label class="control-label">Observaciones</label>
+                                            <textarea v-model="producto.observaciones" class="form-control" rows="3"
+                                                placeholder="Ingrese observaciones (opcional)"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn border-rojo text-rojo" @click="btnCerrar"
+                                        data-bs-dismiss="modal">Cerrar</button>
+                                    <button id="btnguardarSalida" type="submit"
+                                        class="btn bg-rojo text-white">Guardar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn border-rojo text-rojo" @click="btnCerrar"
-                        data-bs-dismiss="modal">Cerrar</button>
-                        <button id="btnguardarSalida" type="submit" class="btn bg-rojo text-white">Guardar</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -315,7 +329,6 @@ $getAll = $c_venta->ingresosEgresosRender();
                         });
                 },
                 encenderCamara2() {
-                    // Similar a encenderCamara pero para el segundo scanner
                     navigator.mediaDevices
                         .getUserMedia({
                             video: { facingMode: "environment" }
@@ -500,7 +513,6 @@ $getAll = $c_venta->ingresosEgresosRender();
                 onChangeAlmacen(event) {
                     const newAlmacen = event.target.value;
 
-                    // Actualizar alAlmacen basado en el almacén seleccionado
                     if (newAlmacen === '1') {
                         this.producto.alAlmacen = '2';
                     } else if (newAlmacen === '2') {
@@ -530,7 +542,6 @@ $getAll = $c_venta->ingresosEgresosRender();
             }
         });
 
-        // Configuración del autocompletado para productos
         $("#input_buscar_productos, #input_buscar_productos_salida").autocomplete({
             source: _URL + "/ajs/cargar/productos",
             minLength: 1,
@@ -553,8 +564,6 @@ $getAll = $c_venta->ingresosEgresosRender();
             }
         });
 
-
-        // Inicialización de DataTables
         $('#datatable').DataTable({
             responsive: true,
             "language": {
@@ -586,7 +595,6 @@ $getAll = $c_venta->ingresosEgresosRender();
             }
         });
 
-        // Manejador para el botón de confirmar
         $("#datatable").on("click", ".btn-confirmar", function (evt) {
             const cod = $(evt.currentTarget).attr("data-item");
             Swal.fire({
@@ -609,6 +617,5 @@ $getAll = $c_venta->ingresosEgresosRender();
                 }
             });
         });
-
     });
 </script>

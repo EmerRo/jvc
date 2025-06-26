@@ -16,26 +16,7 @@ class MotivoController extends Controller
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    public function getMotivo()
-    {
-        $respuesta =[];
-        $sql = "SELECT * FROM motivo";
-
-        // consulta
-        $resultado = $this->conectar->query($sql);
-         // Verificar si la consulta devolvi� resultados
-
-         if ($resultado->num_rows > 0) {
-            // Iterar sobre los resultados 
-            while ($row = $resultado->fetch_assoc()) {
-                $respuesta[] = $row;
-            
-            }
-         }
-
-         return json_encode($respuesta);
-
-    }
+   
     
     public function getOneMotivo()
     {
@@ -58,21 +39,67 @@ class MotivoController extends Controller
     }
 
 
-    public function saveMotivo()
-    {
-        $sql = "INSERT INTO motivo (nombre) VALUES ('{$_POST['nombre']}')";
-        $this->conectar->query($sql);
+public function getMotivo()
+{
+    $respuesta = [];
+    $sql = "SELECT * FROM motivo ORDER BY nombre";
+    $resultado = $this->conectar->query($sql);
+    
+    if ($resultado->num_rows > 0) {
+        while ($row = $resultado->fetch_assoc()) {
+            $respuesta[] = $row;
+        }
     }
+    
+    // Devolver formato consistente
+    return json_encode(['status' => true, 'data' => $respuesta]);
+}
 
-    public function updateMotivo()
-    {
-        $sql = "UPDATE motivo SET nombre='{$_POST['nombre']}' WHERE id ='{$_POST['id']}'";
-        $this->conectar->query($sql);
+public function saveMotivo()
+{
+    $nombre = $this->conectar->real_escape_string($_POST['nombre']);
+    $sql = "INSERT INTO motivo (nombre) VALUES ('$nombre')";
+    
+    if ($this->conectar->query($sql)) {
+        $id = $this->conectar->insert_id;
+        return json_encode([
+            'status' => true,
+            'message' => 'Motivo guardado correctamente',
+            'data' => ['id' => $id, 'nombre' => $nombre]
+        ]);
     }
+    
+    return json_encode(['status' => false, 'message' => 'Error al guardar el motivo']);
+}
 
-    public function deleteMotivo()
-    {
-        $sql = "DELETE FROM motivo WHERE id ='{$_POST['id']}'";
-        $this->conectar->query($sql);
+public function updateMotivo()
+{
+    $id = $this->conectar->real_escape_string($_POST['id']);
+    $nombre = $this->conectar->real_escape_string($_POST['nombre']);
+    $sql = "UPDATE motivo SET nombre='$nombre' WHERE id ='$id'";
+    
+    if ($this->conectar->query($sql)) {
+        return json_encode([
+            'status' => true,
+            'message' => 'Motivo actualizado correctamente'
+        ]);
     }
+    
+    return json_encode(['status' => false, 'message' => 'Error al actualizar el motivo']);
+}
+
+public function deleteMotivo()
+{
+    $id = $this->conectar->real_escape_string($_POST['id']);
+    $sql = "DELETE FROM motivo WHERE id ='$id'";
+    
+    if ($this->conectar->query($sql)) {
+        return json_encode([
+            'status' => true,
+            'message' => 'Motivo eliminado correctamente'
+        ]);
+    }
+    
+    return json_encode(['status' => false, 'message' => 'Error al eliminar el motivo']);
+}
 }

@@ -161,38 +161,24 @@ class ReportesVentaController extends Controller
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
         $tempMonto = Tools::money($cuotTemp['monto']);
         $rowTempCuo .= "
-       <tr style='border: 1px solid #CA3438;'>
-           <td style='padding: 8px; text-align: center;'>Cuota $tempNum</td>
-           <td style='padding: 8px; text-align: center;'>$tempFecha</td>
-           <td style='padding: 8px; text-align: center;'>S/ $tempMonto</td>
+       <tr style=''>
+           <td style='padding: 3px; text-align: center;'>Cuota $tempNum</td>
+           <td style='padding: 3px; text-align: center;'>$tempFecha</td>
+           <td style='padding: 3px; text-align: center;'>S/ $tempMonto</td>
        </tr>
    ";
       }
-      $stylesheet = "
-       <style>
-           .table-header {
-               font-family: 'Times New Roman';
-               font-size: 11px;
-               text-align: center;
-               color: #fff;
-               background-color: #CA3438;
-               border: 1px solid #CA3438;
-           }
-           table {
-               font-family: 'Times New Roman';
-           }
-       </style>
-   ";
+
 
       // IMPORTANTE: Aseguramos que la tabla de cuotas tenga page-break-inside: avoid
       $tabla_cuotas = '
    <div style="width: 100%; margin: 1px 0; page-break-inside: avoid;">
-       <table style="width: 50%; margin: auto; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; border: 1px solid #CA3438;">
+       <table style="width: 50%; margin: auto; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10.5px; border: 1px solid #CA3438;">
            <thead>
                <tr style="background-color: #CA3438; ">
-                   <th style="padding: 5px; text-align: center; color:#fff;">CUOTA</th>
-                   <th style="padding: 5px; text-align: center; color:#fff;">FECHA</th>
-                   <th style="padding: 5px; text-align: center; color:#fff;">MONTO</th>
+                   <th style="padding: 3px; text-align: center; color:#fff;">CUOTA</th>
+                   <th style="padding: 3px; text-align: center; color:#fff;">FECHA</th>
+                   <th style="padding: 3px; text-align: center; color:#fff;">MONTO</th>
                </tr>
            </thead>
            <tbody>
@@ -803,11 +789,25 @@ class ReportesVentaController extends Controller
     $result = $this->conexion->query($sql);
     $compra = $result->fetch_assoc();
 
-    // Obtener productos de la compra
-    $sqlProductos = "SELECT pc.id_producto_venta, pc.id_producto, pc.cantidad, pc.precio, p.nombre, p.descripcion
-                  FROM productos_compras pc
-                  LEFT JOIN productos p ON pc.id_producto = p.id_producto
-                  WHERE pc.id_compra = $id";
+    $esCredito = ($compra['tipoPago'] == 'Credito' || $compra['tipoPago'] == 'CREDITO');
+    // // Obtener productos de la compra
+    // $sqlProductos = "SELECT pc.id_producto_venta, pc.id_producto, pc.cantidad, pc.precio, p.nombre, p.descripcion
+    //               FROM productos_compras pc
+    //               LEFT JOIN productos p ON pc.id_producto = p.id_producto
+    //               WHERE pc.id_compra = $id";
+
+    // Obtener productos Y repuestos de la compra
+    $sqlProductos = "
+    (SELECT pc.id_producto_venta as id_item, pc.cantidad, pc.precio, p.nombre, p.descripcion, 'Producto' as tipo
+     FROM productos_compras pc
+     LEFT JOIN productos p ON pc.id_producto = p.id_producto
+     WHERE pc.id_compra = $id)
+    UNION ALL
+    (SELECT rc.id_repuesto_compra as id_item, rc.cantidad, rc.precio, r.nombre, r.detalle as descripcion, 'Repuesto' as tipo
+     FROM repuestos_compras rc
+     LEFT JOIN repuestos r ON rc.id_repuesto = r.id_repuesto
+     WHERE rc.id_compra = $id)
+    ORDER BY tipo, nombre";
     $resultProductos = $this->conexion->query($sqlProductos);
 
     // Obtener detalles de pago a crédito
@@ -856,11 +856,13 @@ class ReportesVentaController extends Controller
       $subtotal += floatval($producto['precio']) * intval($producto['cantidad']);
 
       $productosHtml .= "<tr>
-      <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$item}</td>
-      <td style='font-size: 10px; text-align: left; border: 1px solid #CA3438; padding: 6px;'>{$producto['nombre']}<br>{$producto['descripcion']}</td>
-      <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$producto['cantidad']}</td>
-      <td style='font-size: 10px; text-align: right; border: 1px solid #CA3438; padding: 6px;'>S/ {$precio}</td>
-    </tr>";
+  <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$item}</td>
+  <td style='font-size: 10px; text-align: left; border: 1px solid #CA3438; padding: 6px;'>
+   {$producto['nombre']}<br>{$producto['descripcion']}
+  </td>
+  <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$producto['cantidad']}</td>
+  <td style='font-size: 10px; text-align: right; border: 1px solid #CA3438; padding: 6px;'>S/ {$precio}</td>
+</tr>";
       $item++;
     }
 
@@ -870,46 +872,72 @@ class ReportesVentaController extends Controller
     $igvFormateado = number_format($igv, 2, ".", ",");
     $totalFormateado = number_format($subtotal + $igv, 2, ".", ",");
 
-    // Generar filas de pagos a crédito
+    // Generar filas de pagos a crédito SOLO si es crédito
     $pagosHtml = "";
-    $numPago = 1;
+    $tablaPagosHtml = "";
 
-    // Array de meses para formatear la fecha
-    $meses = array(
-      '01' => 'ENERO',
-      '02' => 'FEBRERO',
-      '03' => 'MARZO',
-      '04' => 'ABRIL',
-      '05' => 'MAYO',
-      '06' => 'JUNIO',
-      '07' => 'JULIO',
-      '08' => 'AGOSTO',
-      '09' => 'SEPTIEMBRE',
-      '10' => 'OCTUBRE',
-      '11' => 'NOVIEMBRE',
-      '12' => 'DICIEMBRE'
-    );
+    if ($esCredito) {
+      $numPago = 1;
 
-    while ($pago = $resultPagos->fetch_assoc()) {
-      $montoFormateado = number_format($pago['monto'], 2, ".", ",");
+      // Array de meses para formatear la fecha
+      $meses = array(
+        '01' => 'ENERO',
+        '02' => 'FEBRERO',
+        '03' => 'MARZO',
+        '04' => 'ABRIL',
+        '05' => 'MAYO',
+        '06' => 'JUNIO',
+        '07' => 'JULIO',
+        '08' => 'AGOSTO',
+        '09' => 'SEPTIEMBRE',
+        '10' => 'OCTUBRE',
+        '11' => 'NOVIEMBRE',
+        '12' => 'DICIEMBRE'
+      );
 
-      // Formatear la fecha directamente en el controlador
-      $fecha_obj = new DateTime($pago['fecha']);
-      $mes = $fecha_obj->format('m');
-      $dia = $fecha_obj->format('d');
-      $anio = $fecha_obj->format('Y');
-      $fechaFormateada = $meses[$mes] . " " . $dia . " del, " . $anio;
+      while ($pago = $resultPagos->fetch_assoc()) {
+        $montoFormateado = number_format($pago['monto'], 2, ".", ",");
 
-      $estado = ($pago['estado'] == '0') ? 'Pendiente' : 'Pagado';
+        // Formatear la fecha directamente en el controlador
+        $fecha_obj = new DateTime($pago['fecha']);
+        $mes = $fecha_obj->format('m');
+        $dia = $fecha_obj->format('d');
+        $anio = $fecha_obj->format('Y');
+        $fechaFormateada = $meses[$mes] . " " . $dia . " del, " . $anio;
 
-      $pagosHtml .= "<tr>
+        $estado = ($pago['estado'] == '0') ? 'Pendiente' : 'Pagado';
+
+        $pagosHtml .= "<tr>
       <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$numPago}</td>
       <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$fechaFormateada}</td>
       <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>SOLES</td>
       <td style='font-size: 10px; text-align: right; border: 1px solid #CA3438; padding: 6px;'>{$montoFormateado}</td>
       <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$estado}</td>
     </tr>";
-      $numPago++;
+        $numPago++;
+      }
+
+      // Generar la tabla completa SOLO si es crédito
+      $tablaPagosHtml = "
+      <div style='margin-top: 20px; text-align: center;'>
+        <table style='width:55%; border-collapse: collapse; margin: 15px auto 0;' cellpadding='0' cellspacing='0'>
+          <thead>
+            <tr>
+              <th colspan='5' style='font-size: 11px; text-align: center; padding: 6px; background-color: #FFFFFF; border: none;'><strong>DETALLE DE LA FORMA DE PAGO: CRÉDITO</strong></th>
+            </tr>
+            <tr style='background-color: #CA3438; color: white;'>
+              <th style='width: 5%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>N°</strong></th>
+              <th style='width: 20%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Fecha de Vencimiento</strong></th>
+              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Moneda</strong></th>
+              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Monto</strong></th>
+              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Estado</strong></th>
+            </tr>
+          </thead>
+          <tbody>
+            {$pagosHtml}
+          </tbody>
+        </table>
+      </div>";
     }
 
     // Obtener datos de la empresa
@@ -1089,25 +1117,7 @@ class ReportesVentaController extends Controller
       </div>
      
       <!-- Tabla de detalle de pago -->
-      <div style='margin-top: 20px; text-align: center;'>
-        <table style='width:55%; border-collapse: collapse; margin: 15px auto 0;' cellpadding='0' cellspacing='0'>
-          <thead>
-            <tr>
-              <th colspan='5' style='font-size: 11px; text-align: center; padding: 6px; background-color: #FFFFFF; border: none;'><strong>DETALLE DE LA FORMA DE PAGO: CRÉDITO</strong></th>
-            </tr>
-            <tr style='background-color: #CA3438; color: white;'>
-              <th style='width: 5%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>N°</strong></th>
-              <th style='width: 20%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Fecha de Vencimiento</strong></th>
-              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Moneda</strong></th>
-              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Monto</strong></th>
-              <th style='width: 10%; font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Estado</strong></th>
-            </tr>
-          </thead>
-          <tbody>
-            {$pagosHtml}
-          </tbody>
-        </table>
-      </div>
+  {$tablaPagosHtml}
 
       <!-- Sección de observaciones -->
       {$observacionesFormateadas}
@@ -1671,9 +1681,11 @@ class ReportesVentaController extends Controller
                   WHERE gr.id_guia_remision = " . $guia;
       $datosGuia = $this->conexion->query($sql)->fetch_assoc();
 
+
       if (!$datosGuia) {
         throw new Exception("No se encontró la guía de remisión");
       }
+      $S_N = $datosGuia['serie'] . '-' . Tools::numeroParaDocumento($datosGuia['numero'], 6);
 
       // Obtener datos de la empresa
       if ($isLoggedIn) {
@@ -1705,6 +1717,62 @@ class ReportesVentaController extends Controller
         $nombreCliente = $datosGuia['destinatario_nombre'];
         $numDoc = $datosGuia['destinatario_documento'];
       }
+      // Obtener datos SUNAT para QR y Hash
+      $sql_sunat = "SELECT * FROM guia_sunat WHERE id_guia = " . $guia;
+      $qrImage = '';
+      $hash_Doc = '';
+      $hashValue = 'N/A'; // Valor por defecto
+
+      if ($rowSunat = $this->conexion->query($sql_sunat)->fetch_assoc()) {
+        $hash_Doc = "HASH: " . $rowSunat['hash'] . "<br>";
+        $hashValue = $rowSunat['hash'];
+
+        try {
+          $qrCode = new QrCode($rowSunat["qr_data"]);
+          $qrCode->setSize(250);
+          $image = $qrCode->writeString();
+          $imageData = base64_encode($image);
+          $qrImage = '<img style="width: 90px; height: 90px;" src="data:image/png;base64,' . $imageData . '">';
+        } catch (Exception $e) {
+          $qrImage = ''; // Si hay error, no mostrar QR
+        }
+      } else {
+        // Si no hay datos SUNAT, crear QR básico con datos de la guía
+        $qr_data = $datoEmpresa['ruc'] . '|09|' . $S_N . '|0.00|0.00|' .
+          $datosGuia['fecha_emision'] . '|6|' . ($numDoc ?: '00000000');
+
+        try {
+          $qrCode = new QrCode($qr_data);
+          $qrCode->setSize(250);
+          $image = $qrCode->writeString();
+          $imageData = base64_encode($image);
+          $qrImage = '<img style="width: 60px; height: 60px;" src="data:image/png;base64,' . $imageData . '">';
+        } catch (Exception $e) {
+          $qrImage = '';
+        }
+      }
+      // Obtener datos del usuario que creó la guía
+      $usuario_creador = 'Emer Zapata'; // Valor por defecto
+      $codigo_usuario = 'N/A';
+
+      // Intentar obtener el usuario de la sesión actual
+      if (isset($_SESSION['usuario_id'])) {
+        $sql_usuario = "SELECT nombres, apellidos, codigo FROM usuarios WHERE usuario_id = " . $_SESSION['usuario_id'];
+        $result_usuario = $this->conexion->query($sql_usuario);
+
+        if ($result_usuario && $result_usuario->num_rows > 0) {
+          $usuario_data = $result_usuario->fetch_assoc();
+          $usuario_creador = $usuario_data['nombres'] . ' ' . ($usuario_data['apellidos'] ?: '');
+          $codigo_usuario = $usuario_data['codigo'] ?: 'N/A';
+        }
+      }
+
+      // Si no hay usuario en sesión, usar el valor por defecto
+      if (empty(trim($usuario_creador)) || $usuario_creador == ' ') {
+        $usuario_creador = 'Emer Zapata';
+      }
+
+      $dominio = DOMINIO . 'buscador';
 
       // Primero, vamos a verificar la estructura de la tabla 'productos'
       $checkProductosTable = "DESCRIBE productos";
@@ -1749,7 +1817,6 @@ class ReportesVentaController extends Controller
       $fechaEmision = Tools::formatoFechaNumero($datosGuia['fecha_emision']);
 
       // Generar número de documento
-      $S_N = $datosGuia['serie'] . '-' . Tools::numeroParaDocumento($datosGuia['numero'], 6);
       $tipoDocNom = 'GUÍA DE REMISIÓN REMITENTE';
 
       // Generar cabecera del PDF
@@ -1771,19 +1838,18 @@ class ReportesVentaController extends Controller
               </div>
           </div>";
 
-      // Escribir logo y cabecera
+      // logo
       $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
       $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 196, 130);
-
+      // Información de la empresa
       $this->mpdf->WriteFixedPosHTML("<span style='font-family: Calibri, Helvetica Neue, sans-serif; font-size: 14px;margin: 1pt 2pt 3pt;'><strong>COMERCIAL & INDUSTRIAL J. V. C. S.A.C.
  </strong></span>", 25, 30, 210, 130);
-
-
-      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'><strong></strong> <span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 25, 36, 120, 130);
+      // dirección, teléfono y email
+      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'><span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 35, 36, 210, 130);
 
       $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'>Telf: {$datoEmpresa['telefono']} -Email:{$datoEmpresa['email']} </span>", 25, 39, 210, 130);
 
-      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'> Web: https://industriajvcsac.com/</span>", 25, 42, 210, 130);
+      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'> Web: https://industriajvcsac.com</span>", 40, 43, 210, 130);
 
 
       // Generar filas de productos
@@ -1795,16 +1861,16 @@ class ReportesVentaController extends Controller
                     <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
                       $conradorRow 
                     </td>
-                    <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #363636; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                    <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
                       {$itemProd['codigo']} 
                     </td>
-                    <td style='width: 65%; padding: 10px;  border-left: 1px solid #363636; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
-                      <strong style='font-size: 12px;'>{$itemProd['nombre']} </strong>
+                    <td style='width: 71%; padding: 10px;  border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                      <strong >{$itemProd['detalles']} </strong>
                     </td>
-                    <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #363636; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                    <td style='width: 8%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
                       {$itemProd['unidad']} 
                     </td>
-                    <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #363636; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                    <td style='width: 6%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
                       {$itemProd['cantidad']} 
                     </td>
                   </tr>";
@@ -1814,42 +1880,44 @@ class ReportesVentaController extends Controller
       // Generar HTML principal
       $html = "
       
-      <div style='width: 100%;padding-top: 170px; overflow: hidden;clear: both;'>
+      <div style='width: 100%;padding-top: 150px; overflow: hidden;clear: both;'>
               <!-- Sección Destinatario -->
             
-      <div style='width: 100%; padding: 10px; border: 1px solid black; border-radius: 10px; margin-bottom: 30px; overflow: hidden;'>
-    <table style='width: 100%; border-collapse: collapse; margin: -10px;'>
-        <tr>
-            <td style='width: 16.66%; padding: 8px; text-align: center; border-right: 1px solid black;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Fecha de Emisión:</strong>
-                <span style='font-size: 10px;'>{$fechaEmision}</span>
-            </td>
-            <td style='width: 16.66%; ;padding: 8px; text-align: center;  border-right: 1px solid black;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Fecha de Traslado:</strong>
-                <span style='font-size: 10px;'>{$fechaEmision}</span>
-            </td>
-            <td style='width: 16.66%; padding: 8px; text-align: center; ; border-right: 1px solid black;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Docs. Referencia:</strong>
-                <span style='font-size: 10px;'>-</span>
-            </td>
-            <td style='width: 17.66%; padding: 8px; text-align: center;  border-right: 1px solid black;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Motivo de traslado:</strong>
-                <span style='font-size: 10px;'>{$datosGuia['motivo_traslado_nombre']}</span>
-            </td>
-            <td style='width: 16.66%; padding: 8px; text-align: center;  border-right: 1px solid black;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Mod. Transporte:</strong>
-                <span style='font-size: 10px;'>Transporte privado</span>
-            </td>
-            <td style='width: 16.66%; padding: 8px; text-align: center;'>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Orden de Compra</strong>
-                <strong style='font-size: 10px; display: block; margin-bottom: 4px;'> Nro:</strong> <br/>
-                <span style='font-size: 10px;'>COT 128323 JVC</span>
-            </td>
-        </tr>
-    </table>
+      <div style='width: 100%; padding: 10px; border: 0.5px solid black; border-radius: 10px; margin-bottom: 20px; overflow: hidden;'>
+  <table style='width: 100%; border-collapse: collapse; margin: -10px;'>
+    <tr>
+        <td style='width: 16.66%; padding: 8px; text-align: center; border-right: 0.5px solid black; vertical-align: top;'>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Fecha de Emisión:</strong>
+            <span style='font-size: 10px;'>{$fechaEmision}</span>
+        </td>
+
+        <td style='width: 16.66%; padding: 8px; text-align: center; border-right: 0.5px solid black; vertical-align: top;'>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Fecha de Traslado:</strong>
+            <span style='font-size: 10px;'>{$fechaEmision}</span>
+        </td>
+
+       <td style='width: 16.66%; padding: 8px; text-align: center; border-right: 0.5px solid black; vertical-align: top;'>
+    <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Docs. Referencia: <br></strong>
+    <span style='font-size: 10px;'>" . (isset($datosGuia['doc_referencia']) && !empty($datosGuia['doc_referencia']) ? $datosGuia['doc_referencia'] : '-') . "</span>
+</td>
+        <td style='width: 17.66%; padding: 8px; text-align: center; border-right: 0.5px solid black; vertical-align: top;'>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Motivo de traslado:</strong>
+            <span style='font-size: 10px;'>{$datosGuia['motivo_traslado_nombre']}</span>
+        </td>
+        <td style='width: 16.66%; padding: 8px; text-align: center; border-right: 0.5px solid black; vertical-align: top;'>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Mod. Transporte:</strong>
+            <span style='font-size: 10px;'>Transporte privado</span>
+        </td>
+        <td style='width: 16.66%; padding: 8px; text-align: center; vertical-align: top;'>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Orden de Compra</strong>
+            <strong style='font-size: 10px; display: block; margin-bottom: 4px;'> Nro:</strong> <br/>
+            <span style='font-size: 10px;'>COT 128323 JVC</span>
+        </td>
+    </tr>
+</table>
 </div>
 
-<div style='width: 100%; padding: 0; border: 1px solid black; border-radius: 10px; margin-bottom: 30px; overflow: hidden;background-color: #CA3438;'>
+<div style='width: 100%; padding: 0; border-top: 0.5px solid #CA3438; border-bottom: 0.5px solid #000000; border-left: 0.5px solid #000000; border-right: 0.5px solid #000000; border-radius: 10px; margin-bottom: 20px; overflow: hidden;background-color: #CA3438;'>
 <table style='width: 100%; border-collapse: collapse; margin:0; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
  <tr >
             <td style='width: 50%; padding: 10px; text-align: center; '>
@@ -1879,7 +1947,7 @@ class ReportesVentaController extends Controller
 </div>
 </div>
 
-<div style='width: 100%; padding: 0; border: 1px solid black; border-radius: 10px; margin-bottom: 20px; overflow: hidden; background-color: #CA3438; '>
+<div style='width: 100%; padding: 0; border-top: 0.5px solid #CA3438; border-bottom: 0.5px solid #000000; border-left: 0.5px solid #000000; border-right: 0.5px solid #000000; border-radius: 10px; margin-bottom: 20px; overflow: hidden; background-color: #CA3438; '>
 <table style='width: 100%; border-collapse: collapse; margin:0; color: #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
 
   <tr>
@@ -1931,14 +1999,14 @@ class ReportesVentaController extends Controller
                 <td style='width: 10%; padding: 8px; text-align: center;font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;  '>
                 <strong style=' color: #ffffff;'>CODIGO </strong>
             </td>
-                <td style='width: 65%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
+                <td style='width: 71%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
                 <strong style='color: #ffffff;'>DESCRIPCION </strong>
             </td>
-                <td style='width: 10%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
-                <strong style='color: #ffffff;'>UNIDAD </strong>
+                <td style='width: 8%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
+                <strong style='color: #ffffff;'>UNID/MED </strong>
             </td>
-                <td style='width: 10%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
-                <strong style='color: #ffffff;'>CANTIDAD </strong>
+                <td style='width: 6%; padding: 8px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
+                <strong style='color: #ffffff;'>CANT </strong>
             </td>
                          
                       </tr></table>
@@ -1961,19 +2029,37 @@ class ReportesVentaController extends Controller
 
               </div>
               </div>
-  
-              <!-- Sección Observaciones -->
-              <div style='width: 100%; margin-top: 20px;'>
-                  <table style='width:100%;border: 0.5px solid black;'>
-                      <tr>
-                          <td style='font-size: 11px;padding: 5px;'><strong>Observaciones: </strong>{$datosGuia['observaciones']}</td>
-                      </tr>
-                  </table>
+                                         <!-- Sección Observaciones -->
+           <div style='width: 100%; margin-top: 20px; overflow: hidden;'>
+                  <div style='float: left; width: 100px; text-align: center; vertical-align: top; padding: 0;'>
+                      {$qrImage}
+                  </div>
+                  <div style='float: left; margin-left: 5px; vertical-align: top; padding: 0;'>
+                      <div style='font-family: Arial; font-size: 10px; line-height: 1.4; padding-top: 5px;'>
+                          <div style='margin-bottom: 3px;'><strong>Consulte su documento electrónico en:</strong> {$dominio}<br></div>
+                         <div style='margin-bottom: 3px;'><strong>HASH:</strong> {$hashValue}</div>
+                          <div style='margin-bottom: 3px;'><strong>USUARIO:</strong> {$usuario_creador} (cod: {$codigo_usuario})</div>
+                          <div style='margin-bottom: 0;'>
+                              <span>Representación Impresa de la Guía de Remisión</span>
+                              <br>
+                             
+                          </div>
+
+                      <div style=' margin-top: 10px;'>  <span style='font-size: 10px; margin-left: 80px;'> 
+                                  <strong>Observacion: </strong>" . (isset($datosGuia['observaciones']) && $datosGuia['observaciones'] ? $datosGuia['observaciones'] : 'No hay observaciones.') . "
+                              </span>
+                      </div>
+                      </div>
+                  </div>
               </div>
           </div>";
 
+
       // Escribir HTML y generar PDF
       $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+
+
+
       /*$this->mpdf->WriteHTML($htmlDOM,\Mpdf\HTMLParserMode::HTML_BODY);*/
       $dist = 'I'; // Initialize $dist variable
       if ($dist == 'I') {
@@ -2338,7 +2424,7 @@ class ReportesVentaController extends Controller
         </div>
         
         ";
-    $dominio = DOMINIO;
+    $dominio = DOMINIO . 'buscador';
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
     /*$this->mpdf->SetHTMLFooter("<div style=' width: 100%;'>
@@ -2362,12 +2448,12 @@ class ReportesVentaController extends Controller
                     <td style='border-left: 1px solid #363636;border-collapse: collapse; font-size: 10px; text-align: right'>IGV:</td>
                     <td style='border-left: 1px solid #363636;border-collapse: collapse; font-size: 10px;  text-align: right' >$igv</td>
                   </tr>
-                  
+
                   <tr>
                     <td style='border-left: 1px solid #363636;border-collapse: collapse; font-size: 10px; text-align: right'>Total a Pagar</td>
                     <td style='border-left: 1px solid #363636;border-collapse: collapse; font-size: 10px;  text-align: right' >$total</td>
                   </tr>
-                  
+
                 </table>
                 </div>
         </div>
@@ -2833,8 +2919,8 @@ class ReportesVentaController extends Controller
                   <span style='font-size: 10px;'>$monedaVisual</span>
                 </td>
                 <td style='width: 17.66%; padding: 8px; text-align: center; font-family: Arial; '>
-                  <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Guía de Remisión N°
-                  </strong>  <div style='height: 2px;'></div>
+                  <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Guía de Remisión N° <br> 
+                  </strong> <div style='height: 2px;'></div>
                   <span style='font-size: 10px;'>$guiaRealionada</span>
                 </td>
             </tr>
@@ -2849,7 +2935,7 @@ class ReportesVentaController extends Controller
                <strong>{$docLabel}</strong> {$resultC['documento']}
               </td>
               <td style='width: 50%; padding: 5px; font-size: 10px; border-bottom: 0.5px solid #000000; font-family: Calibri, Helvetica Neue, sans-serif;'>
-              <strong>Orden de Compra:</strong> {$datoVenta['orden_compra']}
+              <strong>Orden de Compra:</strong> {$datoVenta['doc_referencia']}
               </td>
             </tr>
 
@@ -2936,7 +3022,7 @@ class ReportesVentaController extends Controller
       $igv = '0.00';
       $totalOpgravado = $total;
     }
-    $dominio = DOMINIO;
+    $dominio = DOMINIO . 'buscador';
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
     // Modificar el footer para alinear correctamente el QR y la información

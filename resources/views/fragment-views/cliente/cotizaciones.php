@@ -1,5 +1,5 @@
 <!-- resources\views\fragment-views\cliente\cotizaciones.php -->
-<link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css')  ?>?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
 
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -8,7 +8,8 @@
             <h6 class="page-title text-center">COTIZACIONES</h6>
             <ol class="breadcrumb m-0 float-start">
 
-                <li class="breadcrumb-item"><a class="button-link"  style="font-weight: 500; color: #CA3438;">Cotizaciones</a></li>
+                <li class="breadcrumb-item"><a class="button-link"
+                        style="font-weight: 500; color: #CA3438;">Cotizaciones</a></li>
 
             </ol>
         </div>
@@ -20,28 +21,34 @@
     </div>
 </div>
 
-<div class="row" >
+<div class="row">
     <div class="col-12">
-    <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);  padding: 0; margin: 0;">
-            <div class="card-body" style="padding: 7px;">
+        <div class="card"
+            style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
+
+            <div class="card-body">
+
 
                 <h4 class="card-title"></h4>
 
-                <div class="card-title-desc text-end "style="padding: 10px 10px 0 0;">
-                    <a href="/cotizaciones/add" id="folder_btn_nuevo_folder" class="btn bg-rojo text-white button-link">
-                        <i class="fa fa-plus "></i> Nueva Cotización
-                    </a>
+                <div class="card-title-desc text-end " style="padding: 10px 10px 0 0;">
+
                     <?php if ($_SESSION["rol"] == 1): ?>
                         <button id="ventas-reporte" class="btn bg-white text-rojo border-rojo" style="margin-left: 5px;">
-                    <i class="fa fa-file-pdf-o"></i> Exportar Reporte de Vendedores
-                </button>
+                            <i class="fa fa-file-pdf-o"></i> Exportar Reporte de Vendedores
+                        </button>
                     <?php endif; ?>
+                    <a href="/cotizaciones/add" id="folder_btn_nuevo_folder"
+                        class="btn bg-rojo bordes text-white button-link">
+                        <i class="fa fa-plus "></i> Nueva Cotización
+                    </a>
                 </div>
-                
+
                 <!-- Contenedor con overflow auto en lugar de table-responsive -->
                 <div class="table-responsive">
-               <table id="datatable-c" class="table nowrap table-sm table-bordered text-center"
-                   style="border: 2px solid white; width: 100%; margin: 0;">
+                    <table id="datatable-c" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                        style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -129,16 +136,20 @@
     $(document).ready(function () {
         // Configuración para hacer el DataTable responsivo
         tabla = $("#datatable-c").DataTable({
+            paging: true,
+            bFilter: true,
+            ordering: true,
+            searching: true,
+            destroy: true,
             "processing": true,
             "serverSide": true,
             "sAjaxSource": _URL + "/data/cotizaciones/lista/ss",
-            "responsive": true, // Habilitar responsividad
-            "scrollX": false,   // Deshabilitar scroll horizontal
-            "autoWidth": false, // Deshabilitar auto-ancho
-            "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip', // Personalizar el DOM para mejor responsividad
             order: [
                 [0, "desc"]
             ],
+            language: {
+                url: "ServerSide/Spanish.json",
+            },
             columnDefs: [
                 {
                     targets: 8,
@@ -146,25 +157,29 @@
                         return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
                     }
                 },
+                
                 {
                     targets: 7,
                     render: function (data, type, row, meta) {
                         if (data == '1') {
                             return '<span class="badge rounded-pill bg-success">Vendido</span>'
+                        } else if (data == '2') {
+                            return '<span class="badge rounded-pill bg-warning">Facturado</span>'
                         } else {
                             return '<span class="badge rounded-pill bg-danger">No Vendido</span>'
                         }
                     }
                 },
+
                 {
                     targets: 10,
                     render: function (data, type, row, meta) {
                         return `
-                            <div class="btn-group">
-                                <a href="${'/cotizaciones/edt/' + data}" class="button-link btn btn-sm btn-primary"><i class="fa fa-edit"></i></a>
-                                <a href="${_URL + '/r/cotizaciones/reporte/' + data}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
-                                <button onclick="eliminarCotizacion(${data})" data-cod="" type="button" class="btn-del btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
-                            </div>`;
+                    <div class="btn-group">
+                        <a href="${'/cotizaciones/edt/' + data}" class="button-link btn btn-sm btn-primary"><i class="fa fa-edit"></i></a>
+                        <a href="${_URL + '/r/cotizaciones/reporte/' + data}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
+                        <button onclick="eliminarCotizacion(${data})" data-cod="" type="button" class="btn-del btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
+                    </div>`;
                     }
                 },
                 {
@@ -174,14 +189,14 @@
                     }
                 },
                 {
-                    targets: 3, // Columna del subtotal
+                    targets: 3,
                     render: function (data, type, row) {
                         let subtotal = parseFloat(data) / 1.18;
                         return 'S/ ' + subtotal.toFixed(2);
                     }
                 },
                 {
-                    targets: 4, // Columna del IGV
+                    targets: 4,
                     render: function (data, type, row) {
                         let subtotal = parseFloat(data) / 1.18;
                         let igv = subtotal * 0.18;
@@ -189,56 +204,18 @@
                     }
                 },
                 {
-                    targets: 5, // Columna del total
+                    targets: 5,
                     render: function (data, type, row) {
                         return 'S/ ' + parseFloat(data).toFixed(2);
                     }
-                },
-                // Hacer que algunas columnas se oculten en pantallas pequeñas
-                {
-                    targets: [3, 4, 6, 9],
-                    className: 'd-none d-md-table-cell'
                 }
-            ],
-            // Personalizar mensajes en español
-            "language": {
-                "search": "Buscar:",
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "infoEmpty": "Mostrando 0 a 0 de 0 registros",
-                "infoFiltered": "(filtrado de _MAX_ registros totales)",
-                "paginate": {
-                    "first": "Primero",
-                    "last": "Último",
-                    "next": "Siguiente",
-                    "previous": "Anterior"
-                }
-            }
+            ]
         });
 
-        // Hacer que el campo de búsqueda sea responsivo
-        $('.dataTables_filter input').addClass('form-control');
-        $('.dataTables_filter').addClass('mb-2');
-        // Después de la inicialización del DataTable, agrega:
-$('#datatable-c_wrapper').css({
-    'padding': '0',
-    'margin': '0'
-});
 
-// Ajusta el contenedor de la tabla
-$('.dataTables_wrapper').css({
-    'padding': '0',
-    'margin': '0'
-});
 
-// Ajusta el contenedor de los controles
-$('.dataTables_filter, .dataTables_length').css({
-    'padding': '10px'
-});
-
-        
         // Ajustar el ancho de la tabla cuando cambia el tamaño de la ventana
-        $(window).resize(function() {
+        $(window).resize(function () {
             tabla.columns.adjust().draw();
         });
 
@@ -274,7 +251,7 @@ $('.dataTables_filter, .dataTables_length').css({
             });
         });
     });
-    
+
     function eliminarCotizacion(cod) {
         console.log(cod)
         _ajax("/ajs/cotizaciones/del", "POST", { cod }, function (resp) {

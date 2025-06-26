@@ -62,6 +62,7 @@
 }
 .bg-rojo {
   background-color: #ca3438;
+    color: #FFFFFF;
 }
 .bg-gris {
   background-color: #848688;
@@ -93,6 +94,7 @@
   border: 1px solid #ca3438;
   margin-left: 8px;
   transition: all 0.3s ease;
+
 }
 /* Estilos para los botones de los selectores */
 .btn-selector {
@@ -153,4 +155,8 @@
 
 .dataTables_wrapper table.dataTable thead th {
     vertical-align: middle !important;
+}
+
+.bordes {
+  border-radius: 10px;
 }

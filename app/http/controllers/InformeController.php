@@ -69,6 +69,7 @@ public function render()
                     'header_image' => $this->informe->getHeaderImage(),
                     'footer_image' => $this->informe->getFooterImage(),
                     'cliente_id' => $this->informe->getClienteId(),
+                    'persona_entregar' => $this->informe->getPersonaEntregar(),
                     'cliente_nombre' => $this->informe->getClienteNombre(),
                     'usuario_id' => $this->informe->getUsuarioId()
                 ];
@@ -91,6 +92,7 @@ public function render()
                 $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
                 $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
                 $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+                $persona_entregar = isset($_POST['persona_entregar']) ? trim($_POST['persona_entregar']) : '';
                 
                 // Validar que los campos obligatorios no estén vacíos
                 if (empty($tipo) || empty($titulo) || empty($contenido)) {
@@ -120,6 +122,7 @@ public function render()
                 $this->informe->setHeaderImage($header_image);
                 $this->informe->setFooterImage($footer_image);
                 $this->informe->setClienteId($cliente_id);
+                $this->informe->setPersonaEntregar($persona_entregar);
                 $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
                 
                 // Insertar el informe
@@ -152,6 +155,7 @@ public function render()
                 $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
                 $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
                 $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+                $persona_entregar = isset($_POST['persona_entregar']) ? trim($_POST['persona_entregar']) : '';
                 
                 // Validar que los campos obligatorios no estén vacíos
                 if (empty($id_informe) || empty($tipo) || empty($titulo) || empty($contenido)) {
@@ -187,6 +191,7 @@ public function render()
                 $this->informe->setHeaderImage($header_image);
                 $this->informe->setFooterImage($footer_image);
                 $this->informe->setClienteId($cliente_id);
+                $this->informe->setPersonaEntregar($persona_entregar);
                 $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
                 
                 // Actualizar el informe

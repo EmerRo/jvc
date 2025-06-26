@@ -1,5 +1,162 @@
 <!-- resources\views\fragment-views\cliente\documentos\informes.php -->
 <style>
+    /* Estilos mejorados para previsualización de imágenes */
+    .image-preview-container {
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-preview-container:hover {
+        border-color: #CA3438;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(202, 52, 56, 0.15);
+    }
+
+    .image-preview-container.has-image {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #f8fff9 0%, #e6f7e6 100%);
+        padding: 15px;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 120px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .preview-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .btn-image-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-view {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-remove:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+
+    .upload-placeholder {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        color: #CA3438;
+        margin-bottom: 15px;
+        opacity: 0.7;
+    }
+
+    .image-info {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-top: 8px;
+        font-size: 11px;
+        color: #495057;
+    }
+
+    /* Modal para vista completa */
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .image-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .image-modal img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+
+    .image-modal-close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .image-modal-close:hover {
+        color: #CA3438;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+
+<style>
     /* Contenedor de la vista previa del documento */
     .document-preview {
         height: 250px;
@@ -211,12 +368,14 @@
     </div>
 </div>
 <!-- Modal para Gestionar Tipos de Informe -->
-<div class="modal fade" id="gestionarTiposInformeModal" tabindex="-1" aria-labelledby="gestionarTiposInformeModalLabel" aria-hidden="true">
+<div class="modal fade" id="gestionarTiposInformeModal" tabindex="-1" aria-labelledby="gestionarTiposInformeModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title" id="gestionarTiposInformeModalLabel">Gestionar Tipos de Informe</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <!-- Formulario para agregar nuevo tipo -->
@@ -227,11 +386,14 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-8">
-                                <label for="nuevo-tipo-nombre" class="form-label">Nombre del Tipo <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nuevo-tipo-nombre" placeholder="Ej: TÉCNICO, PAGO, SERVICIO">
+                                <label for="nuevo-tipo-nombre" class="form-label">Nombre del Tipo <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nuevo-tipo-nombre"
+                                    placeholder="Ej: TÉCNICO, PAGO, SERVICIO">
                             </div>
                             <div class="col-md-4 d-flex align-items-end">
-                                <button type="button" class="btn bg-rojo text-white w-100" onclick="agregarTipoInforme()">
+                                <button type="button" class="btn bg-rojo text-white w-100"
+                                    onclick="agregarTipoInforme()">
                                     <i class="fas fa-plus me-2"></i>Agregar
                                 </button>
                             </div>
@@ -280,18 +442,21 @@
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title" id="editarTipoModalLabel">Editar Tipo de Informe</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editar-tipo-id">
                 <div class="mb-3">
-                    <label for="editar-tipo-nombre" class="form-label">Nombre del Tipo <span class="text-danger">*</span></label>
+                    <label for="editar-tipo-nombre" class="form-label">Nombre del Tipo <span
+                            class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="editar-tipo-nombre">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoEditado()">Guardar Cambios</button>
+                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoEditado()">Guardar
+                    Cambios</button>
             </div>
         </div>
     </div>
@@ -431,6 +596,10 @@
     let informeId = null;
     let moduloInformesInicializado = false;
     let vistaPreviewEnProceso = false;
+    let imagen1InformeChanged = false;
+    let imagen2InformeChanged = false;
+    let currentImagen1Informe = null;
+    let currentImagen2Informe = null;
     // Inicializar inmediatamente cuando se carga la página
     $(document).ready(function () {
         console.log("Documento listo, inicializando módulo de informes...");
@@ -1151,8 +1320,6 @@
         // Mostrar el modal en lugar de cambiar la pestaña
         $("#editarPlantillaInformeModal").modal("show");
     }
-    // Función para renderizar el formulario de informe
-    // Función para renderizar el formulario de informe
     function renderizarFormularioInforme(esEdicion, informe, plantilla = null) {
         editMode = esEdicion;
         informeId = esEdicion ? informe.id_informe : null;
@@ -1167,117 +1334,264 @@
             titulo: esEdicion ? informe.titulo : (plantilla ? plantilla.titulo : ''),
             contenido: esEdicion ? informe.contenido : (plantilla ? plantilla.contenido : ''),
             cliente_id: esEdicion ? informe.cliente_id : '',
-            header_image: esEdicion ? informe.header_image : (plantilla ? plantilla.header_image : ''),
-            footer_image: esEdicion ? informe.footer_image : (plantilla ? plantilla.footer_image : '')
+            cliente_nombre: esEdicion ? informe.cliente_nombre : '',
+            cliente_documento: esEdicion ? informe.cliente_documento : '',
+            cliente_direccion: esEdicion ? informe.cliente_direccion : '',
+            persona_entregar: esEdicion ? informe.persona_entregar : '',
+            header_image: esEdicion ? informe.header_image : '', // Solo mostrar imágenes en modo edición
+            footer_image: esEdicion ? informe.footer_image : ''  // Solo mostrar imágenes en modo edición
         };
 
-        // Guardar las imágenes actuales (aunque no se muestren en el formulario)
+        // Guardar las imágenes actuales
         currentHeaderImage = valores.header_image;
         currentFooterImage = valores.footer_image;
 
-        // Renderizar el formulario
+        // Renderizar el formulario con contenedores COMPLETAMENTE SEPARADOS
         contenedor.html(`
-        <div class="card border-0 shadow-sm">
-            <div class="card-header text-white py-3" style="background-image: linear-gradient(to right, #CA3438, #d04a4e);">
-                <h5 class="card-title mb-0 fw-bold">${titulo}</h5>
-                <p class="card-subtitle mb-0 opacity-75 small">Complete la información del informe</p>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header text-white py-3" style="background-image: linear-gradient(to right, #CA3438, #d04a4e);">
+            <h5 class="card-title mb-0 fw-bold">${titulo}</h5>
+            <p class="card-subtitle mb-0 opacity-75 small">Complete la información del informe</p>
+        </div>
+        <div class="card-body p-4">
+            <form id="formInforme" enctype="multipart/form-data">
+                <input type="hidden" id="id_informe" name="id_informe" value="${valores.id_informe}">
+                
+               <!-- CONTENEDOR 1: TÍTULO Y CLIENTE (SIN MIN-HEIGHT) -->
+<div class="container-fluid p-0 mb-3">
+    <div class="row">
+        <!-- TÍTULO DEL INFORME -->
+        <div class="col-md-6">
+            <div>
+                <label for="titulo_informe" class="form-label fw-medium text-negro">Título del Informe <span class="text-danger">*</span></label>
+                <input type="text" class="form-control border rounded-2 shadow-sm" id="titulo_informe" name="titulo" value="${valores.titulo}" required>
             </div>
-            <div class="card-body p-4">
-                <form id="formInforme" enctype="multipart/form-data">
-                    <input type="hidden" id="id_informe" name="id_informe" value="${valores.id_informe}">
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-    <label for="tipo_informe" class="form-label fw-medium text-negro">Tipo de Informe <span class="text-danger">*</span></label>
-    <div class="input-group">
-        <select class="form-control border rounded-start-2 shadow-sm" id="tipo_informe" name="tipo" required>
-            <option value="">Seleccione un tipo</option>
-        </select>
-        <button class="btn bg-rojo text-white rounded-end-2" type="button" id="btn-gestionar-tipos" onclick="abrirModalTipos()">
-            <i class="fas fa-plus"></i>
-        </button>
+        </div>
+        
+        <!-- CLIENTE BÚSQUEDA SOLAMENTE -->
+        <div class="col-md-6">
+            <div>
+                <label for="cliente_search" class="form-label fw-medium text-negro">Cliente</label>
+                <div class="input-group">
+                    <input type="text" class="form-control border rounded-start-2 shadow-sm" id="cliente_search" placeholder="Buscar por nombre o documento..." autocomplete="off">
+                    <button class="btn bg-rojo text-white rounded-end-2" type="button" id="btn-search-cliente">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="cliente_id" name="cliente_id" value="${valores.cliente_id}">
+            </div>
+        </div>
     </div>
-    <div class="form-text text-gris small">Este campo se usará para filtrar los informes.</div>
 </div>
+
+<!-- CONTENEDOR 2: INFORMACIÓN DEL CLIENTE (SEPARADO Y OCULTO) -->
+<div class="container-fluid p-0 mb-3" id="cliente_info_container" style="display: ${valores.cliente_id ? 'block' : 'none'};">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info mb-0">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="alert-heading mb-1">
+                            <i class="fas fa-user me-2"></i>Cliente Seleccionado
+                        </h6>
+                        <div class="fw-bold" id="cliente_nombre">${valores.cliente_nombre || ''}</div>
+                        <div class="text-muted small" id="cliente_documento">Documento: ${valores.cliente_documento || ''}</div>
+                        <div class="text-muted small" id="cliente_direccion">Dirección: ${valores.cliente_direccion || 'No especificada'}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limpiarCliente()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENEDOR 3: TIPO DE INFORME (INDEPENDIENTE) -->
+                <div class="container-fluid p-0 mb-3">
+                    <div class="row">
                         <div class="col-md-6">
-                            <label for="cliente_search" class="form-label fw-medium text-negro">Cliente</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control border rounded-start-2 shadow-sm" id="cliente_search" placeholder="Buscar por nombre o documento..." autocomplete="off">
-                                <button class="btn bg-rojo text-white rounded-end-2" type="button" id="btn-search-cliente">
-                                    <i class="fas fa-search"></i>
-                                </button>
+                            <div style="min-height: 80px;">
+                                <label for="tipo_informe" class="form-label fw-medium text-negro">Tipo de Informe <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <select class="form-control border rounded-start-2 shadow-sm" id="tipo_informe" name="tipo" required>
+                                        <option value="">Seleccione un tipo</option>
+                                    </select>
+                                    <button class="btn bg-rojo text-white rounded-end-2" type="button" id="btn-gestionar-tipos" onclick="abrirModalTipos()">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text text-gris small">Este campo se usará para filtrar los informes.</div>
                             </div>
-                            <input type="hidden" id="cliente_id" name="cliente_id" value="${valores.cliente_id}">
-                            <div class="mt-2" id="cliente_info" style="display: ${valores.cliente_id ? 'block' : 'none'};">
-                                <div class="p-2 border rounded bg-light">
-                                    <p class="mb-1"><strong id="cliente_nombre">${valores.cliente_nombre || ''}</strong></p>
-                                    <p class="mb-0 small text-muted" id="cliente_documento"></p>
-                                    <p class="mb-0 small text-muted" id="cliente_direccion"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Espacio vacío -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CONTENEDOR 4: PERSONA A ENTREGAR (INDEPENDIENTE) -->
+                <div class="container-fluid p-0 mb-3" id="campo-persona-entregar" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div style="min-height: 80px;">
+                                <label for="persona_entregar" class="form-label fw-medium text-negro">
+                                    <i class="fas fa-user me-1"></i>Persona a Entregar / Dirigido a
+                                    <span class="text-muted">(Opcional)</span>
+                                </label>
+                                <input type="text" class="form-control border rounded-2 shadow-sm" 
+                                       id="persona_entregar" name="persona_entregar" 
+                                       value="${valores.persona_entregar || ''}" 
+                                       placeholder="Nombre de la persona responsable o a quien va dirigido">
+                                <div class="form-text text-gris small">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este campo aparece automáticamente cuando selecciona una empresa (RUC)
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label for="titulo_informe" class="form-label fw-medium text-negro">Título del Informe <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control border rounded-2 shadow-sm" id="titulo_informe" name="titulo" value="${valores.titulo}" required>
+                        <div class="col-md-6">
+                            <!-- Espacio para balance visual -->
                         </div>
                     </div>
-                    
-                    <!-- Nota sobre membretes -->
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Nota:</strong> Las imágenes de encabezado y pie de página se configuran en la sección 
-                        <a href="#" onclick="$('#gestionarMembretesInformeModal').modal('show'); return false;" class="alert-link">Gestionar Membretes</a>.
+                </div>
+      <!-- CONTENEDOR DE IMÁGENES DEL INFORME MEJORADO -->
+<div class="container-fluid p-0 mb-3">
+    <div class="row">
+        <div class="col-md-12">
+            <h6 class="fw-medium text-negro mb-3">
+                <i class="fas fa-images me-2"></i>Imágenes del Informe (Opcional)
+                <small class="text-muted">- Aparecerán en una segunda página</small>
+            </h6>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <label for="imagen1_informe" class="form-label fw-medium text-negro">Primera Imagen</label>
+            
+            <div class="image-preview-container" id="preview-container-1">
+                <input type="file" class="d-none" id="imagen1_informe" name="header_image" 
+                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 1)">
+                
+                <div id="upload-area-1" class="upload-area" onclick="document.getElementById('imagen1_informe').click()">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-placeholder">
+                        <strong>Haz clic para seleccionar</strong><br>
+                        <small>o arrastra una imagen aquí</small>
                     </div>
-                    
-                    <div class="row mb-3">
+                </div>
+                
+                <div id="preview-area-1" class="preview-area" style="display: none;">
+                    <img id="preview-img-1" class="preview-image" onclick="showImageModal(this.src)">
+                    <div class="image-actions">
+                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-1').src)">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(1)">
+                            <i class="fas fa-trash"></i> Quitar
+                        </button>
+                    </div>
+                    <div class="image-info" id="image-info-1"></div>
+                </div>
+            </div>
+            
+            <div class="form-text text-gris small mt-2">
+                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <label for="imagen2_informe" class="form-label fw-medium text-negro">Segunda Imagen</label>
+            
+            <div class="image-preview-container" id="preview-container-2">
+                <input type="file" class="d-none" id="imagen2_informe" name="footer_image" 
+                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 2)">
+                
+                <div id="upload-area-2" class="upload-area" onclick="document.getElementById('imagen2_informe').click()">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-placeholder">
+                        <strong>Haz clic para seleccionar</strong><br>
+                        <small>o arrastra una imagen aquí</small>
+                    </div>
+                </div>
+                
+                <div id="preview-area-2" class="preview-area" style="display: none;">
+                    <img id="preview-img-2" class="preview-image" onclick="showImageModal(this.src)">
+                    <div class="image-actions">
+                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-2').src)">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(2)">
+                            <i class="fas fa-trash"></i> Quitar
+                        </button>
+                    </div>
+                    <div class="image-info" id="image-info-2"></div>
+                </div>
+            </div>
+            
+            <div class="form-text text-gris small mt-2">
+                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para vista completa de imagen -->
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
+    <div class="image-modal-content">
+        <img id="modalImage">
+    </div>
+</div>
+    
+                <!-- CONTENEDOR 5: CONTENIDO DEL INFORME (INDEPENDIENTE) -->
+                <div class="container-fluid p-0 mb-3">
+                    <div class="row">
                         <div class="col-md-12">
                             <label class="form-label fw-medium text-negro">Contenido del Informe <span class="text-danger">*</span></label>
-                            <!-- Contenedor para el editor -->
                             <div id="editor-container-informe" style="min-height: 400px; border: 1px solid #ccc; border-radius: 5px;">
                                 <!-- El editor Quill se cargará aquí -->
                             </div>
                         </div>
                     </div>
-                    
-                </form>
-                <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-outline-secondary" onclick="volverAListaInformes()">
-                        <i class="fas fa-times me-2"></i>Cancelar
+                </div>
+              
+                
+            </form>
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-secondary" onclick="volverAListaInformes()">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <div>
+                    <button type="button" id="btn-preview-informe" class="btn border-rojo me-2">
+                        <i class="fas fa-eye me-2"></i>Vista Previa
                     </button>
-                    <div>
-                        <button type="button" id="btn-preview-informe" class="btn border-rojo me-2">
-                            <i class="fas fa-eye me-2"></i>Vista Previa
-                        </button>
-                        <button type="button" id="btn-save-informe" class="btn bg-rojo text-white">
-                            <i class="fas fa-save me-2"></i>Guardar
-                        </button>
-                    </div>
+                    <button type="button" id="btn-save-informe" class="btn bg-rojo text-white">
+                        <i class="fas fa-save me-2"></i>Guardar
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Modal de Vista Previa -->
-        <div class="modal fade" id="previewInformeModal" tabindex="-1" aria-labelledby="previewInformeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="previewInformeModalLabel">Vista Previa del Informe</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <iframe id="preview-frame-informe" style="width: 100%; height: 600px; border: none;"></iframe>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
+    </div>
+    
+    <!-- Modal de Vista Previa -->
+    <div class="modal fade" id="previewInformeModal" tabindex="-1" aria-labelledby="previewInformeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewInformeModalLabel">Vista Previa del Informe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="preview-frame-informe" style="width: 100%; height: 600px; border: none;"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
-        
-    `);
+    </div>
+`);
+
 
         // Inicializar el editor Quill
         inicializarInformeEditor(valores.contenido);
@@ -1290,13 +1604,15 @@
                 event.preventDefault();
 
                 // Establecer los valores seleccionados
-                $("#cliente_id").val(ui.item.codigo); // Usamos 'codigo' que es el campo que devuelve tu API
+                $("#cliente_id").val(ui.item.codigo);
                 $("#cliente_nombre").text(ui.item.datos);
                 $("#cliente_documento").text("Documento: " + ui.item.documento);
                 $("#cliente_direccion").text("Dirección: " + (ui.item.direccion || "No especificada"));
 
-                // Mostrar la información del cliente
-                $("#cliente_info").show();
+                // Mostrar la información del cliente en el contenedor separado
+                $("#cliente_info_container").slideDown(300);
+
+                verificarTipoDocumento(ui.item.documento);
 
                 // Establecer el valor en el campo de búsqueda
                 $(this).val(ui.item.datos);
@@ -1314,7 +1630,8 @@
             if ($("#cliente_search").val().trim() === "") {
                 // Si está vacío, limpiar la selección
                 $("#cliente_id").val("");
-                $("#cliente_info").hide();
+                $("#cliente_info_container").slideUp(300);
+                $("#campo-persona-entregar").slideUp(300);
             } else {
                 // Si tiene texto, iniciar búsqueda
                 $("#cliente_search").autocomplete("search", $("#cliente_search").val());
@@ -1324,7 +1641,10 @@
         // Si hay un cliente seleccionado, mostrar su información
         if (valores.cliente_id && valores.cliente_nombre) {
             $("#cliente_search").val(valores.cliente_nombre);
-            $("#cliente_info").show();
+            $("#cliente_info_container").show();
+            if (esEdicion && informe.cliente_documento) {
+                verificarTipoDocumento(informe.cliente_documento);
+            }
         }
 
         // Manejar el envío del formulario usando el botón de guardar
@@ -1336,9 +1656,75 @@
         $("#btn-preview-informe").on("click", function () {
             mostrarVistaPrevia();
         });
+        // Configurar eventos para las imágenes del informe
+        $("#imagen1_informe").on("change", function () {
+            previewImage(this, "imagen1-preview-informe", "imagen1-placeholder-informe");
+            imagen1InformeChanged = true;
+        });
+
+        $("#imagen2_informe").on("change", function () {
+            previewImage(this, "imagen2-preview-informe", "imagen2-placeholder-informe");
+            imagen2InformeChanged = true;
+        });
+
+        // Botones de limpiar
+        $("#reset-imagen1-informe").on("click", function () {
+            resetImage("imagen1_informe", "imagen1-preview-informe", "imagen1-placeholder-informe", currentImagen1Informe);
+            imagen1InformeChanged = false;
+        });
+
+        $("#reset-imagen2-informe").on("click", function () {
+            resetImage("imagen2_informe", "imagen2-preview-informe", "imagen2-placeholder-informe", currentImagen2Informe);
+            imagen2InformeChanged = false;
+        });
+
+        // Mostrar imágenes existentes si estamos editando (reemplazar código existente)
+        if (valores.header_image) {
+            const container1 = document.getElementById('preview-container-1');
+            const uploadArea1 = document.getElementById('upload-area-1');
+            const previewArea1 = document.getElementById('preview-area-1');
+            const previewImg1 = document.getElementById('preview-img-1');
+            const imageInfo1 = document.getElementById('image-info-1');
+
+            previewImg1.src = valores.header_image;
+            uploadArea1.style.display = 'none';
+            previewArea1.style.display = 'block';
+            container1.classList.add('has-image');
+            imageInfo1.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
+            currentImagen1Informe = valores.header_image;
+        }
+
+        if (valores.footer_image) {
+            const container2 = document.getElementById('preview-container-2');
+            const uploadArea2 = document.getElementById('upload-area-2');
+            const previewArea2 = document.getElementById('preview-area-2');
+            const previewImg2 = document.getElementById('preview-img-2');
+            const imageInfo2 = document.getElementById('image-info-2');
+
+            previewImg2.src = valores.footer_image;
+            uploadArea2.style.display = 'none';
+            previewArea2.style.display = 'block';
+            container2.classList.add('has-image');
+            imageInfo2.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
+            currentImagen2Informe = valores.footer_image;
+        }
+
         // Cargar tipos de informe en el select
-cargarTiposInformeSelect(valores.tipo);
+        cargarTiposInformeSelect(valores.tipo);
     }    // Función para renderizar el formulario de plantilla
+
+    function verificarTipoDocumento(documento) {
+        // RUC en Perú: 11 dígitos y empieza con 20, 15, 16, 17
+        const esRUC = documento && documento.length === 11 && /^(20|15|16|17)/.test(documento);
+
+        if (esRUC) {
+            $("#campo-persona-entregar").slideDown(300);
+            $("#persona_entregar").attr('placeholder', 'Nombre de la persona responsable o a quien va dirigido');
+        } else {
+            $("#campo-persona-entregar").slideUp(300);
+            $("#persona_entregar").val(''); // Limpiar el campo si no es RUC
+        }
+    }
     function renderizarFormularioPlantilla(data) {
         // Guardar las imágenes actuales
         currentHeaderTemplateImage = data.header_image;
@@ -1698,6 +2084,7 @@ cargarTiposInformeSelect(valores.tipo);
         const tipo = $("#tipo_informe").val();
         const titulo = $("#titulo_informe").val();
         const cliente_id = $("#cliente_id").val();
+        const persona_entregar = $("#persona_entregar").val();
 
         // Validar campos obligatorios
         if (!tipo.trim() || !titulo.trim()) {
@@ -1725,22 +2112,23 @@ cargarTiposInformeSelect(valores.tipo);
         formData.append('titulo', titulo);
         formData.append('contenido', contenido);
         formData.append('cliente_id', cliente_id);
+        formData.append('persona_entregar', persona_entregar);
 
         if (editMode) {
             formData.append('id_informe', informeId);
         }
 
-        // Añadir las imágenes si han sido cambiadas
-        if (headerImageChanged && document.getElementById('header_image').files[0]) {
-            formData.append('header_image', document.getElementById('header_image').files[0]);
-        } else if (currentHeaderImage && editMode) {
-            formData.append('header_image_base64', currentHeaderImage);
+        // Añadir las imágenes específicas del informe
+        if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
+            formData.append('header_image', document.getElementById('imagen1_informe').files[0]);
+        } else if (currentImagen1Informe && editMode) {
+            formData.append('header_image_base64', currentImagen1Informe);
         }
 
-        if (footerImageChanged && document.getElementById('footer_image').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image').files[0]);
-        } else if (currentFooterImage && editMode) {
-            formData.append('footer_image_base64', currentFooterImage);
+        if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
+            formData.append('footer_image', document.getElementById('imagen2_informe').files[0]);
+        } else if (currentImagen2Informe && editMode) {
+            formData.append('footer_image_base64', currentImagen2Informe);
         }
 
         // Determinar la URL según el modo
@@ -1763,8 +2151,8 @@ cargarTiposInformeSelect(valores.tipo);
                         text: data.msg,
                         icon: 'success'
                     }).then(() => {
-                        // Volver a la lista de informes
-                        volverAListaInformes();
+                        // REFRESCAR LA PÁGINA COMPLETA
+                        window.location.reload();
                     });
                 } else {
                     Swal.fire({
@@ -1926,18 +2314,19 @@ cargarTiposInformeSelect(valores.tipo);
         formData.append('titulo', titulo);
         formData.append('contenido', contenido);
 
-        // Añadir las imágenes si han sido cambiadas
-        if (headerImageChanged && document.getElementById('header_image').files[0]) {
-            formData.append('header_image', document.getElementById('header_image').files[0]);
-        } else if (currentHeaderImage) {
-            formData.append('header_image_base64', currentHeaderImage);
+        // Añadir las imágenes específicas del informe para vista previa
+        if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
+            formData.append('imagen1_informe', document.getElementById('imagen1_informe').files[0]);
+        } else if (currentImagen1Informe) {
+            formData.append('imagen1_informe_base64', currentImagen1Informe);
         }
 
-        if (footerImageChanged && document.getElementById('footer_image').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image').files[0]);
-        } else if (currentFooterImage) {
-            formData.append('footer_image_base64', currentFooterImage);
+        if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
+            formData.append('imagen2_informe', document.getElementById('imagen2_informe').files[0]);
+        } else if (currentImagen2Informe) {
+            formData.append('imagen2_informe_base64', currentImagen2Informe);
         }
+
 
         // Enviar datos para generar vista previa
         $.ajax({
@@ -2218,6 +2607,10 @@ cargarTiposInformeSelect(valores.tipo);
         // Limpiar los editores
         informeEditor = null;
         templateEditor = null;
+        imagen1InformeChanged = false;
+        imagen2InformeChanged = false;
+        currentImagen1Informe = null;
+        currentImagen2Informe = null;
 
         // Mostrar la pestaña de lista
         $('#nuevo-informe, #editar-informe, #editar-plantilla').removeClass('show active');
@@ -2243,8 +2636,10 @@ cargarTiposInformeSelect(valores.tipo);
 
             reader.readAsDataURL(input.files[0]);
         } else {
+            // NO mostrar imagen por defecto, solo ocultar
             preview.style.display = "none";
             placeholder.style.display = "block";
+            preview.removeAttribute('src'); // ELIMINAR cualquier src por defecto
         }
     }
 
@@ -2277,7 +2672,12 @@ cargarTiposInformeSelect(valores.tipo);
             headerTemplateImageChanged = false;
         } else if (inputId === "footer_image_template") {
             footerTemplateImageChanged = false;
+        } else if (inputId === "imagen1_informe") {
+            imagen1InformeChanged = false;
+        } else if (inputId === "imagen2_informe") {
+            imagen2InformeChanged = false;
         }
+
     }
     // Función para renderizar la vista previa del PDF
     function renderPdfPreview(pdfUrl, canvasId) {
@@ -2378,44 +2778,181 @@ cargarTiposInformeSelect(valores.tipo);
         });
     }
     // Función para abrir el modal de tipos
-function abrirModalTipos() {
-    cargarTiposInforme();
-    $('#gestionarTiposInformeModal').modal('show');
-}
+    function abrirModalTipos() {
+        cargarTiposInforme();
+        $('#gestionarTiposInformeModal').modal('show');
+    }
+    // Funciones mejoradas para manejo de imágenes
+    function handleImagePreview(input, imageNumber) {
+        const file = input.files[0];
+        const container = document.getElementById(`preview-container-${imageNumber}`);
+        const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
+        const previewArea = document.getElementById(`preview-area-${imageNumber}`);
+        const previewImg = document.getElementById(`preview-img-${imageNumber}`);
+        const imageInfo = document.getElementById(`image-info-${imageNumber}`);
 
-// Función para cargar tipos de informe en el select
-function cargarTiposInformeSelect(tipoSeleccionado = '') {
-    $.ajax({
-        url: _URL + "/ajs/informe/obtener-tipos-informe",
-        method: "GET",
-        dataType: 'json',
-        success: function(data) {
-            if (data.success && data.tipos) {
-                let options = '<option value="">Seleccione un tipo</option>';
-                data.tipos.forEach(function(tipo) {
-                    const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
-                    options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
+        if (file) {
+            // Validar tamaño (5MB máximo)
+            if (file.size > 5 * 1024 * 1024) {
+                Swal.fire({
+                    title: 'Archivo muy grande',
+                    text: 'El archivo debe ser menor a 5MB',
+                    icon: 'warning'
                 });
-                $("#tipo_informe").html(options);
+                input.value = '';
+                return;
             }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al cargar tipos:", error);
-        }
-    });
-}
 
-// Función para cargar tipos en el modal
-function cargarTiposInforme() {
-    $.ajax({
-        url: _URL + "/ajs/informe/obtener-tipos-informe",
-        method: "GET",
-        dataType: 'json',
-        success: function(data) {
-            if (data.success && data.tipos) {
-                let html = '';
-                data.tipos.forEach(function(tipo) {
-                    html += `
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                Swal.fire({
+                    title: 'Tipo de archivo no válido',
+                    text: 'Solo se permiten imágenes (PNG, JPG, GIF)',
+                    icon: 'warning'
+                });
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                uploadArea.style.display = 'none';
+                previewArea.style.display = 'block';
+                container.classList.add('has-image');
+
+                // Mostrar información del archivo
+                const sizeKB = (file.size / 1024).toFixed(1);
+                imageInfo.innerHTML = `
+                <strong>${file.name}</strong><br>
+                Tamaño: ${sizeKB} KB | Tipo: ${file.type.split('/')[1].toUpperCase()}
+            `;
+
+                // Marcar como cambiado
+                if (imageNumber === 1) {
+                    imagen1InformeChanged = true;
+                } else {
+                    imagen2InformeChanged = true;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearImagePreview(imageNumber) {
+        const input = document.getElementById(`imagen${imageNumber}_informe`);
+        const container = document.getElementById(`preview-container-${imageNumber}`);
+        const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
+        const previewArea = document.getElementById(`preview-area-${imageNumber}`);
+
+        // Limpiar input
+        input.value = '';
+
+        // Mostrar área de upload y ocultar preview
+        uploadArea.style.display = 'block';
+        previewArea.style.display = 'none';
+        container.classList.remove('has-image');
+
+        // Marcar como no cambiado
+        if (imageNumber === 1) {
+            imagen1InformeChanged = false;
+            currentImagen1Informe = null;
+        } else {
+            imagen2InformeChanged = false;
+            currentImagen2Informe = null;
+        }
+    }
+
+    function showImageModal(imageSrc) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+
+        modal.style.display = 'block';
+        modalImg.src = imageSrc;
+
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.style.display = 'none';
+
+        // Restaurar scroll del body
+        document.body.style.overflow = 'auto';
+    }
+
+    // Agregar soporte para drag & drop
+    function setupDragAndDrop() {
+        [1, 2].forEach(imageNumber => {
+            const container = document.getElementById(`preview-container-${imageNumber}`);
+            const input = document.getElementById(`imagen${imageNumber}_informe`);
+
+            container.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                container.style.borderColor = '#CA3438';
+                container.style.backgroundColor = '#fff5f5';
+            });
+
+            container.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                container.style.borderColor = '#e0e0e0';
+                container.style.backgroundColor = '';
+            });
+
+            container.addEventListener('drop', function (e) {
+                e.preventDefault();
+                container.style.borderColor = '#e0e0e0';
+                container.style.backgroundColor = '';
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    handleImagePreview(input, imageNumber);
+                }
+            });
+        });
+    }
+
+    // Inicializar drag & drop cuando se carga el formulario
+    $(document).ready(function () {
+        setupDragAndDrop();
+    });
+
+
+    // Función para cargar tipos de informe en el select
+    function cargarTiposInformeSelect(tipoSeleccionado = '') {
+        $.ajax({
+            url: _URL + "/ajs/informe/obtener-tipos-informe",
+            method: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.success && data.tipos) {
+                    let options = '<option value="">Seleccione un tipo</option>';
+                    data.tipos.forEach(function (tipo) {
+                        const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
+                        options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
+                    });
+                    $("#tipo_informe").html(options);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error al cargar tipos:", error);
+            }
+        });
+    }
+
+    // Función para cargar tipos en el modal
+    function cargarTiposInforme() {
+        $.ajax({
+            url: _URL + "/ajs/informe/obtener-tipos-informe",
+            method: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.success && data.tipos) {
+                    let html = '';
+                    data.tipos.forEach(function (tipo) {
+                        html += `
                         <tr>
                             <td>${tipo.nombre}</td>
                         
@@ -2429,122 +2966,122 @@ function cargarTiposInforme() {
                             </td>
                         </tr>
                     `;
-                });
-                $("#lista-tipos-informe").html(html);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al cargar tipos:", error);
-        }
-    });
-}
-
-// Función para agregar nuevo tipo
-function agregarTipoInforme() {
-    const nombre = $("#nuevo-tipo-nombre").val().trim();
-    
-    if (!nombre) {
-        Swal.fire('Error', 'El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    $.ajax({
-        url: _URL + "/ajs/informe/insertar-tipo-informe",
-        method: "POST",
-        data: {
-            nombre: nombre
-            // descripcion: descripcion
-        },
-        dataType: 'json',
-        success: function(data) {
-            if (data.success) {
-                Swal.fire('Éxito', data.msg, 'success');
-                $("#nuevo-tipo-nombre").val('');
-                cargarTiposInforme();
-                cargarTiposInformeSelect(); // Actualizar el select también
-            } else {
-                Swal.fire('Error', data.msg, 'error');
-            }
-        },
-        error: function(xhr, status, error) {
-            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-        }
-    });
-}
-
-// Función para editar tipo
-function editarTipo(id, nombre) {
-    $("#editar-tipo-id").val(id);
-    $("#editar-tipo-nombre").val(nombre);
-    $("#editarTipoModal").modal('show');
-}
-
-// Función para guardar tipo editado
-function guardarTipoEditado() {
-    const id = $("#editar-tipo-id").val();
-    const nombre = $("#editar-tipo-nombre").val().trim();
-    
-    if (!nombre) {
-        Swal.fire('Error', 'El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    $.ajax({
-        url: _URL + "/ajs/informe/editar-tipo-informe",
-        method: "POST",
-        data: {
-            id: id,
-            nombre: nombre
-        },
-        dataType: 'json',
-        success: function(data) {
-            if (data.success) {
-                Swal.fire('Éxito', data.msg, 'success');
-                $("#editarTipoModal").modal('hide');
-                cargarTiposInforme();
-                cargarTiposInformeSelect(); // Actualizar el select también
-            } else {
-                Swal.fire('Error', data.msg, 'error');
-            }
-        },
-        error: function(xhr, status, error) {
-            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-        }
-    });
-}
-
-// Función para eliminar tipo
-function eliminarTipo(id, nombre) {
-    Swal.fire({
-        title: '¿Está seguro?',
-        text: `¿Desea eliminar el tipo "${nombre}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: _URL + "/ajs/informe/eliminar-tipo-informe",
-                method: "POST",
-                data: { id: id },
-                dataType: 'json',
-                success: function(data) {
-                    if (data.success) {
-                        Swal.fire('Eliminado', data.msg, 'success');
-                        cargarTiposInforme();
-                        cargarTiposInformeSelect(); // Actualizar el select también
-                    } else {
-                        Swal.fire('Error', data.msg, 'error');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                    });
+                    $("#lista-tipos-informe").html(html);
                 }
-            });
+            },
+            error: function (xhr, status, error) {
+                console.error("Error al cargar tipos:", error);
+            }
+        });
+    }
+
+    // Función para agregar nuevo tipo
+    function agregarTipoInforme() {
+        const nombre = $("#nuevo-tipo-nombre").val().trim();
+
+        if (!nombre) {
+            Swal.fire('Error', 'El nombre es obligatorio', 'error');
+            return;
         }
-    });
-}
+
+        $.ajax({
+            url: _URL + "/ajs/informe/insertar-tipo-informe",
+            method: "POST",
+            data: {
+                nombre: nombre
+                // descripcion: descripcion
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.success) {
+                    Swal.fire('Éxito', data.msg, 'success');
+                    $("#nuevo-tipo-nombre").val('');
+                    cargarTiposInforme();
+                    cargarTiposInformeSelect(); // Actualizar el select también
+                } else {
+                    Swal.fire('Error', data.msg, 'error');
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+            }
+        });
+    }
+
+    // Función para editar tipo
+    function editarTipo(id, nombre) {
+        $("#editar-tipo-id").val(id);
+        $("#editar-tipo-nombre").val(nombre);
+        $("#editarTipoModal").modal('show');
+    }
+
+    // Función para guardar tipo editado
+    function guardarTipoEditado() {
+        const id = $("#editar-tipo-id").val();
+        const nombre = $("#editar-tipo-nombre").val().trim();
+
+        if (!nombre) {
+            Swal.fire('Error', 'El nombre es obligatorio', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: _URL + "/ajs/informe/editar-tipo-informe",
+            method: "POST",
+            data: {
+                id: id,
+                nombre: nombre
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.success) {
+                    Swal.fire('Éxito', data.msg, 'success');
+                    $("#editarTipoModal").modal('hide');
+                    cargarTiposInforme();
+                    cargarTiposInformeSelect(); // Actualizar el select también
+                } else {
+                    Swal.fire('Error', data.msg, 'error');
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+            }
+        });
+    }
+
+    // Función para eliminar tipo
+    function eliminarTipo(id, nombre) {
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: `¿Desea eliminar el tipo "${nombre}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: _URL + "/ajs/informe/eliminar-tipo-informe",
+                    method: "POST",
+                    data: { id: id },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.success) {
+                            Swal.fire('Eliminado', data.msg, 'success');
+                            cargarTiposInforme();
+                            cargarTiposInformeSelect(); // Actualizar el select también
+                        } else {
+                            Swal.fire('Error', data.msg, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                    }
+                });
+            }
+        });
+    }
 </script>

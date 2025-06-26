@@ -48,7 +48,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <table class="table table-sm table-bordered text-center" id="tablaImportarCliente">
+                                    <table  class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;" id="tablaImportarCliente">
                                         <thead>
                                             <tr>
                                                 <th>Documento</th>
@@ -342,8 +342,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     <div class="card-title-desc">
                         <div class="table-responsive">
                             <table id="tabla_clientes"
-                                class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer"
-                                style="border: 2px solid white;border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>Item</th>

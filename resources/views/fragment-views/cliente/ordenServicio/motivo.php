@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\ordenServicio\motivo.php -->
 <?php
 
 ?>
@@ -15,10 +16,10 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-md-6">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#modalModelo" class="btn btn-primary"><i class="fa fa-plus"></i> Añadir Motivo</button>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#modalModelo" class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Añadir Motivo</button>
                     </div>
                     <div class="col-md-6 text-end">
-                        <a href="gestion/activos" class="btn btn-warning"><i class="fa fa-arrow-left"></i> Regresar</a>
+                        <a href="gestion/activos" class="btn border-rojo "><i class="fa fa-arrow-left"></i> Regresar</a>
                     </div>
                 </div>
             </div>
@@ -68,7 +69,7 @@
             <div class="modal fade" id="updateModelo" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-rojo text-white">
                             <h5 class="modal-title" id="exampleModalLabel">Actualizar Motivo</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -81,8 +82,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" id="updateModeloBtn" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" id="updateModeloBtn" class="btn bg-rojo text-white">Guardar</button>
                             </div>
                         </form>
                     </div>
@@ -98,7 +99,7 @@
     // Función para cargar motivos
     function cargarMotivos() {
         $.ajax({
-            url: _URL + '/ajs/get/motivos-guia', // Asegúrate de usar _URL
+            url: _URL + '/ajs/get/motivos', // Asegúrate de usar _URL
             type: 'GET',
             dataType: 'json', // Especificar que esperamos JSON
             success: function(response) {
@@ -119,43 +120,41 @@
             }
         });
     }
-
-    // Evento para agregar nuevo motivo
-    $('#motivoForm').on('submit', function(e) {
-        e.preventDefault();
-        const nombreMotivo = $('#nombreMotivo').val();
-
-        if (!nombreMotivo.trim()) {
-            alertAdvertencia("El nombre del motivo es requerido");
-            return;
+// Inicializar DataTable
+var tabla = $('#tabla_clientes').DataTable({
+         "processing": true,
+        "responsive": true,    // ✅ Habilitar responsividad
+        "scrollX": false,      // ✅ Deshabilitar scroll horizontal
+        "autoWidth": false,    // ✅ Deshabilitar auto-ancho
+        "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+    "ajax": {
+        "url": _URL + '/ajs/get/motivos',
+        "dataSrc": function(json) {
+            // Si viene con status, devolver data, sino el array completo
+            return json.status ? json.data : json;
         }
-
-        $.ajax({
-            url: _URL + '/ajs/save/motivos-guia',
-            type: 'POST',
-            data: { nombre: nombreMotivo },
-            dataType: 'json',
-            success: function(response) {
-                try {
-                    if (response.status) {
-                        $('#nombreMotivo').val('');
-                        $('#motivoModal').modal('hide');
-                        cargarMotivos();
-                        alertExito("Motivo guardado correctamente");
-                    } else {
-                        alertAdvertencia(response.message || "Error al guardar el motivo");
-                    }
-                } catch (e) {
-                    console.error('Error al procesar la respuesta:', e);
-                    alertAdvertencia("Error al guardar el motivo");
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la petición:', error);
-                alertAdvertencia("Error al guardar el motivo");
-            }
-        });
-    });
+    },
+    "columns": [
+        {"data": null, render: function (data, type, row, meta) {
+            return meta.row + 1;
+        }},
+        {"data": "nombre"},
+        {"data": null, render: function (data, type, row) {
+            return `
+                <button class="btn btn-primary btn-sm editar-motivo" data-id="${row.id}" data-nombre="${row.nombre}">
+                    <i class="fa fa-edit"></i>
+                </button>
+                <button class="btn btn-danger btn-sm btn-eliminar-motivo" data-id="${row.id}">
+                    <i class="fa fa-trash"></i>
+                </button>
+            `;
+        }}
+    ],
+    "language": {
+        "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+    }
+});
+ 
 
     // Función para eliminar motivo
     $(document).on('click', '.btn-eliminar-motivo', function() {
@@ -171,7 +170,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: _URL + '/ajs/delete/motivos-guia',
+                    url: _URL + '/ajs/delete/motivos',
                     type: 'POST',
                     data: { id: id },
                     dataType: 'json',
@@ -191,6 +190,67 @@
             }
         });
     });
+    // Evento para guardar motivo desde el modal
+$('#submitModelo').on('click', function() {
+    const nombreMotivo = $('#nombreModelo').val();
+    
+    if (!nombreMotivo.trim()) {
+        alertAdvertencia("El nombre del motivo es requerido");
+        return;
+    }
+    
+    $.ajax({
+        url: _URL + '/ajs/save/motivos',
+        type: 'POST',
+        data: { nombre: nombreMotivo },
+        dataType: 'json',
+        success: function(response) {
+            $('#nombreModelo').val('');
+            $('#modalModelo').modal('hide');
+            tabla.ajax.reload();
+            alertExito("Motivo guardado correctamente");
+        },
+        error: function() {
+            alertAdvertencia("Error al guardar el motivo");
+        }
+    });
+});
+
+// Evento para actualizar motivo
+$('#updateModeloBtn').on('click', function() {
+    const id = $('#idMotivoU').val();
+    const nombre = $('#nombreMotivoU').val();
+    
+    if (!nombre.trim()) {
+        alertAdvertencia("El nombre del motivo es requerido");
+        return;
+    }
+    
+    $.ajax({
+        url: _URL + '/ajs/update/motivos',
+        type: 'POST',
+        data: { id: id, nombre: nombre },
+        dataType: 'json',
+        success: function(response) {
+            $('#updateModelo').modal('hide');
+            tabla.ajax.reload();
+            alertExito("Motivo actualizado correctamente");
+        },
+        error: function() {
+            alertAdvertencia("Error al actualizar el motivo");
+        }
+    });
+});
+
+// Evento para abrir modal de edición
+$(document).on('click', '.editar-motivo', function() {
+    const id = $(this).data('id');
+    const nombre = $(this).data('nombre');
+    
+    $('#idMotivoU').val(id);
+    $('#nombreMotivoU').val(nombre);
+    $('#updateModelo').modal('show');
+});
 
     // Función para actualizar el select de motivos
     function actualizarSelectMotivos(motivos) {

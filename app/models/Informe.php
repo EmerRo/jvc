@@ -21,6 +21,7 @@ class Informe
     private $empresa_direccion;
     private $empresa_telefono;
     private $empresa_email;
+    private $persona_entregar;
 
 
     // Datos adicionales para mostrar
@@ -152,34 +153,46 @@ class Informe
 {
     return $this->fecha_creacion;
 }
+public function getPersonaEntregar()
+{
+    return $this->persona_entregar;
+}
 
-    // Métodos CRUD
-    public function insertar()
-    {
-        $sql = "INSERT INTO informes (tipo, titulo, contenido, header_image, footer_image, cliente_id, usuario_id) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("sssssii", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->usuario_id);
-        $result = $stmt->execute();
+public function setPersonaEntregar($persona_entregar)
+{
+    $this->persona_entregar = $persona_entregar;
+}
 
-        if ($result) {
-            $this->id_informe = $this->conectar->insert_id;
-        }
-        return $result;
+   public function insertar()
+{
+    $sql = "INSERT INTO informes (tipo, titulo, contenido, header_image, footer_image, cliente_id, usuario_id, persona_entregar) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $this->conectar->prepare($sql);
+    
+    // CORREGIR ESTA LÍNEA - Agregar 's' y $this->persona_entregar
+    $stmt->bind_param("sssssiis", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->usuario_id, $this->persona_entregar);
+    
+    $result = $stmt->execute();
+
+    if ($result) {
+        $this->id_informe = $this->conectar->insert_id;
     }
+    return $result;
+}
 
-    public function editar()
-    {
-        $sql = "UPDATE informes 
-                SET tipo = ?, titulo = ?, contenido = ?, header_image = ?, footer_image = ?, cliente_id = ?, usuario_id = ? 
-                WHERE id_informe = ?";
+public function editar()
+{
+    $sql = "UPDATE informes 
+            SET tipo = ?, titulo = ?, contenido = ?, header_image = ?, footer_image = ?, cliente_id = ?, persona_entregar = ?, usuario_id = ? 
+            WHERE id_informe = ?";
 
-        $stmt = $this->conectar->prepare($sql);
+    $stmt = $this->conectar->prepare($sql);
+    
+    // CORREGIR ESTA LÍNEA - Cambiar tipos de datos
+    $stmt->bind_param("sssssissi", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->persona_entregar, $this->usuario_id, $this->id_informe);
 
-        $stmt->bind_param("sssssiii", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->usuario_id, $this->id_informe);
-
-        return $stmt->execute();
-    }
+    return $stmt->execute();
+}
 
     public function obtenerInforme()
     {
@@ -224,6 +237,7 @@ class Informe
             $this->cliente_nombre = $fila['cliente_nombre'];
             $this->cliente_documento = $fila['cliente_documento'];
             $this->cliente_direccion = $fila['cliente_direccion'];
+            $this->persona_entregar = $fila['persona_entregar'];
 
             // Datos de la empresa
             $this->empresa_razon_social = $fila['empresa_razon_social'];

@@ -149,6 +149,11 @@
     $(document).ready(function () {
         // Configuración de DataTable para las maquinas
         tabla_maquinas = $("#tabla_maquinas").DataTable({
+                 "processing": true,
+        "responsive": true,    // ✅ Habilitar responsividad
+        "scrollX": false,      // ✅ Deshabilitar scroll horizontal
+        "autoWidth": false,    // ✅ Deshabilitar auto-ancho
+        "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
             paging: true,
             bFilter: true,
             ordering: true,

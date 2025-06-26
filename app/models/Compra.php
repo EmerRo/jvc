@@ -499,4 +499,22 @@ class Compra
         }
         return null;
     }
+// Método para actualizar stock de repuestos
+public function updateStockRepuesto($cantidad, $idRepuesto)
+{
+    $sql = "UPDATE repuestos SET cantidad = cantidad + $cantidad WHERE id_repuesto = $idRepuesto";
+    $result = $this->conectar->query($sql);
+    return $result ? $result : false;
+}
+
+// Método para insertar repuestos en compras
+public function insertRepuestosCompras($id_repuesto, $id_compra, $cantidad, $precio)
+{
+    $sql = "INSERT INTO repuestos_compras(id_repuesto, id_compra, cantidad, precio)
+            VALUES ($id_repuesto, $id_compra, $cantidad, '$precio')";
+    $result = $this->conectar->query($sql);
+    return $result ? $result : false;
+}
+
+    
 }

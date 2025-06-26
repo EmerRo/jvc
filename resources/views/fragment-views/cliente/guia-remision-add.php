@@ -322,28 +322,28 @@ $c_ubigeo = new Ubigeo();
                                             </div>
 
                                             <!-- Datos del Chofer -->
-                                            <div class="row mb-3">
+                                            <div class="row mb-4">
                                                 <label class="col-lg-3 col-form-label">
-                                                    <i class="fas fa-user-tie me-2 text-rojo"></i>Chofer
+                                                    <i class="fas fa-user-tie me-2"></i>Chofer
                                                 </label>
                                                 <div class="col-lg-9">
                                                     <div class="input-group">
-                                                        <select class="form-select" v-model="transporte.chofer_datos"
-                                                            id="select_chofer">
+                                                        <!-- REMOVIDO v-model para evitar conflicto con jQuery -->
+                                                        <select class="form-select" id="select_chofer">
                                                             <option value="">Seleccione un chofer</option>
                                                         </select>
-                                                        <button class="btn bg-rojo text-white" type="button"
+                                                        <button class="btn bg-rojo " type="button"
                                                             data-bs-toggle="modal" data-bs-target="#choferModal">
-                                                            <i class="fas fa-plus"></i>
+                                                            <i class="fas fa-plus text-white"></i>
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Datos del Vehículo -->
-                                            <div class="row mb-3">
+                                            <div class="row mb-4">
                                                 <label class="col-lg-3 col-form-label">
-                                                    <i class="fas fa-truck me-2 text-rojo"></i>Vehículo
+                                                    <i class="fas fa-truck me-2"></i>Vehículo
                                                 </label>
                                                 <div class="col-lg-9">
                                                     <div class="row g-2">
@@ -353,11 +353,7 @@ $c_ubigeo = new Ubigeo();
                                                                     id="select_vehiculo">
                                                                     <option value="">Seleccione un vehículo</option>
                                                                 </select>
-                                                                <button class="btn bg-rojo text-white" type="button"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#vehiculoModal">
-                                                                    <i class="fas fa-plus"></i>
-                                                                </button>
+
                                                             </div>
                                                         </div>
                                                         <div class="col-lg-6">
@@ -367,11 +363,7 @@ $c_ubigeo = new Ubigeo();
                                                                     id="select_licencia">
                                                                     <option value="">Seleccione una licencia</option>
                                                                 </select>
-                                                                <button class="btn bg-rojo text-white" type="button"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#licenciaModal">
-                                                                    <i class="fas fa-plus"></i>
-                                                                </button>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -490,96 +482,96 @@ $c_ubigeo = new Ubigeo();
                 </div>
             </div>
 
-            <!-- Modal Chofer -->
+            <!-- Modal Chofer Mejorado -->
             <div class="modal fade" id="choferModal" tabindex="-1" aria-labelledby="choferModalLabel"
                 aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-xl"> <!-- Cambié a modal-xl para más espacio -->
                     <div class="modal-content">
                         <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="choferModalLabel">Gestionar Choferes</h5>
+                            <h5 class="modal-title" id="choferModalLabel">Gestionar Conductores</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <form id="choferForm">
-                                <div class="mb-3">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="nombreChofer"
-                                            placeholder="Nombre del Chofer">
-                                        <input type="hidden" id="choferId">
-                                        <button type="submit" class="btn bg-rojo text-white">
-                                            <i class="fas fa-save"></i>
-                                        </button>
+                            <!-- Formulario para nuevo chofer/configuración -->
+                            <form id="conductorForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">DNI</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="dniChofer" placeholder="DNI"
+                                                maxlength="8" required>
+                                            <button type="button" class="btn border-rojo text-rojo bg-white"
+                                                onclick="buscarDniChofer($('#dniChofer').val())">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            </form>
-                            <hr>
-                            <h6 class="fw-bold">Choferes Existentes</h6>
-                            <ul id="listaChoferes" class="list-group mt-3">
-                                <!-- Los choferes se cargarán aquí dinámicamente -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Modal Vehículo -->
-            <div class="modal fade" id="vehiculoModal" tabindex="-1" aria-labelledby="vehiculoModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="vehiculoModalLabel">Gestionar Vehículos</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="vehiculoForm">
-                                <div class="mb-3">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="placaVehiculo"
-                                            placeholder="Placa del Vehículo">
-                                        <input type="hidden" id="vehiculoId">
-                                        <button type="submit" class="btn bg-rojo text-white">
-                                            <i class="fas fa-save"></i>
-                                        </button>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nombre Completo</label>
+                                        <input type="text" class="form-control" id="nombreCompleto"
+                                            placeholder="Nombre del Chofer" required>
                                     </div>
                                 </div>
-                            </form>
-                            <hr>
-                            <h6 class="fw-bold">Vehículos Existentes</h6>
-                            <ul id="listaVehiculos" class="list-group mt-3">
-                                <!-- Los vehículos se cargarán aquí dinámicamente -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal Licencia -->
-            <div class="modal fade" id="licenciaModal" tabindex="-1" aria-labelledby="licenciaModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="licenciaModalLabel">Gestionar Licencias</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="licenciaForm">
-                                <div class="mb-3">
-                                    <div class="input-group">
+                                <div class="row mt-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Placa</label>
+                                        <input type="text" class="form-control" id="placaVehiculo" placeholder="Placa"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Marca</label>
+                                        <input type="text" class="form-control" id="marcaVehiculo" placeholder="Marca"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Licencia</label>
                                         <input type="text" class="form-control" id="numeroLicencia"
-                                            placeholder="Número de Licencia">
-                                        <input type="hidden" id="licenciaId">
-                                        <button type="submit" class="btn bg-rojo text-white">
-                                            <i class="fas fa-save"></i>
-                                        </button>
+                                            placeholder="N° Licencia" required>
                                     </div>
                                 </div>
+                                <div class="mt-3 text-end">
+                                    <button type="submit" class="btn bg-rojo text-white">
+                                        <i class="fas fa-save"></i> Guardar Configuración
+                                    </button>
+                                </div>
+                                <input type="hidden" id="choferConfigId">
                             </form>
+
                             <hr>
-                            <h6 class="fw-bold">Licencias Existentes</h6>
-                            <ul id="listaLicencias" class="list-group mt-3">
-                                <!-- Las licencias se cargarán aquí dinámicamente -->
-                            </ul>
+
+                            <!-- Lista de configuraciones existentes -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="fw-bold">Configuraciones de Conductores</h6>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Nota:</strong> Un conductor puede tener múltiples vehículos.
+                                        Selecciona la configuración específica que necesites para esta guía.
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead class="bg-rojo">
+                                                <tr>
+                                                    <th>Conductor</th>
+                                                    <th>DNI</th>
+                                                    <th>Vehículo</th>
+                                                    <th>Marca</th>
+                                                    <th>Licencia</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaConfiguraciones">
+                                                <!-- Las configuraciones se cargarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Lista alternativa para cuando hay pocos registros -->
+                                    <ul id="listaConfiguraciones" class="list-group mt-3" style="display: none;">
+                                        <!-- Las configuraciones se cargarán aquí dinámicamente -->
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -768,7 +760,7 @@ $c_ubigeo = new Ubigeo();
                 data: {
                     guia: {
                         fecha_emision: $("#fecha-now-app").val(),
-                        tipo_doc: '2',
+                        tipo_doc: '3', // Orden de Compra
                         serie: '',
                         numero: '',
                         total: '',
@@ -1283,9 +1275,10 @@ $c_ubigeo = new Ubigeo();
 
         });
     </script>
-    <script src="<?= URL::to('/public/js/guia-remision/motivos.js') ?>"></script>
-    <script src="<?= URL::to('/public/js/guia-remision/conductor.js') ?>"></script>
-    <script src="<?= URL::to('/public/js/guia-remision/choferes.js') ?>"></script>
+    <script src="<?= URL::to('/public/js/guia-remision/motivos.js') ?>?v=<?= time() ?>"> </script>
+
+    <script src="<?= URL::to('/public/js/guia-remision/conductor.js') ?>?v=<?= time() ?>"> </script>
+    <script src="<?= URL::to('/public/js/guia-remision/choferes.js') ?>?v=<?= time() ?>"> </script>
 
 </body>
 

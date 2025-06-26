@@ -596,22 +596,15 @@ function getContenidoPrincipal(ficha, adjuntos) {
                 </div>
             `;
         } else if (principal.tipo_adjunto === 'imagen') {
-            return `
-                <div class="text-center">
-                    <img src="${principal.ruta_adjunto}" class="img-fluid rounded" alt="${principal.nombre_adjunto || 'Vista previa'}">
-                </div>
-            `;
+            // NUEVO: Si el principal es imagen, mostrar todas las imágenes
+            return getGaleriaImagenes(adjuntos);
         }
     }
     
-    // Si no hay adjunto principal, mostrar la primera imagen o un placeholder
-    const imagen = adjuntos.find(adj => adj.tipo_adjunto === 'imagen');
-    if (imagen) {
-        return `
-            <div class="text-center">
-                <img src="${imagen.ruta_adjunto}" class="img-fluid rounded" alt="${imagen.nombre_adjunto || 'Vista previa'}">
-            </div>
-        `;
+    // NUEVO: Si no hay adjunto principal pero hay imágenes, mostrar galería
+    const imagenes = adjuntos.filter(adj => adj.tipo_adjunto === 'imagen');
+    if (imagenes.length > 0) {
+        return getGaleriaImagenes(adjuntos);
     }
     
     return `
@@ -622,6 +615,93 @@ function getContenidoPrincipal(ficha, adjuntos) {
         </div>
     `;
 }
+// NUEVA: Función para mostrar galería de imágenes (máximo 3)
+function getGaleriaImagenes(adjuntos) {
+    const imagenes = adjuntos.filter(adj => adj.tipo_adjunto === 'imagen');
+    
+    if (imagenes.length === 0) {
+        return `
+            <div class="text-center p-5 bg-light rounded">
+                <i class="fas fa-image fa-5x text-muted mb-3"></i>
+                <p class="text-muted">No hay imágenes disponibles</p>
+            </div>
+        `;
+    }
+    
+    if (imagenes.length === 1) {
+        // Una sola imagen - mostrar grande
+        return `
+            <div class="text-center">
+                <img src="${imagenes[0].ruta_adjunto}" 
+                     class="img-fluid rounded" 
+                     alt="${imagenes[0].nombre_adjunto || 'Imagen'}"
+                     style="max-height: 400px; cursor: pointer;"
+                     onclick="ampliarImagen('${imagenes[0].ruta_adjunto}', '${escapeHtml(imagenes[0].nombre_adjunto || 'Imagen')}')">
+            </div>
+        `;
+    } else if (imagenes.length === 2) {
+        // Dos imágenes - mostrar en columnas
+        return `
+            <div class="row g-2">
+                ${imagenes.map(img => `
+                    <div class="col-6">
+                        <img src="${img.ruta_adjunto}" 
+                             class="img-fluid rounded" 
+                             alt="${img.nombre_adjunto || 'Imagen'}"
+                             style="height: 200px; width: 100%; object-fit: cover; cursor: pointer;"
+                             onclick="ampliarImagen('${img.ruta_adjunto}', '${escapeHtml(img.nombre_adjunto || 'Imagen')}')">
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        // Tres imágenes - mostrar en grid especial
+        return `
+            <div class="row g-2">
+                <div class="col-6">
+                    <img src="${imagenes[0].ruta_adjunto}" 
+                         class="img-fluid rounded" 
+                         alt="${imagenes[0].nombre_adjunto || 'Imagen'}"
+                         style="height: 250px; width: 100%; object-fit: cover; cursor: pointer;"
+                         onclick="ampliarImagen('${imagenes[0].ruta_adjunto}', '${escapeHtml(imagenes[0].nombre_adjunto || 'Imagen')}')">
+                </div>
+                <div class="col-6">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <img src="${imagenes[1].ruta_adjunto}" 
+                                 class="img-fluid rounded" 
+                                 alt="${imagenes[1].nombre_adjunto || 'Imagen'}"
+                                 style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
+                                 onclick="ampliarImagen('${imagenes[1].ruta_adjunto}', '${escapeHtml(imagenes[1].nombre_adjunto || 'Imagen')}')">
+                        </div>
+                        <div class="col-12">
+                            <img src="${imagenes[2].ruta_adjunto}" 
+                                 class="img-fluid rounded" 
+                                 alt="${imagenes[2].nombre_adjunto || 'Imagen'}"
+                                 style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
+                                 onclick="ampliarImagen('${imagenes[2].ruta_adjunto}', '${escapeHtml(imagenes[2].nombre_adjunto || 'Imagen')}')">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// NUEVA: Función para ampliar imagen en modal
+function ampliarImagen(rutaImagen, nombreImagen) {
+    Swal.fire({
+        title: nombreImagen,
+        html: `<img src="${rutaImagen}" class="img-fluid" alt="${nombreImagen}" style="max-width: 100%; max-height: 70vh;">`,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 'auto',
+        customClass: {
+            popup: 'swal-wide'
+        }
+    });
+}
+
 
 // Función para obtener la lista de adjuntos
 function getListaAdjuntos(adjuntos) {
@@ -886,19 +966,26 @@ function inicializarUploadContainers() {
             });
         }
         
-        // Manejador para hacer clic en el contenedor (área de arrastrar y soltar)
-        container.on('click', function(e) {
-            // Verificamos que el clic no sea en botones o elementos interactivos
-            if ($(e.target).is('button') || 
-                $(e.target).closest('button').length || 
-                $(e.target).is('input') || 
-                $(e.target).closest('input').length) {
-                return;
-            }
-            
-            // Usamos el método nativo click() para evitar recursión en jQuery
-            input[0].click();
-        });
+    container.on('drop', function(e) {
+    e.preventDefault();
+    container.removeClass('border-primary');
+    
+    // Si es el input de imágenes, manejar acumulación
+    if (input.attr('name') === 'imagenes[]') {
+        // Crear un input temporal para manejar los archivos arrastrados
+        const tempInput = document.createElement('input');
+        tempInput.type = 'file';
+        tempInput.files = e.originalEvent.dataTransfer.files;
+        
+        // Simular el evento change
+        const tempJQuery = $(tempInput);
+        manejarSeleccionImagenes(tempJQuery, preview);
+    } else {
+        input[0].files = e.originalEvent.dataTransfer.files;
+        mostrarArchivosSeleccionados(input, preview);
+    }
+});
+
         
         // Manejador para arrastrar y soltar
         container.on('dragover', function(e) {
@@ -917,26 +1004,248 @@ function inicializarUploadContainers() {
             mostrarArchivosSeleccionados(input, preview);
         });
         
-        // Manejador para cambios en el input de archivo
-        input.on('change', function() {
-            mostrarArchivosSeleccionados(input, preview);
-        });
+      // Manejador para cambios en el input de archivo
+input.on('change', function() {
+    // Si es el input de imágenes, manejar acumulación
+    if (input.attr('name') === 'imagenes[]') {
+        manejarSeleccionImagenes(input, preview);
+    } else {
+        mostrarArchivosSeleccionados(input, preview);
+    }
+});
+
     });
 }
 
 // Función para mostrar archivos seleccionados
 function mostrarArchivosSeleccionados(input, preview) {
     if (input[0].files.length > 0) {
-        const fileNames = Array.from(input[0].files).map(file => file.name).join(', ');
-        preview.html(`
-            <div class="alert alert-info mb-0">
-                <i class="fas fa-check-circle me-2"></i>
-                Archivos seleccionados: ${fileNames}
-            </div>
-        `);
-        preview.show();
+        // NUEVO: Si son imágenes, mostrar preview visual
+        if (input.attr('name') === 'imagenes[]') {
+            mostrarPreviewImagenes(input[0].files, preview);
+        } else {
+            const fileNames = Array.from(input[0].files).map(file => file.name).join(', ');
+            preview.html(`
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Archivos seleccionados: ${fileNames}
+                </div>
+            `);
+            preview.show();
+        }
     }
 }
+
+// NUEVA: Función para mostrar preview de imágenes seleccionadas
+function mostrarPreviewImagenes(files, preview) {
+    if (files.length === 0) {
+        preview.hide();
+        return;
+    }
+    
+    let html = '<div class="row g-2 mt-2">';
+    let imagenesProcessadas = 0;
+    const maxImagenes = Math.min(files.length, 3);
+    
+    for (let i = 0; i < maxImagenes; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgHtml = `
+                    <div class="col-4">
+                        <div class="position-relative">
+                            <img src="${e.target.result}" 
+                                 class="img-fluid rounded" 
+                                 style="height: 80px; width: 100%; object-fit: cover;">
+                            <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
+                                ${i + 1}
+                            </div>
+                        </div>
+                        <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                    </div>
+                `;
+                
+                if (imagenesProcessadas === 0) {
+                    html = '<div class="row g-2 mt-2">' + imgHtml;
+                } else {
+                    html += imgHtml;
+                }
+                
+                imagenesProcessadas++;
+                
+                if (imagenesProcessadas === maxImagenes) {
+                    html += '</div>';
+                    
+                    if (files.length > 3) {
+                        html += `
+                            <div class="alert alert-warning mb-0 small mt-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Solo se procesarán las primeras 3 imágenes (${files.length} seleccionadas)
+                            </div>
+                        `;
+                    }
+                    
+                    preview.html(html);
+                    preview.show();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+
+// Variable global para almacenar las imágenes seleccionadas
+let imagenesAcumuladas = [];
+
+// NUEVA: Función para manejar la selección acumulativa de imágenes
+function manejarSeleccionImagenes(input, preview) {
+    const nuevasImagenes = Array.from(input[0].files);
+    
+    // Agregar las nuevas imágenes al array acumulado
+    nuevasImagenes.forEach(imagen => {
+        // Verificar que no exceda el límite de 3 imágenes
+        if (imagenesAcumuladas.length < 3) {
+            // Verificar que no sea una imagen duplicada (mismo nombre y tamaño)
+            const yaExiste = imagenesAcumuladas.some(img => 
+                img.name === imagen.name && img.size === imagen.size
+            );
+            
+            if (!yaExiste) {
+                imagenesAcumuladas.push(imagen);
+            }
+        }
+    });
+    
+    // Mostrar mensaje si se alcanzó el límite
+    if (imagenesAcumuladas.length >= 3 && nuevasImagenes.length > 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Límite alcanzado',
+            text: 'Ya has seleccionado el máximo de 3 imágenes',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    
+    // Actualizar el input con todas las imágenes acumuladas
+    actualizarInputImagenes(input[0], imagenesAcumuladas);
+    
+    // Mostrar preview de todas las imágenes
+    mostrarPreviewImagenesAcumuladas(imagenesAcumuladas, preview);
+}
+
+// NUEVA: Función para actualizar el input con las imágenes acumuladas
+function actualizarInputImagenes(inputElement, imagenes) {
+    // Crear un nuevo DataTransfer para simular la selección múltiple
+    const dataTransfer = new DataTransfer();
+    
+    // Agregar cada imagen al DataTransfer
+    imagenes.forEach(imagen => {
+        dataTransfer.items.add(imagen);
+    });
+    
+    // Asignar los archivos al input
+    inputElement.files = dataTransfer.files;
+}
+
+// NUEVA: Función para mostrar preview de imágenes acumuladas con opción de eliminar
+function mostrarPreviewImagenesAcumuladas(imagenes, preview) {
+    if (imagenes.length === 0) {
+        preview.hide();
+        return;
+    }
+    
+    let html = '<div class="row g-2 mt-2">';
+    
+    imagenes.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgHtml = `
+                    <div class="col-4" id="imagen-preview-${index}">
+                        <div class="position-relative">
+                            <img src="${e.target.result}" 
+                                 class="img-fluid rounded" 
+                                 style="height: 80px; width: 100%; object-fit: cover;">
+                            <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
+                                ${index + 1}
+                            </div>
+                            <button type="button" 
+                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-1" 
+                                    style="width: 25px; height: 25px; font-size: 0.7rem; line-height: 1;"
+                                    onclick="eliminarImagenSeleccionada(${index})"
+                                    title="Eliminar imagen">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                    </div>
+                `;
+                
+                // Agregar la imagen al HTML
+                if (index === 0) {
+                    html = '<div class="row g-2 mt-2">' + imgHtml;
+                } else {
+                    html += imgHtml;
+                }
+                
+                // Si es la última imagen, cerrar el HTML y mostrarlo
+                if (index === imagenes.length - 1) {
+                    html += '</div>';
+                    
+                    // Agregar información adicional
+                    html += `
+                        <div class="mt-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    ${imagenes.length} de 3 imágenes seleccionadas
+                                </small>
+                                <button type="button" 
+                                        class="btn btn-outline-secondary btn-sm" 
+                                        onclick="limpiarTodasLasImagenes()">
+                                    <i class="fas fa-trash me-1"></i>Limpiar todo
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    preview.html(html);
+                    preview.show();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// NUEVA: Función para eliminar una imagen específica
+function eliminarImagenSeleccionada(index) {
+    // Eliminar la imagen del array
+    imagenesAcumuladas.splice(index, 1);
+    
+    // Actualizar el input
+    const inputElement = document.getElementById('imagenes_file');
+    actualizarInputImagenes(inputElement, imagenesAcumuladas);
+    
+    // Actualizar el preview
+    const preview = $('#imagenes_file').closest('.file-upload-container').find('.selected-files');
+    mostrarPreviewImagenesAcumuladas(imagenesAcumuladas, preview);
+}
+
+// NUEVA: Función para limpiar todas las imágenes
+function limpiarTodasLasImagenes() {
+    imagenesAcumuladas = [];
+    
+    // Limpiar el input
+    const inputElement = document.getElementById('imagenes_file');
+    inputElement.value = '';
+    
+    // Ocultar preview
+    const preview = $('#imagenes_file').closest('.file-upload-container').find('.selected-files');
+    preview.hide();
+}
+
 
 // Función para inicializar búsqueda de productos
 function inicializarBusquedaProductos() {
@@ -1074,6 +1383,18 @@ function limpiarEventosDuplicados() {
 }
 // Función para guardar una ficha técnica
 function guardarFicha(form) {
+    // Validar archivos antes de enviar
+    if (!validarArchivos()) {
+        return false;
+    }
+    
+    // Validar título
+    const titulo = $('#titulo').val().trim();
+    if (!titulo) {
+        Swal.fire('Error', 'El título es obligatorio', 'error');
+        return false;
+    }
+
     const formData = new FormData(form);
     const submitBtn = $(form).find('button[type="submit"]');
     const btnText = submitBtn.html();
@@ -1090,19 +1411,22 @@ function guardarFicha(form) {
         dataType: 'json',
         success: function(data) {
             if (data.res) {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: 'Ficha técnica guardada correctamente',
-                    confirmButtonColor: '#3085d6'
-                }).then(() => {
-                    form.reset();
-                    // Cambiar a la pestaña de lista
-                    $('#nueva-ficha').removeClass('show active');
-                    $('#lista-fichas').addClass('show active');
-                    
-                    cargarFichas();
-                });
+              Swal.fire({
+    icon: 'success',
+    title: '¡Éxito!',
+    text: 'Ficha técnica guardada correctamente',
+    confirmButtonColor: '#3085d6'
+}).then(() => {
+    form.reset();
+    limpiarFormularioImagenes(); // NUEVO: Limpiar imágenes acumuladas
+    
+    // Cambiar a la pestaña de lista
+    $('#nueva-ficha').removeClass('show active');
+    $('#lista-fichas').addClass('show active');
+    
+    cargarFichas();
+});
+
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -1215,6 +1539,32 @@ function validarYouTubeLink() {
         });
     }
 }
+// NUEVO: Agregar estilos CSS para el modal de imagen ampliada
+if (!document.getElementById('swal-custom-styles')) {
+    const style = document.createElement('style');
+    style.id = 'swal-custom-styles';
+    style.textContent = `
+        .swal-wide {
+            max-width: 90vw !important;
+        }
+        .swal-wide .swal2-popup {
+            max-width: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+// Limpiar imágenes acumuladas al enviar formulario exitosamente
+function limpiarFormularioImagenes() {
+    imagenesAcumuladas = [];
+    const inputElement = document.getElementById('imagenes_file');
+    if (inputElement) {
+        inputElement.value = '';
+    }
+    const preview = $('#imagenes_file').closest('.file-upload-container').find('.selected-files');
+    preview.hide();
+}
+
+
 window.verFicha = verFicha;
 window.compartirWhatsApp = compartirWhatsApp;
 window.eliminarFicha = eliminarFicha;
@@ -1224,4 +1574,5 @@ window.validarYouTubeLink = validarYouTubeLink;
 window.seleccionarProducto = seleccionarProducto;
 window.buscarProductos = buscarProductos;
 })();
+
 </script>

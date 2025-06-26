@@ -33,8 +33,7 @@
 
                 <h4 class="card-title"></h4>               
                 <div class="table-responsive">
-                    <table id="datatable-c" class="table nowrap table-sm table-bordered text-center"
-                        style="border: 2px solid white;">
+                    <table id="datatable-c"  class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -81,13 +80,13 @@
              {
                 targets: 4,
                 render: function (data, type, row, meta) {
-                    // Asumiendo que el servidor envía un campo 'tipo' o 'origen'
-                    // Si es 'ORD TRABAJO' mostramos 'Orden de Trabajo', de lo contrario 'Servicio'
                     const tipo = data === 'ORD TRABAJO' ? 'Orden de Trabajo' : 'Servicio';
                     const badgeClass = data === 'ORD TRABAJO' ? 'bg-primary' : 'bg-success';
-                    
-                    return `<span class="badge ${badgeClass}">${tipo}</span>`;
+
+                    return `<span class="badge ${badgeClass}" style="font-size: 12px;">${tipo}</span>`;
+                    // Ajusta el valor de "14px" según el tamaño que desees
                 }
+
              },
              // Columna de acciones (ahora es la 5 en lugar de la 4)
              {

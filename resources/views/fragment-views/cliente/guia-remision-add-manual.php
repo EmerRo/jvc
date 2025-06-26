@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\guia-remision-add-manual.php -->
 <?php
 require_once "app/models/Ubigeo.php";
 $c_ubigeo = new Ubigeo();
@@ -178,7 +179,7 @@ $c_ubigeo = new Ubigeo();
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="nombreMotivo"
                                             placeholder="Nombre del Motivo" required>
-                                        <button type="submit" class="btn bg-rojo">
+                                        <button type="submit" class="btn bg-rojo text-white">
                                             <i class="fas fa-save"></i>
                                         </button>
                                     </div>
@@ -245,8 +246,6 @@ $c_ubigeo = new Ubigeo();
                                             value="AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE">
                                     </div>
                                 </div>
-
-
                                 <!-- Punto Llegada -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
@@ -352,8 +351,8 @@ $c_ubigeo = new Ubigeo();
                                             </label>
                                             <div class="col-lg-9">
                                                 <div class="input-group">
-                                                    <select class="form-select" v-model="transporte.chofer_datos"
-                                                        id="select_chofer">
+                                                    <!-- REMOVIDO v-model para evitar conflicto con jQuery -->
+                                                    <select class="form-select" id="select_chofer">
                                                         <option value="">Seleccione un chofer</option>
                                                     </select>
                                                     <button class="btn bg-rojo " type="button" data-bs-toggle="modal"
@@ -377,10 +376,10 @@ $c_ubigeo = new Ubigeo();
                                                                 id="select_vehiculo">
                                                                 <option value="">Seleccione un vehículo</option>
                                                             </select>
-                                                            <button class="btn bg-rojo" type="button"
+                                                            <!-- <button class="btn bg-rojo" type="button"
                                                                 data-bs-toggle="modal" data-bs-target="#vehiculoModal">
                                                                 <i class="fas fa-plus text-white"></i>
-                                                            </button>
+                                                            </button> -->
                                                         </div>
                                                     </div>
                                                     <div class="col-lg-6">
@@ -389,10 +388,10 @@ $c_ubigeo = new Ubigeo();
                                                                 id="select_licencia">
                                                                 <option value="">Seleccione una licencia</option>
                                                             </select>
-                                                            <button class="btn bg-rojo" type="button"
+                                                            <!-- <button class="btn bg-rojo" type="button"
                                                                 data-bs-toggle="modal" data-bs-target="#licenciaModal">
                                                                 <i class="fas fa-plus text-white"></i>
-                                                            </button>
+                                                            </button> -->
                                                         </div>
                                                     </div>
                                                 </div>
@@ -442,101 +441,99 @@ $c_ubigeo = new Ubigeo();
             </div>
         </div>
 
-        <!-- Modal Chofer -->
+        <!-- Modal Chofer Mejorado -->
         <div class="modal fade" id="choferModal" tabindex="-1" aria-labelledby="choferModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-xl"> <!-- Cambié a modal-xl para más espacio -->
                 <div class="modal-content">
                     <div class="modal-header bg-rojo text-white">
-                        <h5 class="modal-title" id="choferModalLabel">Gestionar Choferes</h5>
+                        <h5 class="modal-title" id="choferModalLabel">Gestionar Conductores</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="choferForm">
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="nombreChofer"
-                                        placeholder="Nombre del Chofer">
-                                    <input type="hidden" id="choferId">
-                                    <button type="submit" class="btn bg-rojo">
-                                        <i class="fas fa-save"></i>
-                                    </button>
+                        <!-- Formulario para nuevo chofer/configuración -->
+                        <form id="conductorForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">DNI</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="dniChofer" placeholder="DNI"
+                                            maxlength="8" required>
+                                        <button type="button" class="btn border-rojo text-rojo bg-white"
+                                            onclick="buscarDniChofer($('#dniChofer').val())">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Nombre Completo</label>
+                                    <input type="text" class="form-control" id="nombreCompleto"
+                                        placeholder="Nombre del Chofer" required>
                                 </div>
                             </div>
-                        </form>
-                        <hr>
-                        <h6 class="fw-bold">Choferes Existentes</h6>
-                        <ul id="listaChoferes" class="list-group mt-3">
-                            <!-- Los choferes se cargarán aquí dinámicamente -->
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Vehículo -->
-        <div class="modal fade" id="vehiculoModal" tabindex="-1" aria-labelledby="vehiculoModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-rojo text-white">
-                        <h5 class="modal-title" id="vehiculoModalLabel">Gestionar Vehículos</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="vehiculoForm">
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="placaVehiculo"
-                                        placeholder="Placa del Vehículo">
-                                    <input type="hidden" id="vehiculoId">
-                                    <button type="submit" class="btn bg-rojo">
-                                        <i class="fas fa-save"></i>
-                                    </button>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Placa</label>
+                                    <input type="text" class="form-control" id="placaVehiculo" placeholder="Placa"
+                                        required>
                                 </div>
-                            </div>
-                        </form>
-                        <hr>
-                        <h6 class="fw-bold">Vehículos Existentes</h6>
-                        <ul id="listaVehiculos" class="list-group mt-3">
-                            <!-- Los vehículos se cargarán aquí dinámicamente -->
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Licencia -->
-        <div class="modal fade" id="licenciaModal" tabindex="-1" aria-labelledby="licenciaModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-rojo text-white">
-                        <h5 class="modal-title" id="licenciaModalLabel">Gestionar Licencias</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="licenciaForm">
-                            <div class="mb-3">
-                                <div class="input-group">
+                                <div class="col-md-4">
+                                    <label class="form-label">Marca</label>
+                                    <input type="text" class="form-control" id="marcaVehiculo" placeholder="Marca"
+                                        required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Licencia</label>
                                     <input type="text" class="form-control" id="numeroLicencia"
-                                        placeholder="Número de Licencia">
-                                    <input type="hidden" id="licenciaId">
-                                    <button type="submit" class="btn bg-rojo ">
-                                        <i class="fas fa-save"></i>
-                                    </button>
+                                        placeholder="N° Licencia" required>
                                 </div>
                             </div>
+                            <div class="mt-3 text-end">
+                                <button type="submit" class="btn bg-rojo text-white">
+                                    <i class="fas fa-save"></i> Guardar Configuración
+                                </button>
+                            </div>
+                            <input type="hidden" id="choferConfigId">
                         </form>
+
                         <hr>
-                        <h6 class="fw-bold">Licencias Existentes</h6>
-                        <ul id="listaLicencias" class="list-group mt-3">
-                            <!-- Las licencias se cargarán aquí dinámicamente -->
-                        </ul>
+
+                        <!-- Lista de configuraciones existentes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold">Configuraciones de Conductores</h6>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Nota:</strong> Un conductor puede tener múltiples vehículos.
+                                    Selecciona la configuración específica que necesites para esta guía.
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="bg-rojo">
+                                            <tr>
+                                                <th>Conductor</th>
+                                                <th>DNI</th>
+                                                <th>Vehículo</th>
+                                                <th>Marca</th>
+                                                <th>Licencia</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaConfiguraciones">
+                                            <!-- Las configuraciones se cargarán aquí dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Lista alternativa para cuando hay pocos registros -->
+                                <ul id="listaConfiguraciones" class="list-group mt-3" style="display: none;">
+                                    <!-- Las configuraciones se cargarán aquí dinámicamente -->
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
 
 
@@ -583,14 +580,97 @@ $c_ubigeo = new Ubigeo();
                                             placeholder="0">
                                     </div>
                                     <div class="flex-grow-1">
-                                        <label for="precio-select" class="col-form-label">Precio</label>
-                                        <select id="precio-select" class="form-select" v-model="producto.precio">
-                                            <option v-for="(value, key) in precioProductos" :value="value.precio"
-                                                :key="key">
-                                                {{ value.precio }}
-                                            </option>
-                                        </select>
+                                        <label for="precio-input" class="col-form-label">Precio</label>
+                                        <div class="input-group">
+                                            <input id="precio-input" type="text" class="form-control dropdown-toggle"
+                                                :class="{'dropdown-toggle': producto.descripcion.length > 0}"
+                                                :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
+                                                aria-expanded="false" v-model="producto.precio_mostrado"
+                                                style="background-color: #f8f9fa; cursor: pointer;"
+                                                @click="mostrarMensajeProducto" readonly>
+
+                                            <!-- Dropdown para precios base -->
+                                            <ul class="dropdown-menu" style="width: 300px; max-width: none;">
+                                                <li class="dropdown-header bg-light py-2 px-3">Precios Base</li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#"
+                                                        @click.prevent="seleccionarPrecioConTipo('PV', producto.precioVenta)">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span><i class="fa fa-tag me-2"></i>Precio Venta:</span>
+                                                            <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                                producto.precioVenta }}</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#"
+                                                        @click.prevent="seleccionarPrecioConTipo('C', producto.costo)">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span><i class="fa fa-box me-2"></i>Costo:</span>
+                                                            <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                                producto.costo }}</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#"
+                                                        @click.prevent="seleccionarPrecioConTipo('PM', producto.precio_mayor)">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span><i class="fa fa-warehouse me-2"></i>Precio
+                                                                Mayorista:</span>
+                                                            <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                                producto.precio_mayor }}</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#"
+                                                        @click.prevent="seleccionarPrecioConTipo('PMn', producto.precio_menor)">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span><i class="fa fa-store me-2"></i>Precio
+                                                                Minorista:</span>
+                                                            <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                                producto.precio_menor }}</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                            </ul>
+
+                                            <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                                :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
+                                                aria-expanded="false" @click="mostrarMensajeProducto">
+                                                <i class="fa fa-chevron-down"></i>
+                                            </button>
+
+                                            <!-- Dropdown para precios adicionales -->
+                                            <ul class="dropdown-menu dropdown-menu-end"
+                                                style="width: 300px; max-width: none;">
+                                                <li class="dropdown-header bg-light py-2 px-3">Precios Adicionales</li>
+                                                <template v-if="precioProductos && precioProductos.length > 0">
+                                                    <li v-for="(value, key) in precioProductos" :key="key">
+                                                        <a class="dropdown-item" href="#"
+                                                            @click.prevent="seleccionarPrecioConTipo(value.nombre, value.precio)">
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center">
+                                                                <span><i class="fa fa-tag me-2"></i>{{ value.nombre
+                                                                    }}:</span>
+                                                                <span
+                                                                    class="badge bg-success text-white rounded-pill">S/
+                                                                    {{ value.precio }}</span>
+                                                            </div>
+                                                        </a>
+                                                    </li>
+                                                </template>
+                                                <li v-if="!precioProductos || precioProductos.length === 0">
+                                                    <div class="dropdown-item text-center text-muted py-2">
+                                                        <i class="fa fa-info-circle me-1"></i> No hay precios
+                                                        adicionales
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
+
                                 </div>
                             </div>
                         </form>
@@ -639,12 +719,85 @@ $c_ubigeo = new Ubigeo();
                         <!-- Precio -->
                         <div class="mb-3">
                             <label class="form-label">Precio</label>
-                            <select class="form-select" v-model="productoEdit.precio">
-                                <option v-for="(value, key) in precioProductos" :value="value.precio" :key="key">
-                                    {{ value.precio }}
-                                </option>
-                            </select>
+                            <div class="input-group">
+                                <input type="text" class="form-control dropdown-toggle" data-bs-toggle="dropdown"
+                                    aria-expanded="false" v-model="productoEdit.precio_mostrado"
+                                    style="background-color: #f8f9fa; cursor: pointer;" readonly>
+
+                                <!-- Dropdown para precios base -->
+                                <ul class="dropdown-menu w-100 shadow">
+                                    <li class="dropdown-header bg-light py-2 px-3">Precios Base</li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"
+                                            @click.prevent="seleccionarPrecioEditConTipo('PV', productoEdit.precioVenta)">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><i class="fa fa-tag me-2"></i>Precio Venta:</span>
+                                                <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                    productoEdit.precioVenta }}</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"
+                                            @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><i class="fa fa-box me-2"></i>Costo:</span>
+                                                <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                    productoEdit.costo }}</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"
+                                            @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><i class="fa fa-warehouse me-2"></i>Precio Mayorista:</span>
+                                                <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                    productoEdit.precio_mayor }}</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#"
+                                            @click.prevent="seleccionarPrecioEditConTipo('PMn', productoEdit.precio_menor)">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><i class="fa fa-store me-2"></i>Precio Minorista:</span>
+                                                <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                    productoEdit.precio_menor }}</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-chevron-down"></i>
+                                </button>
+
+                                <!-- Dropdown para precios adicionales -->
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li class="dropdown-header bg-light py-2 px-3">Precios Adicionales</li>
+                                    <template v-if="preciosAdicionales && preciosAdicionales.length > 0">
+                                        <li v-for="(value, key) in preciosAdicionales" :key="key">
+                                            <a class="dropdown-item" href="#"
+                                                @click.prevent="seleccionarPrecioEditConTipo(value.nombre, value.precio)">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span><i class="fa fa-tag me-2"></i>{{ value.nombre }}:</span>
+                                                    <span class="badge bg-success text-white rounded-pill">S/ {{
+                                                        value.precio }}</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </template>
+                                    <li v-if="!preciosAdicionales || preciosAdicionales.length === 0">
+                                        <div class="dropdown-item text-center text-muted py-2">
+                                            <i class="fa fa-info-circle me-1"></i> No hay precios adicionales
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -781,7 +934,7 @@ $c_ubigeo = new Ubigeo();
             data: {
                 guia: {
                     fecha_emision: $("#fecha-now-app").val(),
-                    tipo_doc: '1',
+                    tipo_doc: '3',
                     serie: '',
                     numero: '',
                     total: '',
@@ -811,7 +964,6 @@ $c_ubigeo = new Ubigeo();
                     precio: "",
                     codigo: "",
                     codigo_pp: "",
-                    costo: "",
                     codsunat: "",
                     precio: '1',
                     almacen: '<?php echo $_SESSION["sucursal"] ?>',
@@ -819,8 +971,14 @@ $c_ubigeo = new Ubigeo();
                     // precio3: '',
                     // precio4: '',
                     precio_unidad: '',
+                    precio_usado: 1,
+                    precio_mostrado: '',
+                    tipo_precio: 'PV',
                     precioVenta: '',
-                    precio_usado: 1
+                    costo: '',
+                    precio_mayor: '',
+                    precio_menor: '',
+                    unidad_id: ''
                 },
                 productoEdit: {
                     index: -1,
@@ -829,7 +987,15 @@ $c_ubigeo = new Ubigeo();
                     detalle: '',
                     precio: '',
                     stock: '',
-                    productoid: ''
+                    productoid: '',
+                    precio_mostrado: '',
+                    precioVenta: '',
+                    costo: '',
+                    precio_mayor: '',
+                    precio_menor: '',
+                    nom_prod: '',      // ← Asegurar que esté aquí
+                    codigo_pp: '',     // ← Asegurar que esté aquí
+                    // unidad_id
                 },
                 productos: [],
                 precioProductos: [],
@@ -841,9 +1007,12 @@ $c_ubigeo = new Ubigeo();
                     veiculo: '',
                     chofer_dni: '',
                     chofer_datos: '',
+                    chofer_id: '', // AGREGADO: Para almacenar el ID del chofer
                     num_docu: ''
 
                 },
+                mensajeProductoVisible: false,
+                preciosAdicionales: [],
 
                 // productos: []
             },
@@ -1145,14 +1314,22 @@ $c_ubigeo = new Ubigeo();
                     // Validación de valores válidos
                     if (this.producto.descripcion.length > 0 && this.producto.cantidad > 0) {
                         const prod = {
-                            descripcion: this.producto.descripcion,
+                            // descripcion: this.producto.descripcion,
+                             descripcion: this.producto.nom_prod || this.producto.detalle, // ← Solo el nombre/detalle
                             detalle: this.producto.detalle,
                             cantidad: this.producto.cantidad,
                             precio: this.producto.precio || '0',
                             stock: this.producto.stock || '0',
                             codigo: this.producto.codigo || '',
                             productoid: this.producto.productoid || '',
-                            productoid: this.producto.productoid || ''
+                            precioVenta: this.producto.precioVenta || this.producto.precio || '0',
+                            costo: this.producto.costo || '0',
+                            precio_mayor: this.producto.precio_mayor || '0',
+                            precio_menor: this.producto.precio_menor || '0',
+                            tipo: this.producto.tipo || 'producto', // También agregar el tipo
+                            codigo_pp: this.producto.codigo_pp || '',
+                            precio_mostrado: this.producto.precio_mostrado || this.producto.precio || '0',
+                            unidad_id: this.producto.unidad_id || ''
                         };
                         console.log(prod.descripcion);
                         console.log(prod.detalle);
@@ -1169,6 +1346,7 @@ $c_ubigeo = new Ubigeo();
                             editable: false,
                             productoid: "",
                             descripcion: "",
+                            detalle: "",
                             nom_prod: "",
                             cantidad: "",
                             stock: "",
@@ -1177,12 +1355,17 @@ $c_ubigeo = new Ubigeo();
                             codigo_pp: "",
                             costo: "",
                             codsunat: "",
-                            precio: '1',
                             almacen: '<?php echo $_SESSION["sucursal"] ?>',
                             precio2: '',
                             precio_unidad: '',
                             precioVenta: '',
-                            precio_usado: 1
+                            precio_usado: 1,
+                            precio_mostrado: '',
+                            tipo_precio: 'PV',
+                            precio_mayor: '',
+                            precio_menor: '',
+                            tipo: 'producto',
+                            unidad_id: ''
                         };
                         this.precioProductos = [];
 
@@ -1194,25 +1377,49 @@ $c_ubigeo = new Ubigeo();
                 },
                 editarProducto(index) {
                     const producto = this.productos[index];
-                    const [codigoNombre, ...resto] = producto.descripcion.split(' | ');
-                    const codigo = codigoNombre.trim();
-                    const nombre = resto.join(' | ').trim();
 
+                    // Separar código y nombre si están juntos
+                    let codigo = '';
+                    let nombre = '';
+                    if (producto.descripcion && producto.descripcion.includes(' | ')) {
+                        const [codigoNombre, ...resto] = producto.descripcion.split(' | ');
+                        codigo = codigoNombre.trim();
+                        nombre = resto.join(' | ').trim();
+                    } else {
+                        codigo = producto.codigo_pp || '';
+                        nombre = producto.nom_prod || producto.descripcion || '';
+                    }
+
+                    // Copiar TODOS los campos necesarios
                     this.productoEdit = {
                         index: index,
                         guia_detalle_id: producto.guia_detalle_id,
                         descripcion: producto.descripcion,
-                        detalle: producto.detalle, // Agregado el detalle
+                        detalle: producto.detalle || '', // Asegurar que no sea undefined
                         cantidad: producto.cantidad,
                         precio: producto.precio,
                         stock: producto.stock,
                         productoid: producto.productoid,
                         codigo_pp: codigo,
-                        nom_prod: nombre
+                        nom_prod: nombre,
+                        precio_mostrado: producto.precio_mostrado || producto.precio,
+                        precioVenta: producto.precioVenta || producto.precio,
+                        costo: producto.costo || "0.00",
+                        precio_mayor: producto.precio_mayor || "0.00",
+                        precio_menor: producto.precio_menor || "0.00",
+                        unidad_id: producto.unidad_id || ''
                     };
 
-                    new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
+                    // Cargar precios adicionales si existe productoid
+                    if (producto.productoid) {
+                        cargarPreciosAdicionalesEdit(producto.productoid, producto.tipo || 'producto');
+                    }
+
+                    // Abrir el modal
+                    const modal = new bootstrap.Modal(document.getElementById('modalEditarProducto'));
+                    modal.show();
                 },
+
 
                 actualizarProducto() {
                     // Validar cantidad
@@ -1221,31 +1428,73 @@ $c_ubigeo = new Ubigeo();
                         return;
                     }
 
-                    // Actualizar inmediatamente en el array local usando Vue.set
                     const index = this.productoEdit.index;
-                    if (index > -1) {
-                        // Crear el objeto actualizado
+                    if (index > -1 && index < this.productos.length) {
+                        // RECONSTRUIR la descripción completa cuando se edita el nombre
+                        let nuevaDescripcion = this.productoEdit.descripcion;
+
+                        // Si se editó el nombre, reconstruir la descripción
+                        if (this.productoEdit.nom_prod && this.productoEdit.codigo_pp) {
+                            nuevaDescripcion = `${this.productoEdit.codigo_pp} | ${this.productoEdit.nom_prod}`;
+                        }
+
+                        // Actualizar TODOS los campos editables
                         const productoActualizado = {
-                            ...this.productos[index],
+                            ...this.productos[index], // Mantener campos originales
+                            // Campos que se pueden editar en el modal
+                            // descripcion: nuevaDescripcion, 
+                             descripcion: this.productoEdit.nom_prod, 
+                            detalle: this.productoEdit.detalle,
                             cantidad: parseFloat(this.productoEdit.cantidad),
-                            descripcion: this.productoEdit.descripcion
+                            precio: this.productoEdit.precio,
+                            precio_mostrado: this.productoEdit.precio_mostrado,
+                            unidad_id: this.productoEdit.unidad_id || '',
+                            // Actualizar también los precios si cambiaron
+                            precioVenta: this.productoEdit.precioVenta,
+                            costo: this.productoEdit.costo,
+                            precio_mayor: this.productoEdit.precio_mayor,
+                            precio_menor: this.productoEdit.precio_menor,
+                            // Guardar también el nombre por separado
+                            nom_prod: this.productoEdit.nom_prod,
+                            codigo_pp: this.productoEdit.codigo_pp
                         };
 
-                        // Usar Vue.set para asegurar reactividad inmediata
+                        // Usar Vue.set para reactividad
                         this.$set(this.productos, index, productoActualizado);
 
-                        // Forzar actualización de la vista
-                        this.$forceUpdate();
+                        // Cerrar modal correctamente
+                        const modal = document.getElementById('modalEditarProducto');
+                        const modalInstance = bootstrap.Modal.getInstance(modal);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        } else {
+                            // Fallback para cerrar modal
+                            $(modal).modal('hide');
+                        }
 
-                        // Guardar en localStorage
-                        localStorage.setItem('productosGuiaRemision', JSON.stringify(this.productos));
-
-                        // Cerrar el modal y mostrar mensaje de éxito
-                        bootstrap.Modal.getInstance(document.getElementById('modalEditarProducto')).hide();
                         alertExito("Producto actualizado correctamente");
                     } else {
-                        alertAdvertencia("No se pudo encontrar el producto para actualizar");
+                        alertAdvertencia("Error: No se pudo encontrar el producto para actualizar");
                     }
+                },
+
+                mostrarMensajeProducto() {
+                    if (this.producto.descripcion.length === 0) {
+                        this.mensajeProductoVisible = true;
+                    }
+                },
+
+                seleccionarPrecioConTipo(tipo, precio) {
+                    this.producto.precio_mostrado = precio;
+                    this.producto.precio = precio;
+                    this.producto.tipo_precio = tipo;
+                    this.mensajeProductoVisible = false;
+                },
+
+                seleccionarPrecioEditConTipo(tipo, precio) {
+                    this.productoEdit.precio_mostrado = precio;
+                    this.productoEdit.precio = precio;
+                    this.productoEdit.tipo_precio = tipo;
                 }
             }
         });
@@ -1328,11 +1577,21 @@ $c_ubigeo = new Ubigeo();
                     producto.costo = ui.item.costo;
                     producto.precioVenta = formatearPrecio(ui.item.precio_unidad);
 
+
                     appguia.precioProductos = [
                         { precio: producto.precio },
                         { precio: producto.precio2 },
                         { precio: producto.precio_unidad }
                     ];
+                    app.producto.precioVenta = formatearPrecio(ui.item.precio);
+                    app.producto.costo = formatearPrecio(ui.item.costo);
+                    app.producto.precio_mayor = formatearPrecio(ui.item.precio_mayor);
+                    app.producto.precio_menor = formatearPrecio(ui.item.precio_menor);
+                    app.producto.precio_mostrado = app.producto.precioVenta;
+                    appguia.$set(producto, 'unidad_id', ui.item.unidad_id);
+
+                    // Cargar precios adicionales
+                    cargarPreciosAdicionales(ui.item.codigo, ui.item.tipo);
 
                     $('#input_buscar_productos').val("");
                     $("#cantidad-input").focus();
@@ -1406,6 +1665,56 @@ $c_ubigeo = new Ubigeo();
         `)
                 .appendTo("head");
         }
+        function cargarPreciosAdicionales(idProducto, tipo = 'producto') {
+            const url = tipo === 'repuesto'
+                ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
+                : _URL + '/ajs/cargar/producto_precios/' + idProducto;
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        appguia.precioProductos = data.map(item => ({
+                            nombre: item.nombre,
+                            precio: parseFloat(item.precio).toFixed(2)
+                        }));
+                    } else {
+                        appguia.precioProductos = [];
+                    }
+                },
+                error: function () {
+                    appguia.precioProductos = [];
+                }
+            });
+        }
+        function cargarPreciosAdicionalesEdit(idProducto, tipo = 'producto') {
+            const url = tipo === 'repuesto'
+                ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
+                : _URL + '/ajs/cargar/producto_precios/' + idProducto;
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        appguia.preciosAdicionales = data.map(item => ({
+                            nombre: item.nombre,
+                            precio: parseFloat(item.precio).toFixed(2)
+                        }));
+                    } else {
+                        appguia.preciosAdicionales = [];
+                    }
+                },
+                error: function () {
+                    appguia.preciosAdicionales = [];
+                }
+            });
+        }
+
+
 
         function formatearPrecio(precio) {
             return parseFloat(precio || 0).toFixed(2);
@@ -1444,7 +1753,8 @@ $c_ubigeo = new Ubigeo();
                 precio2: '',
                 precio_unidad: '',
                 precioVenta: '',
-                precio_usado: 1
+                precio_usado: 1,
+                unidad_id: ''
             };
             appguia.precioProductos = [];
         });
@@ -1481,6 +1791,7 @@ $c_ubigeo = new Ubigeo();
 
 
 
-<script src="<?= URL::to('/public/js/guia-remision/conductor.js') ?>"></script>
-<script src="<?= URL::to('/public/js/guia-remision/motivos.js') ?>"></script>
-<script src="<?= URL::to('/public/js/guia-remision/choferes.js') ?>"></script>
+<!-- <script src="<?= URL::to('/public/js/guia-remision/conductor.js') ?>?v=<?= time() ?>"> </script> -->
+<script src="<?= URL::to('/public/js/guia-remision/motivos.js') ?>?v=<?= time() ?>"> </script>
+<!-- <script src="<?= URL::to('/public/js/guia-remision/choferes.js') ?>?v=<?= time() ?>"> </script> -->
+<script src="<?= URL::to('/public/js/guia-remision/chofer-configuraciones.js') ?>?v=<?= time() ?>"> </script>

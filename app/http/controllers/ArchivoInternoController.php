@@ -4,12 +4,15 @@
 require_once "app/models/ArchivoInterno.php";
 require_once "app/models/ArchivoInternoPlantilla.php";
 require_once "app/http/controllers/ArchivoInternoPDF.php";
+require_once "app/models/TipoArchivoInterno.php";
 
 class ArchivoInternoController extends Controller
 {
     private $archivoInterno;
     private $archivoInternoPlantilla;
     private $archivoInternoPDF;
+
+    private $tipoArchivoInterno;
     private $conectar;
 
     public function __construct()
@@ -17,31 +20,32 @@ class ArchivoInternoController extends Controller
         $this->archivoInterno = new ArchivoInterno();
         $this->archivoInternoPlantilla = new ArchivoInternoPlantilla();
         $this->archivoInternoPDF = new ArchivoInternoPDF();
+        $this->tipoArchivoInterno = new TipoArchivoInterno();
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    // Método para obtener todos los archivos internos (con filtro opcional)
-    public function render()
-    {
-        try {
-            // Obtener parámetros de filtro
-            $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
-            $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : null;
-
-            // Intentar obtener los datos
-            $archivos = $this->archivoInterno->listarArchivosInternos($filtro, $tipo_busqueda);
-
-            // Devolver los datos en formato JSON
-            echo json_encode($archivos ?: []);
-        } catch (Exception $e) {
-            echo json_encode([
-                'error' => true,
-                'message' => 'Error al procesar la solicitud',
-                'debug_info' => $e->getMessage()
-            ]);
-        }
+   public function render()
+{
+    try {
+        // Obtener parámetros de filtro
+        $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
+        $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : null;
+        
+        // Intentar obtener los datos
+        $archivos = $this->archivoInterno->listarArchivosInternos($filtro, $tipo_busqueda);
+        
+        // IMPORTANTE: Devolver en el formato que espera el frontend
+        $response = ['archivos' => $archivos ?: []]; // ✅ FORMATO CORRECTO
+        echo json_encode($response);
+    } catch (Exception $e) {
+        echo json_encode([
+            'error' => true,
+            'message' => 'Error al procesar la solicitud',
+            'debug_info' => $e->getMessage(),
+            'archivos' => []
+        ]);
     }
-
+}
     // Método para obtener un archivo interno específico
     public function getOne()
     {
@@ -57,7 +61,7 @@ class ArchivoInternoController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $this->archivoInterno->getId(),
-                    'id_cliente' => $this->archivoInterno->getClienteId(),
+                    'id_cliente' => $this->archivoInterno->getIdCliente(),
                     'usuario_id' => $this->archivoInterno->getUsuarioId(),
                     'tipo' => $this->archivoInterno->getTipo(),
                     'titulo' => $this->archivoInterno->getTitulo(),
@@ -168,7 +172,7 @@ class ArchivoInternoController extends Controller
                 $this->archivoInterno->setArchivoPdf($archivo_pdf);
                 $this->archivoInterno->setHeaderImage($header_image);
                 $this->archivoInterno->setFooterImage($footer_image);
-                $this->archivoInterno->setClienteId($id_cliente);
+                $this->archivoInterno->setIdCliente($id_cliente);
                 $this->archivoInterno->setUsuarioId($usuario_id);
                 $this->archivoInterno->setEsPdfSubido($es_pdf_subido);
                 $this->archivoInterno->setEstado('borrador');
@@ -270,7 +274,7 @@ class ArchivoInternoController extends Controller
                 $this->archivoInterno->setArchivoPdf($archivo_pdf);
                 $this->archivoInterno->setHeaderImage($header_image);
                 $this->archivoInterno->setFooterImage($footer_image);
-                $this->archivoInterno->setClienteId($id_cliente);
+                $this->archivoInterno->setIdCliente($id_cliente);
                 $this->archivoInterno->setEsPdfSubido($es_pdf_subido);
                 $this->archivoInterno->setEstado($estado);
 
@@ -508,5 +512,158 @@ class ArchivoInternoController extends Controller
         $base64 = 'data:application/pdf;base64,' . base64_encode($pdfData);
 
         return $base64;
+    }
+    public function obtenerTiposArchivos()
+    {
+        try {
+            $tipos = $this->tipoArchivoInterno->obtenerTodos();
+            echo json_encode(['success' => true, 'tipos' => $tipos]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    // Método para insertar tipo de Archivo
+    public function insertarTipoArchivos()
+    {
+        if (!empty($_POST)) {
+            try {
+                $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+
+                if (empty($nombre)) {
+                    throw new Exception("El nombre del tipo es obligatorio");
+                }
+
+                $this->tipoArchivoInterno->setNombre($nombre);
+
+                if ($this->tipoArchivoInterno->insertar()) {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo creado correctamente']);
+                } else {
+                    throw new Exception("Error al guardar el tipo de Archivo");
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+            }
+        }
+    }
+
+    // Método para editar tipo de Archivo
+    public function editarTipoArchivo()
+    {
+        if (!empty($_POST)) {
+            try {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+                $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+
+                if (empty($id) || empty($nombre)) {
+                    throw new Exception("ID y nombre son obligatorios");
+                }
+
+                $this->tipoArchivoInterno->setId($id);
+                $this->tipoArchivoInterno->setNombre($nombre);
+
+                if ($this->tipoArchivoInterno->actualizar()) {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo actualizado correctamente']);
+                } else {
+                    throw new Exception("Error al actualizar el tipo de Archivo");
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+            }
+        }
+    }
+
+    // Método para eliminar tipo de Archivo
+    public function eliminarTipoArchivo()
+    {
+        if (isset($_POST['id'])) {
+            try {
+                $id = intval($_POST['id']);
+                $this->tipoArchivoInterno->setId($id);
+
+                if ($this->tipoArchivoInterno->eliminar()) {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo eliminado correctamente']);
+                } else {
+                    throw new Exception("Error al eliminar el tipo de Archivo");
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+            }
+        }
+    }
+    public function obtenerMembretes()
+    {
+        try {
+            // Obtener la plantilla actual que contiene los membretes
+            $this->archivoInternoPlantilla->obtenerTemplateActual();
+
+            $data = [
+                'success' => true,
+                'data' => [
+                    'header_image' => $this->archivoInternoPlantilla->getHeaderImage(),
+                    'footer_image' => $this->archivoInternoPlantilla->getFooterImage(),
+                    'header_image_url' => $this->archivoInternoPlantilla->getHeaderImageUrl(),
+                    'footer_image_url' => $this->archivoInternoPlantilla->getFooterImageUrl()
+                ]
+            ];
+
+            echo json_encode($data);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+    public function guardarMembretes()
+    {
+        if (!empty($_POST) || !empty($_FILES)) {
+            try {
+                // Obtener la plantilla actual
+                if (!$this->archivoInternoPlantilla->obtenerTemplateActual()) {
+                    throw new Exception("No se pudo obtener la plantilla actual");
+                }
+
+                // Mantener valores actuales como respaldo
+                $header_image = $this->archivoInternoPlantilla->getHeaderImage();
+                $footer_image = $this->archivoInternoPlantilla->getFooterImage();
+
+                // Verificar archivos de imagen PRIMERO
+                if (isset($_FILES['header_image_file']) && $_FILES['header_image_file']['error'] === UPLOAD_ERR_OK) {
+                    $header_image = $this->procesarImagen($_FILES['header_image_file']);
+                    error_log("Nueva imagen de cabecera procesada desde archivo");
+                } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
+                    $header_image = $_POST['header_image'];
+                    error_log("Nueva imagen de cabecera desde POST data");
+                }
+
+                if (isset($_FILES['footer_image_file']) && $_FILES['footer_image_file']['error'] === UPLOAD_ERR_OK) {
+                    $footer_image = $this->procesarImagen($_FILES['footer_image_file']);
+                    error_log("Nueva imagen de pie procesada desde archivo");
+                } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
+                    $footer_image = $_POST['footer_image'];
+                    error_log("Nueva imagen de pie desde POST data");
+                }
+
+                // Actualizar solo las imágenes de la plantilla
+                $this->archivoInternoPlantilla->setHeaderImage($header_image);
+                $this->archivoInternoPlantilla->setFooterImage($footer_image);
+
+                // Guardar la plantilla actualizada
+                $resultado = $this->archivoInternoPlantilla->actualizarTemplate();
+
+                if ($resultado) {
+                    echo json_encode([
+                        'success' => true,
+                        'mensaje' => 'Membretes guardados correctamente'
+                    ]);
+                } else {
+                    throw new Exception("Error al actualizar la plantilla en la base de datos");
+                }
+
+            } catch (Exception $e) {
+                error_log("Error en guardarMembretes: " . $e->getMessage());
+                echo json_encode(['success' => false, 'msg' => 'Error al guardar los membretes: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
+        }
     }
 }

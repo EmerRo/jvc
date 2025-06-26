@@ -183,25 +183,32 @@ $almacenProducto = 1;
                             <h4 class="card-title">Lista de Productos</h4>
                         </div>
                         <div class=" text-end">
+                            <!-- descargar excel -->
                             <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
                                     class="fa fa-file-excel"></i>
                                 Descargar Exel por busqueda</button>
+                            <!-- importar excel -->
                             <button data-bs-toggle="modal" data-bs-target="#importarModal"
                                 class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
                                 Importar</button>
-                            <button class="btn bg-rojo text-white" id="add-prod"><i class="fa fa-plus"></i> Agregar
-                                Producto</button>
+                            <!-- aumentar stcok -->
                             <button class="btn border-rojo bg-white" data-bs-toggle="modal"
                                 data-bs-target="#modal-aumentar-stock">
-                                <i class="fa fa-plus"></i> Aumentar Stock de Productos
+                                <i class="fa fa-plus"> </i> Aumentar Stock de Productos
                             </button>
-
+                            <!-- unidades -->
                             <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i>Unidades</a>
-
+                                    class="fa fa-plus"> </i> Unidades</a>
+                            <!-- categorias -->
                             <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i>Categorias</a>
-                            <button class="btn btn-danger btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
+                                    class="fa fa-plus"> </i> Categorias</a>
+
+                            <!-- agregar productos -->
+                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i>
+                                Agregar
+                                Producto</button>
+                            <!-- eliminar productos -->
+                            <button class="btn btn-danger btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
                             <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
                                 Seleccionar Todos</button>
                         </div>
@@ -265,8 +272,8 @@ $almacenProducto = 1;
                         </div> -->
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-sm table-bordered text-center" cellspacing="0"
-                            width="100%" style="border: 2px solid white;">
+                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
                             <thead>
                                 <tr>
@@ -574,28 +581,34 @@ $almacenProducto = 1;
 
                             <!-- PRIMERA FILA: Precio Venta, Costo, Cantidad -->
                             <div class="form-group col-md-4 mt-2">
-                                <span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label><span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
+                                    <span v-if="parseFloat(edt.precio) <= 0" class="text-danger small">
+                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                    </span>
+                                </div>
                                 <input v-model="edt.precio" @keypress="onlyNumber" required value="0" type="text"
                                     class="form-control">
-                                <p v-if="parseFloat(edt.precio) <= 0" class="text-danger small mt-1">
-                                    <i class="fa fa-exclamation-triangle"></i> El precio está en 0
-                                </p>
                             </div>
                             <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-money-bill me-1"></i>Costo</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label><i class="fa fa-money-bill me-1"></i>Costo</label>
+                                    <span v-if="parseFloat(edt.costo) <= 0" class="text-danger small">
+                                        <i class="fa fa-exclamation-triangle"></i> Costo está en 0
+                                    </span>
+                                </div>
                                 <input v-model="edt.costo" @keypress="onlyNumber" required value="0" type="text"
                                     class="form-control">
-                                <p v-if="parseFloat(edt.costo) <= 0" class="text-danger small mt-1">
-                                    <i class="fa fa-exclamation-triangle"></i> El costo está en 0
-                                </p>
                             </div>
                             <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
+                                    <span v-if="parseInt(edt.cantidad) <= 0" class="text-danger small">
+                                        <i class="fa fa-exclamation-triangle"></i> Cantidad está en 0
+                                    </span>
+                                </div>
                                 <input v-model="edt.cantidad" @keypress="onlyNumber" value="0" type="text"
                                     class="form-control">
-                                <p v-if="parseInt(edt.cantidad) <= 0" class="text-danger small mt-1">
-                                    <i class="fa fa-exclamation-triangle"></i> La cantidad está en 0
-                                </p>
                             </div>
 
                             <!-- SEGUNDA FILA: Unidades, Almacén, Cod. Sunat -->
@@ -628,20 +641,24 @@ $almacenProducto = 1;
                                 </select>
                             </div>
                             <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
+                                    <span v-if="parseFloat(edt.precioMayor) <= 0" class="text-danger small">
+                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                    </span>
+                                </div>
                                 <input v-model="edt.precioMayor" @keypress="onlyNumber" value="0" type="text"
                                     class="form-control">
-                                <p v-if="parseFloat(edt.precioMayor) <= 0" class="text-danger small mt-1">
-                                    <i class="fa fa-exclamation-triangle"></i> El precio está en 0
-                                </p>
                             </div>
                             <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-shopping-cart me-1"></i>Precio Mayorista</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label><i class="fa fa-shopping-cart me-1"></i>Precio Mayorista</label>
+                                    <span v-if="parseFloat(edt.precioMenor) <= 0" class="text-danger small">
+                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                    </span>
+                                </div>
                                 <input v-model="edt.precioMenor" @keypress="onlyNumber" value="0" type="text"
                                     class="form-control">
-                                <p v-if="parseFloat(edt.precioMenor) <= 0" class="text-danger small mt-1">
-                                    <i class="fa fa-exclamation-triangle"></i> El precio está en 0
-                                </p>
                             </div>
 
                             <!-- Campos ocultos -->
@@ -1494,7 +1511,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         columnDefs: [
                             {
                                 "targets": [0],
-                                "className": "dt-body-left",
+                                "className": "dt-body-center",
                                 "width": "auto", // Cambiado a auto para que se ajuste al contenido
                                 "render": function (data, type, row, meta) {
                                     return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';

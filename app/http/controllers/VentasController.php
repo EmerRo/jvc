@@ -28,68 +28,92 @@ class VentasController extends Controller
     }
 
 
-    public function ingresosEgresosRender()
-    {
-        $sql = "SELECT
-                ie.*,
-                p.nombre,
-                p.codigo,
-                u.usuario,
-                u.nombres,
-                CASE 
-                    WHEN ie.almacen_egreso = '1' THEN 'Almacén 1'
-                    WHEN ie.almacen_egreso = '2' THEN 'Almacén 2'
-                    WHEN ie.almacen_egreso = '3' THEN 'Almacén 3'
-                END as almacen_egreso_nombre,
-                CASE 
-                    WHEN ie.almacen_ingreso = '1' THEN 'Almacén 1'
-                    WHEN ie.almacen_ingreso = '2' THEN 'Almacén 2'
-                    WHEN ie.almacen_ingreso = '3' THEN 'Almacén 3'
-                END as almacen_ingreso_nombre
-            FROM
-                ingreso_egreso ie
-                JOIN productos p ON ie.id_producto = p.id_producto
-                INNER JOIN usuarios u on u.usuario_id = ie.id_usuario
-            ORDER BY
-                ie.intercambio_id ASC";
-        return $this->conexion->query($sql);
+public function ingresosEgresosRender()
+{
+    $sql = "SELECT
+            ie.*,
+            p.nombre,
+            p.codigo,
+            u.usuario,
+            u.nombres,
+            DATE_FORMAT(ie.fecha_creacion, '%d/%m/%Y %H:%i') as fecha_creacion_formatted,
+            DATE_FORMAT(ie.fecha_actualizacion, '%d/%m/%Y %H:%i') as fecha_actualizacion_formatted,
+            CASE 
+                WHEN ie.almacen_egreso = '1' THEN 'Almacén 1'
+                WHEN ie.almacen_egreso = '2' THEN 'Almacén 2'
+                WHEN ie.almacen_egreso = '3' THEN 'Almacén 3'
+                ELSE 'N/A'
+            END as almacen_egreso_nombre,
+            CASE 
+                WHEN ie.almacen_ingreso = '1' THEN 'Almacén 1'
+                WHEN ie.almacen_ingreso = '2' THEN 'Almacén 2'
+                WHEN ie.almacen_ingreso = '3' THEN 'Almacén 3'
+                ELSE 'N/A'
+            END as almacen_ingreso_nombre
+        FROM
+            ingreso_egreso ie
+            JOIN productos p ON ie.id_producto = p.id_producto
+            INNER JOIN usuarios u on u.usuario_id = ie.id_usuario
+        ORDER BY
+            ie.fecha_creacion DESC";
+    
+    $result = $this->conexion->query($sql);
+    
+    // Verificar si la consulta fue exitosa
+    if (!$result) {
+        // Log del error para debugging
+        error_log("Error en consulta SQL: " . $this->conexion->error);
+        return []; // Retornar array vacío en caso de error
+    }
+    
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    
+    return $data;
+}
+
+// Mantén los otros métodos como los tienes:
+public function ingresoAlmacen()
+{
+    $respuesta['res'] = false;
+    $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+    
+    $sql = "INSERT INTO ingreso_egreso 
+            SET id_producto = '{$_POST['productoid']}', 
+                tipo = '{$_POST['tipo']}',
+                cantidad = '{$_POST['cantidad']}', 
+                id_usuario = '{$_SESSION['usuario_fac']}', 
+                almacen_ingreso = '{$_POST['almacen']}',
+                observaciones = '$observaciones',
+                fecha_creacion = NOW(),
+                fecha_actualizacion = NOW()";
+
+    if ($this->conexion->query($sql)) {
+        // Actualizar el stock del producto
+        $sql = "UPDATE productos 
+               SET cantidad = cantidad + '{$_POST['cantidad']}' 
+               WHERE id_producto = '{$_POST['productoid']}'";
+        $this->conexion->query($sql);
+        $respuesta['res'] = true;
     }
 
-    /*  public function  */
-    public function ingresoAlmacen()
-    {
-        $respuesta['res'] = false;
-        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
-        
-        $sql = "INSERT INTO ingreso_egreso 
-                SET id_producto = '{$_POST['productoid']}', 
-                    tipo = '{$_POST['tipo']}',
-                    cantidad = '{$_POST['cantidad']}', 
-                    id_usuario = '{$_SESSION['usuario_fac']}', 
-                    almacen_ingreso = '{$_POST['almacen']}',
-                    observaciones = '$observaciones'";
+    echo json_encode($respuesta);
+}
+
+public function egresoAlmacen()
+{
+    $respuesta['res'] = false;
+    $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+
+    // Verificar stock disponible antes de realizar el egreso
+    $sql = "SELECT cantidad FROM productos WHERE id_producto = '{$_POST['productoid']}' AND almacen = '{$_POST['almacen']}'";
+    $result = $this->conexion->query($sql);
     
-        if ($this->conexion->query($sql)) {
-            // Actualizar el stock del producto
-            $sql = "UPDATE productos 
-                   SET cantidad = cantidad + '{$_POST['cantidad']}' 
-                   WHERE id_producto = '{$_POST['productoid']}'";
-            $this->conexion->query($sql);
-            $respuesta['res'] = true;
-        }
-    
-        echo json_encode($respuesta);
-    }
-    public function egresoAlmacen()
-    {
-        $respuesta['res'] = false;
-        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
-    
-        // Verificar stock disponible antes de realizar el egreso
-        $sql = "SELECT cantidad FROM productos WHERE id_producto = '{$_POST['productoid']}' AND almacen = '{$_POST['almacen']}'";
-        $result = $this->conexion->query($sql);
+    if ($result && $result->num_rows > 0) {
         $stock_actual = $result->fetch_assoc()['cantidad'];
-    
+
         if ($stock_actual >= $_POST['cantidad']) {
             // Insertar el registro de egreso
             $sql = "INSERT INTO ingreso_egreso 
@@ -100,8 +124,10 @@ class VentasController extends Controller
                         almacen_ingreso = '{$_POST['alAlmacen']}', 
                         almacen_egreso = '{$_POST['almacen']}', 
                         estado = 0,
-                        observaciones = '$observaciones'";
-    
+                        observaciones = '$observaciones',
+                        fecha_creacion = NOW(),
+                        fecha_actualizacion = NOW()";
+
             if ($this->conexion->query($sql)) {
                 // Actualizar el stock inmediatamente en el almacén de origen
                 $sql = "UPDATE productos 
@@ -109,46 +135,54 @@ class VentasController extends Controller
                        WHERE id_producto = '{$_POST['productoid']}' 
                        AND almacen = '{$_POST['almacen']}'";
                 $this->conexion->query($sql);
-    
+
                 $respuesta['res'] = true;
             }
         } else {
             $respuesta['res'] = false;
             $respuesta['msg'] = "Stock insuficiente";
         }
-    
-        echo json_encode($respuesta);
+    } else {
+        $respuesta['res'] = false;
+        $respuesta['msg'] = "Producto no encontrado";
     }
-    public function confirmarTraslado()
-    {
-        if (isset($_POST['cod'])) {
-            $id = $_POST['cod'];
 
-            // Obtener información del traslado
-            $sql = "SELECT * FROM ingreso_egreso WHERE intercambio_id = '$id'";
-            $traslado = $this->conexion->query($sql)->fetch_assoc();
+    echo json_encode($respuesta);
+}
 
-            if ($traslado) {
-                // Actualizar stock en almacén de destino (sumar)
-                $sql = "UPDATE productos 
-                       SET cantidad = cantidad + '{$traslado['cantidad']}' 
-                       WHERE id_producto = '{$traslado['id_producto']}' 
-                       AND almacen = '{$traslado['almacen_ingreso']}'";
-                $this->conexion->query($sql);
+public function confirmarTraslado()
+{
+    if (isset($_POST['cod'])) {
+        $id = $_POST['cod'];
 
-                // Marcar el traslado como confirmado
-                $sql = "UPDATE ingreso_egreso 
-                       SET estado = 1 
-                       WHERE intercambio_id = '$id'";
-                $this->conexion->query($sql);
+        // Obtener información del traslado
+        $sql = "SELECT * FROM ingreso_egreso WHERE intercambio_id = '$id'";
+        $result = $this->conexion->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            $traslado = $result->fetch_assoc();
 
-                echo json_encode(['res' => true]);
-                return;
-            }
+            // Actualizar stock en almacén de destino (sumar)
+            $sql = "UPDATE productos 
+                   SET cantidad = cantidad + '{$traslado['cantidad']}' 
+                   WHERE id_producto = '{$traslado['id_producto']}' 
+                   AND almacen = '{$traslado['almacen_ingreso']}'";
+            $this->conexion->query($sql);
+
+            // Marcar el traslado como confirmado y actualizar fecha
+            $sql = "UPDATE ingreso_egreso 
+                   SET estado = 1, 
+                       fecha_actualizacion = NOW()
+                   WHERE intercambio_id = '$id'";
+            $this->conexion->query($sql);
+
+            echo json_encode(['res' => true]);
+            return;
         }
-
-        echo json_encode(['res' => false]);
     }
+
+    echo json_encode(['res' => false]);
+}
 
     public function envioComunicacionBajaPorEmpresa()
     {
@@ -412,7 +446,7 @@ class VentasController extends Controller
                 $view_name,
                 "id_venta",
                 [
-                    "cod_v",
+                    // "cod_v",
                     "sn_v",
                     "fecha_emision",
                     "datos_cl",
@@ -1056,10 +1090,11 @@ class VentasController extends Controller
                     }
                 }
 
-                if (isset($_POST['cotiId'])) {
-                    $sql = "UPDATE cotizaciones set estado = 1 WHERE cotizacion_id = '{$_POST['cotiId']}'";
-                    $this->conexion->query($sql);
-                }
+              if (isset($_POST['idCoti']) && $_POST['idCoti']) {
+    $sql = "UPDATE cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
+    $this->conexion->query($sql);
+}
+
 
                 $resultado["res"] = true;
                 $array_detalle = isset($_POST['listaPro']) ? json_decode($_POST['listaPro'], true) : [];

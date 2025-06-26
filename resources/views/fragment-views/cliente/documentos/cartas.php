@@ -56,6 +56,33 @@
         margin-bottom: 20px;
         border-radius: 4px;
     }
+
+    /* Contenedor de la vista previa del documento */
+    .document-preview {
+        height: 250px;
+        overflow: hidden;
+        display: block;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Estilo para el canvas de PDF */
+    .pdf-preview-canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Asegurar que los botones sean clickeables */
+    .btn-outline-secondary {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto;
+    }
 </style>
 
 <!-- Añadir PDF.js para la vista previa de documentos -->
@@ -69,19 +96,20 @@
 <!-- Actualizar Quill.js a versión más reciente -->
 <link href="https://cdn.quilljs.com/2.0.2/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/2.0.2/quill.min.js"></script>
+
 <!-- Botones de acción -->
 <div class="mb-4">
-    <button class="btn btn-rojo" id="btn-lista-cartas">
-        <i class="fas fa-list me-1"></i> Lista de Cartas
+    <button class="btn border-rojo" id="btn-lista-cartas">
+        <i class="fas fa-list me-2"></i>Lista de Cartas
     </button>
-    <button class="btn btn-outline-danger" id="btn-nueva-carta">
-        <i class="fas fa-plus me-1"></i> Nueva Carta
+    <button class="btn bg-rojo text-white" id="btn-nueva-carta">
+        <i class="fas fa-plus me-2"></i>Nueva Carta
     </button>
-    <button class="btn btn-outline-danger" id="btn-editar-plantilla">
-        <i class="fas fa-file-alt me-1"></i> Editar Plantilla
+    <button class="btn border-rojo" id="btn-editar-plantilla">
+        <i class="fas fa-edit me-2"></i>Editar Plantilla
     </button>
-    <button class="btn bg-rojo text-white" id="btn-gestionar-membretes">
-        <i class="fas fa-image me-1"></i> Gestionar Membretes
+    <button class="btn border-rojo" id="btn-gestionar-membretes">
+        <i class="fas fa-image me-2"></i>Gestionar Membretes
     </button>
 </div>
 
@@ -578,9 +606,9 @@
             $("#vista-lista-cartas").addClass("active");
 
             // Actualizar estado de los botones
-            $("#btn-lista-cartas").removeClass("btn-outline-danger").addClass("btn-rojo");
-            $("#btn-nueva-carta").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
+            $("#btn-lista-cartas").removeClass("btn-outline-danger").addClass("border-rojo");
+            $("#btn-nueva-carta").removeClass("bg-rojo text-white").addClass("border-rojo");
+            $("#btn-editar-plantilla").addClass("border-rojo").removeClass("bg-rojo text-white");
 
             // Destruir el editor correctamente
             destruirEditor();
@@ -707,49 +735,58 @@
                 const fecha = new Date(carta.fecha_creacion).toLocaleDateString();
                 const cliente = carta.cliente_nombre || 'Sin cliente';
 
+                // Generar un ID único para el canvas de PDF
+                const canvasId = `pdf-preview-carta-${carta.id}`;
+
                 html += `
-                <div class="col">
-                    <div class="card carta-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge bg-rojo">${carta.tipo || 'Sin tipo'}</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownCarta${carta.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownCarta${carta.id}">
-                                    <li><a class="dropdown-item" href="${_URL}/ajs/carta/generarPDF?id=${carta.id}" target="_blank">
-                                        <i class="fas fa-file-pdf me-2"></i> Ver PDF
-                                    </a></li>
-                                    <li><a class="dropdown-item carta-editar" href="#" data-id="${carta.id}">
-                                        <i class="fas fa-edit me-2"></i> Editar
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmarEliminarCartaModal" data-id="${carta.id}">
-                                        <i class="fas fa-trash-alt me-2"></i> Eliminar
-                                    </a></li>
-                                </ul>
-                            </div>
+            <div class="col">
+                <div class="card carta-card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge bg-rojo">${carta.tipo || 'Sin tipo'}</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownCarta${carta.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownCarta${carta.id}">
+                                <li><a class="dropdown-item" href="${_URL}/ajs/carta/generarPDF?id=${carta.id}" target="_blank">
+                                    <i class="fas fa-file-pdf me-2"></i> Ver PDF
+                                </a></li>
+                                <li><a class="dropdown-item carta-editar" href="#" data-id="${carta.id}">
+                                    <i class="fas fa-edit me-2"></i> Editar
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmarEliminarCartaModal" data-id="${carta.id}">
+                                    <i class="fas fa-trash-alt me-2"></i> Eliminar
+                                </a></li>
+                            </ul>
                         </div>
-                        <div class="card-body">
-                            <h5 class="card-title">${carta.titulo}</h5>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-user me-1"></i> ${cliente}<br>
-                                    <i class="fas fa-calendar-alt me-1"></i> ${fecha}
-                                </small>
-                            </p>
+                    </div>
+                    <!-- Vista previa del PDF -->
+                    <div class="card-body p-0">
+                        <div class="document-preview">
+                            <canvas id="${canvasId}" class="pdf-preview-canvas"></canvas>
                         </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <a href="${_URL}/ajs/carta/generarPDF?id=${carta.id}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                    </div>
+                    <div class="card-footer">
+                        <h5 class="card-title">${carta.titulo}</h5>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i> ${cliente}<br>
+                                <i class="fas fa-calendar-alt me-1"></i> ${fecha}
+                            </small>
+                        </p>
+                        <div class="d-flex justify-content-between mt-2">
+                            <a href="${_URL}/ajs/carta/generarPDF?id=${carta.id}" class="btn btn-sm btn-outline-primary" target="_blank">
                                 <i class="fas fa-file-pdf me-1"></i> Ver PDF
                             </a>
-                            <button class="btn btn-sm btn-rojo carta-editar" data-id="${carta.id}">
+                            <button class="btn btn-sm btn-outline-secondary carta-editar" data-id="${carta.id}">
                                 <i class="fas fa-edit me-1"></i> Editar
                             </button>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
             });
 
             html += '</div>';
@@ -759,6 +796,14 @@
             $(".carta-editar").on("click", function () {
                 const id = $(this).data('id');
                 editarCarta(id);
+            });
+
+            // Inicializar la carga de PDFs después de que el HTML esté en el DOM
+            cartas.forEach(function (carta) {
+                const canvasId = `pdf-preview-carta-${carta.id}`;
+                setTimeout(() => {
+                    renderPdfPreviewCarta(`${_URL}/ajs/carta/generarPDF?id=${carta.id}`, canvasId);
+                }, 100);
             });
         }
 
@@ -911,9 +956,9 @@
             console.log("Mostrando formulario de nueva carta...");
 
             // Actualizar estado de los botones
-            $("#btn-lista-cartas").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-nueva-carta").removeClass("btn-outline-danger").addClass("btn-rojo");
-            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
+            $("#btn-lista-cartas").removeClass("border-rojo").addClass("border-rojo");
+            $("#btn-nueva-carta").removeClass("border-rojo").addClass("bg-rojo text-white");
+            $("#btn-editar-plantilla").addClass("border-rojo").removeClass("bg-rojo text-white");
             // Mostrar la vista de edición
             $(".vista").removeClass("active");
             $("#vista-editar-carta").addClass("active");
@@ -1587,7 +1632,7 @@
                             $("#cliente_direccion").text("Dirección: " + (cartaActual.cliente_direccion || "No especificada"));
                             $("#cliente_info").show();
                         }
-                     cargarTiposCartasSelect(cartaActual.tipo || '');
+                        cargarTiposCartasSelect(cartaActual.tipo || '');
                         document.getElementById('titulo_carta').value = cartaActual.titulo;
                         document.getElementById('header_image_data').value = cartaActual.header_image || '';
                         document.getElementById('footer_image_data').value = cartaActual.footer_image || '';
@@ -2035,7 +2080,7 @@
             $("#btn-lista-cartas").removeClass("btn-rojo").addClass("btn-outline-danger");
             $("#btn-nueva-carta").removeClass("btn-rojo").addClass("btn-outline-danger");
             $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-gestionar-membretes").removeClass("btn-outline-warning").addClass("btn-warning");
+            $("#btn-gestionar-membretes").removeClass("btn-outline-warning").addClass("bg-rojo text-white");
 
             // Cargar datos actuales de membretes
             cargarDatosMembretes();
@@ -2191,44 +2236,44 @@
             });
         }
         // Función para abrir el modal de tipos
-function abrirModalTiposCartas() {
-    cargarTiposCartasModal();
-    $('#gestionarTiposCartaModal').modal('show');
-}
-
-// Función para cargar tipos de carta en el select
-function cargarTiposCartasSelect(tipoSeleccionado = '') {
-    $.ajax({
-        url: _URL + "/ajs/carta/obtener-tipos-cartas",
-        method: "GET",
-        dataType: 'json',
-        success: function(data) {
-            if (data.success && data.tipos) {
-                let options = '<option value="">Seleccione un tipo</option>';
-                data.tipos.forEach(function(tipo) {
-                    const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
-                    options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
-                });
-                $("#tipo_carta").html(options);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al cargar tipos:", error);
+        function abrirModalTiposCartas() {
+            cargarTiposCartasModal();
+            $('#gestionarTiposCartaModal').modal('show');
         }
-    });
-}
 
-// Función para cargar tipos en el modal
-function cargarTiposCartasModal() {
-    $.ajax({
-        url: _URL + "/ajs/carta/obtener-tipos-cartas",
-        method: "GET",
-        dataType: 'json',
-        success: function(data) {
-            if (data.success && data.tipos) {
-                let html = '';
-                data.tipos.forEach(function(tipo) {
-                    html += `
+        // Función para cargar tipos de carta en el select
+        function cargarTiposCartasSelect(tipoSeleccionado = '') {
+            $.ajax({
+                url: _URL + "/ajs/carta/obtener-tipos-cartas",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.tipos) {
+                        let options = '<option value="">Seleccione un tipo</option>';
+                        data.tipos.forEach(function (tipo) {
+                            const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
+                            options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
+                        });
+                        $("#tipo_carta").html(options);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar tipos:", error);
+                }
+            });
+        }
+
+        // Función para cargar tipos en el modal
+        function cargarTiposCartasModal() {
+            $.ajax({
+                url: _URL + "/ajs/carta/obtener-tipos-cartas",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.tipos) {
+                        let html = '';
+                        data.tipos.forEach(function (tipo) {
+                            html += `
                         <tr>
                             <td>${tipo.nombre}</td>
                             <td>
@@ -2241,123 +2286,221 @@ function cargarTiposCartasModal() {
                             </td>
                         </tr>
                     `;
-                });
-                $("#lista-tipos-carta").html(html);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al cargar tipos:", error);
+                        });
+                        $("#lista-tipos-carta").html(html);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar tipos:", error);
+                }
+            });
         }
-    });
-}
 
-// Función para agregar nuevo tipo
-function agregarTipoCarta() {
-    const nombre = $("#nuevo-tipo-carta-nombre").val().trim();
-    
-    if (!nombre) {
-        Swal.fire('Error', 'El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    $.ajax({
-        url: _URL + "/ajs/carta/insertar-tipo-carta",
-        method: "POST",
-        data: {
-            nombre: nombre
-        },
-        dataType: 'json',
-        success: function(data) {
-            if (data.success) {
-                Swal.fire('Éxito', data.msg, 'success');
-                $("#nuevo-tipo-carta-nombre").val('');
-                cargarTiposCartasModal();
-                cargarTiposCartasSelect(); // Actualizar el select también
-            } else {
-                Swal.fire('Error', data.msg, 'error');
+        // Función para agregar nuevo tipo
+        function agregarTipoCarta() {
+            const nombre = $("#nuevo-tipo-carta-nombre").val().trim();
+
+            if (!nombre) {
+                Swal.fire('Error', 'El nombre es obligatorio', 'error');
+                return;
             }
-        },
-        error: function(xhr, status, error) {
-            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-        }
-    });
-}
 
-// Función para editar tipo
-function editarTipoCarta(id, nombre) {
-    $("#editar-tipo-carta-id").val(id);
-    $("#editar-tipo-carta-nombre").val(nombre);
-    $("#editarTipoCartaModal").modal('show');
-}
-
-// Función para guardar tipo editado
-function guardarTipoCartaEditado() {
-    const id = $("#editar-tipo-carta-id").val();
-    const nombre = $("#editar-tipo-carta-nombre").val().trim();
-    
-    if (!nombre) {
-        Swal.fire('Error', 'El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    $.ajax({
-        url: _URL + "/ajs/carta/editar-tipo-carta",
-        method: "POST",
-        data: {
-            id: id,
-            nombre: nombre
-        },
-        dataType: 'json',
-        success: function(data) {
-            if (data.success) {
-                Swal.fire('Éxito', data.msg, 'success');
-                $("#editarTipoCartaModal").modal('hide');
-                cargarTiposCartasModal();
-                cargarTiposCartasSelect(); // Actualizar el select también
-            } else {
-                Swal.fire('Error', data.msg, 'error');
-            }
-        },
-        error: function(xhr, status, error) {
-            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-        }
-    });
-}
-
-// Función para eliminar tipo
-function eliminarTipoCarta(id, nombre) {
-    Swal.fire({
-        title: '¿Está seguro?',
-        text: `¿Desea eliminar el tipo "${nombre}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
             $.ajax({
-                url: _URL + "/ajs/carta/eliminar-tipo-carta",
+                url: _URL + "/ajs/carta/insertar-tipo-carta",
                 method: "POST",
-                data: { id: id },
+                data: {
+                    nombre: nombre
+                },
                 dataType: 'json',
-                success: function(data) {
+                success: function (data) {
                     if (data.success) {
-                        Swal.fire('Eliminado', data.msg, 'success');
+                        Swal.fire('Éxito', data.msg, 'success');
+                        $("#nuevo-tipo-carta-nombre").val('');
                         cargarTiposCartasModal();
                         cargarTiposCartasSelect(); // Actualizar el select también
                     } else {
                         Swal.fire('Error', data.msg, 'error');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
                 }
             });
         }
-    });
-}
+
+        // Función para editar tipo
+        function editarTipoCarta(id, nombre) {
+            $("#editar-tipo-carta-id").val(id);
+            $("#editar-tipo-carta-nombre").val(nombre);
+            $("#editarTipoCartaModal").modal('show');
+        }
+
+        // Función para guardar tipo editado
+        function guardarTipoCartaEditado() {
+            const id = $("#editar-tipo-carta-id").val();
+            const nombre = $("#editar-tipo-carta-nombre").val().trim();
+
+            if (!nombre) {
+                Swal.fire('Error', 'El nombre es obligatorio', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: _URL + "/ajs/carta/editar-tipo-carta",
+                method: "POST",
+                data: {
+                    id: id,
+                    nombre: nombre
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire('Éxito', data.msg, 'success');
+                        $("#editarTipoCartaModal").modal('hide');
+                        cargarTiposCartasModal();
+                        cargarTiposCartasSelect(); // Actualizar el select también
+                    } else {
+                        Swal.fire('Error', data.msg, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                }
+            });
+        }
+
+        // Función para eliminar tipo
+        function eliminarTipoCarta(id, nombre) {
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: `¿Desea eliminar el tipo "${nombre}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: _URL + "/ajs/carta/eliminar-tipo-carta",
+                        method: "POST",
+                        data: { id: id },
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.success) {
+                                Swal.fire('Eliminado', data.msg, 'success');
+                                cargarTiposCartasModal();
+                                cargarTiposCartasSelect(); // Actualizar el select también
+                            } else {
+                                Swal.fire('Error', data.msg, 'error');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        // Función para renderizar la vista previa del PDF de cartas
+        function renderPdfPreviewCarta(pdfUrl, canvasId) {
+            console.log('Renderizando PDF de carta:', pdfUrl, 'en canvas:', canvasId);
+
+            // Verificar que pdfjsLib esté disponible
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('Error: PDF.js no está cargado');
+                const canvas = document.getElementById(canvasId);
+                if (canvas) {
+                    canvas.parentNode.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
+                    <p class="mt-2">Error: PDF.js no disponible</p>
+                </div>
+            `;
+                }
+                return;
+            }
+
+            // Cargar el documento PDF
+            pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+                // Obtener la primera página
+                pdf.getPage(1).then(function (page) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) {
+                        console.error('Canvas no encontrado:', canvasId);
+                        return;
+                    }
+
+                    const context = canvas.getContext('2d');
+
+                    // Obtener el tamaño del contenedor padre
+                    const container = canvas.parentElement;
+                    const containerWidth = container.clientWidth;
+                    const containerHeight = container.clientHeight;
+
+                    // Establecer el tamaño del canvas al tamaño del contenedor
+                    canvas.width = containerWidth * 2;
+                    canvas.height = containerHeight * 2;
+
+                    // Obtener el viewport original del PDF
+                    const viewport = page.getViewport({ scale: 1.0 });
+
+                    // Calcular la escala para que el PDF llene el ancho del canvas
+                    const scale = (canvas.width / viewport.width) * 1.0;
+
+                    // Crear un nuevo viewport con la escala calculada
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    // Calcular el desplazamiento horizontal para centrar el contenido
+                    const offsetX = (canvas.width - scaledViewport.width) / 2;
+                    const offsetY = 0; // Esto hace que se muestre desde arriba
+
+                    // Renderizar la página en el canvas con alta calidad
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport,
+                        transform: [1, 0, 0, 1, offsetX, offsetY],
+                        intent: 'display'
+                    };
+
+                    // Limpiar el canvas antes de renderizar
+                    context.fillStyle = 'white';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Renderizar la página
+                    page.render(renderContext).promise.then(function () {
+                        console.log('PDF de carta renderizado correctamente en', canvasId);
+                    }).catch(function (error) {
+                        console.error('Error al renderizar el PDF de carta:', error);
+                    });
+                }).catch(function (error) {
+                    console.error('Error al obtener la página del PDF de carta:', error);
+                    // Mostrar un icono de PDF en caso de error
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        canvas.parentNode.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                    <p class="mt-2">Ver PDF</p>
+                </div>
+            `;
+                    }
+                });
+            }).catch(function (error) {
+                console.error('Error al cargar el PDF de carta:', error);
+                // Mostrar un icono de PDF en caso de error
+                const canvas = document.getElementById(canvasId);
+                if (canvas) {
+                    canvas.parentNode.innerHTML = `
+            <div class="text-center p-4">
+                <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                <p class="mt-2">Ver PDF</p>
+            </div>
+        `;
+                }
+            });
+        }
         // Agregar a las funciones globales
         window.gestionarMembretes = gestionarMembretes;
 
@@ -2371,9 +2514,9 @@ function eliminarTipoCarta(id, nombre) {
         window.mostrarVistaPreviewPlantilla = mostrarVistaPreviewPlantilla;
         window.mostrarVistaPreviewMembretes = mostrarVistaPreviewMembretes;
         window.abrirModalTiposCartas = abrirModalTiposCartas;
-window.agregarTipoCarta = agregarTipoCarta;
-window.editarTipoCarta = editarTipoCarta;
-window.guardarTipoCartaEditado = guardarTipoCartaEditado;
-window.eliminarTipoCarta = eliminarTipo
+        window.agregarTipoCarta = agregarTipoCarta;
+        window.editarTipoCarta = editarTipoCarta;
+        window.guardarTipoCartaEditado = guardarTipoCartaEditado;
+        window.eliminarTipoCarta = eliminarTipoCarta;
     })();
 </script>

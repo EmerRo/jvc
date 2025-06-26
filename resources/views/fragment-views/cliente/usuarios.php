@@ -204,7 +204,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             </label>
                             <input type="email" name="email" id="email" class="form-control form-control-sm" required>
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <label class="form-label ">
                                 <i class="fa fa-store me-1"></i>Tienda
                             </label>
@@ -212,7 +212,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="1">Tienda 435</option>
                                 <option value="2">Tienda 426</option>
                             </select>
-                        </div>
+                        </div> -->
                         <!-- <div class="col-md-3">
                             <label class="form-label ">Rotativo</label>
                             <select name="rotativo" id="rotativou" class="form-select form-select-sm">
@@ -301,7 +301,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             <input required type="email" class="form-control form-control-sm" id="emailEditar"
                                 name="emailEditar">
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <label class="form-label small">
                                 <i class="fa fa-store me-1"></i>Tienda
                             </label>
@@ -309,7 +309,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="1">Tienda 435</option>
                                 <option value="2">Tienda 426</option>
                             </select>
-                        </div>
+                        </div> -->
                         <!-- <div class="col-md-3">
                             <label class="form-label small">Rotativo</label>
                             <select name="rotativou" id="rotativou" class="form-select form-select-sm">
@@ -336,7 +336,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <div class="modal fade" id="roles-modal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header py-2 bg-danger text-white">
+            <div class="modal-header py-2 bg-rojo text-white">
                 <h5 class="modal-title" id="rolesModalLabel">
                     <i class="fa fa-user-shield me-1"></i>Gestión de Roles
                 </h5>

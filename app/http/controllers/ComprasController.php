@@ -42,13 +42,13 @@ class ComprasController extends Controller
         $total = $_POST['total'] !== 0 ? intval($_POST['total']) : 0;
         $moneda = $_POST['moneda'] !== '' ? $_POST['moneda'] : '';
         $tipoventa = $_POST['tipoventa'] !== '' ? $_POST['tipoventa'] : '';
-$id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL';
+        $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL';
 
 
         if ($id_tido !== '' && $tipo_pago !== '' && $fecha !== '' && $fechaVen !== '' && $dir_cli !== '' && $serie !== '' && $numero !== '' && $total > 0 && $moneda !== '' && $idProveedor !== '') {
             $array_detalle = json_decode($_POST['listaPro'], true);
             $listaPagos = json_decode($_POST['dias_lista'], true);
-           $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario);
+            $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario);
 
             if (is_int($insertarCompra)) {
                 // Si hay observaciones temporales, guardarlas para esta compra
@@ -61,29 +61,45 @@ $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL
                     unset($_SESSION['temp_observaciones']);
                 }
                 ///echo "ssssssss";
+                // CAMBIO 1: Actualizar stock según el tipo
                 $updateStock = false;
                 foreach ($array_detalle as $row) {
-                    $updateStock = $c_compra->updateStock($row['cantidad'], $row['productoid']);
+                    if ($row['tipo'] == 'producto') {
+                        $updateStock = $c_compra->updateStock($row['cantidad'], $row['productoid']);
+                    } else if ($row['tipo'] == 'repuesto') {
+                        $updateStock = $c_compra->updateStockRepuesto($row['cantidad'], $row['productoid']);
+                    }
                 }
+
                 if ($updateStock) {
                     if ($tipo_pago == 1) {
                         $insertCompra = false;
                         foreach ($array_detalle as $fila) {
-                            $insertCompra = $c_compra->insertProductosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
-                        }
-                        if ($insertCompra) {
-                            echo json_encode(array('resp' => true, 'msj' => 'Registro exitoso 135'));
-                        } else {
-                            echo json_encode(array('resp' => false, 'msj' => 'Ocurrio un Error 137'));
-                        }
-                    } elseif ($tipo_pago == 2) {
-                        // Primero guardar los productos
-                        $insertCompra = false;
-                        foreach ($array_detalle as $fila) {
-                            $insertCompra = $c_compra->insertProductosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
+                            // CAMBIO 2: Guardar en tabla correcta según el tipo
+                            if ($fila['tipo'] == 'producto') {
+                                $insertCompra = $c_compra->insertProductosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
+                            } else if ($fila['tipo'] == 'repuesto') {
+                                $insertCompra = $c_compra->insertRepuestosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
+                            }
                         }
 
-                        // Luego guardar los días de pago
+                        if ($insertCompra) {
+                            echo json_encode(array('resp' => true, 'msj' => 'Registro exitoso'));
+                        } else {
+                            echo json_encode(array('resp' => false, 'msj' => 'Error al guardar productos'));
+                        }
+                    } elseif ($tipo_pago == 2) {
+                        // Mismo cambio para crédito
+                        $insertCompra = false;
+                        foreach ($array_detalle as $fila) {
+                            if ($fila['tipo'] == 'producto') {
+                                $insertCompra = $c_compra->insertProductosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
+                            } else if ($fila['tipo'] == 'repuesto') {
+                                $insertCompra = $c_compra->insertRepuestosCompras($fila['productoid'], $insertarCompra, $fila['cantidad'], $fila['precio']);
+                            }
+                        }
+
+                        // Guardar días de pago (sin cambios)
                         $insertDiasCompra = false;
                         foreach ($listaPagos as $fila) {
                             $insertDiasCompra = $c_compra->insertDiasCompras($insertarCompra, $fila['monto'], $fila['fecha']);
@@ -92,9 +108,11 @@ $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL
                         if ($insertCompra && $insertDiasCompra) {
                             echo json_encode(array('resp' => true, 'msj' => 'Registro exitoso'));
                         } else {
-                            echo json_encode(array('resp' => false, 'msj' => 'Ocurrio un Error'));
+                            echo json_encode(array('resp' => false, 'msj' => 'Error al guardar'));
                         }
                     }
+
+
                 } else {
                     echo json_encode(array('resp' => false, 'msj' => 'Ocurrio un Error'));
                 }
@@ -129,32 +147,45 @@ $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL
         $direccionselk = $_POST['dir_cli'] !== null ? $_POST['dir_cli'] : '-'; */
     }
 
-  public function getAll()
-{
-    $where = ($_SESSION['rol'] == 1) ? "" : "and c.sucursal = {$_SESSION["sucursal"]} ";
-    $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero, 
+    public function getAll()
+    {
+        $where = ($_SESSION['rol'] == 1) ? "" : "and c.sucursal = {$_SESSION["sucursal"]} ";
+        $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero, 
         p.razon_social, u.nombres, u.apellidos, u.usuario_id 
         FROM compras AS c 
         LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id 
         LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id 
         WHERE c.id_empresa = '{$_SESSION['id_empresa']}' $where";
-    
-    $result = $this->conectar->query($sql);
-    $data = $result->fetch_all(MYSQLI_ASSOC);
-    
-    // Cambio importante: devolver los datos como JSON
-    echo json_encode($data);
-    exit; // Asegurarse de que no se ejecute más código después
-}
 
-    public function getDetalle()
-    {
-        $sql = "SELECT pc.id_producto_venta,p.nombre,p.codigo, p.descripcion,pc.cantidad,pc.precio FROM productos_compras AS pc LEFT JOIN productos AS p ON
-        pc.id_producto=p.id_producto LEFT JOIN compras AS c ON
-        pc.id_compra=c.id_compra WHERE c.id_compra = '{$_POST['id']}'";
-        return json_encode($this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC));
+        $result = $this->conectar->query($sql);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
 
+        // Cambio importante: devolver los datos como JSON
+        echo json_encode($data);
+        exit; // Asegurarse de que no se ejecute más código después
     }
+
+  public function getDetalle()
+{
+    // Consultar productos
+    $sqlProductos = "SELECT pc.id_producto_venta, p.nombre, p.codigo, p.descripcion, pc.cantidad, pc.precio, 'producto' as tipo
+                     FROM productos_compras AS pc 
+                     LEFT JOIN productos AS p ON pc.id_producto = p.id_producto 
+                     LEFT JOIN compras AS c ON pc.id_compra = c.id_compra 
+                     WHERE c.id_compra = '{$_POST['id']}'";
+    
+    // Consultar repuestos
+    $sqlRepuestos = "SELECT rc.id_repuesto_compra as id_producto_venta, r.nombre, r.codigo, r.detalle as descripcion, rc.cantidad, rc.precio, 'repuesto' as tipo
+                     FROM repuestos_compras AS rc 
+                     LEFT JOIN repuestos AS r ON rc.id_repuesto = r.id_repuesto 
+                     LEFT JOIN compras AS c ON rc.id_compra = c.id_compra 
+                     WHERE c.id_compra = '{$_POST['id']}'";
+    
+    // Combinar resultados
+    $sql = "($sqlProductos) UNION ALL ($sqlRepuestos) ORDER BY tipo, nombre";
+    
+    return json_encode($this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC));
+}
     public function getPagos()
     {
         $id_compra = $_POST['id'];

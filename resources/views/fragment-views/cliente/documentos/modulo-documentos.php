@@ -1,5 +1,5 @@
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script> -->
 <!-- resources\views\fragment-views\cliente\documentos\modulo-documentos.php -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script> -->
 <!-- Sistema de Gestión de Archivos Técnicos -->
 <script>
     // Función para cargar PDF.js de manera asíncrona

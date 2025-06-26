@@ -12,7 +12,7 @@ $c_prealerta = new PreAlerta();
         <div class="col-md-12">
             <h6 class="page-title text-center">
                 <!-- <i class="fa fa-tools me-2"></i> -->
-                REGISTRO DE LAS MAQUINAS A PRODUCIR
+                REGISTRO DE MAQUINAS A REPARAR 
             </h6>
         </div>
     </div>
@@ -26,7 +26,7 @@ $c_prealerta = new PreAlerta();
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <button type="button" data-bs-toggle="modal" data-bs-target="#modalAgregar"
-                            class="btn btn-primary">
+                            class="btn bg-rojo text-white ">
                             <i class="fa fa-plus"></i> Añadir
                         </button>
                     </div>
@@ -79,10 +79,10 @@ $c_prealerta = new PreAlerta();
                     aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header text-white bg-danger">
+                            <div class="modal-header text-white bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">
                                     <i class="fa fa-plus-circle me-2"></i>
-                                    Agregar Registro
+                                    ORDEN DE TRABAJO Y SERVICIO
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
@@ -105,7 +105,7 @@ $c_prealerta = new PreAlerta();
                                                             class="form-control" maxlength="11"
                                                             :class="{ 'is-invalid': validationErrors.num_doc }">
                                                         <div class="input-group-prepend">
-                                                            <button @click="buscarDocumentSS" class="btn btn-primary"
+                                                            <button @click="buscarDocumentSS" class="btn bg-rojo text-white"
                                                                 type="button">
                                                                 <i class="fa fa-search"></i>
                                                             </button>
@@ -164,7 +164,7 @@ $c_prealerta = new PreAlerta();
                                                     <select type="text" class="form-control" id="atencion_Encargado"
                                                         name="atencion_Encargado" required
                                                         :class="{ 'is-invalid': validationErrors.tecnico }"></select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalTecnico">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -206,7 +206,7 @@ $c_prealerta = new PreAlerta();
                                                             {{marca.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalMarca">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -228,7 +228,7 @@ $c_prealerta = new PreAlerta();
                                                             {{modelo.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalModelo">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -249,7 +249,7 @@ $c_prealerta = new PreAlerta();
                                                             {{eq.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalEquipo">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -275,7 +275,7 @@ $c_prealerta = new PreAlerta();
                                             <div class="col-md-8">
                                                 <label class="form-label">
                                                     <i class="fa fa-barcode me-1"></i> Números de serie
-                                                    <span class="badge bg-primary ms-2" v-if="seriesCount > 0">
+                                                    <span class="badge bg-rojo text-white ms-2" v-if="seriesCount > 0">
                                                         {{ seriesCount }} / {{ cantidadMaquinasIdenticas }}
                                                     </span>
                                                 </label>
@@ -314,7 +314,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{marca.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo text-white" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalMarca">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -332,7 +332,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{modelo.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo text-white" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalModelo">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -349,7 +349,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{eq.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo text-white" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalEquipo">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -376,7 +376,7 @@ $c_prealerta = new PreAlerta();
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fa fa-times me-1"></i> Cerrar
                                 </button>
-                                <button type="button" id="submitRegistro" class="btn btn-primary">
+                                <button type="button" id="submitRegistro" class="btn bg-rojo text-white">
                                     <i class="fa fa-save me-1"></i> Guardar
                                 </button>
                             </div>

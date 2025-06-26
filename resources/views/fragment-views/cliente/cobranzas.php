@@ -34,7 +34,8 @@
 
                 </div>
                 <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%; border: 2px solid white;">
+                  <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+
 
                         <thead>
                         <tr>
@@ -59,7 +60,7 @@
                 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
-                            <div class="modal-header">
+                            <div class="modal-header bg-rojo text-white">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>

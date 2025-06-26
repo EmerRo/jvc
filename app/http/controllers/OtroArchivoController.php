@@ -4,12 +4,13 @@
 require_once "app/models/OtroArchivo.php";
 require_once "app/models/OtroArchivoPlantilla.php";
 require_once "app/http/controllers/OtroArchivoPDF.php";
-
+require_once "app/models/TipoOtrosArchivos.php";
 class OtroArchivoController extends Controller
 {
     private $otroArchivo;
     private $otroArchivoPlantilla;
     private $otroArchivoPDF;
+    private $tipoOtrosArchivos;
     private $conectar;
 
     public function __construct()
@@ -17,6 +18,7 @@ class OtroArchivoController extends Controller
         $this->otroArchivo = new OtroArchivo();
         $this->otroArchivoPlantilla = new OtroArchivoPlantilla();
         $this->otroArchivoPDF = new OtroArchivoPDF();
+        $this->tipoOtrosArchivos = new TipoOtrosArchivos();
         $this->conectar = (new Conexion())->getConexion();
     }
 
@@ -32,13 +34,15 @@ class OtroArchivoController extends Controller
             $archivos = $this->otroArchivo->listarOtrosArchivos($filtro, $tipo_busqueda);
             
             // Devolver los datos en formato JSON
-            echo json_encode($archivos ?: []);
+           $response = ['archivos' => $archivos ?: []];
+           echo json_encode($response);
         } catch (Exception $e) {
             echo json_encode([
                 'error' => true,
-                'message' => 'Error al procesar la solicitud',
-                'debug_info' => $e->getMessage()
-            ]);
+            'message' => 'Error al procesar la solicitud',
+            'debug_info' => $e->getMessage(),
+            'archivos' => []
+        ]);
         }
     }
 
@@ -57,7 +61,7 @@ class OtroArchivoController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $this->otroArchivo->getId(),
-                    'cliente_id' => $this->otroArchivo->getClienteId(),
+                    'id_cliente' => $this->otroArchivo->getIdCliente(),
                     'usuario_id' => $this->otroArchivo->getUsuarioId(),
                     'tipo' => $this->otroArchivo->getTipo(),
                     'motivo' => $this->otroArchivo->getMotivo(),
@@ -83,13 +87,16 @@ class OtroArchivoController extends Controller
     // Método para insertar un nuevo archivo
     public function insertar()
     {
+        
+        
         if (!empty($_POST)) {
+            
             try {
                 // Validar datos
                 $tipo = isset($_POST['tipo']) ? trim($_POST['tipo']) : '';
                 $motivo = isset($_POST['motivo']) ? trim($_POST['motivo']) : '';
                 $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
-                $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+                $id_cliente = isset($_POST['id_cliente']) ? intval($_POST['id_cliente']) : 0;
                 $es_pdf_subido = isset($_POST['es_pdf_subido']) ? intval($_POST['es_pdf_subido']) : 0;
                 
                 // Validar que los campos obligatorios no estén vacíos
@@ -117,9 +124,9 @@ class OtroArchivoController extends Controller
                 } else {
                     // Si es un documento creado
                     $contenido = isset($_POST['contenido']) ? $_POST['contenido'] : '';
-                    if (empty($contenido)) {
-                        throw new Exception("El contenido es obligatorio para documentos creados");
-                    }
+                   if (empty($contenido) || trim($contenido) === '' || trim($contenido) === '<p><br></p>') {
+    throw new Exception("El contenido es obligatorio para documentos creados");
+}
                 }
                 
                 // Procesar imágenes si se proporcionan
@@ -137,6 +144,10 @@ class OtroArchivoController extends Controller
                 } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
                     $footer_image = $_POST['footer_image'];
                 }
+          if (!isset($_SESSION['usuario_fac'])) {
+    echo json_encode(['res' => false, 'msg' => 'Debe iniciar sesión para guardar archivos']);
+    return;
+}
                 
                 // Configurar el objeto archivo
                 $this->otroArchivo->setTipo($tipo);
@@ -146,8 +157,8 @@ class OtroArchivoController extends Controller
                 $this->otroArchivo->setArchivoPdf($archivo_pdf);
                 $this->otroArchivo->setHeaderImage($header_image);
                 $this->otroArchivo->setFooterImage($footer_image);
-                $this->otroArchivo->setClienteId($cliente_id);
-                $this->otroArchivo->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
+                $this->otroArchivo->setIdCliente($id_cliente);
+              $this->otroArchivo->setUsuarioId($_SESSION['usuario_fac']); // Asumiendo que hay una sesión de usuario
                 $this->otroArchivo->setEsPdfSubido($es_pdf_subido);
                 $this->otroArchivo->setEstado('activo');
                 
@@ -180,7 +191,7 @@ class OtroArchivoController extends Controller
                 $tipo = isset($_POST['tipo']) ? trim($_POST['tipo']) : '';
                 $motivo = isset($_POST['motivo']) ? trim($_POST['motivo']) : '';
                 $titulo = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
-                $cliente_id = isset($_POST['cliente_id']) ? intval($_POST['cliente_id']) : 0;
+                $id_cliente = isset($_POST['id_cliente']) ? intval($_POST['id_cliente']) : 0;
                 $es_pdf_subido = isset($_POST['es_pdf_subido']) ? intval($_POST['es_pdf_subido']) : 0;
                 $estado = isset($_POST['estado']) ? $_POST['estado'] : 'activo';
                 
@@ -237,7 +248,7 @@ class OtroArchivoController extends Controller
                 $this->otroArchivo->setArchivoPdf($archivo_pdf);
                 $this->otroArchivo->setHeaderImage($header_image);
                 $this->otroArchivo->setFooterImage($footer_image);
-                $this->otroArchivo->setClienteId($cliente_id);
+                $this->otroArchivo->setIdCliente($id_cliente);
                 $this->otroArchivo->setEsPdfSubido($es_pdf_subido);
                 $this->otroArchivo->setEstado($estado);
                 
@@ -538,5 +549,158 @@ class OtroArchivoController extends Controller
         $base64 = 'data:application/pdf;base64,' . base64_encode($pdfData);
         
         return $base64;
+    }
+      public function obtenerTiposOtrosArchivos()
+{
+    try {
+        $tipos = $this->tipoOtrosArchivos->obtenerTodos();
+        echo json_encode(['success' => true, 'tipos' => $tipos]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+}
+
+// Método para insertar tipo de Archivo
+public function insertarTipoOtrosArchivos()
+{
+    if (!empty($_POST)) {
+        try {
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            
+            if (empty($nombre)) {
+                throw new Exception("El nombre del tipo es obligatorio");
+            }
+            
+            $this->tipoOtrosArchivos->setNombre($nombre);
+            
+            if ($this->tipoOtrosArchivos->insertar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo creado correctamente']);
+            } else {
+                throw new Exception("Error al guardar el tipo de Archivo");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+// Método para editar tipo de Archivo
+public function editarTipoOtrosArchivos()
+{
+    if (!empty($_POST)) {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+            
+            if (empty($id) || empty($nombre)) {
+                throw new Exception("ID y nombre son obligatorios");
+            }
+            
+            $this->tipoOtrosArchivos->setId($id);
+            $this->tipoOtrosArchivos->setNombre($nombre);
+            
+            if ($this->tipoOtrosArchivos->actualizar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo actualizado correctamente']);
+            } else {
+                throw new Exception("Error al actualizar el tipo de Archivo");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+
+// Método para eliminar tipo de Archivo
+public function eliminarTipoOtrosArchivos()
+{
+    if (isset($_POST['id'])) {
+        try {
+            $id = intval($_POST['id']);
+            $this->tipoOtrosArchivos->setId($id);
+            
+            if ($this->tipoOtrosArchivos->eliminar()) {
+                echo json_encode(['success' => true, 'msg' => 'Tipo de Archivo eliminado correctamente']);
+            } else {
+                throw new Exception("Error al eliminar el tipo de Archivo");
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+}
+ public function obtenerMembretes()
+    {
+        try {
+            // Obtener la plantilla actual que contiene los membretes
+            $this->otroArchivoPlantilla->obtenerTemplateActual();
+
+            $data = [
+                'success' => true,
+                'data' => [
+                    'header_image' => $this->otroArchivoPlantilla->getHeaderImage(),
+                    'footer_image' => $this->otroArchivoPlantilla->getFooterImage(),
+                    'header_image_url' => $this->otroArchivoPlantilla->getHeaderImageUrl(),
+                    'footer_image_url' => $this->otroArchivoPlantilla->getFooterImageUrl()
+                ]
+            ];
+
+            echo json_encode($data);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+    public function guardarMembretes()
+    {
+        if (!empty($_POST) || !empty($_FILES)) {
+            try {
+                // Obtener la plantilla actual
+                if (!$this->otroArchivoPlantilla->obtenerTemplateActual()) {
+                    throw new Exception("No se pudo obtener la plantilla actual");
+                }
+
+                // Mantener valores actuales como respaldo
+                $header_image = $this->otroArchivoPlantilla->getHeaderImage();
+                $footer_image = $this->otroArchivoPlantilla->getFooterImage();
+
+                // Verificar archivos de imagen PRIMERO
+                if (isset($_FILES['header_image_file']) && $_FILES['header_image_file']['error'] === UPLOAD_ERR_OK) {
+                    $header_image = $this->procesarImagen($_FILES['header_image_file']);
+                    error_log("Nueva imagen de cabecera procesada desde archivo");
+                } else if (isset($_POST['header_image']) && !empty($_POST['header_image'])) {
+                    $header_image = $_POST['header_image'];
+                    error_log("Nueva imagen de cabecera desde POST data");
+                }
+
+                if (isset($_FILES['footer_image_file']) && $_FILES['footer_image_file']['error'] === UPLOAD_ERR_OK) {
+                    $footer_image = $this->procesarImagen($_FILES['footer_image_file']);
+                    error_log("Nueva imagen de pie procesada desde archivo");
+                } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
+                    $footer_image = $_POST['footer_image'];
+                    error_log("Nueva imagen de pie desde POST data");
+                }
+
+                // Actualizar solo las imágenes de la plantilla
+                $this->otroArchivoPlantilla->setHeaderImage($header_image);
+                $this->otroArchivoPlantilla->setFooterImage($footer_image);
+
+                // Guardar la plantilla actualizada
+                $resultado = $this->otroArchivoPlantilla->actualizarTemplate();
+
+                if ($resultado) {
+                    echo json_encode([
+                        'success' => true,
+                        'mensaje' => 'Membretes guardados correctamente'
+                    ]);
+                } else {
+                    throw new Exception("Error al actualizar la plantilla en la base de datos");
+                }
+
+            } catch (Exception $e) {
+                error_log("Error en guardarMembretes: " . $e->getMessage());
+                echo json_encode(['success' => false, 'msg' => 'Error al guardar los membretes: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'msg' => 'No se recibieron datos']);
+        }
     }
 }

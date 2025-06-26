@@ -1,4 +1,4 @@
-<!-- guia-remision.php -->
+<!-- resources\views\fragment-views\cliente\guia-remision.php-->
 <?php
 require_once "app/models/GuiaRemision.php";
 require_once "app/models/Varios.php";
@@ -61,10 +61,10 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
         <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body">
             <div class="card-title-desc text-end mb-4">
-                    <a href="/guia/remision/registrar" class="btn bg-rojo text-white button-link" style="border-radius: 10px; padding: 8px 16px; font-weight: 500; box-shadow: 0 2px 5px rgba(202, 52, 56, 0.3); transition: all 0.3s ease;">
+                    <a href="/guia/remision/registrar" class="btn border-rojo button-link" >
                         <i class="fa fa-plus me-1"></i> Crear Guía de Remisión
                     </a>
-                    <a href="/guia/remision/manual/registrar" class="btn bg-white text-rojo button-link" style="border-radius: 10px; padding: 8px 16px; font-weight: 500; border: 1px solid #CA3438; margin-left: 8px; transition: all 0.3s ease;">
+                    <a href="/guia/remision/manual/registrar" class="btn bg-rojo text-white bordes button-link" >
                         <i class="fa fa-plus me-1"></i> Crear Guía de Remisión Manual
                     </a>
                 </div>
@@ -143,11 +143,19 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                                                         <i class="fab fa-whatsapp me-2"></i> Enviar por WhatsApp
                                                     </button>
                                                 </li>
-                                                <li>
-                                                    <button type="button" class="dropdown-item" onclick="crearFactura(<?php echo $fila['id_guia_remision']; ?>)">
-                                                        <i class="fas fa-file-invoice me-2"></i> Crear Factura
-                                                    </button>
-                                                </li>
+                                               <li>
+    <?php 
+    // Determinar el tipo de documento y el texto a mostrar
+    $documento = $fila['documento_cliente'];
+    $es_ruc = (strlen($documento) == 11 && is_numeric($documento));
+    $texto_crear = $es_ruc ? 'Crear Factura' : 'Crear Boleta';
+    $icono_crear = $es_ruc ? 'fas fa-file-invoice' : 'fas fa-receipt';
+    ?>
+    <button type="button" class="dropdown-item" onclick="crearDocumento(<?php echo $fila['id_guia_remision']; ?>, '<?php echo $es_ruc ? 'factura' : 'boleta'; ?>')">
+        <i class="<?php echo $icono_crear; ?> me-2"></i> <?php echo $texto_crear; ?>
+    </button>
+</li>
+
                                                 <li>
                                                     <button type="button" class="dropdown-item" onclick="duplicarGuia(<?php echo $fila['id_guia_remision']; ?>)">
                                                         <i class="fas fa-copy me-2"></i> Duplicar Guía
@@ -345,11 +353,19 @@ $(document).ready(function() {
     });
 });
 
-function crearFactura(idGuia) {
+// Cambiar el nombre de la función de crearFactura a crearDocumento
+function crearDocumento(idGuia, tipoDoc) {
     localStorage.setItem('desde', 'coti_guia');
     localStorage.setItem('datosGuiaRemosion', idGuia);
+    localStorage.setItem('tipoDocumento', tipoDoc); // Opcional: guardar el tipo para uso posterior
     window.location.href = _URL + '/ventas/productos?guia=' + idGuia;
 }
+
+// Mantener la función original por compatibilidad (opcional)
+function crearFactura(idGuia) {
+    crearDocumento(idGuia, 'factura');
+}
+
 
 function duplicarGuia(idGuia) {
     Swal.fire({

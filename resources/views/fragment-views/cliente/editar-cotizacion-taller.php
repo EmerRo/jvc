@@ -77,11 +77,11 @@ if (!isset($_SESSION)) {
                 <div class="card-title-desc">
                     <div class="col-lg-12 text-end">
 
-                        <button type="button" onclick="$('#btn_finalizar_pedido').click()" class="btn btn-primary">
+                        <button type="button" onclick="$('#btn_finalizar_pedido').click()" class="btn bg-rojo text-white">
                             <i class="fa fa-plus"></i>Actualizar Cotización
                         </button>
                         <button  style="margin-left:25px;" class="btn btn-warning"
-                            onclick="window.location.href='/jvc/taller/coti/view'">
+                            onclick="window.location.href='/taller/coti/view'">
                             <i class="fa fa-arrow-left"></i> Regresar
                         </button>
                     </div>
@@ -213,7 +213,7 @@ if (!isset($_SESSION)) {
                                                         <div class="row mt-3">
                                                             <div class="col-lg-2 d-flex align-items-center">
                                                                 <button id="submit-a-product" type="submit"
-                                                                    class="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                                                                    class="btn border-rojo w-100 d-flex align-items-center justify-content-center"
                                                                     style="min-width: 110px;">
                                                                     <i class="fa fa-check me-2"></i> Agregar
                                                                 </button>
@@ -398,7 +398,7 @@ if (!isset($_SESSION)) {
                                                                 <input id="input_datos_cliente" v-model="venta.num_doc"
                                                                     type="text" placeholder="Ingrese Documento"
                                                                     class="form-control" maxlength="11" readonly>
-                                                                <div class="input-group-addon btn btn-primary"
+                                                                <div class="input-group-addon btn bg-rojo text-white"
                                                                     @click="buscarDocumentSS">
                                                                     <i class="fa fa-search"></i>
                                                                 </div>
@@ -447,7 +447,7 @@ if (!isset($_SESSION)) {
                                                     <div class="form-group mb-3">
                                                         <div class="col-lg-12">
                                                             <button style="display: none" @click="actualizarCotizacion"
-                                                                type="button" class="btn btn-lg btn-primary"
+                                                                type="button" class="btn btn-lg bg-rojo text-white"
                                                                 id="btn_finalizar_pedido">
                                                                 <i class="fa fa-save"></i> Guardar
                                                             </button>
@@ -457,24 +457,24 @@ if (!isset($_SESSION)) {
                                             </div>
 
                                             <!-- Botones de acción -->
-                                            <button class="btn btn-success" id="edit-condiciones"
+                                            <button class="btn border-rojo" id="edit-condiciones"
                                                 style="margin-bottom: 5px;">
                                                 Modificar Términos
                                             </button>
 
-                                            <button class="btn btn-success" id="edit-diagnostico"
+                                            <button class="btn border-rojo" id="edit-diagnostico"
                                                 style="margin-bottom: 5px;">
                                                 Diagnóstico
                                             </button>
 
-                                            <button class="btn btn-success btn-foto" style="margin-bottom: 5px;">
+                                            <button class="btn border-rojo btn-foto" style="margin-bottom: 5px;">
                                                 Foto
                                             </button>
 
                                             <br>
 
                                             <!-- Total -->
-                                            <div class="bg-primary pv-15 text-center p-3"
+                                            <div class="bg-rojo text-white pv-15 text-center p-3"
                                                 style="height: 90px; color: white">
                                                 <h1 class="mv-0 font-400" id="lbl_suma_pedido">
                                                     {{monedaSibol}}
@@ -621,7 +621,7 @@ if (!isset($_SESSION)) {
                                             </label>
                                         </div>
                                         <div v-if="itemsLista.length>0" style="width: 100%" class="text-end">
-                                            <button @click="pasar2Poiter" class="btn btn-primary">
+                                            <button @click="pasar2Poiter" class="btn bg-rojo text-white">
                                                 Continuar
                                             </button>
                                         </div>
@@ -659,7 +659,7 @@ if (!isset($_SESSION)) {
                                             <button @click="pointSel=1" class="btn btn-warning">
                                                 Regresar
                                             </button>
-                                            <button @click="agregarProducto2Ps" class="btn btn-primary">
+                                            <button @click="agregarProducto2Ps" class="btn bg-rojo text-white">
                                                 Agregar
                                             </button>
                                         </div>
@@ -686,7 +686,7 @@ if (!isset($_SESSION)) {
 <div class="modal fade" id="modal-terminos" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo text-white">
                 <h1 class="modal-title fs-5">Modificar Condiciones</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -697,7 +697,7 @@ if (!isset($_SESSION)) {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Cerrar
                 </button>
-                <button type="button" id="guardar-terminos" class="btn btn-primary">
+                <button type="button" id="guardar-terminos" class="btn bg-rojo text-white">
                     Guardar
                 </button>
             </div>
@@ -709,7 +709,7 @@ if (!isset($_SESSION)) {
 <div class="modal fade" id="modal-diagnostico" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo text-white">
                 <h1 class="modal-title fs-5">Modificar Diagnóstico</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -720,7 +720,7 @@ if (!isset($_SESSION)) {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Cerrar
                 </button>
-                <button type="button" id="guardar-diagnostico" class="btn btn-primary">
+                <button type="button" id="guardar-diagnostico" class="btn bg-rojo text-white">
                     Guardar
                 </button>
             </div>
@@ -731,7 +731,7 @@ if (!isset($_SESSION)) {
 <div class="modal fade" id="modalFotos" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title">Subir Fotos</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal">
                 </button>
@@ -757,7 +757,7 @@ if (!isset($_SESSION)) {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Cerrar
                 </button>
-                <button type="button" class="btn btn-primary" id="btnGuardarFotos">
+                <button type="button" class="btn bg-rojo text-white" id="btnGuardarFotos">
                     Guardar Fotos
                 </button>
             </div>

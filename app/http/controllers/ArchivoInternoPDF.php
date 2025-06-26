@@ -9,6 +9,7 @@ require_once "app/models/ArchivoInternoPlantilla.php";
 class ArchivoInternoPDF extends Controller
 {
     private $mpdf;
+    private $conexion;
 
     public function __construct()
     {
@@ -26,38 +27,19 @@ class ArchivoInternoPDF extends Controller
         $this->conexion = (new Conexion())->getConexion();
     }
     
-    public function generarArchivoInternoPDF($id_archivo)
+   public function generarArchivoInternoPDF($id_carta)
     {
-        $archivo = new ArchivoInterno();
-        $archivo->obtenerArchivoInterno($id_archivo);
-        
-        // Si es un PDF subido, simplemente mostrarlo
-        if ($archivo->getEsPdfSubido() && $archivo->getArchivoPdf()) {
-            // Extraer el contenido base64 (eliminar el prefijo data:application/pdf;base64,)
-            $pdfData = $archivo->getArchivoPdf();
-            if (strpos($pdfData, 'data:application/pdf;base64,') === 0) {
-                $pdfData = substr($pdfData, 28);
-            }
-            
-            // Decodificar el PDF
-            $pdfBinary = base64_decode($pdfData);
-            
-            // Enviar el PDF al navegador
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: inline; filename="' . $archivo->getTitulo() . '.pdf"');
-            echo $pdfBinary;
-            exit;
-        }
-        
-        // Si es un documento creado, generar el PDF
-        $this->mpdf->SetTitle($archivo->getTitulo());
-        $this->mpdf->SetAutoPageBreak(true, 0);
-        $this->mpdf->AddPage('P', '', '', '', '', 0, 0, 0, 0, 0, 0);
-        $this->mpdf->WriteHTML('<style>.unselectable {-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}</style>');
+        $carta = new ArchivoInterno();
+        $carta->obtenerArchivoInterno($id_carta);
 
+        // Generar número correlativo
+        $numeroCorrelativo = $carta->generarNumeroCorrelativo($carta->getTipo());
+        
+        $this->mpdf->SetTitle($carta->getTitulo() . " " . $numeroCorrelativo);
+        
         // Obtener las URLs de las imágenes
-        $headerImageUrl = $archivo->getHeaderImage();
-        $footerImageUrl = $archivo->getFooterImage();
+        $headerImageUrl = $carta->getHeaderImage();
+        $footerImageUrl = $carta->getFooterImage();
 
         // Si no hay imágenes específicas, usar las de la plantilla
         if (!$headerImageUrl || !$footerImageUrl) {
@@ -73,109 +55,175 @@ class ArchivoInternoPDF extends Controller
             }
         }
 
-        // Construir el HTML del documento con imágenes a ancho completo
+        // Definir el HTML del encabezado y pie de página
+        $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
+            <img src='" . $headerImageUrl . "' style='width: 100%; margin: 0;'>
+        </div>";
+        
+        $footerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
+            <img src='" . $footerImageUrl . "' style='width: 100%; margin: 0;'>
+        </div>";
+
+        // Configurar el encabezado y pie de página
+        $this->mpdf->SetHTMLHeader($headerHTML);
+        $this->mpdf->SetHTMLFooter($footerHTML);
+        
+        // Configurar márgenes
+        $headerHeight = 50;
+        $footerHeight = 30;
+        
+        $this->mpdf->SetMargins(15, 15, $headerHeight);
+        $this->mpdf->SetAutoPageBreak(true, $footerHeight);
+        
+        // Añadir la página
+        $this->mpdf->AddPage();
+        
+        // Construir el HTML del contenido con la información completa
         $html = "
-        <div style='width: 100%; padding: 0; margin: 0;'>
-            <img src='" . $headerImageUrl . "' style='width: 100%; margin: 0;'> 
+        <div style='margin-top: 30px;'></div>
+        
+        <!-- Información de la carta -->
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px; '>" . strtoupper($carta->getTitulo()) . " " . $numeroCorrelativo . "</h1>
         </div>
         
+        <!-- Información de la empresa y cliente -->
+        <div style='margin: 0 15mm; margin-bottom: 5px;'>
+            <table style='width: 100%; border-collapse: collapse; font-size: 12px;'>
+                <tr>
+                    <td style='width: 15%; font-weight: bold; padding: 5px 0;'>DE:</td>
+                    <td style='width: 85%; padding: 5px 0;'>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</td>
+                </tr>";
+        
+        // Agregar información del cliente si existe
+        if ($carta->getIdCliente()) {
+            // Obtener información del cliente
+            $stmt = $this->conexion->prepare("SELECT datos, documento, direccion FROM clientes WHERE id_cliente = ?");
+            $clienteId = $carta->getIdCliente();
+            $stmt->bind_param("i", $clienteId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($row = $result->fetch_assoc()) {
+                $html .= "
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>A:</td>
+                    <td style='padding: 5px 0;'>" . $row['datos'] . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Documento:</td>
+                    <td style='padding: 5px 0;'>" . $row['documento'] . "</td>
+                </tr>";
+                
+                if (!empty($row['direccion'])) {
+                    $html .= "
+                    <tr>
+                        <td style='font-weight: bold; padding: 5px 0;'>Dirección:</td>
+                        <td style='padding: 5px 0;'>" . $row['direccion'] . "</td>
+                    </tr>";
+                }
+            }
+        }
+        
+        $html .= "
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
+                    <td style='padding: 5px 0;'>" . $carta->getTitulo() . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Tipo:</td>
+                    <td style='padding: 5px 0;'>" . $carta->getTipo() . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
+                    <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y', strtotime($carta->getFechaCreacion())) . "</td>
+                </tr>
+            </table>
+        </div>
+        
+        <hr style='margin: 0 15mm; border: none; border-top: 1px solid #ccc;'>
+        
+        <!-- Contenido de la carta -->
         <div style='font-size: 12px; text-align: justify; padding: 10px; margin: 0 15mm;'>";
         
-        // Agregar el contenido del documento
-        $html .= $archivo->getContenido();
-        
-        // Posicionamiento absoluto para el footer en la parte inferior
-        $html .= "
-        <div style='position: absolute; bottom: 0; left: 0; width: 100%;'>
-            <img src='" . $footerImageUrl . "' style='width: 100%; margin: 0;'>
-        </div>
-        ";
+        // Agregar el contenido de la carta
+        $html .= $carta->getContenido();
+        $html .= "</div>";
 
         $this->mpdf->WriteHTML($html);
-        $this->mpdf->Output($archivo->getTitulo() . ".pdf", "I");
+        $this->mpdf->Output("ArchivoInterno_" . $numeroCorrelativo . ".pdf", "I");
     }
     
-   public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image)
+  public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image)
     {
-        // Reinicializar mPDF para asegurar configuración limpia
-        $this->mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8', 
-            'format' => 'A4',
-            'margin_left' => 0,
-            'margin_right' => 0,
-            'margin_top' => 0,
-            'margin_bottom' => 0,
-            'margin_header' => 0,
-            'margin_footer' => 0
-        ]);
+        // Para vista previa, generar un número correlativo de ejemplo
+        $anio = date('Y');
+        $numeroEjemplo = "NRO.XXX-$anio-JVC";
+        
+        $this->mpdf->SetTitle($titulo . " " . $numeroEjemplo);
+        
+        // Definir el HTML del encabezado y pie de página
+        $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
+            <img src='" . $header_image . "' style='width: 100%; margin: 0;'>
+        </div>";
+        
+        $footerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
+            <img src='" . $footer_image . "' style='width: 100%; margin: 0;'>
+        </div>";
 
-        $this->mpdf->SetTitle($titulo);
-        $this->mpdf->SetAutoPageBreak(false);
+        // Configurar el encabezado y pie de página
+        $this->mpdf->SetHTMLHeader($headerHTML);
+        $this->mpdf->SetHTMLFooter($footerHTML);
+        
+        $headerHeight = 50;
+        $footerHeight = 30;
+        
+        $this->mpdf->SetMargins(15, 15, $headerHeight);
+        $this->mpdf->SetAutoPageBreak(true, $footerHeight);
+        
+        // Añadir la página
         $this->mpdf->AddPage();
-
-        // Construir el HTML con una estructura que garantice que el pie de página esté en la parte inferior
-        $html = '
-        <style>
-            @page {
-                margin: 0;
-                padding: 0;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-                font-family: Arial, sans-serif;
-                position: relative;
-            }
-            .header {
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-            .header img {
-                width: 100%;
-                display: block;
-            }
-            .content {
-                margin: 70px 15mm 100px 15mm;
-                min-height: 400px;
-            }
-            .title {
-                text-align: center;
-                color: #000;
-                margin-bottom: 20px;
-                font-size: 18pt;
-                font-weight: bold;
-            }
-            .text {
-                font-size: 12pt;
-                text-align: justify;
-            }
-            .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-            .footer img {
-                width: 100%;
-                display: block;
-            }
-        </style>
         
-        <div class="header">
-            <img src="' . $header_image . '" alt="Encabezado">
+        // Construir el HTML del contenido
+        $html = "
+        <div style='margin-top: 30px;'></div>
+        
+        <!-- Información de la carta -->
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <h1 style='color: #000; font-size: 18pt; margin-bottom: 10px;'>VISTA PREVIA " . $numeroEjemplo . "</h1>
+            <h2 style='color: #000; font-size: 16pt; margin-bottom: 20px;'>" . $titulo . "</h2>
         </div>
         
-        <div class="content">
-            <div class="title">' . $titulo . '</div>
-            <div class="text">' . $contenido . '</div>
+        <!-- Información de ejemplo -->
+        <div style='margin: 0 15mm; margin-bottom: 20px;'>
+            <table style='width: 100%; border-collapse: collapse; font-size: 12px;'>
+                <tr>
+                    <td style='width: 15%; font-weight: bold; padding: 5px 0;'>DE:</td>
+                    <td style='width: 85%; padding: 5px 0;'>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>A:</td>
+                    <td style='padding: 5px 0;'>CLIENTE DE EJEMPLO</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
+                    <td style='padding: 5px 0;'>" . $titulo . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
+                    <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y') . "</td>
+                </tr>
+            </table>
         </div>
         
-        <div class="footer">
-            <img src="' . $footer_image . '" alt="Pie de página">
-        </div>';
+        <hr style='margin: 20px 15mm; border: none; border-top: 1px solid #ccc;'>
+        
+        <!-- Contenido de la carta -->
+        <div style='font-size: 12px; text-align: justify; padding: 10px; margin: 0 15mm;'>";
+        
+        // Agregar el contenido de la carta
+        $html .= $contenido;
+        $html .= "</div>";
 
         $this->mpdf->WriteHTML($html);
         

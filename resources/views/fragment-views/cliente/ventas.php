@@ -1,4 +1,4 @@
-<!-- start page title -->
+<!-- resources\views\fragment-views\cliente\ventas.php -->
 <link rel="stylesheet" href="<?= URL::to('public/css/factura.css')  ?>?v=<?= time() ?>">
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -14,6 +14,7 @@
     
     </div>
 </div>
+
 <!-- end page title -->
 
 
@@ -25,32 +26,41 @@
                 <div class="table-responsive">
                     <h4 class="card-title">Lista de Ventas</h4>
 
-                    <div class="card-title-desc d-flex flex-wrap gap-2">
-                        <a href="/ventas/productos" class="btn bg-rojo text-white button-link"><i class="fa fa-plus"></i>
-                            Facturar Productos</a>
-                        <a href="/nota/electronica" class="btn bg-rojo text-white button-link"><i class="fa fa-plus"></i>
-                            Agregar Nota Electronica</a>
-                        <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporte" class="btn bg-white text-rojo border-rojo"><i
-                                class="fa fa-file-pdf-o"></i> Exportar a PDF Reporte de Venta</button>
-                        <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporteganancia"
+                    <div class="card-title-desc d-flex flex-wrap gap-2 justify-content-end">
+                    <!-- Reporte Ventas Producto -->
+                    <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
+                    data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
+                 
+                    <!-- Exportar PDF Reporte de Venta -->
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporte" class="btn bg-white text-rojo border-rojo"><i
+                            class="fa fa-file-pdf-o"></i> Exportar PDF Reporte de Venta</button>
+                    <!-- Reporte de Venta Ganancias -->
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporteganancia"
                             class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-pdf-o"></i>Reporte de Venta Ganancias</button>
-                        <button data-bs-toggle="modal" data-bs-target="#ventas-text-reporte" class="btn bg-white text-rojo border-rojo"><i
-                                class="fa fa-file-text"></i> Exportar a TXT</button>
-                        <button data-bs-toggle="modal" data-bs-target="#ventas-xls-reporte" class="btn bg-white text-rojo border-rojo"><i
-                                class="fa fa-file-text"></i> Exportar a formato "xls"</button>
-                        <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
+                    <!-- Exportar a TXT -->
+                     <button data-bs-toggle="modal" data-bs-target="#ventas-text-reporte" class="btn bg-white text-rojo border-rojo"><i
+                                class="fa fa-file-text"></i> Exportar TXT</button>
+                    <!-- Exportar a formato "xls" -->
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-xls-reporte" class="btn bg-white text-rojo border-rojo"><i
+                            class="fa fa-file-text"></i> Exportar formato "xls"</button>
+                    <!-- Reporte RVTA "xls" -->
+                    <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
                             data-bs-target="#ventas-xls-reporte-rvta">Reporte RVTA "xls"</button>
-                        <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
-                            data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
-                        <a  href="/ventas/servicios" class="btn bg-rojo text-white button-link"><i
+                       <!-- Nota Electronica -->
+                       <a href="/nota/electronica" class="btn bg-rojo text-white button-link bordes"><i class="fa fa-plus"></i>Nota Electronica</a>
+                    <!-- Facturar Servicios -->
+                    <a  href="/ventas/servicios" class="btn bg-rojo text-white button-link bordes"><i
                                 class="fa fa-plus"></i> Facturar Servicios</a>
+                    <!-- Facturar Productos -->
+                    <a href="/ventas/productos" class="btn bg-rojo text-white button-link bordes"><i class="fa fa-plus"></i>
+                        Facturar Productos</a>
                     </div>
-                    <table id="datatable" class="table"
-                        style="border: 2px solid white;border-collapse: collapse; border-spacing: 0; width: 100%;">
+                    <table id="datatable" class="table table-bordered dt-responsive nowrap "
+                      style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
                         <thead>
                             <tr>
-                                <th></th>
+                                <!-- <th></th> -->
                                 <th>Documento</th>
                                 <th>Fecha V.</th>
                                 <th>Cliente</th>
@@ -59,7 +69,7 @@
                                 <th>Total</th>
                                 <th>Sunat</th>
                                 <th>Estado</th>
-                                <th>Acción</th>
+                                <th class="text-center">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -685,113 +695,110 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                     "previous": "Anterior"
                 }
             },
-            "columnDefs": [{
-                targets: 0,
-                render: function (data, type, row) {
-                    return data ? "<span style='color: white'>" + data + "</span>" : "";
-                }
-            },
-            {
-                targets: 1,
-                render: function (data, type, row) {
-                    if (!row[0]) return '';
-                    return '<a class="btn-info-vent" target="_blank" href="' + row[0] + '">' + (data || '') + '</a>';
-                }
-            },
-            {
-                targets: 7,
-                render: function (data, type, row) {
-                    if (!data) return '';
+           "columnDefs": [
+    {
+        targets: 0, // sn_v (Documento)
+        render: function (data, type, row) {
+            if (!row[0]) return '';
+            return '<a class="btn-info-vent" target="_blank" href="' + row[0] + '">' + (data || '') + '</a>';
+        }
+    },
+    {
+        targets: 6, // doc_ventae (Sunat) - era targets: 7
+        render: function (data, type, row) {
+            if (!data) return '';
 
-                    try {
-                        const dataParts = data.split("-");
-                        if (!row[9]) return '';
+            try {
+                const dataParts = data.split("-");
+                if (!row[8]) return ''; // id_venta - era row[9]
 
-                        const desData = row[9].split('--');
+                const desData = row[8].split('--'); // id_venta - era row[9]
 
-                        if (!(desData[1] == '-')) {
-                            if (dataParts[0] == '1') {
-                                return '<span class="badge bg-success">Enviado</span>';
-                            } else {
-                                let bntSend = '';
-                                if (dataParts[1] == '2' || dataParts[1] == '1') {
-                                    bntSend = '<i data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>';
-                                }
-                                return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
-                            }
+                if (!(desData[1] == '-')) {
+                    if (dataParts[0] == '1') {
+                        return '<span class="badge bg-success">Enviado</span>';
+                    } else {
+                        let bntSend = '';
+                        if (dataParts[1] == '2' || dataParts[1] == '1') {
+                            bntSend = '<i data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>';
                         }
-                    } catch (e) {
-                        console.error('Error procesando datos:', e);
-                        return '';
+                        return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
                     }
-                    return '';
                 }
-            },
-            {
-                targets: 8,
-                render: function (data, type, row) {
-                    if (data == 1) {
-                        return '<span class="badge bg-success">Normal</span>';
-                    } else if (data == 2) {
-                        return '<span class="badge bg-danger">Anulado</span>';
-                    }
-                    return data || '';
-                }
-            },
-            {
-                targets: 9,
-                render: function (data, type, row) {
-                    if (!row[8] || row[8] != 1) return "";
+            } catch (e) {
+                console.error('Error procesando datos:', e);
+                return '';
+            }
+            return '';
+        }
+    },
+    {
+        targets: 7, // estado - era targets: 8
+        render: function (data, type, row) {
+            if (data == 1) {
+                return '<span class="badge bg-success">Normal</span>';
+            } else if (data == 2) {
+                return '<span class="badge bg-danger">Anulado</span>';
+            }
+            return data || '';
+        }
+    },
+    {
+        targets: 8, // id_venta (Acción) - era targets: 9
+        className: 'text-center',
+        render: function (data, type, row) {
+            if (!row[7] || row[7] != 1) return ""; // estado - era row[8]
 
-                    try {
-                        if (!row[7]) return "";
-                        const estadoSunat = row[7].split("-")[0];
-                        if (!data) return "";
-                        const desData = data.split("--");
+            try {
+                if (!row[6]) return ""; // doc_ventae - era row[7]
+                const estadoSunat = row[6].split("-")[0]; // doc_ventae - era row[7]
+                if (!data) return "";
+                const desData = data.split("--");
 
-                        const stpan = '<span id="' + (row[0] || '') + '-nom-xml" style="display: none">' + desData[1] + "</span>";
+                const stpan = '<span id="' + (row[0] || '') + '-nom-xml" style="display: none">' + desData[1] + "</span>";
 
-                        return stpan + `
-                    <div class="action-menu">
-                        <button type="button" class="action-button">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <div class="dropdown-actions">
-                            <a class="btn-info-vent" href="${row[0] || ''}">
-                                <i class="fa fa-print text-primary"></i> Imprimir
+                return stpan + `
+                <div class="action-menu">
+                    <button type="button" class="action-button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="dropdown-actions">
+                        <a class="btn-info-vent" href="${row[0] || ''}">
+                            <i class="fa fa-print text-primary"></i> Imprimir
+                        </a>
+                        <a class="btn-send-fac" data-venta="${desData[0]}">
+                            <i class="fas fa-location-arrow text-primary"></i> Enviar
+                        </a>
+                        ${desData[1] != "-" ? `
+                            <a href="${_URL}/files/facturacion/xml/20602281761/${desData[1]}.xml" target="_blank">
+                                <i class="fas fa-file-code text-info"></i> XML
                             </a>
-                            <a class="btn-send-fac" data-venta="${desData[0]}">
-                                <i class="fas fa-location-arrow text-primary"></i> Enviar
+                        ` : ""}
+                        ${estadoSunat != "0" ? `
+                            <a href="${_URL}/files/facturacion/cdr/20602281761/R-${desData[1]}.zip" target="_blank">
+                                <i class="fa fa-file-zip text-success"></i> CDR
                             </a>
-                            ${desData[1] != "-" ? `
-                                <a href="${_URL}/files/facturacion/xml/20602281761/${desData[1]}.xml" target="_blank">
-                                    <i class="fas fa-file-code text-info"></i> XML
-                                </a>
-                            ` : ""}
-                            ${estadoSunat != "0" ? `
-                                <a href="${_URL}/files/facturacion/cdr/20602281761/R-${desData[1]}.zip" target="_blank">
-                                    <i class="fa fa-file-zip text-success"></i> CDR
-                                </a>
-                            ` : ""}
-                            <div class="divider"></div>
-                            <a class="btn-detalle-vent" data-venta="${desData[0]}">
-                                <i class="fa fa-eye text-primary"></i> Ver Detalle
-                            </a>
-                            <a class="btn-anular-vent" data-venta="${desData[0]}">
-                                <i class="fa fa-trash text-danger"></i> Anular
-                            </a>
-                            <a class="btn-editar-venta" data-venta="${desData[0]}">
-                                <i class="fa fa-pen text-warning"></i> Editar
-                            </a>
-                        </div>
+                        ` : ""}
+                        <div class="divider"></div>
+                        <a class="btn-detalle-vent" data-venta="${desData[0]}">
+                            <i class="fa fa-eye text-primary"></i> Ver Detalle
+                        </a>
+                        <a class="btn-anular-vent" data-venta="${desData[0]}">
+                            <i class="fa fa-trash text-danger"></i> Anular
+                        </a>
+                        <a class="btn-editar-venta" data-venta="${desData[0]}">
+                            <i class="fa fa-pen text-warning"></i> Editar
+                        </a>
                     </div>
-                `;
-                    } catch (e) {
-                        console.error('Error en render de acciones:', e);
-                        return '';
-                    }
-                }
-            }],
+                </div>
+            `;
+            } catch (e) {
+                console.error('Error en render de acciones:', e);
+                return '';
+            }
+        }
+    }
+],
             "error": function (xhr, error, thrown) {
                 console.error('Error en DataTables:', error);
                 alertError("Error al cargar los datos de ventas");

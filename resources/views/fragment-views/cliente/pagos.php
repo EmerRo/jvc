@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\pagos.php -->
 <div class="page-title-box">
     <div class="row align-items-center">
         <!-- <div class="col-md-8">

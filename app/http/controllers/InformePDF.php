@@ -40,23 +40,11 @@ public function generarInformePDF($id_informe)
     
     $this->mpdf->SetTitle($informe->getTitulo() . " " . $numeroCorrelativo);
     
-    // Obtener las URLs de las imágenes
-    $headerImageUrl = $informe->getHeaderImage();
-    $footerImageUrl = $informe->getFooterImage();
-
-    // Si no hay imágenes específicas, usar las de la plantilla
-    if (!$headerImageUrl || !$footerImageUrl) {
-        $template = new InformeTemplate();
-        $template->obtenerTemplateActual();
-        
-        if (!$headerImageUrl) {
-            $headerImageUrl = $template->getHeaderImageUrl();
-        }
-        
-        if (!$footerImageUrl) {
-            $footerImageUrl = $template->getFooterImageUrl();
-        }
-    }
+    // Obtener las URLs de las imágenes de la plantilla (para encabezado/pie)
+    $template = new InformeTemplate();
+    $template->obtenerTemplateActual();
+    $headerImageUrl = $template->getHeaderImageUrl();
+    $footerImageUrl = $template->getFooterImageUrl();
 
     // Definir el HTML del encabezado y pie de página
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
@@ -78,17 +66,36 @@ public function generarInformePDF($id_informe)
     $this->mpdf->SetMargins(15, 15, $headerHeight);
     $this->mpdf->SetAutoPageBreak(true, $footerHeight);
     
-    // Añadir la página
+    // OBTENER INFORMACIÓN DEL USUARIO LOGUEADO
+    $usuario_actual = [];
+    if (isset($_SESSION['usuario_id'])) {
+        $query = "SELECT 
+                       u.nombres,
+                       u.telefono,
+                       r.nombre as rol
+                     FROM usuarios u
+                     INNER JOIN roles r ON r.rol_id = u.id_rol
+                     WHERE u.usuario_id = " . $_SESSION['usuario_id'];
+        
+        $result = $this->conexion->query($query);
+        if ($result && $result->num_rows > 0) {
+            $usuario_actual = $result->fetch_assoc();
+        }
+    }
+    
+    // VERIFICAR SI HAY IMÁGENES DEL INFORME
+    $tieneImagenes = ($informe->getHeaderImage() || $informe->getFooterImage());
+    
+    // PÁGINA 1: Contenido del informe
     $this->mpdf->AddPage();
     
-    // Construir el HTML del contenido con la información completa
+    // HTML de la primera página (contenido actual)
     $html = "
     <div style='margin-top: 30px;'></div>
     
     <!-- Información del informe -->
-<div style='text-align: center; margin-bottom: 30px;'>
-        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px; '>" . strtoupper($informe->getTitulo()) . " " . $numeroCorrelativo . "</h1>
-     <!-- <h2 style='color: #000; font-size: 12pt; margin-bottom: 5px;'>" . $informe->getTitulo() . "</h2> -->
+    <div style='text-align: center; margin-bottom: 30px;'>
+        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px;'>" . strtoupper($informe->getTitulo()) . " " . $numeroCorrelativo . "</h1>
     </div>
     
     <!-- Información de la empresa y cliente -->
@@ -104,15 +111,18 @@ public function generarInformePDF($id_informe)
         $html .= "
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>A:</td>
-                <td style='padding: 5px 0;'>" . $informe->getClienteNombre() . "  </td>
+                <td style='padding: 5px 0;'>" . $informe->getClienteNombre() . "</td>
             </tr>";
-             
     }
     
     $html .= "
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>Documento:</td>
                 <td style='padding: 5px 0;'>" . $informe->getClienteDocumento() . "</td>
+            </tr>
+            <tr>
+                <td style='font-weight: bold; padding: 5px 0;'>Dirigido a:</td>
+                <td style='padding: 5px 0;'>" . $informe->getPersonaEntregar() . "</td>
             </tr>
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
@@ -138,11 +148,119 @@ public function generarInformePDF($id_informe)
     $html .= $informe->getContenido();
     $html .= "</div>";
 
+    // ⚠️ INFORMACIÓN DE CONTACTO SOLO SI NO HAY IMÁGENES
+    if (!$tieneImagenes) {
+        $html .= "
+        <div style='margin-top: 30px; padding: 0 15mm;'>
+            <p style='font-size: 12px; margin: 0; padding: 0;'>Esperando vernos favorecidos con su preferencia, nos despedimos.</p>
+            <p style='font-size: 12px; margin: 3px 0 0 0; padding: 0;'>Atentamente,</p>
+            
+            <div style='width: 100%; clear: both; padding-top: 20px;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>" . ($usuario_actual['nombres'] ?? 'Usuario vendedor') . "</strong><br>
+                            <strong>" . ($usuario_actual['rol'] ?? 'ADMIN') . "</strong><br>
+                            Teléfono: 355-4701<br>
+                            Cel: " . ($usuario_actual['telefono'] ?? '993321920') . "
+                        </td>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Judy Rodriguez N.</strong><br>
+                            <strong>Gerente General</strong><br>
+                            Teléfono: 355-4701
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>";
+    }
+
     $this->mpdf->WriteHTML($html);
+    
+    // 🖼️ PÁGINA 2: Imágenes del informe + INFORMACIÓN DE CONTACTO (si existen imágenes)
+    if ($tieneImagenes) {
+        $this->mpdf->AddPage();
+        
+        $htmlImagenes = "<div style='margin-top: 30px;'></div>
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <h2 style='color: #000; font-size: 14pt;'>ANEXOS - IMÁGENES</h2>
+        </div>";
+        
+        // MOSTRAR IMÁGENES LADO A LADO
+        $htmlImagenes .= "<div style='margin: 0 15mm;'>";
+        
+        if ($informe->getHeaderImage() && $informe->getFooterImage()) {
+            // Ambas imágenes - lado a lado
+            $htmlImagenes .= "
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr>
+                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
+                     <!--   <h3 style='font-size: 12pt; margin-bottom: 15px;'>Imagen 1</h3> -->
+                        <img src='" . $informe->getHeaderImage() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
+                        <!--  <h3 style='font-size: 12pt; margin-bottom: 15px;'>Imagen 2</h3> -->
+                        <img src='" . $informe->getFooterImage() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                </tr>
+            </table>";
+        } else if ($informe->getHeaderImage()) {
+            // Solo primera imagen
+            $htmlImagenes .= "
+            <div style='text-align: center; margin-bottom: 30px;'>
+              <!--  <h3 style='font-size: 12pt; margin-bottom: 15px;'>Imagen 1</h3>-->
+                <img src='" . $informe->getHeaderImage() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
+            </div>";
+        } else if ($informe->getFooterImage()) {
+            // Solo segunda imagen
+            $htmlImagenes .= "
+            <div style='text-align: center; margin-bottom: 30px;'>
+              <!--  <h3 style='font-size: 12pt; margin-bottom: 15px;'>Imagen 2</h3> -->
+                <img src='" . $informe->getFooterImage() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
+            </div>";
+        }
+        
+        // ✅ INFORMACIÓN DE CONTACTO EN LA 2DA PÁGINA (CON IMÁGENES)
+        $htmlImagenes .= "
+        <div style='margin-top: 40px; padding: 0;'>
+            <p style='font-size: 12px; margin: 0; padding: 0;'>Esperando vernos favorecidos con su preferencia, nos despedimos.</p>
+            <p style='font-size: 12px; margin: 3px 0 0 0; padding: 0;'>Atentamente,</p>
+            
+            <div style='width: 100%; clear: both; padding-top: 20px;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>" . ($usuario_actual['nombres'] ?? 'Usuario vendedor') . "</strong><br>
+                            <strong>" . ($usuario_actual['rol'] ?? 'ADMIN') . "</strong><br>
+                            Teléfono: 355-4701<br>
+                            Cel: " . ($usuario_actual['telefono'] ?? '993321920') . "
+                        </td>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Judy Rodriguez N.</strong><br>
+                            <strong>Gerente General</strong><br>
+                            Teléfono: 355-4701
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>";
+        
+        // // AGREGAR LÍNEA DE FIRMA
+        // $htmlImagenes .= "
+        // <div style='margin-top: 40px; text-align: center;'>
+        //     <div style='border-top: 1px solid #000; width: 300px; margin: 0 auto;'></div>
+        //     <p style='margin-top: 10px; font-size: 12px; font-weight: bold;'>FIRMA</p>
+        // </div>";
+        
+        $htmlImagenes .= "</div>";
+        
+        $this->mpdf->WriteHTML($htmlImagenes);
+    }
+
     $this->mpdf->Output("Informe_" . $numeroCorrelativo . ".pdf", "I");
 }
 // REEMPLAZAR el método generarVistaPreviaPDF completo
-public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image)
+public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image, $imagen1_informe = null, $imagen2_informe = null)
 {
     // Para vista previa, generar un número correlativo de ejemplo
     $anio = date('Y');
@@ -150,7 +268,7 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     
     $this->mpdf->SetTitle($titulo . " " . $numeroEjemplo);
     
-    // Definir el HTML del encabezado y pie de página
+    // Definir el HTML del encabezado y pie de página (membretes)
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
         <img src='" . $header_image . "' style='width: 100%; margin: 0;'>
     </div>";
@@ -166,13 +284,16 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     $headerHeight = 50;
     $footerHeight = 30;
     
-    $this->mpdf->SetMargins(0, 0, $headerHeight);
+    $this->mpdf->SetMargins(15, 15, $headerHeight);
     $this->mpdf->SetAutoPageBreak(true, $footerHeight);
     
-    // Añadir la página
+    // VERIFICAR SI HAY IMÁGENES DEL INFORME
+    $tieneImagenes = ($imagen1_informe || $imagen2_informe);
+    
+    // PÁGINA 1: Contenido del informe
     $this->mpdf->AddPage();
     
-    // Construir el HTML del contenido
+    // HTML de la primera página
     $html = "
     <div style='margin-top: 30px;'></div>
     
@@ -213,9 +334,106 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     $html .= $contenido;
     $html .= "</div>";
 
+    // ⚠️ INFORMACIÓN DE CONTACTO SOLO SI NO HAY IMÁGENES
+    if (!$tieneImagenes) {
+        $html .= "
+        <div style='margin-top: 30px; padding: 0 15mm;'>
+            <p style='font-size: 12px; margin: 0; padding: 0;'>Esperando vernos favorecidos con su preferencia, nos despedimos.</p>
+            <p style='font-size: 12px; margin: 3px 0 0 0; padding: 0;'>Atentamente,</p>
+            
+            <div style='width: 100%; clear: both; padding-top: 20px;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Usuario Ejemplo</strong><br>
+                            <strong>ADMIN</strong><br>
+                            Teléfono: 355-4701<br>
+                            Cel: 993321920
+                        </td>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Judy Rodriguez N.</strong><br>
+                            <strong>Gerente General</strong><br>
+                            Teléfono: 355-4701
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>";
+    }
+
     $this->mpdf->WriteHTML($html);
+    
+    // 🖼️ PÁGINA 2: Imágenes del informe + INFORMACIÓN DE CONTACTO (si existen imágenes)
+    if ($tieneImagenes) {
+        $this->mpdf->AddPage();
+        
+        $htmlImagenes = "<div style='margin-top: 30px;'></div>
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <h2 style='color: #000; font-size: 14pt;'>ANEXOS - IMÁGENES</h2>
+        </div>";
+        
+        // MOSTRAR IMÁGENES LADO A LADO
+        $htmlImagenes .= "<div style='margin: 0 15mm;'>";
+        
+        if ($imagen1_informe && $imagen2_informe) {
+            // Ambas imágenes - lado a lado
+            $htmlImagenes .= "
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr>
+                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
+                        <img src='" . $imagen1_informe . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
+                        <img src='" . $imagen2_informe . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                </tr>
+            </table>";
+        } else if ($imagen1_informe) {
+            // Solo primera imagen
+            $htmlImagenes .= "
+            <div style='text-align: center; margin-bottom: 30px;'>
+                <img src='" . $imagen1_informe . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
+            </div>";
+        } else if ($imagen2_informe) {
+            // Solo segunda imagen
+            $htmlImagenes .= "
+            <div style='text-align: center; margin-bottom: 30px;'>
+                <img src='" . $imagen2_informe . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
+            </div>";
+        }
+        
+        // ✅ INFORMACIÓN DE CONTACTO EN LA 2DA PÁGINA (CON IMÁGENES)
+        $htmlImagenes .= "
+        <div style='margin-top: 40px; padding: 0;'>
+            <p style='font-size: 12px; margin: 0; padding: 0;'>Esperando vernos favorecidos con su preferencia, nos despedimos.</p>
+            <p style='font-size: 12px; margin: 3px 0 0 0; padding: 0;'>Atentamente,</p>
+            
+            <div style='width: 100%; clear: both; padding-top: 20px;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Usuario Ejemplo</strong><br>
+                            <strong>ADMIN</strong><br>
+                            Teléfono: 355-4701<br>
+                            Cel: 993321920
+                        </td>
+                        <td style='font-size: 9px; width: 50%; text-align: center; color: #033668'>
+                            <strong>Judy Rodriguez N.</strong><br>
+                            <strong>Gerente General</strong><br>
+                            Teléfono: 355-4701
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>";
+        
+        $htmlImagenes .= "</div>";
+        
+        $this->mpdf->WriteHTML($htmlImagenes);
+    }
     
     // Devolver el PDF como base64 para la vista previa
     return base64_encode($this->mpdf->Output('', 'S'));
 }
+
 }

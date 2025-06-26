@@ -162,7 +162,7 @@ class Consultas
 
         $sql = "SELECT p.id_producto, p.codigo, p.nombre, p.detalle, p.precio, p.precio2, 
                 p.precio3, p.precio4, p.precio_unidad, p.costo, p.cantidad, p.descripcion,
-                p.usar_multiprecio,p.precio_mayor, p.precio_menor  /* Añadir esta columna */
+                p.usar_multiprecio,p.precio_mayor, p.precio_menor, p.unidad  /* Añadir esta columna */
                 FROM productos p
                 WHERE p.id_empresa = '$id_empresa' 
                 AND (p.nombre LIKE '$term' OR p.descripcion LIKE '$term' OR p.codigo LIKE '$term') 
@@ -182,7 +182,7 @@ class Consultas
 
         $sql = "SELECT r.id_repuesto, r.codigo, r.nombre, r.detalle, r.precio, r.precio2, 
                 r.precio3, r.precio4, r.precio_unidad, r.costo, r.cantidad, r.descripcion,
-                r.usar_multiprecio, r.precio_mayor, r.precio_menor
+                r.usar_multiprecio, r.precio_mayor, r.precio_menor, r.unidad
                 FROM repuestos r
                 WHERE r.id_empresa = '$id_empresa' 
                 AND (r.nombre LIKE '$term' OR r.descripcion LIKE '$term' OR r.codigo LIKE '$term') 

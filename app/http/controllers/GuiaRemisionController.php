@@ -50,18 +50,12 @@ class GuiaRemisionController extends Controller
     $id_cotizacion = isset($_POST['cotizacion']) && !empty($_POST['cotizacion']) ?
         filter_input(INPUT_POST, 'cotizacion') : null;
 
-    // Log específico para cotizaciones
-    if ($id_cotizacion) {
-        error_log("=== PROCESANDO GUÍA CON COTIZACIÓN ID: " . $id_cotizacion . " ===");
-    }
-
+  
     // Configurar datos de la guía
     $c_guia->setFecha(filter_input(INPUT_POST, 'fecha_emision'));
     $c_guia->setIdVenta(filter_input(INPUT_POST, 'venta'));
     
-    if ($id_cotizacion) {
-        $c_guia->setIdCotizacion($id_cotizacion);
-    }
+   
     
     $c_guia->setDirLlegada(filter_input(INPUT_POST, 'dir_cli'));
     $c_guia->setUbigeo(filter_input(INPUT_POST, 'ubigeo'));
@@ -71,17 +65,6 @@ class GuiaRemisionController extends Controller
     $c_guia->setVehiculo(filter_input(INPUT_POST, 'veiculo'));
     $c_guia->setChofer(filter_input(INPUT_POST, 'chofer_dni'));
     
-    $chofer_id = filter_input(INPUT_POST, 'chofer_datos');
-    if ($chofer_id) {
-        $sql = "SELECT nombre FROM guia_choferes WHERE id = ?";
-        $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("i", $chofer_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            $c_guia->setChoferDatos($row['nombre']);
-        }
-    }
     
     $c_guia->setMotivoTraslado(filter_input(INPUT_POST, 'motivo'));
     $c_guia->setChoferDatos(filter_input(INPUT_POST, 'chofer_datos'));
@@ -110,18 +93,20 @@ class GuiaRemisionController extends Controller
 
     $resultado = ["res" => false];
     
+   
     // Insertar guía principal
     if ($c_guia->insertar()) {
         $resultado["res"] = true;
         $resultado["guia"] = $c_guia->getIdGuia();
         
-        // Log del ID de guía generado
-        error_log("ID de guía generado: " . $c_guia->getIdGuia());
+       // Actualizar estado de cotización si existe
+    if ($id_cotizacion) {
+        $sql = "UPDATE cotizaciones SET estado = '1' WHERE cotizacion_id = '{$id_cotizacion}'";
+        $this->conexion->query($sql);
+    }
         
         // Verificar si hay productos
         if (!isset($_POST['productos']) || empty($_POST['productos'])) {
-            error_log("ERROR: No se recibieron productos en el POST");
-            error_log("POST completo: " . json_encode($_POST));
             return json_encode($resultado);
         }
         
@@ -130,27 +115,22 @@ class GuiaRemisionController extends Controller
         
         // Verificar decodificación JSON
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("ERROR: Error al decodificar JSON de productos: " . json_last_error_msg());
-            error_log("Datos recibidos: " . $_POST['productos']);
             return json_encode($resultado);
         }
         
         // Verificar que hay productos
         if (!is_array($listaProd) || count($listaProd) == 0) {
-            error_log("ERROR: No hay productos para procesar");
             return json_encode($resultado);
         }
         
-        error_log("Cantidad de productos a procesar: " . count($listaProd));
-        error_log("Datos de productos: " . json_encode($listaProd));
+        
         
         $dataSend['productos'] = [];
         $productos_insertados = 0;
         
         // Procesar cada producto - CREAR NUEVA INSTANCIA PARA CADA UNO
         foreach ($listaProd as $index => $prodG) {
-            error_log("--- Procesando producto #" . ($index + 1) . " ---");
-            error_log("Datos del producto: " . json_encode($prodG));
+            
             
             // IMPORTANTE: Crear nueva instancia para cada producto
             $guiaDetalle = new GuiaDetalle();
@@ -158,7 +138,6 @@ class GuiaRemisionController extends Controller
             
             // Validar y establecer cantidad
             if (!isset($prodG['cantidad']) || empty($prodG['cantidad'])) {
-                error_log("ERROR: Producto sin cantidad válida");
                 continue;
             }
             $guiaDetalle->setCantidad($prodG['cantidad']);
@@ -174,7 +153,6 @@ class GuiaRemisionController extends Controller
             }
             
             if (empty($descripcion)) {
-                error_log("ERROR: Producto sin descripción válida");
                 continue;
             }
             $guiaDetalle->setDetalles($descripcion);
@@ -200,23 +178,15 @@ class GuiaRemisionController extends Controller
             
             // Intentar insertar con manejo de errores
             try {
-                error_log("Intentando insertar detalle con datos:");
-                error_log("- ID Guía: " . $c_guia->getIdGuia());
-                error_log("- Cantidad: " . $prodG['cantidad']);
-                error_log("- Descripción: " . $descripcion);
-                error_log("- ID Producto: " . $idProducto);
-                error_log("- Precio: " . $precio);
+               
                 
                 $insertResult = $guiaDetalle->insertar();
                 
                 if ($insertResult) {
                     $productos_insertados++;
-                    error_log("SUCCESS: Detalle del producto #" . ($index + 1) . " insertado correctamente");
                 } else {
-                    error_log("ERROR: No se pudo insertar el detalle del producto #" . ($index + 1));
                 }
             } catch (Exception $e) {
-                error_log("EXCEPCIÓN al insertar detalle: " . $e->getMessage());
             }
             
             // Agregar a dataSend para SUNAT
@@ -228,7 +198,7 @@ class GuiaRemisionController extends Controller
             ];
         }
         
-        error_log("Total de productos insertados: " . $productos_insertados . " de " . count($listaProd));
+        
         
         // Continuar con el resto del proceso
         $dataSend['productos'] = json_encode($dataSend['productos']);
@@ -278,9 +248,7 @@ class GuiaRemisionController extends Controller
             $guiaSunat->insertar();
         }
     } else {
-        error_log("ERROR: No se pudo insertar la guía principal");
     }
-    
     return json_encode($resultado);
 }
     public function obtenerInfoGuia()
@@ -289,7 +257,7 @@ class GuiaRemisionController extends Controller
             $guiaId = $_POST['guia'];
             $conexion = (new Conexion())->getConexion();
 
-            error_log("Fetching guide info for ID: " . $guiaId);
+            
 
             // Get guide and client information
             $query = "SELECT 
@@ -313,7 +281,6 @@ class GuiaRemisionController extends Controller
             $guia = $resultado->fetch_assoc();
 
             if (!$guia) {
-                error_log("No guide found for ID: " . $guiaId);
                 echo json_encode([
                     'res' => false,
                     'error' => 'Guía no encontrada',
@@ -337,7 +304,7 @@ class GuiaRemisionController extends Controller
             $stmt->execute();
             $productos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-            error_log("Found " . count($productos) . " products for guide " . $guiaId);
+            
 
             // Transform products to match invoice format
             $productosFormateados = array_map(function ($prod) {
@@ -365,11 +332,9 @@ class GuiaRemisionController extends Controller
                 'productos' => $productosFormateados
             ];
 
-            error_log("Sending response: " . json_encode($response));
             echo json_encode($response);
 
         } catch (Exception $e) {
-            error_log("Error in obtenerInfoGuia: " . $e->getMessage());
             echo json_encode([
                 'res' => false,
                 'error' => 'Error al procesar la guía: ' . $e->getMessage()
@@ -390,7 +355,6 @@ class GuiaRemisionController extends Controller
         // Habilitar registro de errores para depuración
         ini_set('display_errors', 1);
         ini_set('log_errors', 1);
-        error_log("Iniciando insertar2() en GuiaRemisionController");
 
         //$sendGuia = new SendCurlGuia();
         /* return json_encode($_POST['idVenta']);
@@ -401,11 +365,9 @@ class GuiaRemisionController extends Controller
         if (isset($data['datosGuiaRemosion']) && !empty($data['datosGuiaRemosion'])) {
             $datosGuiaRemosion = json_decode($data['datosGuiaRemosion'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                error_log("Error decodificando datosGuiaRemosion: " . json_last_error_msg());
                 $datosGuiaRemosion = [];
             }
         } else {
-            error_log("datosGuiaRemosion no está definido o está vacío");
             $datosGuiaRemosion = [];
         }
 
@@ -413,11 +375,9 @@ class GuiaRemisionController extends Controller
         if (isset($data['datosTransporteGuiaRemosion']) && !empty($data['datosTransporteGuiaRemosion'])) {
             $datosTransporteGuiaRemosion = json_decode($data['datosTransporteGuiaRemosion'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                error_log("Error decodificando datosTransporteGuiaRemosion: " . json_last_error_msg());
                 $datosTransporteGuiaRemosion = [];
             }
         } else {
-            error_log("datosTransporteGuiaRemosion no está definido o está vacío");
             $datosTransporteGuiaRemosion = [];
         }
 
@@ -442,14 +402,12 @@ class GuiaRemisionController extends Controller
             $c_guia->setFecha($datosGuiaRemosion['fecha_emision']);
         } else {
             $c_guia->setFecha(date('Y-m-d')); // Valor por defecto
-            error_log("Usando fecha actual por defecto");
         }
 
         // $c_guia->setIdVenta($result['id_venta']);
         if (isset($result['id_venta'])) {
             $c_guia->setIdVenta($result['id_venta']);
         } else {
-            error_log("Error: id_venta no encontrado en el resultado de la consulta");
         }
 
         // $c_guia->setDirLlegada($datosGuiaRemosion['dir_cli']);
@@ -457,7 +415,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setDirLlegada($datosGuiaRemosion['dir_cli']);
         } else {
             $c_guia->setDirLlegada('-'); // Valor por defecto
-            error_log("Usando dirección de llegada por defecto");
         }
 
         // $c_guia->setUbigeo($data['datosUbigeoGuiaRemosion']);
@@ -465,7 +422,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setUbigeo($data['datosUbigeoGuiaRemosion']);
         } else {
             $c_guia->setUbigeo('150101'); // Valor por defecto (Lima)
-            error_log("Usando ubigeo por defecto");
         }
 
         // $c_guia->setTipoTransporte($datosTransporteGuiaRemosion['tipo_trans']);
@@ -473,7 +429,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setTipoTransporte($datosTransporteGuiaRemosion['tipo_trans']);
         } else {
             $c_guia->setTipoTransporte('01'); // Valor por defecto
-            error_log("Usando tipo de transporte por defecto");
         }
 
         // $c_guia->setRucTransporte($datosTransporteGuiaRemosion['ruc']);
@@ -481,7 +436,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setRucTransporte($datosTransporteGuiaRemosion['ruc']);
         } else {
             $c_guia->setRucTransporte('-'); // Valor por defecto
-            error_log("Usando RUC de transporte por defecto");
         }
 
         // $c_guia->setRazTransporte($datosTransporteGuiaRemosion['razon_social']);
@@ -489,7 +443,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setRazTransporte($datosTransporteGuiaRemosion['razon_social']);
         } else {
             $c_guia->setRazTransporte('-'); // Valor por defecto
-            error_log("Usando razón social de transporte por defecto");
         }
 
         // $c_guia->setVehiculo($datosTransporteGuiaRemosion['veiculo']);
@@ -497,7 +450,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setVehiculo($datosTransporteGuiaRemosion['veiculo']);
         } else {
             $c_guia->setVehiculo('-'); // Valor por defecto
-            error_log("Usando vehículo por defecto");
         }
 
         // $c_guia->setChofer($datosTransporteGuiaRemosion['chofer_dni']);
@@ -505,7 +457,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setChofer($datosTransporteGuiaRemosion['chofer_dni']);
         } else {
             $c_guia->setChofer('-'); // Valor por defecto
-            error_log("Usando chofer por defecto");
         }
 
         // $c_guia->setPeso($datosGuiaRemosion['peso']);
@@ -513,7 +464,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setPeso($datosGuiaRemosion['peso']);
         } else {
             $c_guia->setPeso('1.000'); // Valor por defecto
-            error_log("Usando peso por defecto");
         }
 
         // $c_guia->setNroBultos($datosGuiaRemosion['num_bultos']);
@@ -521,7 +471,6 @@ class GuiaRemisionController extends Controller
             $c_guia->setNroBultos($datosGuiaRemosion['num_bultos']);
         } else {
             $c_guia->setNroBultos('1'); // Valor por defecto
-            error_log("Usando número de bultos por defecto");
         }
 
         $c_guia->setIdEmpresa($_SESSION['id_empresa']);
@@ -552,11 +501,9 @@ class GuiaRemisionController extends Controller
             if (isset($data['listaPro']) && !empty($data['listaPro'])) {
                 $listaProd = json_decode($data['listaPro'], true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    error_log("Error decodificando listaPro: " . json_last_error_msg());
                     $listaProd = [];
                 }
             } else {
-                error_log("listaPro no está definido o está vacío");
                 $listaProd = [];
             }
 
@@ -581,7 +528,6 @@ class GuiaRemisionController extends Controller
                             'descripcion' => $prodG['descripcion']
                         ];
                     } else {
-                        error_log("Producto incompleto: " . json_encode($prodG));
                     }
                 }
             }
@@ -652,6 +598,7 @@ class GuiaRemisionController extends Controller
     }
     public function insertarManual()
     {
+       
         $c_guia = new GuiaRemision();
         $c_documentos = new DocumentoEmpresa();
         $guiaDetalle = new GuiaDetalle();
@@ -705,6 +652,9 @@ class GuiaRemisionController extends Controller
         $dataSend['doc_referencia'] = $c_guia->getDocReferencia();
 
         $resultado = ["res" => false];
+
+      
+
         if ($c_guia->insertar()) {
             $resultado["res"] = true;
             $resultado["guia"] = $c_guia->getIdGuia();
@@ -714,21 +664,50 @@ class GuiaRemisionController extends Controller
             $guiaDetalle->setIdGuia($c_guia->getIdGuia());
 
             $dataSend['productos'] = [];
-            foreach ($listaProd as $prodG) {
-                $guiaDetalle->setCantidad($prodG['cantidad']);
-                $guiaDetalle->setDetalles($prodG['descripcion']);
-                $guiaDetalle->setIdProducto($prodG['idproducto']);
-                $guiaDetalle->setPrecio($prodG['precio']);
-                $guiaDetalle->setUnidad("NIU");
-                $guiaDetalle->insertar();
+            if (is_array($listaProd) && count($listaProd) > 0) {
+                foreach ($listaProd as $index => $prodG) { // Añadimos $index para depuración
+                
+                    $guiaDetalle->setCantidad($prodG['cantidad']);
+                    // $guiaDetalle->setDetalles($prodG['descripcion']);
+                    // Extraer solo el nombre del producto, sin el código
+$descripcion = $prodG['descripcion'];
+if (strpos($descripcion, ' | ') !== false) {
+    $partes = explode(' | ', $descripcion, 2);
+    $descripcion = $partes[1]; // Solo la parte después del código
+}
+$guiaDetalle->setDetalles($descripcion);
+                    $guiaDetalle->setIdProducto($prodG['idproducto']);
+                    $guiaDetalle->setPrecio($prodG['precio']);
+                   $nombreUnidad = "NIU"; //valor por defecto
+                    // 1. Obtener el ID de la unidad del producto desde los datos recibidos del frontend
+                    $unidadId = isset($prodG['unidad_id']) ? $prodG['unidad_id'] : null;
 
-                $dataSend['productos'][] = [
-                    'cantidad' => $prodG['cantidad'],
-                    'cod_pro' => $prodG['idproducto'],
-                    'cod_sunat' => "000",
-                    'descripcion' => $prodG['descripcion']
-                ];
-            }
+                    if ($unidadId) {
+                        // 2. Consultar la tabla 'unidades' para obtener el nombre de la unidad
+                        //    Usamos $this->conexion que ya está disponible en el controlador
+                        $sqlUnidad = "SELECT nombre FROM unidades WHERE id = " . intval($unidadId);
+                        $resultUnidad = $this->conexion->query($sqlUnidad);
+                        if ($resultUnidad && $resultUnidad->num_rows > 0) {
+                            $rowUnidad = $resultUnidad->fetch_assoc();
+                            $nombreUnidad = $rowUnidad['nombre'];
+                           
+                        } 
+                    } 
+                    $guiaDetalle->setUnidad($nombreUnidad);
+                    try {
+                        if ($guiaDetalle->insertar()) {
+                        }
+                    } catch (Exception $e) {
+                    }
+
+                    $dataSend['productos'][] = [
+                        'cantidad' => $prodG['cantidad'],
+                        'cod_pro' => $prodG['idproducto'],
+                        'cod_sunat' => "000",
+                        'descripcion' => $prodG['descripcion']
+                    ];
+                }
+            } 
 
             $dataSend['productos'] = json_encode($dataSend['productos']);
 
@@ -782,224 +761,214 @@ class GuiaRemisionController extends Controller
                 $guiaSunat->setQrData($dataResp["data"]['qr']);
                 $guiaSunat->insertar();
             }
-        }
+        } 
+       
         return json_encode($resultado);
     }
 
-    public function duplicarGuiaRemision()
-    {
-        try {
-            if (!isset($_POST['id_guia_remision'])) {
-                throw new Exception("ID de guía no proporcionado");
-            }
+  public function duplicarGuiaRemision()
+{
+    try {
+        // Usar el mismo método que insertarManual pero con datos de la guía original
+        $c_guia = new GuiaRemision();
+        $c_documentos = new DocumentoEmpresa();
+        $guiaSunat = new GuiaSunat();
 
-            $idGuiaOriginal = $_POST['id_guia_remision'];
+        $dataSend = [];
+        $dataSend["certGlobal"] = false;
 
-            // Obtener la guía original
-            $guiaOriginal = new GuiaRemision();
-            $guiaOriginal->setIdGuia($idGuiaOriginal);
+        // Configurar datos básicos desde POST
+        $c_guia->setFecha(filter_input(INPUT_POST, 'fecha_emision'));
+        $c_guia->setIdVenta(filter_input(INPUT_POST, 'venta'));
 
-            if (!$guiaOriginal->obtenerDatos()) {
-                throw new Exception("No se encontró la guía original");
-            }
+        // Campos principales
+        $c_guia->setDestinatarioNombre(filter_input(INPUT_POST, 'nom_cli'));
+        $c_guia->setDestinatarioDocumento(filter_input(INPUT_POST, 'doc_cli'));
+        $c_guia->setDirPartida(filter_input(INPUT_POST, 'dir_part'));
+        $c_guia->setMotivoTraslado(filter_input(INPUT_POST, 'motivo'));
+        $c_guia->setDirLlegada(filter_input(INPUT_POST, 'dir_cli'));
+        $c_guia->setUbigeo(filter_input(INPUT_POST, 'ubigeo'));
+        $c_guia->setTipoTransporte(filter_input(INPUT_POST, 'tipo_trans'));
+        $c_guia->setRucTransporte(filter_input(INPUT_POST, 'ruc'));
+        $c_guia->setRazTransporte(filter_input(INPUT_POST, 'razon_social'));
+        $c_guia->setVehiculo(filter_input(INPUT_POST, 'veiculo'));
+        $c_guia->setChofer(filter_input(INPUT_POST, 'chofer_dni'));
+        $c_guia->setChoferDatos(filter_input(INPUT_POST, 'chofer_datos'));
+        $c_guia->setObservaciones(filter_input(INPUT_POST, 'observacion'));
+        
+        // ✅ IMPORTANTE: Guardar Doc. de Referencia
+        $c_guia->setDocReferencia(filter_input(INPUT_POST, 'doc_referencia'));
+        
+        $c_guia->setPeso(filter_input(INPUT_POST, 'peso'));
+        $c_guia->setNroBultos(filter_input(INPUT_POST, 'num_bultos'));
+        $c_guia->setIdEmpresa($_SESSION['id_empresa']);
 
-            // Crear nueva guía
-            $nuevaGuia = new GuiaRemision();
-
-            // Si la guía original tiene id_venta, es una guía normal
-            // Si no tiene id_venta, es una guía manual
-            if ($guiaOriginal->getIdVenta()) {
-                // Para guía normal, copiar el id_venta
-                $nuevaGuia->setIdVenta($guiaOriginal->getIdVenta());
-                // Los datos del cliente vendrán de la venta
-            } else {
-                // Para guía manual, copiar los datos del destinatario
-                $nuevaGuia->setDestinatarioNombre($guiaOriginal->getDestinatarioNombre());
-                $nuevaGuia->setDestinatarioDocumento($guiaOriginal->getDestinatarioDocumento());
-            }
-
-            // Copiar el resto de los campos
-            $nuevaGuia->setIdEmpresa($guiaOriginal->getIdEmpresa());
-            $nuevaGuia->setFecha(date('Y-m-d'));
-            $nuevaGuia->setDirLlegada($guiaOriginal->getDirLlegada());
-            $nuevaGuia->setUbigeo($guiaOriginal->getUbigeo());
-            $nuevaGuia->setTipoTransporte($guiaOriginal->getTipoTransporte());
-            $nuevaGuia->setRucTransporte($guiaOriginal->getRucTransporte());
-            $nuevaGuia->setRazTransporte($guiaOriginal->getRazTransporte());
-            $nuevaGuia->setVehiculo($guiaOriginal->getVehiculo());
-            $nuevaGuia->setChofer($guiaOriginal->getChofer());
-            $nuevaGuia->setChoferDatos($guiaOriginal->getChoferDatos());
-            $nuevaGuia->setPeso($guiaOriginal->getPeso());
-            $nuevaGuia->setNroBultos($guiaOriginal->getNroBultos());
-            $nuevaGuia->setDirPartida($guiaOriginal->getDirPartida());
-            $nuevaGuia->setMotivoTraslado($guiaOriginal->getMotivoTraslado());
-            $nuevaGuia->setObservaciones($guiaOriginal->getObservaciones());
-            $nuevaGuia->setDocReferencia($guiaOriginal->getDocReferencia());
-
-            // Obtener nueva serie y número
-            $documentos = new DocumentoEmpresa();
-            $documentos->setIdTido(11);
-            $documentos->setIdEmpresa($nuevaGuia->getIdEmpresa());
-            if (!$documentos->obtenerDatos()) {
-                throw new Exception("Error al obtener serie y número");
-            }
-
-            $nuevaGuia->setSerie($documentos->getSerie());
-            $nuevaGuia->setNumero($documentos->getNumero());
-
-            // Insertar nueva guía
-            if (!$nuevaGuia->insertar()) {
-                throw new Exception("Error al insertar la nueva guía");
-            }
-
-            // Copiar detalles
-            $detallesOriginales = new GuiaDetalle();
-            $detallesOriginales->setIdGuia($idGuiaOriginal);
-            $resultadoDetalles = $detallesOriginales->obtenerDetalles();
-
-            if ($resultadoDetalles && $resultadoDetalles->num_rows > 0) {
-                $errorEnDetalles = false;
-
-                while ($detalle = $resultadoDetalles->fetch_assoc()) {
-                    $nuevoDetalle = new GuiaDetalle();
-                    $nuevoDetalle->setIdGuia($nuevaGuia->getIdGuia());
-                    $nuevoDetalle->setCantidad($detalle['cantidad']);
-                    $nuevoDetalle->setDetalles($detalle['detalles']);
-                    $nuevoDetalle->setIdProducto($detalle['id_producto']);
-                    $nuevoDetalle->setPrecio($detalle['precio']);
-                    $nuevoDetalle->setUnidad($detalle['unidad']);
-
-                    if (!$nuevoDetalle->insertar()) {
-                        error_log("Error al insertar detalle: " . json_encode($detalle));
-                        $errorEnDetalles = true;
-                        break;
-                    }
-                }
-
-                if ($errorEnDetalles) {
-                    // A pesar del error, la guía y sus detalles se insertaron correctamente
-                    return json_encode([
-                        'res' => true,
-                        'mensaje' => 'Guía de remisión duplicada con éxito',
-                        'nueva_guia_id' => $nuevaGuia->getIdGuia(),
-                        'warning' => 'Algunos detalles podrían no haberse copiado correctamente'
-                    ]);
-                }
-            }
-
-            return json_encode([
-                'res' => true,
-                'mensaje' => 'Guía de remisión duplicada con éxito',
-                'nueva_guia_id' => $nuevaGuia->getIdGuia()
-            ]);
-
-        } catch (Exception $e) {
-            return json_encode([
-                'res' => false,
-                'error' => $e->getMessage()
-            ]);
+        // Obtener nueva serie y número
+        $c_documentos->setIdTido(11);
+        $c_documentos->setIdEmpresa($c_guia->getIdEmpresa());
+        if (!$c_documentos->obtenerDatos()) {
+            throw new Exception("Error al obtener serie y número");
         }
+
+        $c_guia->setSerie($c_documentos->getSerie());
+        $c_guia->setNumero($c_documentos->getNumero());
+
+        // Insertar nueva guía
+        if (!$c_guia->insertar()) {
+            throw new Exception("Error al insertar la nueva guía");
+        }
+
+        // Procesar productos
+        if (isset($_POST['productos']) && !empty($_POST['productos'])) {
+            $listaProd = json_decode($_POST['productos'], true);
+            
+            if (is_array($listaProd) && count($listaProd) > 0) {
+                foreach ($listaProd as $prodG) {
+                    $guiaDetalle = new GuiaDetalle();
+                    $guiaDetalle->setIdGuia($c_guia->getIdGuia());
+                    $guiaDetalle->setCantidad($prodG['cantidad']);
+                    $guiaDetalle->setDetalles($prodG['descripcion']);
+                    $guiaDetalle->setIdProducto($prodG['productoid']);
+                    $guiaDetalle->setPrecio($prodG['precio']);
+                    $guiaDetalle->setUnidad("NIU");
+                    $guiaDetalle->insertar();
+                }
+            }
+        }
+
+        return json_encode([
+            'res' => true,
+            'mensaje' => 'Guía de remisión duplicada con éxito',
+            'nueva_guia_id' => $c_guia->getIdGuia()
+        ]);
+
+    } catch (Exception $e) {
+        return json_encode([
+            'res' => false,
+            'error' => $e->getMessage()
+        ]);
     }
+}
 
-    public function obtenerGuiaDuplicada()
-    {
-        try {
-            if (!isset($_POST['id_guia'])) {
-                throw new Exception("ID de guía no proporcionado");
-            }
+   public function obtenerGuiaDuplicada()
+{
+    try {
+        if (!isset($_POST['id_guia'])) {
+            throw new Exception("ID de guía no proporcionado");
+        }
 
-            $idGuia = $_POST['id_guia'];
+        $idGuia = $_POST['id_guia'];
 
-            // Consulta principal usando query directa para evitar problemas con prepare
-            $query = "SELECT 
-                gr.*,
-                COALESCE(c.documento, gr.destinatario_documento) as doc_cli,
-                COALESCE(c.datos, gr.destinatario_nombre) as nom_cli,
-                COALESCE(ds.nombre, 'GUIA DE REMISION') as tipo_documento
-                FROM guia_remision gr
-                LEFT JOIN ventas v ON gr.id_venta = v.id_venta
-                LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
-                LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
-                WHERE gr.id_guia_remision = " . intval($idGuia);
+        // Consulta principal MEJORADA para incluir datos del chofer
+        $query = "SELECT 
+            gr.*,
+            COALESCE(c.documento, gr.destinatario_documento) as doc_cli,
+            COALESCE(c.datos, gr.destinatario_nombre) as nom_cli,
+            COALESCE(ds.nombre, 'GUIA DE REMISION') as tipo_documento,
+            -- Datos del chofer desde configuraciones
+            gcc.chofer_id,
+            gcc.chofer_nombre,
+            gcc.chofer_dni,
+            gcc.vehiculo_placa,
+            gcc.vehiculo_marca,
+            gcc.licencia_numero
+            FROM guia_remision gr
+            LEFT JOIN ventas v ON gr.id_venta = v.id_venta
+            LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+            LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+            -- NUEVA UNIÓN: Buscar configuración del chofer por vehículo y licencia
+            LEFT JOIN guia_conductor_configuraciones gcc ON (
+                gcc.vehiculo_placa = gr.vehiculo 
+                AND gcc.licencia_numero = gr.chofer_brevete
+                AND gcc.chofer_nombre = gr.chofer_datos
+            )
+            WHERE gr.id_guia_remision = " . intval($idGuia);
 
-            $result = $this->conexion->query($query);
-            if (!$result) {
-                throw new Exception("Error en la consulta: " . $this->conexion->error);
-            }
+        $result = $this->conexion->query($query);
+        if (!$result) {
+            throw new Exception("Error en la consulta: " . $this->conexion->error);
+        }
 
-            $guia = $result->fetch_assoc();
-            if (!$guia) {
-                throw new Exception("Guía no encontrada");
-            }
+        $guia = $result->fetch_assoc();
+        if (!$guia) {
+            throw new Exception("Guía no encontrada");
+        }
 
-            // Consulta de productos
-            $queryProductos = "SELECT 
-                gd.*,
-                p.nombre,
-                p.codigo as codigo_pp
-                FROM guia_detalles gd 
-                LEFT JOIN productos p ON gd.id_producto = p.id_producto
-                WHERE gd.id_guia = " . intval($idGuia);
+        // Consulta de productos (sin cambios)
+        $queryProductos = "SELECT 
+            gd.*,
+            p.nombre,
+            p.codigo as codigo_pp
+            FROM guia_detalles gd 
+            LEFT JOIN productos p ON gd.id_producto = p.id_producto
+            WHERE gd.id_guia = " . intval($idGuia);
 
-            $result = $this->conexion->query($queryProductos);
-            if (!$result) {
-                throw new Exception("Error en la consulta de productos: " . $this->conexion->error);
-            }
+        $result = $this->conexion->query($queryProductos);
+        if (!$result) {
+            throw new Exception("Error en la consulta de productos: " . $this->conexion->error);
+        }
 
-            $productos = [];
-            while ($row = $result->fetch_assoc()) {
-                $productos[] = $row;
-            }
+        $productos = [];
+        while ($row = $result->fetch_assoc()) {
+            $productos[] = $row;
+        }
 
-            // Formatear productos
-            $productosFormateados = array_map(function ($prod) {
-                return [
-                    'productoid' => $prod['id_producto'],
-                    'nombre' => $prod['nombre'] ?? $prod['detalles'],
-                    'descripcion' => $prod['detalles'],
-                    'cantidad' => $prod['cantidad'],
-                    'precio' => $prod['precio'],
-                    'codigo_pp' => $prod['codigo_pp'] ?? '',
-                    'detalle' => $prod['detalles']
-                ];
-            }, $productos);
-
-            // Información del transporte
-            $transporte = [
-                'tipo_trans' => $guia['tipo_transporte'] ?? '',
-                'ruc' => $guia['ruc_transporte'] ?? '',
-                'razon_social' => $guia['razon_transporte'] ?? '',
-                'veiculo' => $guia['vehiculo'] ?? '',
-                'chofer_dni' => $guia['chofer_brevete'] ?? '',
-                'chofer_datos' => $guia['chofer_datos'] ?? ''
+        // Formatear productos
+        $productosFormateados = array_map(function ($prod) {
+            return [
+                'productoid' => $prod['id_producto'],
+                'nombre' => $prod['nombre'] ?? $prod['detalles'],
+                'descripcion' => $prod['detalles'],
+                'cantidad' => $prod['cantidad'],
+                'precio' => $prod['precio'],
+                'codigo_pp' => $prod['codigo_pp'] ?? '',
+                'detalle' => $prod['detalles']
             ];
+        }, $productos);
 
-            return json_encode([
-                'res' => true,
-                'guia' => [
-                    'fecha_emision' => $guia['fecha_emision'] ?? date('Y-m-d'),
-                    'serie_g' => $guia['serie'],
-                    'numero_g' => $guia['numero'],
-                    'doc_cli' => $guia['doc_cli'],
-                    'nom_cli' => $guia['nom_cli'],
-                    'dir_cli' => $guia['dir_llegada'],
-                    'dir_part' => $guia['dir_partida'],
-                    'observacion' => $guia['observaciones'],
-                    'doc_referencia' => $guia['doc_referencia'],
-                    'peso' => $guia['peso'],
-                    'num_bultos' => $guia['nro_bultos'],
-                    'motivo' => $guia['motivo_traslado'],
-                    'tipo_documento' => $guia['tipo_documento']
-                ],
-                'transporte' => $transporte,
-                'productos' => $productosFormateados
-            ]);
+        // Información del transporte MEJORADA
+        $transporte = [
+            'tipo_trans' => $guia['tipo_transporte'] ?? '1',
+            'ruc' => $guia['ruc_transporte'] ?? '',
+            'razon_social' => $guia['razon_transporte'] ?? '',
+            'veiculo' => $guia['vehiculo'] ?? '',
+            'chofer_dni' => $guia['chofer_brevete'] ?? '',
+            'chofer_datos' => $guia['chofer_datos'] ?? '',
+            // NUEVOS CAMPOS desde configuraciones
+            'chofer_id' => $guia['chofer_id'] ?? '',
+            'chofer_nombre' => $guia['chofer_nombre'] ?? $guia['chofer_datos'],
+            'vehiculo_marca' => $guia['vehiculo_marca'] ?? '',
+            'licencia_numero' => $guia['licencia_numero'] ?? $guia['chofer_brevete']
+        ];
 
-        } catch (Exception $e) {
-            return json_encode([
-                'res' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        return json_encode([
+            'res' => true,
+            'guia' => [
+                'fecha_emision' => $guia['fecha_emision'] ?? date('Y-m-d'),
+                'serie_g' => $guia['serie'],
+                'numero_g' => $guia['numero'],
+                'doc_cli' => $guia['doc_cli'],
+                'nom_cli' => $guia['nom_cli'],
+                'dir_cli' => $guia['dir_llegada'],
+                'dir_part' => $guia['dir_partida'],
+                'observacion' => $guia['observaciones'],
+                'doc_referencia' => $guia['doc_referencia'],
+                'peso' => $guia['peso'],
+                'num_bultos' => $guia['nro_bultos'],
+                'motivo' => $guia['motivo_traslado'],
+                'tipo_documento' => $guia['tipo_documento'],
+                'ubigeo' => $guia['ubigeo'] // AGREGADO: para autocompletar ubigeo
+            ],
+            'transporte' => $transporte,
+            'productos' => $productosFormateados
+        ]);
+
+    } catch (Exception $e) {
+        return json_encode([
+            'res' => false,
+            'error' => $e->getMessage()
+        ]);
     }
+}
+
 }

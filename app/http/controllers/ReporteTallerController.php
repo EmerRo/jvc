@@ -311,6 +311,10 @@ class ReporteTallerController extends Controller
     {
         $total = 0;
         $repuestosHtml = '';
+        $colorAlternado = 0; // Variable para alternar colores
+        $colorCrema = '#fbf0e8'; // Color crema
+$colorBlanco = '#FFFFFF'; // Color blanco
+
         $tipoDoc = strlen($data['documento']) === 8 ? 'DNI' : 'RUC';
 
         // Verificar si es rol ORDEN TRABAJO
@@ -331,20 +335,24 @@ class ReporteTallerController extends Controller
             }
         }
 
-        foreach ($repuestos as $index => $repuesto) {
-            $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
-            $total += $subtotal;
+     foreach ($repuestos as $index => $repuesto) {
+    $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
+    $total += $subtotal;
+    
+    // Alternar colores de fondo
+    $bgColor = ($colorAlternado % 2 == 0) ? $colorCrema : $colorBlanco;
+    $colorAlternado++;
 
-            if ($puedeVerPrecios) {
-                // Versión con precios (sin columna CÓDIGO)
-                $repuestosHtml .= "
-                <tr style='margin:0; padding:0;'>
-                    <td style='border-right: 1px solid #C43438;border-left: 1px solid #C43438; padding: 1px; text-align: center'>" . ($index + 1) . "</td>
-                    <td style='border-right: 1px solid #C43438; '>{$repuesto['nombre']}</td>
-                    <td style='border-right: 1px solid #C43438;  text-align: center'>{$repuesto['cantidad']}</td>
-                    <td style='border-right: 1px solid #C43438;  text-align: right'>S/ " . number_format($repuesto['precio'], 2) . "</td>
-                    <td style='border-right: 1px solid #C43438; text-align: right'>S/ " . number_format($subtotal, 2) . "</td>
-                </tr>";
+    if ($puedeVerPrecios) {
+        $repuestosHtml .= "
+        <tr style='margin:0; padding:0; background-color: {$bgColor};'>
+            <td style='border-right: 1px solid #C43438;border-left: 1px solid #C43438; padding: 1px; text-align: center'>" . ($index + 1) . "</td>
+            <td style='border-right: 1px solid #C43438;  font-weight: bold;'>{$repuesto['nombre']}</td>
+            <td style='border-right: 1px solid #C43438;  text-align: center'>{$repuesto['cantidad']}</td>
+            <td style='border-right: 1px solid #C43438;  text-align: right'>S/ " . number_format($repuesto['precio'], 2) . "</td>
+            <td style='border-right: 1px solid #C43438; text-align: right'>S/ " . number_format($subtotal, 2) . "</td>
+        </tr>";
+
             } else {
                 // Versión sin precios
                 if ($esOrdenTrabajo) {

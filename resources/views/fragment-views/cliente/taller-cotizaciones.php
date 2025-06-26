@@ -913,8 +913,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                         placeholder="Escriba las observaciones de la orden de trabajo..."></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="guardar-observaciones">Guardar</button>
+                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn bg-rojo text-white" id="guardar-observaciones">Guardar</button>
                 </div>
             </div>
         </div>

@@ -676,6 +676,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
                 // $fila['precio4'] = $value['precio4'];
             // $fila['precio_unidad'] = $value['precio_unidad'];
             $fila['usar_multiprecio'] = $value['usar_multiprecio'];
+            $fila['unidad_id'] = $value['unidad'];
             array_push($array_resultado, $fila);
         }
     
@@ -748,6 +749,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
             
             $fila['cnt'] = $value['cantidad'];
             $fila['costo'] = $puedeVerPrecios ? $value['costo'] : '0';
+            $fila['unidad_id'] = $value['unidad'];
             
             array_push($array_resultado, $fila);
         }

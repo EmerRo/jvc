@@ -9,6 +9,7 @@ require_once "app/models/CartaTemplate.php";
 class CartaPDF extends Controller
 {
     private $mpdf;
+    private $conexion;
 
     public function __construct()
     {

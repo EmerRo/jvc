@@ -1,30 +1,21 @@
+<!-- resources\views\fragment-views\cliente\nota-electronica-lista.php -->
+
 <?php
 $conexion = (new Conexion())->getConexion();
 
-$sql = "SELECT nes.nombre_xml,ne.*,e.ruc as ruc_empresa,ds.nombre as 'nota_nombre', c.datos as 'cliente_ne' FROM notas_electronicas ne
+$sql = "SELECT nes.nombre_xml,ne.*,'{$_SESSION['ruc_empr']}' as ruc_empresa,ds.nombre as 'nota_nombre', c.datos as 'cliente_ne' FROM notas_electronicas ne
 join documentos_sunat ds on ne.tido = ds.id_tido
-    join empresas e on ne.id_empresa = e.id_empresa
     join notas_electronicas_sunat nes on ne.nota_id = nes.id_notas_electronicas
 join ventas v on ne.id_venta = v.id_venta
 join clientes c on v.id_cliente = c.id_cliente
 where ne.id_empresa={$_SESSION['id_empresa']} and ne.sucursal='{$_SESSION['sucursal']}'";
 
 $listaNE = $conexion->query($sql);
-
 ?>
 <div class="page-title-box">
     <div class="row align-items-center">
-        <!-- <div class="col-md-8">
-            <h6 class="page-title">Ventas</h6>
-            <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="javascript: void(0);">Facturacion</a></li>
-                <li class="breadcrumb-item"><a href="/ventas" class="button-link">Ventas</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Productos</li>
-            </ol>
-        </div> -->
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
-
             </div>
         </div>
     </div>
@@ -33,7 +24,6 @@ $listaNE = $conexion->query($sql);
         <ol class="breadcrumb m-0 float-start">
             <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
             <li class="breadcrumb-item active" aria-current="page"  style="font-weight: 500; color: #CA3438;">Notas Electronicas</li>
-
         </ol>
     </div>
 </div>
@@ -44,22 +34,14 @@ $listaNE = $conexion->query($sql);
             <div class="card-body">
                 <div class="clearfix">
                     <h4 class="card-title float-start">Venta de Producto</h4>
-            
                     <div class="card-title-desc text-end">
-                        <!-- <a href="/nota/electronica" class="btn button-link bg-rojo"><i class="fa fa-plus"></i> Agregar Nota Electronica</a> -->
                         <a href="/nota/electronica" class="btn bg-rojo text-white button-link" style="border-radius: 10px; padding: 8px 16px; font-weight: 500; box-shadow: 0 2px 5px rgba(202, 52, 56, 0.3); transition: all 0.3s ease;">
                         <i class="fa fa-plus me-1"></i> Agregar Nota Electronica
                     </a>
                     </div>
-            
                 </div>
-                <!-- <h4 class="card-title">Venta de Producto</h4>
 
-                <div class="card-title-desc text-end">
-                    <a href="/nota/electronica" class="btn btn-success button-link"><i class="fa fa-plus"></i> Agregar Nota Electronica</a>
-                </div> -->
-
-                <table id="tabla-notaselect" class="table table-bordered table-sm text-center" style="border: 2px solid white;">
+                <table id="tabla-notaselect" class="table table-bordered table-sm text-center" >
                     <thead>
                     <tr>
                         <th></th>
@@ -68,7 +50,8 @@ $listaNE = $conexion->query($sql);
                         <th>Cliente</th>
                         <th>Total</th>
                         <th>Sunat</th>
-                        <th></th>
+                        <th>PDF</th>
+                        <th>XML</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -77,24 +60,32 @@ $listaNE = $conexion->query($sql);
                         ?>
                         <tr>
                             <td><?=$ne['nota_id']?></td>
-                            <td><a target="_blank" href="<?=URL::to('/nota/electronica/pdf/'.$ne['nota_id'].'/'.$ne['nombre_xml'])?>"><?=$ne['nota_nombre']?> | <?=$ne['serie']?>-<?=$ne['numero']?></a></td>
+                           <td><a target="_blank" href="<?=URL::to('/nota/electronica/pdf/'.$ne['nota_id'].'/'.$ne['nombre_xml'])?>"><?=$ne['nota_nombre']?> | <?=$ne['serie']?>-<?=$ne['numero']?></a></td>
                             <td><?=$ne['fecha']?></td>
                             <td><?=$ne['cliente_ne']?></td>
                             <td><?=$ne['monto']?></td>
                             <td><?=$ne['estado_sunat']?>-<?=$ne['nota_id']?></td>
-                            <td><a href="<?=URL::to('files/facturacion/xml/'.$ne['ruc_empresa'].'/'.$ne['nombre_xml'].'.xml')?>" target="_blank" class="btn btn-info btn-sm"><i class="far fa-file"></i></a></td>
+                            <td>
+                                <a href="<?=URL::to('/nota/electronica/pdf/'.$ne['nota_id'].'/'.$ne['nombre_xml'])?>" target="_blank" class="btn btn-sm" style="color: #dc3545;">
+                                    <i class="fas fa-file-pdf fa-lg"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="<?=URL::to('files/facturacion/xml/'.$ne['ruc_empresa'].'/'.$ne['nombre_xml'].'.xml')?>" target="_blank" class="btn btn-sm" style="color: #17a2b8;">
+                                    <i class="fas fa-code fa-lg"></i>
+                                </a>
+                            </td>
                         </tr>
                     <?php
                     }
                     ?>
                     </tbody>
                 </table>
-
-
             </div>
         </div>
     </div>
 </div>
+
 <script>
     function enviarSunat() {
         alertAdvertencia("Aun se debe configurar para enviarlo a la Sunat")
@@ -111,14 +102,11 @@ $listaNE = $conexion->query($sql);
                             return '<span class=" badge bg-success">Enviado</span>';
                         }else{
                             var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
-
                             return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
                         }
-
                     }
                 },
             ],
-            // Configuración de idioma en español
             language: {
                 "sProcessing":     "Procesando...",
                 "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -152,7 +140,7 @@ $listaNE = $conexion->query($sql);
                     console.log(resp);
                     if(resp.res){
                         alertExito("Enviado a la sunat")
-                        tes();
+                        location.reload();
                     }else{
                         Swal.fire({
                             icon: 'warning',

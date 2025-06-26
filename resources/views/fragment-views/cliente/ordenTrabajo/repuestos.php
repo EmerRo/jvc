@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\ordenTrabajo\repuestos.php -->
 <?php
 
 require_once "app/models/Repuesto.php";
@@ -9,6 +10,42 @@ $almacenRepuesto = 1;
 <style>
     .dt-body-left {
         text-align: left !important;
+    }
+
+    /* Estilos personalizados para el autocomplete */
+    .ui-autocomplete {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border: 1px solid #e9ecef !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        background: white !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        z-index: 9999 !important;
+        padding: 4px 0 !important;
+    }
+
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        border: none !important;
+        color: #495057 !important;
+        background: transparent !important;
+        margin: 0 2px !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+        background: #f8f9fa !important;
+        border: 1px solid #CA3438 !important;
+        color: #CA3438 !important;
+        font-weight: 500 !important;
     }
 </style>
 <div class="page-title-box">
@@ -60,17 +97,24 @@ $almacenRepuesto = 1;
                             <button data-bs-toggle="modal" data-bs-target="#importarModal"
                                 class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
                                 Importar</button>
-                            <button class="btn bg-rojo text-white" id="add-rep"><i class="fa fa-plus"></i> Agregar
-                                Repuesto</button>
+
+
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
+                                data-bs-target="#modal-aumentar-stock">
+                                <i class="fa fa-plus"></i> Aumentar Stock de Repuestos
+                            </button>
 
 
                             <!--unidades -->
 
                             <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i>Unidades</a>
+                                    class="fa fa-plus"></i> Unidades</a>
 
                             <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i>Categorias</a>
+                                    class="fa fa-plus"></i> Categorias</a>
+                            <button class="btn bg-rojo text-white bordes" id="add-rep"><i class="fa fa-plus"></i>
+                                Agregar
+                                Repuesto</button>
                             <button class="btn btn-danger btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
                             <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
                                 Seleccionar Todos</button>
@@ -111,8 +155,8 @@ $almacenRepuesto = 1;
                         </div> -->
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-sm table-bordered text-center" cellspacing="0"
-                            width="100%" style="border: 2px solid white;">
+                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
                             <thead>
                                 <tr>
@@ -175,6 +219,59 @@ $almacenRepuesto = 1;
                     </div>
                 </form>
 
+            </div>
+        </div>
+    </div>
+    <!-- Modal Aumentar Stock de Repuestos -->
+    <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-rojo text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-box me-2"></i>Aumentar Stock de Repuestos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form @submit.prevent="aumentarStockRepuesto">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle me-2"></i>
+                            Aquí Debes Buscar y Seleccionar un Repuesto:
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><i class="fa fa-search me-1"></i>Buscar Repuesto:</label>
+                            <input type="text" id="buscar-repuesto-stock" class="form-control"
+                                placeholder="Buscar por código o nombre...">
+                            <input type="hidden" id="repuesto-seleccionado-id" v-model="stockData.repuesto_id">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label><i class="fa fa-cubes me-1"></i>Stock Actual:</label>
+                                    <input type="text" class="form-control" v-model="stockData.stock_actual" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label><i class="fa fa-plus-circle me-1"></i>Cant. a Ingresar *:</label>
+                                    <input type="number" class="form-control" v-model="stockData.cantidad_ingresar"
+                                        min="1" required placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                            <i class="fa fa-times me-1"></i>Cerrar
+                        </button>
+                        <button type="submit" class="btn bg-rojo text-white">
+                            <i class="fa fa-check me-1"></i>Aumentar Stock Ahora
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -287,6 +384,25 @@ $almacenRepuesto = 1;
                                 <label><i class="fa fa-store-alt me-1"></i>Precio Mayorista</label>
                                 <input v-model="reg.precio2" @keypress="onlyNumber" type="text" class="form-control">
                             </div>
+
+                            <!-- Sexta fila - Código de barras -->
+                            <div class="col-md-4 mb-2">
+                                <label><i class="fa fa-barcode me-1"></i>Usar Código Barra</label>
+                                <div class="input-group">
+                                    <select v-model="reg.usar_barra" class="form-control">
+                                        <option value="0">No</option>
+                                        <option value="1">Si</option>
+                                    </select>
+                                    <button v-if="reg.usar_barra=='1'" @click="generarCodeBarraAdd" type="button"
+                                        class="btn bg-rojo text-white">Generar</button>
+                                </div>
+                            </div>
+
+                            <!-- Código de barras preview para agregar -->
+                            <div class="col-md-12 mt-2 text-center" v-if="reg.usar_barra=='1'">
+                                <img id="barcodeAdd" class="img-fluid" />
+                            </div>
+
                             <div class="form-group col-md-4 mt-2">
                                 <label><i class="fa fa-tags me-1"></i>¿Utilizar MultiPrecio?</label>
                                 <div class="form-check form-switch">
@@ -332,8 +448,8 @@ $almacenRepuesto = 1;
                                                     </td>
                                                     <td>
                                                         <div class="input-group">
-                                                        <span class="input-group-text"><span class="me-1"
-                                                        style="font-weight: bold;">S/</span></span>
+                                                            <span class="input-group-text"><span class="me-1"
+                                                                    style="font-weight: bold;">S/</span></span>
                                                             <input v-model="precio.precio" @keypress="onlyNumber"
                                                                 type="text" class="form-control" placeholder="0.00">
                                                         </div>
@@ -489,19 +605,27 @@ $almacenRepuesto = 1;
                             <div class="col-md-4 mb-2">
                                 <label><i class="fa fa-barcode me-1"></i>Usar Código Barra</label>
                                 <div class="input-group">
-                                    <select v-model="edt.usar_barra" class="form-control">
+                                    <select v-model="edt.usar_barra" class="form-control"
+                                        @change="handleUsarBarraChange">
                                         <option value="0">No</option>
                                         <option value="1">Si</option>
                                     </select>
-                                    <button v-if="edt.usar_barra=='1'" @click="edtGenerarCodeBarra" type="button"
+                                    <button v-if="edt.usar_barra == '1'" @click="edtGenerarCodeBarra" type="button"
                                         class="btn bg-rojo text-white">Generar</button>
+                                </div>
+
+                            </div>
+
+                            <!-- Código de barras preview para editar -->
+                            <div class="col-md-12 mt-2 text-center" v-show="edt.usar_barra == '1'"
+                                id="barcode-container-edit">
+                                <label><i class="fa fa-barcode me-1"></i>Código de Barras</label>
+                                <div
+                                    class="p-3 border rounded bg-light d-flex justify-content-center align-items-center">
+                                    <img id="barcodeEdit" class="img-fluid" style="max-width: 300px;" />
                                 </div>
                             </div>
 
-                            <!-- Código de barras preview -->
-                            <div class="col-md-12 mt-2 text-center" v-if="edt.usar_barra=='1'">
-                                <img id="barcode" class="img-fluid" />
-                            </div>
                         </div>
                         <div class="form-group col-md-4 mt-2">
                             <label class="d-flex align-items-center">
@@ -549,8 +673,8 @@ $almacenRepuesto = 1;
                                                 <td>
                                                     <div class="input-group">
                                                         <span class="input-group-text">
-                                                        <span class="me-1" style="font-weight: bold;">S/</span>
-                                                            </span>
+                                                            <span class="me-1" style="font-weight: bold;">S/</span>
+                                                        </span>
                                                         <input v-model="precio.precio" @keypress="onlyNumber"
                                                             type="text" class="form-control" placeholder="0.00">
                                                     </div>
@@ -901,7 +1025,7 @@ $almacenRepuesto = 1;
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js"></script>
+
     <script>
         function descarFunccc() {
             window.open(_URL +
@@ -952,10 +1076,22 @@ $almacenRepuesto = 1;
         function abrirModalBarras(e, n = '') {
             e = e.trim();
             console.log(e);
-            nombreBarraTemps = n
-            codeBarraTemps = e
-            JsBarcode("#idCodigoBarras", e);
-            $('#modalCodigoBarras').modal('show')
+            nombreBarraTemps = n;
+            codeBarraTemps = e;
+
+            // Primero mostrar el modal
+            $('#modalCodigoBarras').modal('show');
+
+            // Esperar a que el modal esté completamente visible antes de generar el código de barras
+            $('#modalCodigoBarras').on('shown.bs.modal', function () {
+                setTimeout(function () {
+                    try {
+                        JsBarcode("#idCodigoBarras", e);
+                    } catch (error) {
+                        console.error("Error al generar código de barras:", error);
+                    }
+                }, 100);
+            });
         }
         function clearSelection() {
             // Limpiar array de IDs seleccionados
@@ -972,8 +1108,9 @@ $almacenRepuesto = 1;
         var codeBarraTemps = ''
         var datatable
         var almacenCod = '<?php echo $_SESSION["sucursal"] ?>'
+        let app;
         $(document).ready(function () {
-            const app = new Vue({
+            app = new Vue({
                 el: "#conte-vue-modals",
                 data: {
 
@@ -1011,6 +1148,7 @@ $almacenRepuesto = 1;
                         unidad: '',
                         subcategoria: '',
                         usar_multiprecio: false,
+                        usar_barra: '0', // AGREGADO: Campo para usar código de barras
                     },
                     edt: {
                         nombre: '',
@@ -1038,7 +1176,13 @@ $almacenRepuesto = 1;
                         subcategoria: '',
                         usar_multiprecio: false,
                     },
-                    listaIdsss: []
+                    listaIdsss: [],
+                    stockData: {
+                        repuesto_id: '',
+                        stock_actual: '',
+                        cantidad_ingresar: '',
+                        repuesto_nombre: ''
+                    },
                 },
 
                 methods: {
@@ -1168,6 +1312,7 @@ $almacenRepuesto = 1;
                             datatable.destroy();
                         }
 
+
                         datatable = $("#datatable").DataTable({
                             order: [[0, 'ASC']],
                             "processing": true,
@@ -1244,8 +1389,79 @@ $almacenRepuesto = 1;
                             }
                         });
                     },
+                    // AGREGADO: Método para generar código de barras en modal de agregar
+                    generarCodeBarraAdd() {
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                if (document.getElementById("barcodeAdd") && this.reg.codigo) {
+                                    try {
+                                        JsBarcode("#barcodeAdd", this.reg.codigo);
+                                    } catch (error) {
+                                        console.error("Error al generar código de barras:", error);
+                                    }
+                                }
+                            }, 100);
+                        });
+                    },
+                    handleUsarBarraChange() {
+                        console.log("Cambio en usar_barra:", this.edt.usar_barra);
+
+                        if (this.edt.usar_barra === '1' && this.edt.codigo) {
+                            // Generar código de barras
+                            this.$nextTick(() => {
+                                this.edtGenerarCodeBarra();
+                            });
+                        } else {
+                            // Limpiar código de barras cuando se desactiva
+                            this.$nextTick(() => {
+                                const barcodeElement = document.getElementById("barcodeEdit");
+                                if (barcodeElement) {
+                                    barcodeElement.src = "";
+                                    barcodeElement.style.display = "none";
+                                }
+                            });
+                        }
+                    },
                     edtGenerarCodeBarra() {
-                        JsBarcode("#barcode", this.edt.cod_rep);
+                        console.log("Intentando generar código de barras para:", this.edt.codigo);
+
+                        const barcodeElement = document.getElementById("barcodeEdit");
+                        if (!barcodeElement) {
+                            console.warn("Elemento #barcodeEdit no encontrado");
+                            return;
+                        }
+
+                        if (!this.edt.codigo) {
+                            console.warn("No hay código para generar");
+                            return;
+                        }
+
+                        try {
+                            JsBarcode("#barcodeEdit", this.edt.codigo, {
+                                format: "CODE128",
+                                width: 2,
+                                height: 50,
+                                displayValue: true
+                            });
+
+                            // AGREGAR: Asegurar que la imagen sea visible
+                            barcodeElement.style.display = "block";
+
+                            console.log("Código de barras generado exitosamente");
+                        } catch (error) {
+                            console.error("Error al generar código de barras:", error);
+                        }
+                    },
+                    // AGREGADO: Método para manejar el cambio de usar_barra en editar
+                    toggleBarcodeEdit() {
+                        this.$nextTick(() => {
+                            if (this.edt.usar_barra === '1' && this.edt.codigo) {
+                                // Generar código de barras si se activa
+                                setTimeout(() => {
+                                    this.edtGenerarCodeBarra();
+                                }, 100);
+                            }
+                        });
                     },
                     agregarListaImport() {
                         if (this.listaRep.length > 0) {
@@ -1431,6 +1647,7 @@ $almacenRepuesto = 1;
                         formData.append('almacen', this.reg.almacen);
                         formData.append('unidad', this.reg.unidad);
                         formData.append('usar_multiprecio', this.reg.usar_multiprecio ? '1' : '0');
+                        formData.append('usar_barra', this.reg.usar_barra); // AGREGADO
 
                         // Agregar los precios si usa multiprecio
                         if (this.reg.usar_multiprecio) {
@@ -1470,8 +1687,11 @@ $almacenRepuesto = 1;
                             usar_multiprecio: data.usar_multiprecio === '1' || data.usar_multiprecio === 1
                         };
 
-                        this.edt.cod_rep = data.cod_barra;
-                        this.edt.usar_barra = data.usar_barra;
+                        this.edt = {
+                            ...this.edt,
+                            usar_barra: data.usar_barra || '0'
+                        };
+                        this.edt.usar_barra = data.usar_barra || '0'; // AGREGADO
                         this.edt.cod = data.id_repuesto;
                         this.edt.nombre = data.nombre;
                         this.edt.precio = data.precio;
@@ -1489,11 +1709,13 @@ $almacenRepuesto = 1;
                         this.edt.cantidad = data.cantidad;
                         this.edt.detalle = data.detalle;
                         this.edt.almacen = data.almacen;
-                        // this.edt.imagen = data.imagen;
                         this.edt.unidad = data.unidad;
                         this.edt.categoria = data.categoria;
                         this.cargarSubcategoriasEdit();
 
+                        console.log("DEBUG - usar_barra recibido:", data.usar_barra);
+                        console.log("DEBUG - usar_barra asignado:", this.edt.usar_barra);
+                        console.log("DEBUG - tipo de dato:", typeof this.edt.usar_barra);
                         // si el repuesto tiene una subcategoria guardada, cargarla
                         if (data.subcategoria) {
                             this.edt.subcategoria = data.subcategoria;
@@ -1526,6 +1748,15 @@ $almacenRepuesto = 1;
                             console.error("Error al cargar las categorias: " + textStatus, errorThrown);
                             alert("No se pudo cargar las categorias. Por favor, intenta nuevamente.");
                         });
+
+                        this.$nextTick(() => {
+                            const barcodeElement = document.getElementById("barcodeEdit");
+                            if (barcodeElement) {
+                                barcodeElement.src = "";
+                                barcodeElement.style.display = "none";
+                            }
+                        });
+
                         // Cargar los precios si usa multiprecio
                         if (this.edt.usar_multiprecio) {
                             _ajax("/ajs/data/repuesto/obtener/precios", "POST", {
@@ -1546,6 +1777,41 @@ $almacenRepuesto = 1;
                         if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
                             $event.preventDefault();
                         }
+                    },
+                    aumentarStockRepuesto() {
+                        if (!this.stockData.repuesto_id) {
+                            alertAdvertencia("Debe seleccionar un repuesto");
+                            return;
+                        }
+
+                        if (!this.stockData.cantidad_ingresar || this.stockData.cantidad_ingresar <= 0) {
+                            alertAdvertencia("Debe ingresar una cantidad válida");
+                            return;
+                        }
+
+                        const data = {
+                            repuesto_id: this.stockData.repuesto_id,
+                            cantidad: this.stockData.cantidad_ingresar
+                        };
+
+                        _ajax("/ajs/data/repuesto/aumentar/stock", "POST", data, function (resp) {
+                            if (resp.res) {
+                                alertExito("Stock aumentado exitosamente").then(() => {
+                                    $("#modal-aumentar-stock").modal("hide");
+                                    datatable.ajax.reload(null, false);
+                                    // Limpiar formulario
+                                    app._data.stockData = {
+                                        repuesto_id: '',
+                                        stock_actual: '',
+                                        cantidad_ingresar: '',
+                                        repuesto_nombre: ''
+                                    };
+                                    $('#buscar-repuesto-stock').val('');
+                                });
+                            } else {
+                                alertAdvertencia("Error al aumentar el stock");
+                            }
+                        });
                     }
                 },
                 mounted() {
@@ -1767,6 +2033,20 @@ $almacenRepuesto = 1;
                 let img = `<img src='/public/img/repuestos/${cod}' style="width:100%">`;
                 $('#imagen').html(img);
             })
+            $('#modal-edt-rep').on('shown.bs.modal', function () {
+                app.$nextTick(() => {
+                    if (app.edt.usar_barra === '1' && app.edt.codigo) {
+                        app.edtGenerarCodeBarra();
+                    } else {
+                        // Limpiar si no debe mostrar código de barras
+                        const barcodeElement = document.getElementById("barcodeEdit");
+                        if (barcodeElement) {
+                            barcodeElement.src = "";
+                            barcodeElement.style.display = "none";
+                        }
+                    }
+                });
+            });
 
 
             // Manejador para los checkboxes individuales con prevención de propagación
@@ -1885,9 +2165,7 @@ $almacenRepuesto = 1;
                     }
                 })
             });
-        })
 
-        $(document).ready(function () {
             $('#add-rep').click(function () {
 
 
@@ -1921,8 +2199,70 @@ $almacenRepuesto = 1;
                     console.error("Error al guardar la categoría: " + textStatus, errorThrown);
                     alert("No se pudo guardar la categoría. Por favor, intenta nuevamente.");
                 });
-            })
-        });
+            });
+
+            $("#buscar-repuesto-stock").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: _URL + "/ajs/cargar/repuestos/" + almacenCod,
+                        data: { term: request.term },
+                        success: function (data) {
+                            response(JSON.parse(data));
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Error en autocomplete:", error);
+                            response([]);
+                        }
+                    });
+                },
+                minLength: 2,
+                appendTo: "#modal-aumentar-stock .modal-body",
+                select: function (event, ui) {
+                    $(this).val(ui.item.label || ui.item.nombre);
+
+                    app._data.stockData.repuesto_id = ui.item.codigo;
+                    app._data.stockData.stock_actual = ui.item.cnt;
+                    app._data.stockData.repuesto_nombre = ui.item.nombre;
+                    $('#repuesto-seleccionado-id').val(ui.item.codigo);
+
+                    $(this).autocomplete("close");
+                    return false;
+                },
+                open: function () {
+                    $('.ui-autocomplete').css({
+                        'z-index': 9999,
+                        'max-width': $('#buscar-repuesto-stock').outerWidth() + 'px',
+                        'font-size': '13px'
+                    });
+
+                    var input = $('#buscar-repuesto-stock');
+                    var inputOffset = input.position();
+
+                    $('.ui-autocomplete').css({
+                        'left': inputOffset.left + 'px',
+                        'top': (inputOffset.top + input.outerHeight() + 2) + 'px'
+                    });
+                },
+                close: function () {
+                    $('.ui-autocomplete').hide();
+                }
+            });
+
+
+            // Limpiar autocomplete cuando se cierre el modal
+            $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
+                $('#buscar-repuesto-stock').val('');
+                $('.ui-autocomplete').hide();
+
+                // Limpiar los datos de Vue
+                app._data.stockData = {
+                    repuesto_id: '',
+                    stock_actual: '',
+                    cantidad_ingresar: '',
+                    repuesto_nombre: ''
+                };
+            });
+        })
 
         function truncateText(text, maxLength) {
             if (text == null) {
@@ -1945,6 +2285,7 @@ $almacenRepuesto = 1;
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -181,7 +181,7 @@
                                                             <div class="col-lg-3">
                                                                 <label for="precio-input"
                                                                     class="col-form-label">Precio</label>
-                                                                <div class="input-group">
+                                                              <div class="input-group" style="height: 38px;">
                                                                     <input id="precio-input" type="text"
                                                                         class="form-control"
                                                                         :class="{'dropdown-toggle': producto.descripcion.length > 0}"
@@ -209,7 +209,7 @@
                                                                                     {{ producto.precioVenta }}</span>
                                                                             </a>
                                                                         </li>
-                                                                        <li>
+                                                                        <!-- <li>
                                                                             <a class="dropdown-item" href="#"
                                                                                 @click.prevent="seleccionarPrecioConTipo('C', producto.costo)"
                                                                                 style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
@@ -219,7 +219,7 @@
                                                                                     style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
                                                                                     {{ producto.costo }}</span>
                                                                             </a>
-                                                                        </li>
+                                                                        </li> -->
                                                                         <li>
                                                                             <a class="dropdown-item" href="#"
                                                                                 @click.prevent="seleccionarPrecioConTipo('PM', producto.precio_mayor)"
@@ -252,7 +252,7 @@
                                                                             :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
                                                                             aria-expanded="false"
                                                                             @click="mostrarMensajeProducto"
-                                                                            style="background-color: #CA3438; color: white;">
+                                                                            style="background-color: #CA3438; color: white; height: 38px;">
                                                                             <i class="fa fa-chevron-down"></i>
                                                                         </button>
                                                                         <ul class="dropdown-menu dropdown-menu-end"
@@ -737,7 +737,7 @@
                                                                 </div>
                                                             </a>
                                                         </li>
-                                                        <li>
+                                                        <!-- <li>
                                                             <a class="dropdown-item" href="#"
                                                                 @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)">
                                                                 <div
@@ -748,7 +748,7 @@
                                                                         {{ productoEdit.costo }}</span>
                                                                 </div>
                                                             </a>
-                                                        </li>
+                                                        </li> -->
                                                         <li>
                                                             <a class="dropdown-item" href="#"
                                                                 @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)">
@@ -777,12 +777,12 @@
                                                         </li>
                                                     </ul>
 
-                                                    <button class="btn bg-rojo text-white dropdown-toggle" type="button"
-                                                        data-bs-toggle="dropdown" aria-expanded="false"
-                                                        data-bs-auto-close="outside">
-                                                        <i class="fa fa-chevron-down"></i>
-                                                    </button>
-
+                                                 <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+    data-bs-toggle="dropdown" aria-expanded="false"
+    data-bs-auto-close="outside"
+    style="height: 38px;">
+    <i class="fa fa-chevron-down"></i>
+</button>
                                                     <!-- En el dropdown para precios adicionales (desde el botón) -->
                                                     <ul class="dropdown-menu dropdown-menu-end shadow">
                                                         <li class="dropdown-header bg-light py-2 px-3">Precios
@@ -1106,17 +1106,19 @@
             </div>
             <div class="modal-body">
                 <div id="editor-container"></div>
-                
+
                 <!-- Nuevo: Selector para guardar condiciones -->
                 <div class="mt-3 border-top pt-3">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="guardarCondiciones" id="guardarSoloCotizacion" value="cotizacion" checked>
+                        <input class="form-check-input" type="radio" name="guardarCondiciones"
+                            id="guardarSoloCotizacion" value="cotizacion" checked>
                         <label class="form-check-label" for="guardarSoloCotizacion">
                             Guardar solo para esta cotización
                         </label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="guardarCondiciones" id="guardarTodasCotizaciones" value="todas">
+                        <input class="form-check-input" type="radio" name="guardarCondiciones"
+                            id="guardarTodasCotizaciones" value="todas">
                         <label class="form-check-label" for="guardarTodasCotizaciones">
                             Guardar para todas las cotizaciones
                         </label>
@@ -1391,68 +1393,68 @@
                 },
                 // Reemplazar completamente el método editarProducto
                 editarProducto(index) {
-    console.log("Iniciando edición del producto:", index);
-    const producto = this.productos[index];
-    console.log("Editando producto:", producto);
-    
-    this.productoEdit = {
-        index: index,
-        codigo_pp: producto.codigo_pp,
-        nombre: producto.nombre || producto.descripcion,
-        nom_prod: producto.nombre || producto.descripcion,
-        detalle: producto.detalle || "",
-        cantidad: producto.cantidad,
-        precio_mostrado: producto.precio || producto.precioVenta || "0.00",
-        precioVenta: producto.precioVenta || producto.precio || "0.00",
-        costo: producto.costo || "0.00",
-        precio_mayor: producto.precio_mayor || "0.00",
-        precio_menor: producto.precio_menor || "0.00",
-        precio: producto.precio || "0.00",
-        precio_original: producto.precio || "0.00",
-        precioEspecial: producto.precioEspecial || "",
-        tipo_precio: producto.tipo_precio || "PV",
-        productoid: producto.id_producto || producto.productoid, // Asegurarse de usar el ID correcto
-    };
+                    console.log("Iniciando edición del producto:", index);
+                    const producto = this.productos[index];
+                    console.log("Editando producto:", producto);
 
-    // Establecer si se está usando precio especial
-    this.usarPrecioEspecial = !!producto.precioEspecial;
+                    this.productoEdit = {
+                        index: index,
+                        codigo_pp: producto.codigo_pp,
+                        nombre: producto.nombre || producto.descripcion,
+                        nom_prod: producto.nombre || producto.descripcion,
+                        detalle: producto.detalle || "",
+                        cantidad: producto.cantidad,
+                        precio_mostrado: producto.precio || producto.precioVenta || "0.00",
+                        precioVenta: producto.precioVenta || producto.precio || "0.00",
+                        costo: producto.costo || "0.00",
+                        precio_mayor: producto.precio_mayor || "0.00",
+                        precio_menor: producto.precio_menor || "0.00",
+                        precio: producto.precio || "0.00",
+                        precio_original: producto.precio || "0.00",
+                        precioEspecial: producto.precioEspecial || "",
+                        tipo_precio: producto.tipo_precio || "PV",
+                        productoid: producto.id_producto || producto.productoid, // Asegurarse de usar el ID correcto
+                    };
 
-    // Inicializar precios adicionales como vacío
-    this.preciosAdicionales = [];
-    
-    // Cargar precios adicionales directamente
-    if (producto.id_producto || producto.productoid) {
-        const productoId = producto.id_producto || producto.productoid;
-        const tipo = producto.tipo || "producto";
-        const url = _URL + "/ajs/cargar/producto_precios/" + productoId;
+                    // Establecer si se está usando precio especial
+                    this.usarPrecioEspecial = !!producto.precioEspecial;
 
-        console.log("Cargando precios adicionales para edición:", productoId, tipo);
+                    // Inicializar precios adicionales como vacío
+                    this.preciosAdicionales = [];
 
-        $.ajax({
-            url: url,
-            type: "GET",
-            dataType: "json",
-            success: (data) => {
-                console.log("Precios adicionales recibidos en edición:", data);
+                    // Cargar precios adicionales directamente
+                    if (producto.id_producto || producto.productoid) {
+                        const productoId = producto.id_producto || producto.productoid;
+                        const tipo = producto.tipo || "producto";
+                        const url = _URL + "/ajs/cargar/producto_precios/" + productoId;
 
-                if (data && data.length > 0) {
-                    // Usar Vue.set para asegurar reactividad
-                    this.preciosAdicionales = data.map((item) => ({
-                        nombre: item.nombre,
-                        precio: Number.parseFloat(item.precio).toFixed(2),
-                    }));
-                    
-                    console.log("Precios adicionales asignados:", this.preciosAdicionales);
-                }
-            },
-            error: (xhr, status, error) => {
-                console.error("Error cargando precios adicionales:", error);
-            },
-        });
-    }
+                        console.log("Cargando precios adicionales para edición:", productoId, tipo);
 
-    new bootstrap.Modal(document.getElementById("modalEditarProducto")).show();
-},
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            dataType: "json",
+                            success: (data) => {
+                                console.log("Precios adicionales recibidos en edición:", data);
+
+                                if (data && data.length > 0) {
+                                    // Usar Vue.set para asegurar reactividad
+                                    this.preciosAdicionales = data.map((item) => ({
+                                        nombre: item.nombre,
+                                        precio: Number.parseFloat(item.precio).toFixed(2),
+                                    }));
+
+                                    console.log("Precios adicionales asignados:", this.preciosAdicionales);
+                                }
+                            },
+                            error: (xhr, status, error) => {
+                                console.error("Error cargando precios adicionales:", error);
+                            },
+                        });
+                    }
+
+                    new bootstrap.Modal(document.getElementById("modalEditarProducto")).show();
+                },
 
 
 

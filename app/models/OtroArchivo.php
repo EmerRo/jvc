@@ -7,7 +7,7 @@ class OtroArchivo
     private $titulo;
     private $tipo;
     private $motivo;
-    private $cliente_id;
+    private $id_cliente;
     private $usuario_id;
     private $contenido;
     private $archivo_pdf;
@@ -68,14 +68,14 @@ class OtroArchivo
         $this->motivo = $motivo;
     }
     
-    public function getClienteId()
+     public function getIdCliente()
     {
-        return $this->cliente_id;
+        return $this->id_cliente;
     }
-    
-    public function setClienteId($cliente_id)
+
+    public function setIdCliente($id_cliente)
     {
-        $this->cliente_id = $cliente_id;
+        $this->id_cliente = $id_cliente;
     }
     
     public function getUsuarioId()
@@ -147,6 +147,10 @@ class OtroArchivo
     {
         $this->estado = $estado;
     }
+        public function getFechaCreacion()
+{
+    return $this->fecha_creacion;
+}
     
     public function getHeaderImageUrl()
     {
@@ -165,30 +169,70 @@ class OtroArchivo
     }
     
     // Métodos CRUD
-    public function insertarOtroArchivo()
-    {
-        $sql = "INSERT INTO otros_archivos (titulo, tipo, motivo, cliente_id, usuario_id, contenido, archivo_pdf, header_image, footer_image, es_pdf_subido, estado) 
+  public function insertarOtroArchivo()
+{
+    try {
+        $sql = "INSERT INTO otros_archivos (titulo, tipo, motivo, id_cliente, usuario_id, contenido, archivo_pdf, header_image, footer_image, es_pdf_subido, estado) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
         $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("sssiiisssss", $this->titulo, $this->tipo, $this->motivo, $this->cliente_id, $this->usuario_id, $this->contenido, $this->archivo_pdf, $this->header_image, $this->footer_image, $this->es_pdf_subido, $this->estado);
+        
+        if (!$stmt) {
+            error_log("Error en prepare: " . $this->conectar->error);
+            return false;
+        }
+        
+        // Manejar valores NULL correctamente
+        $motivo = $this->motivo ?: null;
+        $id_cliente = $this->id_cliente ?: null;
+        $contenido = $this->contenido ?: null;
+        $archivo_pdf = $this->archivo_pdf ?: null;
+        $header_image = $this->header_image ?: null;
+        $footer_image = $this->footer_image ?: null;
+        
+        $stmt->bind_param("sssiissssss", 
+            $this->titulo, 
+            $this->tipo, 
+            $motivo, 
+            $id_cliente, 
+            $this->usuario_id, 
+            $contenido, 
+            $archivo_pdf, 
+            $header_image, 
+            $footer_image, 
+            $this->es_pdf_subido, 
+            $this->estado
+        );
+        
         $result = $stmt->execute();
+        
+        if (!$result) {
+            error_log("Error en execute: " . $stmt->error);
+            return false;
+        }
         
         if ($result) {
             $this->id = $this->conectar->insert_id;
         }
+        
         return $result;
+        
+    } catch (Exception $e) {
+        error_log("Error en insertarOtroArchivo: " . $e->getMessage());
+        return false;
     }
+}
     
     public function actualizarOtroArchivo()
     {
         $sql = "UPDATE otros_archivos 
-                SET titulo = ?, tipo = ?, motivo = ?, cliente_id = ?, contenido = ?, archivo_pdf = ?, header_image = ?, footer_image = ?, es_pdf_subido = ?, estado = ? 
+                SET titulo = ?, tipo = ?, motivo = ?, id_cliente = ?, contenido = ?, archivo_pdf = ?, header_image = ?, footer_image = ?, es_pdf_subido = ?, estado = ? 
                 WHERE id = ?";
         
         $stmt = $this->conectar->prepare($sql);
-        
-        $stmt->bind_param("sssississsi", $this->titulo, $this->tipo, $this->motivo, $this->cliente_id, $this->contenido, $this->archivo_pdf, $this->header_image, $this->footer_image, $this->es_pdf_subido, $this->estado, $this->id);
-        
+
+        $stmt->bind_param("sssississsi", $this->titulo, $this->tipo, $this->motivo, $this->id_cliente, $this->contenido, $this->archivo_pdf, $this->header_image, $this->footer_image, $this->es_pdf_subido, $this->estado, $this->id);
+
         return $stmt->execute();
     }
     
@@ -200,7 +244,7 @@ class OtroArchivo
         
         $sql = "SELECT a.*, cl.datos as cliente_nombre 
                 FROM otros_archivos a
-                LEFT JOIN clientes cl ON a.cliente_id = cl.id_cliente
+                LEFT JOIN clientes cl ON a.id_cliente = cl.id_cliente
                 WHERE a.id = ?";
         
         $stmt = $this->conectar->prepare($sql);
@@ -212,7 +256,7 @@ class OtroArchivo
             $this->titulo = $fila['titulo'];
             $this->tipo = $fila['tipo'];
             $this->motivo = $fila['motivo'];
-            $this->cliente_id = $fila['cliente_id'];
+            $this->id_cliente = $fila['id_cliente'];
             $this->usuario_id = $fila['usuario_id'];
             $this->contenido = $fila['contenido'];
             $this->archivo_pdf = $fila['archivo_pdf'];
@@ -234,7 +278,7 @@ class OtroArchivo
             // Construir la consulta SQL base
             $sql = "SELECT a.*, cl.datos as cliente_nombre, u.nombres as usuario_nombre 
                     FROM otros_archivos a
-                    LEFT JOIN clientes cl ON a.cliente_id = cl.id_cliente
+                    LEFT JOIN clientes cl ON a.id_cliente = cl.id_cliente
                     LEFT JOIN usuarios u ON a.usuario_id = u.usuario_id";
             
             // Si hay un filtro de búsqueda, añadimos la condición WHERE
@@ -341,4 +385,24 @@ class OtroArchivo
             return [];
         }
     }
+     public function generarNumeroCorrelativo($tipo)
+{
+    // Obtener el año actual
+    $anio = date('Y');
+    
+    // Contar cuántos cartas del mismo tipo existen en el año actual
+    $sql = "SELECT COUNT(*) as total FROM otros_archivos 
+            WHERE tipo = ? AND YEAR(fecha_creacion) = ?";
+    $stmt = $this->conectar->prepare($sql);
+    $stmt->bind_param("si", $tipo, $anio);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    
+    // El siguiente número será el total + 1
+    $numero = $row['total'] + 1;
+    
+    // Formatear el número correlativo: NRO.015-2025-JVC
+    return sprintf("NRO.%03d-%d-JVC", $numero, $anio);
+}
 }

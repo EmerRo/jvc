@@ -380,6 +380,16 @@ public function setSqlError($sql_error): void
 {
     $this->sql_error = $sql_error;
 }
+public function getDocReferencia()
+{
+    return $this->doc_referencia;
+}
+
+// Setter
+public function setDocReferencia($doc_referencia): void
+{
+    $this->doc_referencia = $doc_referencia;
+}
     
     public function exeSQL($sql)
     {
@@ -401,8 +411,9 @@ public function setSqlError($sql_error): void
         }
         
         $idCotiValue = isset($this->idCoti) && $this->idCoti !== '' ? $this->idCoti : 'NULL';
-    
-        $sql = "insert into ventas set moneda='{$_POST['moneda']}',cm_tc='{$tc}',pagado='{$_POST['pagacon']}', apli_igv='$this->apli_igv', id_tido='$this->id_tido',id_tipo_pago='$this->id_tipo_pago',fecha_emision='$this->fecha',
+        $docReferencia = isset($_POST['doc_referencia']) ? $_POST['doc_referencia'] : '';
+
+        $sql = "insert into ventas set doc_referencia='$docReferencia', moneda='{$_POST['moneda']}',cm_tc='{$tc}',pagado='{$_POST['pagacon']}', apli_igv='$this->apli_igv', id_tido='$this->id_tido',id_tipo_pago='$this->id_tipo_pago',fecha_emision='$this->fecha',
         fecha_vencimiento='$this->fechaVenc',dias_pagos='$this->dias_pagos',direccion='$this->direccion',
         serie='$this->serie',numero='$this->numero',id_cliente='$this->id_cliente',total='$this->total', estado='1',
                        

@@ -1,20 +1,37 @@
 <?php
 
 
-
-Route::get("/data/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataCotizacionSS")->Middleware([ValidarTokenMiddleware::class]);
-
-Route::get("/ajs/asearch/provedor/data", "ConsultasController@buscarDataProveedor")->Middleware([ValidarTokenMiddleware::class]);
-
 Route::post("/ajs/admin/cliente/add", "AdminDataController@agregarCliente")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/admin/cliente/edt", "AdminDataController@actualizarCliente")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/admin/cliente/info", "AdminDataController@infoCliemt")->Middleware([ValidarTokenMiddleware::class]);
-
-
-Route::post('/ajs/cargar/productos/precios', "ConsultasController@cargarPreciosProd")->Middleware([ValidarTokenMiddleware::class]);
-
-
 Route::post("/ajs/admin/cliente/estado/edt", "AdminDataController@guardarEstado")->Middleware([ValidarTokenMiddleware::class]);
+
+/* ============ INICO AJAX2 rutas para consultasController ================== */
+Route::post('/ajs/cargar/productos/precios', "ConsultasController@cargarPreciosProd")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/asearch/provedor/data", "ConsultasController@buscarDataProveedor")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/doc/venta/info", "ConsultasController@functionbuscarDocumentoVentasSN")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/nota/electronica/add", "ConsultasController@guardarNotaElectronica")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/send/sunat/notaelectronica", "ConsultasController@enviarDocumentoSunatNE")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/sucursales/empresa", "ConsultasController@listasucursaleEmpresa")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/sucursales/empresa/add", "ConsultasController@agregarSusucursal")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/sucursales/empresa/info", "ConsultasController@getInfoSucursal")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/sucursales/empresa/info/detalle", "ConsultasController@getInfoSucursalDetalle")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/sucursales/empresa/edt", "ConsultasController@actualizarSucursal")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/metodo/pago", "ConsultasController@getMetodoPago")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/stock/almacen", "ConsultasController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/send/comprobante/email", "ConsultasController@enviarcomprobanteEmail");
+Route::post("/ajs/informacion/venta/fb", "ConsultasController@informacionVentaFb");
+Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");
+
+/* ====================== FIN DE LAS RUTAS DE CONSULTAS CONTROLLER ========================================= */
+
+
+
+Route::get("/data/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataCotizacionSS")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataTallerCotizacionSS")->middleware([ValidarTokenMiddleware::class]);
+
+/* ====================== INICO DE LAS RUTAS DE PRODUCTOS CONTROLLER ========================================= */
+
 
 Route::post("/ajs/data/producto/guardar/precios", "ProductosController@guardarPrecios")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/obtener/precios", "ProductosController@obtenerPrecios")->Middleware([ValidarTokenMiddleware::class]);
@@ -29,50 +46,22 @@ Route::post("/ajs/data/producto/info/code", "ProductosController@informacionPorC
 Route::post("/ajs/data/producto/info", "ProductosController@informacion")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/restock", "ProductosController@restock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/add/exel", "ProductosController@importarExel")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/doc/venta/info", "ConsultasController@functionbuscarDocumentoVentasSN")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/nota/electronica/add", "ConsultasController@guardarNotaElectronica")->Middleware([ValidarTokenMiddleware::class]);
 
-
-// Rutas adicionales para las nuevas funcionalidades
-
+//  Rutas adicionales para las nuevas funcionalidades
 Route::post("/ajs/save/condiciones", "ProductosController@saveCondicion");
 
-// Nuevas rutas para condiciones específicas por cotización
+//* Nuevas rutas para condiciones específicas por cotización
 Route::get("/ajs/get/condiciones/default", "ProductosController@getCondicion");
 Route::get("/ajs/get/condiciones/cotizacion/:id", "ProductosController@getCondicionCotizacion");
 Route::post("/ajs/save/condiciones/cotizacion", "ProductosController@saveCondicionCotizacion");
 Route::post("/ajs/save/condiciones/temp", "ProductosController@saveCondicionTemp");
-// Ruta para guardar condiciones predeterminadas
 Route::post("/ajs/save/condiciones/default", "ProductosController@saveCondicionDefault");
-
-
-
 Route::get("/ajas/get/diagnosticos", "ProductosController@getDiagnostico");
 Route::get("/ajas/get/diagnosticos", "ProductosController@saveDiagnostico");
 
 
 
-Route::post("/ajs/send/sunat/venta", "VentasController@enviarDocumentoSunat")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/send/sunat/notaelectronica", "ConsultasController@enviarDocumentoSunatNE")->Middleware([ValidarTokenMiddleware::class]);
 
-Route::post("/ajs/consulta/sucursales/empresa", "ConsultasController@listasucursaleEmpresa")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/sucursales/empresa/add", "ConsultasController@agregarSusucursal")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/sucursales/empresa/info", "ConsultasController@getInfoSucursal")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/sucursales/empresa/info/detalle", "ConsultasController@getInfoSucursalDetalle")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/sucursales/empresa/edt", "ConsultasController@actualizarSucursal")->Middleware([ValidarTokenMiddleware::class]);
-
-Route::post("/ajs/consulta/metodo/pago", "ConsultasController@getMetodoPago")->Middleware([ValidarTokenMiddleware::class]);
-
-
-Route::post("/ajs/consulta/stock/almacen", "ConsultasController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/stock/almacen", "ConsultasController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
-
-
-Route::post("/ajs/send/comprobante/email", "ConsultasController@enviarcomprobanteEmail");
-
-Route::post("/ajs/informacion/venta/fb", "ConsultasController@informacionVentaFb");
-
-Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");
 
 
 Route::post("/ajs/cotizaciones", "CotizacionesController@listar");
@@ -103,6 +92,10 @@ Route::post('/ajas/compra/buscar/producto', "ComprasController@buscarProducto");
 Route::post('/ajas/compras/add', "ComprasController@guardarCompras");
 Route::post('/ajas/compra/pagos', "ComprasController@getPagos");
 
+// // Para cargar repuestos por almacén
+// Route::get('/ajs/cargar/repuestos/:almacen', "RepuestosController@cargarPorAlmacen");
+
+
 //observaciones para compras
 Route::get("/ajs/get/observaciones/default", "ComprasController@getObservacion");
 Route::get("/ajs/get/observaciones/compra/:id", "ComprasController@getObservacionCompra");
@@ -113,23 +106,34 @@ Route::post("/ajs/save/observaciones/default", "ComprasController@saveObservacio
 Route::post('/ajas/cuentas/ventas/render', "PagosController@render");
 Route::post('/ajas/getAllCuotas/byIdCompra', "PagosController@getAllByIdCompra");
 Route::post('/ajs/pagar/cuota/pago', "PagosController@pagarCuota");
-// Rutas para modales del dashboard
+
+
 Route::get("/ajs/dashboard/cliente-detalle", "DashboardController@getClienteDetalle");
 Route::get("/ajs/dashboard/cliente-estadisticas", "DashboardController@getClienteEstadisticas");
 Route::get("/ajs/dashboard/producto-detalle", "DashboardController@getProductoDetalle");
 Route::get("/ajs/dashboard/producto-estadisticas", "DashboardController@getProductoEstadisticas");
-
+Route::get("/ajs/dashboard/estadisticas-stock", "DashboardController@getEstadisticasStock");
 // Rutas para metas de empresa (NUEVO ENFOQUE)
 Route::get('/ajs/dashboard/vendedores-metas', 'DashboardController@vendedoresMetasAction');
 Route::post('/ajs/dashboard/guardar-meta-total', 'DashboardController@guardarMetaTotalAction');
 Route::get('/ajs/dashboard/datos', 'DashboardController@getDatos');
+Route::get("/ajs/dashboard/productos-por-estado", "DashboardController@getProductosPorEstado");
+Route::get("/ajs/dashboard/datos-productos", "DashboardController@getDatosProductos");
+Route::get("/ajs/dashboard/datos-ingresos-egresos", "DashboardController@getDatosIngresosEgresos");
 
+
+/* ============================ INICIO Ventas controller rutas ajaxs======================================*/
 
 Route::post("/ajas/ventas/porempresa", "VentasController@listaVentasPorEmpresa");
 Route::post("/ajas/ventas/porempresa/regenxml", "VentasController@regenerarXML");
 Route::post("/ajas/ventas/porempresa/sendsunat", "VentasController@enviarDocumentoSunatPorEmpresa");
 Route::post("/ajas/ventas/porempresa/sendsunatresumen", "VentasController@envioResumenDiarioPorEmpresa");
 Route::post("/ajas/ventas/porempresa/sendsunatcomubaja", "VentasController@envioComunicacionBajaPorEmpresa");
+Route::post("/ajs/send/sunat/venta", "VentasController@enviarDocumentoSunat")->Middleware([ValidarTokenMiddleware::class]);
+/* ============================ FIN Ventas controller rutas ======================================*/
+
+
+
 
 Route::post("/ajs/getroles", "ConsultasController@getRoles");
 Route::post("/ajs/add/users", "ConsultasController@saveUser");
@@ -229,6 +233,7 @@ Route::post("/ajs/save/motivos-guia", "MotivoGuiaController@saveMotivo");
 Route::post("/ajs/getOne/motivos-guia", "MotivoGuiaController@getOneMotivo");
 Route::post("/ajs/update/motivos-guia", "MotivoGuiaController@updateMotivo");
 Route::post("/ajs/delete/motivos-guia", "MotivoGuiaController@deleteMotivo");
+Route::post("/ajs/set/default-motivo-guia", "MotivoGuiaController@setDefaultMotivo");
 
 // Rutas para Chofer Guia
 Route::get("/ajs/get/chofer", "ChoferController@getAll");
@@ -286,7 +291,6 @@ Route::get("/ajas/get/taller/diagnosticos/cotizacion/:id", "TallerCotizacionesCo
 Route::post("/ajas/save/taller/diagnosticos/cotizacion", "TallerCotizacionesController@saveDiagnosticoCotizacionTaller");
 Route::post("/ajas/save/taller/diagnosticos/temp", "TallerCotizacionesController@saveDiagnosticoTempTaller");
 
-Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataTallerCotizacionSS")->middleware([ValidarTokenMiddleware::class]);
 
 
 // taller cotizaciones 
@@ -338,3 +342,10 @@ Route::post("/ajs/taller/verificar-cotizacion", "TallerCotizacionesController@ve
 Route::post("/ajs/gestion/productos", "GestionArchivosController@listarProductos")->Middleware([ValidarTokenMiddleware::class]);
 // Route::post("/ajs/gestion/adjunto/eliminar", "GestionArchivosController@eliminarAdjunto")->Middleware([ValidarTokenMiddleware::class]);
 // Route::post("/ajs/gestion/adjunto/principal", "GestionArchivosController@establecerAdjuntoPrincipal")->Middleware([ValidarTokenMiddleware::class]);
+
+// Rutas para Configuración de Conductores
+Route::get("/ajs/get/conductor/configuraciones", "ConductorConfiguracionController@getAll");
+Route::post("/ajs/get/conductor/configuraciones/chofer", "ConductorConfiguracionController@getConfiguracionesPorChofer");
+Route::post("/ajs/save/conductor/configuracion", "ConductorConfiguracionController@save");
+Route::post("/ajs/update/conductor/configuracion", "ConductorConfiguracionController@update"); // NUEVA
+Route::post("/ajs/delete/conductor/configuracion", "ConductorConfiguracionController@delete"); // NUEVA

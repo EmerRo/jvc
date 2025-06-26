@@ -42,7 +42,8 @@ $listaC = $conexion->query($sql);
 
                 </div>
                 <div class="">
-                    <table id="tabla-registros" class="table table-sm table-bordered text-center" style="border: 2px solid white;">
+                  <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+
                         <thead>
                         <tr>
                             <th></th>
@@ -82,7 +83,7 @@ $listaC = $conexion->query($sql);
 </div>
 <script>
     $(document).ready(function(){
-        $("#tabla-registros").DataTable({})
+        $("#datatable").DataTable({})
     })
 </script>
 <script src="<?= URL::to('public/js/dataTables.spanish.js') ?>?v=<?= time() ?>"></script>
