@@ -1,6 +1,12 @@
 <!-- resources\views\fragment-views\cliente\numero-series.php -->
 <link rel="stylesheet" href="<?= URL::to('/public/css/numero-series.css') ?>?v=<?= time() ?>">
 
+<style>
+.sin-borde-inferior {
+    border-bottom: none !important;
+}
+</style>
+
 <div class="page-title-box" style="padding: 12px 0;">
     <div class="row align-items-center">
         <div class="col-md-12">
@@ -11,28 +17,22 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card"
-            style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#modalAgregar"
-                            class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Añadir Registro</button>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <button onclick="descarFunccc()" class="btn bg-white text-rojo"
-                            style="border-radius: 10px; padding: 8px 16px; font-weight: 500; border: 1px solid #CA3438; margin-left: 8px; transition: all 0.3s ease;"><i
-                                class="fa fa-file-excel"></i>
-                            Descargar Registros Excel </button>
-                    </div>
-                </div>
+        <div class="card" style="border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);">
+            <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
+                <button onclick="descarFunccc()" class="btn border-rojo me-2">
+                    <i class="fa fa-file-excel"></i> Descargar Registros Excel
+                </button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modalAgregar"
+                    class="btn bg-rojo text-white">
+                    <i class="fa fa-plus"></i> Añadir Registro
+                </button>
             </div>
             <div id="conte-vue-modals">
                 <div class="card-body">
                     <div class="card-title-desc">
                         <div class="table-responsive">
                             <table id="tabla_clientes" class="table nowrap table-sm table-bordered text-center">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
                                         <th>Item</th>
                                     <th>Cliente</th>
@@ -55,7 +55,7 @@
                 aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="modalDetallesLabel">Detalles del Registro</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -92,7 +92,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
                         </div>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                 aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="exampleModalLabel">Agregar Registro</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -230,7 +230,7 @@
                                 <div class="card mt-4" id="seccion_equipos_individuales">
                                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">Equipos a registrar</h6>
-                                        <span class="badge bg-primary" id="contador_equipos">1</span>
+                                        <span class="badge bg-rojo" id="contador_equipos">1</span>
                                     </div>
                                     <div class="card-body">
                                         <div id="equipos_container" class="equipos-container">
@@ -334,7 +334,7 @@
                 aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="exampleModalLabel">Actualizar Series</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -348,7 +348,7 @@
         <input id="input_datos_cliente_u" type="text"
             placeholder="Ingrese Documento" class="form-control" maxlength="11">
         <div class="input-group-prepend">
-            <button id="btn_buscar_cliente_u" class="btn btn-primary"
+            <button id="btn_buscar_cliente_u" class="btn bg-rojo"
                 type="button"><i class="fa fa-search"></i></button>
         </div>
     </div>
@@ -455,7 +455,7 @@
                                 <div class="card mb-4 mt-4">
                                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">Equipos existentes</h6>
-                                        <span class="badge bg-primary" id="contador_equipos_existentes">0</span>
+                                        <span class="badge bg-rojo" id="contador_equipos_existentes">0</span>
                                     </div>
                                     <div class="card-body">
                                         <div id="equipos_existentes" class="equipos-container">
@@ -472,7 +472,7 @@
                                 <div class="card" id="seccion_equipos_individuales_u">
                                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">Nuevos equipos a agregar</h6>
-                                        <span class="badge bg-primary" id="contador_equipos_nuevos">0</span>
+                                        <span class="badge bg-rojo" id="contador_equipos_nuevos">0</span>
                                     </div>
                                     <div class="card-body">
                                         <div id="equipos_container_u" class="equipos-container">
@@ -502,8 +502,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" id="updateRegistroBtn" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" id="updateRegistroBtn" class="btn bg-rojo">Guardar</button>
                             </div>
                         </form>
                     </div>
@@ -514,7 +514,7 @@
             <div class="modal fade" id="modalMarca" tabindex="-1" aria-labelledby="modalMarcaLabel" aria-hidden="true">
                 <div class="modal-dialog modal-stacked">
                     <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="modalMarcaLabel">
                                 <i class="fa fa-tag me-1"></i> Marcas
                             </h5>
@@ -525,7 +525,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="marca_nombre"
                                         placeholder="Nombre de la marca">
-                                    <button type="button" class="btn bg-rojo text-white" id="btnAgregarMarca">
+                                    <button type="button" class="btn bg-rojo" id="btnAgregarMarca">
                                         <i class="fa fa-save"></i>
                                     </button>
                                 </div>
@@ -562,7 +562,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="modelo_nombre"
                                         placeholder="Nombre del modelo">
-                                    <button type="button" class="btn btn-primary" id="btnAgregarModelo">
+                                    <button type="button" class="btn bg-rojo" id="btnAgregarModelo">
                                         <i class="fa fa-save"></i>
                                     </button>
                                 </div>
@@ -599,7 +599,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="equipo_nombre"
                                         placeholder="Nombre del equipo">
-                                    <button type="button" class="btn btn-primary" id="btnAgregarEquipo">
+                                    <button type="button" class="btn bg-rojo" id="btnAgregarEquipo">
                                         <i class="fa fa-save"></i>
                                     </button>
                                 </div>
@@ -689,8 +689,8 @@
         <button data-id="${Number(row.id)}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar" >
             <i class="fa fa-trash " ></i>
         </button>
-        <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia" title="Crear Garantía" style="margin: 0; padding: 0; ">
-            <i class="ri-shield-check-line text-danger" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;font-size: 18px;"></i>
+        <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia" title="Crear Garantía" style="margin: 0; padding: 0; background-color: #DBE8F0;">
+            <i class="ri-shield-check-line text-danger" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;font-size: 18px; "></i>
         </a>
     </div>
 </div>

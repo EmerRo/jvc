@@ -58,6 +58,28 @@ class ReportesVentaController extends Controller
     // Si no se encuentra la imagen, retornar null en lugar de la imagen por defecto
     return null;
   }
+  private function escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHead)
+  {
+    // Logo de la empresa
+    $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
+
+    // Cuadro del encabezado (título del documento)
+    $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 196, 130);
+
+    // Nombre de la empresa
+    $this->mpdf->WriteFixedPosHTML("<span style='font-family: Calibri, Helvetica Neue, sans-serif; font-size: 14px;margin: 1pt 2pt 3pt;'><strong>COMERCIAL & INDUSTRIAL J. V. C. S.A.C.
+ </strong></span>", 25, 30, 210, 130);
+
+    // Dirección de la empresa
+    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'><span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 35, 36, 210, 130);
+
+    // Teléfono y email
+    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'>Telf: {$datoEmpresa['telefono']} -Email:{$datoEmpresa['email']} </span>", 25, 39, 210, 130);
+
+    // Sitio web
+    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'> Web: https://industriajvcsac.com</span>", 40, 43, 210, 130);
+  }
+
 
 
   public function comprobanteCotizacion($coti)
@@ -700,6 +722,49 @@ class ReportesVentaController extends Controller
 
   public function reporteVentaPorProducto()
   {
+    // Configuración de mPDF igual que cotizaciones
+    $this->mpdf = new \Mpdf\Mpdf([
+      'mode' => 'utf-8',
+      'format' => 'A4',
+      'margin_left' => 15,
+      'margin_right' => 0,
+      'margin_top' => 30,
+      'margin_bottom' => 35,
+      'margin_header' => 0,
+      'margin_footer' => 0,
+      'setAutoBottomMargin' => 'stretch'
+    ]);
+
+    // Obtener datos de la empresa
+    $empresa = $this->conexion->query("SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'")->fetch_assoc();
+
+    // Configurar el header igual que cotizaciones
+    $headerHTML = "
+    <div style='width: 100%; margin: 0; padding: 0;'>
+    <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
+    </div>";
+
+    // Establecer el header y configurarlo para todas las páginas
+    $this->mpdf->SetHTMLHeader($headerHTML);
+    $this->mpdf->WriteHTML('<div style="position: fixed; top: 0; right: 95px; z-index: 1000; margin-bottom: 20px;">
+    <span style="font-size: 11px; color: #000;">Lima, ' . date('d/m/Y') . '</span>
+    </div>');
+    $this->mpdf->SetTopMargin(40);
+    $this->mpdf->showImageErrors = true;
+
+    // Configurar propiedades adicionales para el manejo de páginas
+    $this->mpdf->SetDisplayMode('fullpage');
+    $this->mpdf->useSubstitutions = false;
+    $this->mpdf->shrink_tables_to_fit = 1;
+    $this->mpdf->keep_table_proportions = true;
+
+    // Establecer el pie de página igual que cotizaciones
+    $footerHTML = '
+    <div style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 0; height: 145px;">
+        <img src="public/assets/img/pie de pagina.jpg" style="width: 100%; display: block; margin: 0; padding: 0;">
+    </div>';
+    $this->mpdf->SetHTMLFooter($footerHTML);
+
     $sql = "";
 
     if (strlen($_GET['fecha2']) == 0) {
@@ -727,50 +792,87 @@ class ReportesVentaController extends Controller
     foreach ($rows as $row) {
       $rowHmtl .= "
           <tr>
-          <td>{$row['descripcion']}</td>
-          <td>{$row['nom_pago']}</td>
-          <td>{$row['fecha_emision']}</td>
-          <td>{$row['nombre_documento']}</td>
-          <td>{$row['venta_sn']}</td>
-          <td>{$row['cantidad']}</td>
-          <td>{$row['precio']}</td>
+          <td style='font-size: 10px; text-align: left; border: 1px solid #CA3438; padding: 6px;'>{$row['descripcion']}</td>
+          <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$row['nom_pago']}</td>
+          <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$row['fecha_emision']}</td>
+          <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$row['nombre_documento']}</td>
+          <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$row['venta_sn']}</td>
+          <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$row['cantidad']}</td>
+          <td style='font-size: 10px; text-align: right; border: 1px solid #CA3438; padding: 6px;'>S/ {$row['precio']}</td>
             </tr>
           ";
     }
 
-    $html = "
-     
-    <div style='width: 100%; '>
-        <div style='width: 100%; text-align: center;'>
-                <h2 style=''>REPORTE DE PRODUCTOS POR VENTA</h2>
-              
-        </div> 
-        
-        <div style='width: 100%; margin-top:40px;'>
-            <table border='1' style='width: 100%; text-align: center;' >
-                <thead>
-                <tr>
-                  
-                    <th style=''>Producto</th>
-                    <th style=''>Pago</th>
-                    <th style=''>Fecha</th>
-                    <th style=''>Doc.</th>
-                    <th style=''>S-N</th>
-                    <th style=''>Cantidad</th>
-                    <th style=''>Precio</th>
-                  
-              
-                </tr>
-                </thead>
-               <tbody>
-                $rowHmtl
-                </tbody>
-            </table>
+    // Título del reporte con formato similar a cotizaciones
+    $htmlCuadroHead = "<div style='width: auto; text-align: center; margin-bottom: 10px; margin-top:30px'>
+        <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e; margin-left: 65px;'>
+            <span style='font-size: 14px; font-weight: bold;'>REPORTE DE PRODUCTOS POR VENTA</span>
         </div>
+    </div>";
+
+    $html = "
+    <div style='width: 100%;'>
+        " . $htmlCuadroHead . "
         
+        <div style='width: 100%; max-width: 1000px; margin: 0 auto;'>
+            <div style='width: 100%; margin-bottom: 20px;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='font-size: 11px; text-align: left;'>Empresa:</td>
+                    </tr>
+                    <tr>
+                        <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>{$empresa["ruc"]} | {$empresa['razon_social']}</td>
+                    </tr>
+                    <tr>
+                        <td style='font-size: 11px; text-align: left;'>Producto:</td>
+                    </tr>
+                    <tr>
+                        <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($_GET['codprod'] ?? 'Todos') . "</td>
+                    </tr>
+                    <tr>
+                        <td style='font-size: 11px; text-align: left;'>Período:</td>
+                    </tr>
+                    <tr>
+                        <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($_GET['fecha1'] ?? '') . (isset($_GET['fecha2']) && strlen($_GET['fecha2']) > 0 ? " al " . $_GET['fecha2'] : " en adelante") . "</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style='padding-right: 15px;'>
+                <table style='width:100%; border-collapse: collapse; margin-right:35px; table-layout: fixed;'>
+                    <colgroup>
+                        <col style='width: 200px'>  <!-- Producto -->
+                        <col style='width: 80px'>   <!-- Pago -->
+                        <col style='width: 80px'>   <!-- Fecha -->
+                        <col style='width: 100px'>  <!-- Doc -->
+                        <col style='width: 80px'>   <!-- S-N -->
+                        <col style='width: 70px'>   <!-- Cantidad -->
+                        <col style='width: 80px'>   <!-- Precio -->
+                    </colgroup>
+                    <thead>
+                        <tr style='background-color: #CA3438;'>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Producto</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Pago</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Fecha</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Doc.</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>S-N</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Cantidad</strong></th>
+                            <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>Precio</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        $rowHmtl
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     ";
-    $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+    
+    // Escribir el HTML al documento
+    $this->mpdf->WriteHTML($html);
+    
+    // Generar el PDF
     $this->mpdf->Output();
   }
 
@@ -1223,89 +1325,215 @@ class ReportesVentaController extends Controller
 
   public function reporteCliente($id)
   {
+    // Obtener datos del cliente
+    $sql = "SELECT * FROM clientes WHERE id_cliente = $id";
+    $cliente = $this->conexion->query($sql)->fetch_assoc();
 
-    $sql = "SELECT *,metodo_pago.nombre AS metodoPago,tipo_pago.nombre AS tipoPago FROM VENTAS 
-    LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=ventas.medoto_pago_id
-    LEFT JOIN tipo_pago ON tipo_pago.tipo_pago_id=ventas.id_tipo_pago WHERE id_cliente = $id";
+    if (!$cliente) {
+      throw new Exception("Cliente no encontrado");
+    }
+
+    // Obtener ventas del cliente con información adicional
+    $sql = "SELECT v.*, 
+                   ds.nombre as tipo_documento,
+                   ds.abreviatura,
+                   tp.nombre as tipo_pago,
+                   mp.nombre as metodo_pago,
+                   CONCAT(v.serie, '-', LPAD(v.numero, 6, '0')) as documento_completo
+            FROM ventas v
+            LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+            LEFT JOIN tipo_pago tp ON v.id_tipo_pago = tp.tipo_pago_id
+            LEFT JOIN metodo_pago mp ON v.medoto_pago_id = mp.id_metodo_pago
+            WHERE v.id_cliente = $id 
+            AND v.estado != '2'
+            ORDER BY v.fecha_emision DESC";
+
     $result = $this->conexion->query($sql);
 
-    $rowHmtl = "";
-    foreach ($result as $fila) {
-      $total = number_format($fila['total'], 2, ".", "");
-      $rowHmtl .= "<tr>
-      <td style='font-size: 9px'>{$fila['id_venta']}</td>
-      <td style='font-size: 9px'>{$fila['fecha_emision']}</td>
-      <td style='font-size: 9px'>{$fila['direccion']}</td>
-      <td style='font-size: 9px'>{$fila['tipoPago']}</td>
-      <td style='font-size: 9px'>{$fila['dias_pagos']}</td>
-      <td style='font-size: 9px'>{$total}</td>
-      <td style='font-size: 9px'>{$fila['metodoPago']}</td>
-  </tr>";
+    // Obtener empresa del cliente
+    $sqlEmpresa = "SELECT e.* FROM empresas e 
+                   INNER JOIN clientes c ON c.id_empresa = e.id_empresa 
+                   WHERE c.id_cliente = $id";
+    $empresa = $this->conexion->query($sqlEmpresa)->fetch_assoc();
+
+    if (!$empresa) {
+      throw new Exception("No se encontró la información de la empresa para este cliente");
     }
-    $this->mpdf->WriteHTML("
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
+
+    // Configuración de mPDF igual que cotizaciones
+    $this->mpdf = new \Mpdf\Mpdf([
+      'mode' => 'utf-8',
+      'format' => 'A4',
+      'margin_left' => 15,
+      'margin_right' => 0,
+      'margin_top' => 30,
+      'margin_bottom' => 35,
+      'margin_header' => 0,
+      'margin_footer' => 0,
+      'setAutoBottomMargin' => 'stretch'
+    ]);
+
+    // Configurar el header igual que cotizaciones
+    $headerHTML = "
+     <div style='width: 100%; margin: 0; padding: 0;'>
+     <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
+     </div>";
+
+    // Establecer el header y configurarlo para todas las páginas
+    $this->mpdf->SetHTMLHeader($headerHTML);
+    $this->mpdf->WriteHTML('<div style="position: fixed; top: 0; right: 95px; z-index: 1000; margin-bottom: 20px;">
+     <span style="font-size: 11px; color: #000;">Lima, ' . date('d/m/Y') . '</span>
+     </div>');
+    $this->mpdf->SetTopMargin(40);
+    $this->mpdf->showImageErrors = true;
+
+    // Configurar propiedades adicionales para el manejo de páginas
+    $this->mpdf->SetDisplayMode('fullpage');
+    $this->mpdf->useSubstitutions = false;
+    $this->mpdf->shrink_tables_to_fit = 1;
+    $this->mpdf->keep_table_proportions = true;
+
+    // Establecer el pie de página igual que cotizaciones
+    $footerHTML = '
+       <div style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 0; height: 145px;">
+           <img src="public/assets/img/pie de pagina.jpg" style="width: 100%; display: block; margin: 0; padding: 0;">
+       </div>';
+    $this->mpdf->SetHTMLFooter($footerHTML);
+
+    // Generar filas HTML para las ventas
+    $rowHtml = "";
+    $totalVentas = 0;
+    $cantidadVentas = 0;
+
+    while ($venta = $result->fetch_assoc()) {
+      $total = number_format($venta['total'], 2, ".", ",");
+      $totalVentas += floatval($venta['total']);
+      $cantidadVentas++;
+
+      $rowHtml .= "<tr>
+            <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$venta['documento_completo']}</td>
+            <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$venta['fecha_emision']}</td>
+            <td style='font-size: 10px; text-align: left; border: 1px solid #CA3438; padding: 6px;'>{$venta['tipo_documento']}</td>
+            <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$venta['tipo_pago']}</td>
+            <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$venta['dias_pagos']}</td>
+            <td style='font-size: 10px; text-align: right; border: 1px solid #CA3438; padding: 6px;'>S/ {$total}</td>
+            <td style='font-size: 10px; text-align: center; border: 1px solid #CA3438; padding: 6px;'>{$venta['metodo_pago']}</td>
+        </tr>";
     }
-    ", \Mpdf\HTMLParserMode::HEADER_CSS);
 
+    // Formatear totales
+    $totalVentasFormateado = number_format($totalVentas, 2, ".", ",");
 
-    $sql = "SELECT * FROM clientes WHERE id_cliente = $id";
-    $result = $this->conexion->query($sql)->fetch_assoc();
+    // Título del reporte con formato similar a cotizaciones
+    $htmlCuadroHead = "<div style='width: auto; text-align: center; margin-bottom: 10px; margin-top:30px'>
+         <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e; margin-left: 65px;'>
+           <span style='font-size: 14px; font-weight: bold;'>REPORTE DE VENTAS POR CLIENTE - {$cliente['documento']}</span>
+         </div>
+     </div>";
 
+    // HTML del reporte con el mismo estilo que cotizaciones
     $html = "
-     
-    <div style='width: 100%; '>
-        <div style='width: 100%; text-align: center;'>
-                <h2 style=''>REPORTE DE VENTAS POR CLIENTE</h2>
-              
-        </div>
-        <div style='width: 100%;'>
-            <table style='width: 100%;'>
-                <tr>
-                    <td>Documento:</td>
-                    <td>{$result['documento']}</td>
-                </tr>
-                <tr>
-                    <td>Cliente:</td>
-                    <td>{$result['datos']}</td>
-                </tr>
-                <tr>
-                    <td>Dirección:</td>
-                    <td>{$result['direccion']}</td>
-                </tr>
-                <tr>
-                    <td>Dirección:</td>
-                    <td>{$result['telefono']}</td>
-                </tr>
-            </table>
-        </div>
+    <div style='width: 100%;'>
+      
+        " . $htmlCuadroHead . "
         
-        <div style='width: 100%; margin-top:40px;'>
-            <table style='width: 100%; text-align: center;' >
-                <thead>
-                <tr>
-                    <th style='width: 10%;'>Codigo</th>
-                    <th style='width: 10%;'>Fecha</th>
-                    <th style='width: auto;'>Dirección</th>
-                    <th style='width: 10%;'>Tipo Pago</th>
-                    <th style='width: 10%;'>Dias Pagos</th>
-                    <th style='width: 10%;'>Total</th>
-                    <th style='width:auto;'>Metodo Pago</th>
-              
-                </tr>
-                </thead>
-               <tbody>
-                $rowHmtl
-                </tbody>
+        <div style='width: 100%; max-width: 1000px; margin: 0 auto;'>
+          <div>
+            <table style='width:100%'>
+              <tr>
+                <td style='font-size: 11px; text-align: left;'>Cliente:</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>{$cliente['datos']}</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; text-align: left;'>Documento:</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>{$cliente['documento']}</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; text-align: left;'>Dirección:</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($cliente['direccion'] ?? 'No especificada') . "</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; text-align: left;'>Teléfono:</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($cliente['telefono'] ?? 'No especificado') . "</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; text-align: left;'>Email:</td>
+              </tr>
+              <tr>
+                <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($cliente['email'] ?? 'No especificado') . "</td>
+              </tr>
             </table>
+          </div>
+          
+          <div style='padding-right: 15px;'>
+            <div>
+              <table style='width:100%'>
+                <tr>
+                  <td style='font-size: 11px;'>A continuación se presenta el historial de ventas realizadas a este cliente:</td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Tabla de ventas con el mismo estilo que cotizaciones -->
+            <table style='width:100%; border-collapse: collapse; margin-right:35px; table-layout: fixed;' class='ventas-table'>
+              <colgroup>
+                <col style='width: 80px'>   <!-- DOCUMENTO -->
+                <col style='width: 70px'>   <!-- FECHA -->
+                <col style='width: 80px'>   <!-- TIPO DOC -->
+                <col style='width: 70px'>   <!-- TIPO PAGO -->
+                <col style='width: 60px'>   <!-- DÍAS PAGO -->
+                <col style='width: 80px'>   <!-- TOTAL -->
+                <col style='width: 100px'>  <!-- MÉTODO PAGO -->
+              </colgroup>
+              <thead>
+                <tr style='background-color: #CA3438;'>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>DOCUMENTO</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>FECHA</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>TIPO DOC.</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>TIPO PAGO</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>DÍAS</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>TOTAL</strong></th>
+                  <th style='font-size: 10px; font-family: Arial, Helvetica, sans-serif; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438; padding: 8px;'><strong>MÉTODO PAGO</strong></th>
+                </tr>
+              </thead>
+              <tbody>
+                {$rowHtml}
+                <!-- Fila de totales -->
+                <tr>
+                  <td colspan='5' style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color: white; padding: 6px;'><strong>TOTAL DE VENTAS ({$cantidadVentas}):</strong></td>
+                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color: white; padding: 6px;'><strong>S/ {$totalVentasFormateado}</strong></td>
+                  <td style='border: 1px solid #CA3438; background-color: #CA3438;'></td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <!-- Información adicional con mejor manejo de espacio -->
+            <div style='page-break-inside: avoid; margin-bottom: 30px; margin-top: 20px;'>
+              <div style='margin-top: 15px; padding: 0;'>
+                <p style='font-size: 12px; margin: 0; padding: 0;'>Este reporte muestra el historial completo de ventas del cliente.</p>
+                <p style='font-size: 12px; margin: 3px 0 0 0; padding: 0;'>Generado el: " . date('d/m/Y H:i:s') . "</p>
+              </div>
+            </div>
+          </div>
         </div>
-        
-    </div>
-    ";
-    $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-    $this->mpdf->Output();
+      </div>
+    </div>";
+
+    // Escribir el HTML al documento
+    $this->mpdf->WriteHTML($html);
+
+    // Generar el PDF
+    $this->mpdf->Output("Reporte_Cliente_{$cliente['documento']}.pdf", 'I');
   }
+
 
   public function reporteProductos($id)
   {
@@ -1426,10 +1654,6 @@ class ReportesVentaController extends Controller
     $fecha_emision = Tools::formatoFechaVisual($datoVenta['fecha']);
 
     $formatter = new NumeroALetras;
-
-
-
-
     $sql = "SELECT * FROM notas_electronicas_sunat where id_notas_electronicas = '$venta' ";
     $qrImage = '';
     $hash_Doc = '';
@@ -1522,12 +1746,8 @@ class ReportesVentaController extends Controller
 
     $dominio = DOMINIO;
 
-    $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 15, 5, 150, 120);
-    $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 195, 130);
-    $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Central Telefónica: </strong> {$datoEmpresa['telefono']}</span>", 15, 27, 210, 130);
-    $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Email: </strong> info@grupoacosta.com.pe | Web: www.vallesport.pe</span>", 15, 32, 210, 130);
-    $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Dirección:</strong> <span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 15, 37, 120, 130);
-
+    // Escribir encabezado de la empresa
+    $this->escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHead);
 
 
     $totalOpGratuita = number_format($totalOpGratuita, 2, '.', ',');
@@ -1546,7 +1766,7 @@ class ReportesVentaController extends Controller
 
 
 
-    $html = "<div style='width: 1000%;padding-top: 110px; overflow: hidden;clear: both;'>
+    $html = "<div style='width: 1000%;padding-top: 150px; overflow: hidden;clear: both;'>
     <div style='width: 100%; border: 0.5px solid black; border-radius: 10px; margin-bottom: 10px; font-family: Calibri, Helvetica Neue, sans-serif;'>
        <table style='width: 100%; border-collapse: collapse;'>
          <tr>
@@ -1838,20 +2058,8 @@ class ReportesVentaController extends Controller
               </div>
           </div>";
 
-      // logo
-      $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
-      $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 196, 130);
-      // Información de la empresa
-      $this->mpdf->WriteFixedPosHTML("<span style='font-family: Calibri, Helvetica Neue, sans-serif; font-size: 14px;margin: 1pt 2pt 3pt;'><strong>COMERCIAL & INDUSTRIAL J. V. C. S.A.C.
- </strong></span>", 25, 30, 210, 130);
-      // dirección, teléfono y email
-      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'><span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 35, 36, 210, 130);
-
-      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'>Telf: {$datoEmpresa['telefono']} -Email:{$datoEmpresa['email']} </span>", 25, 39, 210, 130);
-
-      $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'> Web: https://industriajvcsac.com</span>", 40, 43, 210, 130);
-
-
+      // Escribir encabezado de la empresa
+      $this->escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHead);
       // Generar filas de productos
       $rowHTML = '';
       $conradorRow = 1;
@@ -1911,7 +2119,7 @@ class ReportesVentaController extends Controller
         <td style='width: 16.66%; padding: 8px; text-align: center; vertical-align: top;'>
             <strong style='font-size: 10px; display: block; margin-bottom: 4px;'>Orden de Compra</strong>
             <strong style='font-size: 10px; display: block; margin-bottom: 4px;'> Nro:</strong> <br/>
-            <span style='font-size: 10px;'>COT 128323 JVC</span>
+            <span style='font-size: 10px;'>" . (isset($datosGuia['ref_orden_compra']) && !empty($datosGuia['ref_orden_compra']) ? $datosGuia['ref_orden_compra'] : '-') . "</span>
         </td>
     </tr>
 </table>
@@ -2750,27 +2958,8 @@ class ReportesVentaController extends Controller
             </div>";
 
     /**/
-    $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
-
-    $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 200, 130);
-    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 13px;margin: 1pt 2pt 3pt;'><strong>COMERCIAL & INDUSTRIAL J. V. C. S.A.C.
-   </strong></span>", 25, 30, 210, 130);
-
-    $datoSucursal = $this->conexion->query("SELECT * FROM sucursales WHERE cod_sucursal ='{$datoVenta['sucursal']}' AND empresa_id=" . $datoVenta['id_empresa'])->fetch_assoc();
-    if ($datoVenta['sucursal'] == '1') {
-      $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'>Dirección:<span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 25, 36, 120, 130);
-    } else {
-      if (is_null($datoSucursal)) {
-        $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Dirección:</strong> <span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 25, 36, 120, 130);
-      } else {
-        $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Dirección:</strong> <span style='font-size: 10px'>{$datoSucursal['direccion']}</span></span>", 25, 36, 120, 130);
-      }
-    }
-
-    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'>Telf: {$datoEmpresa['telefono']} -Email:{$datoEmpresa['email']} </span>", 25, 39, 210, 130);
-
-    $this->mpdf->WriteFixedPosHTML("<span style='font-size: 12px;margin: 1pt 2pt 3pt;'> Web: https://industriajvcsac.com/</span>", 25, 42, 210, 130);
-
+    // Escribir encabezado de la empresa
+    $this->escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHead);
     $totalOpGratuita = number_format($totalOpGratuita, 2, '.', ',');
     $totalOpExonerada = number_format($totalOpExonerada, 2, '.', ',');
     $totalOpinafec = number_format($totalOpinafec, 2, '.', ',');

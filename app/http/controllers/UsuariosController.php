@@ -13,6 +13,7 @@ class UsuariosController extends Controller
     public function render()
     {
         $sql = "SELECT
+                    ROW_NUMBER() OVER (ORDER BY usuario_id) as item,
                     usuario_id,
                     r.nombre,
                     usuario,
@@ -29,7 +30,8 @@ class UsuariosController extends Controller
                     END AS rotativo 
                 FROM
                     usuarios u
-                INNER JOIN roles r ON r.rol_id = u.id_rol";
+                INNER JOIN roles r ON r.rol_id = u.id_rol
+                ORDER BY usuario_id";
         $fila = mysqli_query($this->conectar, $sql);
         $respuesta = mysqli_fetch_all($fila, MYSQLI_ASSOC);
         return json_encode($respuesta);
@@ -58,11 +60,16 @@ class UsuariosController extends Controller
     public function editar()
     {
         $udp = "";
-        if (isset($_POST["clave"]) && !empty($_POST["clave"])) {
-            $clave = sha1($_POST["clave"]);
+        if (isset($_POST["claveu"]) && !empty($_POST["claveu"])) {
+            $clave = sha1($_POST["claveu"]);
             $udp = "clave='$clave',";
         }
-        $sql = "update usuarios set 
+        
+        // Valores por defecto para campos opcionales
+        $tienda = isset($_POST["tiendau"]) ? $_POST["tiendau"] : 1;
+        $rotativo = isset($_POST["rotativou"]) ? $_POST["rotativou"] : 0;
+        
+        $sql = "UPDATE usuarios SET 
                     id_rol='{$_POST["rol"]}',
                     nombres='{$_POST["datosEditar"]}',
                     num_doc='{$_POST["doc"]}',
@@ -70,11 +77,15 @@ class UsuariosController extends Controller
                     $udp
                     telefono='{$_POST["telefonoEditar"]}',
                     email='{$_POST["emailEditar"]}',
-                    sucursal={$_POST["tiendau"]},
-                    rotativo={$_POST["rotativou"]}
-                    where usuario_id = {$_POST["idCliente"]}";
-        mysqli_query($this->conectar, $sql);
-        return true;
+                    sucursal=$tienda,
+                    rotativo=$rotativo
+                WHERE usuario_id = {$_POST["idCliente"]}";
+        
+        if (mysqli_query($this->conectar, $sql)) {
+            return json_encode(['success' => true, 'message' => 'Usuario actualizado correctamente']);
+        } else {
+            return json_encode(['success' => false, 'error' => 'Error al actualizar: ' . mysqli_error($this->conectar)]);
+        }
     }
 
     public function borrar()
@@ -109,7 +120,13 @@ class UsuariosController extends Controller
     }
     
     // Método para verificar si un usuario tiene permiso para acceder a un módulo
-    public function verificarPermiso($usuario_id, $ruta_actual) {
+    public function verificarPermiso($usuario_id = null, $ruta_actual = null) {
+        // Si se llama desde AJAX
+        if (isset($_POST['usuario_id']) && isset($_POST['ruta'])) {
+            $usuario_id = $_POST['usuario_id'];
+            $ruta_actual = $_POST['ruta'];
+        }
+        
         try {
             // Si es administrador, siempre tiene permiso
             $sql = "SELECT id_rol FROM usuarios WHERE usuario_id = ?";
@@ -118,11 +135,11 @@ class UsuariosController extends Controller
             $stmt->execute();
             $result = $stmt->get_result();
             $usuario = $result->fetch_assoc();
-    
+
             if ($usuario['id_rol'] == 1) {
-                return true;
+                return json_encode(['permiso' => true]);
             }
-    
+
             // Verificar si la ruta está en los módulos permitidos
             $sql = "SELECT m.ruta 
                     FROM modulos m 
@@ -134,10 +151,10 @@ class UsuariosController extends Controller
             $stmt->bind_param("i", $usuario_id);
             $stmt->execute();
             $result = $stmt->get_result();
-    
+
             while ($row = $result->fetch_assoc()) {
                 if (strpos($ruta_actual, $row['ruta']) !== false) {
-                    return true;
+                    return json_encode(['permiso' => true]);
                 }
             }
             
@@ -152,18 +169,18 @@ class UsuariosController extends Controller
             $stmt->bind_param("i", $usuario_id);
             $stmt->execute();
             $result = $stmt->get_result();
-    
+
             while ($row = $result->fetch_assoc()) {
                 if (strpos($ruta_actual, $row['ruta']) !== false) {
-                    return true;
+                    return json_encode(['permiso' => true]);
                 }
             }
-    
-            return false;
+
+            return json_encode(['permiso' => false]);
         } catch (Exception $e) {
             error_log("Error en verificarPermiso: " . $e->getMessage());
             // Si hay un error, permitir el acceso pero registrar el error
-            return true;
+            return json_encode(['permiso' => true, 'error' => $e->getMessage()]);
         }
     }
     
@@ -206,8 +223,26 @@ class UsuariosController extends Controller
         }
     }
     
-    public function getRolPermisos($rol_id) {
+    public function getRolPermisos() {
+        $rol_id = isset($_POST['id']) ? $_POST['id'] : null;
+        
+        if (!$rol_id) {
+            return json_encode(['error' => 'ID de rol no proporcionado']);
+        }
+        
         try {
+            // Obtener información del rol
+            $sql = "SELECT * FROM roles WHERE rol_id = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("i", $rol_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $rol = $result->fetch_assoc();
+            
+            if (!$rol) {
+                return json_encode(['error' => 'Rol no encontrado']);
+            }
+            
             // Obtener módulos permitidos
             $sql = "SELECT modulo_id FROM rol_modulo WHERE rol_id = ?";
             $stmt = $this->conectar->prepare($sql);
@@ -232,16 +267,14 @@ class UsuariosController extends Controller
                 $submodulos[] = $row['submodulo_id'];
             }
             
-            return [
+            return json_encode([
+                'rol' => $rol,
                 'modulos' => $modulos,
                 'submodulos' => $submodulos
-            ];
+            ]);
         } catch (Exception $e) {
             error_log("Error en getRolPermisos: " . $e->getMessage());
-            return [
-                'modulos' => [],
-                'submodulos' => []
-            ];
+            return json_encode(['error' => $e->getMessage()]);
         }
     }
 }

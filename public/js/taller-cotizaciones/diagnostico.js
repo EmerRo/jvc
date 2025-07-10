@@ -1,8 +1,8 @@
-// Variables globales con nombres únicos para evitar conflictos
+//public\js\taller-cotizaciones\diagnostico.js
 let diagnosticoEditor = null
 let diagnosticoEditorContent = ""
+let tipoGuardadoDiagnostico = "individual"
 
-// Función para inicializar Quill con configuración mejorada
 function initializeDiagnosticoEditor(content) {
   console.log("Inicializando Quill para diagnóstico con contenido:", content)
 
@@ -54,33 +54,10 @@ function initializeDiagnosticoEditor(content) {
         <div id="editor-content-diagnostico" style="min-height: 200px;"></div>
     `
 
-  // Configurar Quill con nuevas opciones
   try {
-    diagnosticoEditor = new Quill("#editor-content-diagnostico", {
+    diagnosticoEditor = new window.Quill("#editor-content-diagnostico", {
       modules: {
         toolbar: "#toolbar-diagnostico",
-        keyboard: {
-          bindings: {
-            // Configuración personalizada para la tecla Enter
-            enter: {
-              key: 13,
-              handler: function (range) {
-                // Obtener el contenido de la línea actual
-                const currentLine = this.quill.getLine(range.index)[0]
-                const format = currentLine ? currentLine.formats() : {}
-
-                // Insertar nueva línea con viñeta
-                this.quill.insertText(range.index, "\n• ", format)
-
-                // Mover el cursor después de la viñeta
-                this.quill.setSelection(range.index + 3)
-
-                // Prevenir el comportamiento por defecto
-                return false
-              },
-            },
-          },
-        },
         history: {
           delay: 2000,
           maxStack: 500,
@@ -89,99 +66,41 @@ function initializeDiagnosticoEditor(content) {
       },
       theme: "snow",
       placeholder: "Escribe aquí el diagnóstico...",
-      formats: [
-        "bold",
-        "italic",
-        "underline",
-        "strike",
-        "align",
-        "list",
-        "bullet",
-        "link",
-        "color",
-        "background",
-        "font",
-        "header",
-      ],
     })
 
-    // Establecer el contenido inicial formateado
     const formattedContent = formatDiagnosticoContent(content)
     console.log("Contenido formateado para diagnóstico:", formattedContent)
     diagnosticoEditor.root.innerHTML = formattedContent
-
-    // Agregar evento para manejar el pegado de texto
-    diagnosticoEditor.root.addEventListener("paste", (e) => {
-      e.preventDefault()
-
-      // Obtener el texto plano del portapapeles
-      const text = e.clipboardData.getData("text/plain")
-
-      // Formatear el texto pegado con viñetas
-      const formattedText = text
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line)
-        .map((line) => (line.startsWith("•") ? line : `• ${line}`))
-        .join("\n")
-
-      // Insertar el texto formateado
-      const range = diagnosticoEditor.getSelection()
-      if (range) {
-        diagnosticoEditor.insertText(range.index, formattedText)
-      }
-    })
   } catch (error) {
     console.error("Error al inicializar Quill para diagnóstico:", error)
     return
   }
 }
 
-// Función para formatear el contenido de la base de datos
 function formatDiagnosticoContent(content) {
   if (!content) return ""
-
-  // Limpiamos el contenido inicial
   content = content.trim()
-
-  // Reemplazamos los caracteres especiales HTML
   content = content.replace(/&amp;/g, "&")
-
-  // Dividimos el texto por saltos de línea
   let lines = content.split("\n")
-
-  // Filtramos líneas vacías y procesamos cada línea
   lines = lines.filter((line) => line.trim() !== "")
-
-  // Formateamos cada línea con el bullet y un espacio
   const formattedContent = lines
     .map((line) => {
       line = line.trim()
-      // Si la línea ya comienza con una viñeta, la dejamos como está
       if (line.startsWith("•")) {
         return "<p>" + line + "</p>"
       }
-      // Si no tiene viñeta, le añadimos una
       return "<p>• " + line + "</p>"
     })
     .join("")
-
   return formattedContent
 }
 
-// Función para obtener el contenido del editor
 function getDiagnosticoEditorContent() {
   if (!diagnosticoEditor) {
     throw new Error("Editor de diagnóstico no inicializado correctamente")
   }
-
-  // Obtenemos el HTML del editor
   let content = diagnosticoEditor.root.innerHTML
-
-  // Reemplazamos las etiquetas <p> por saltos de línea
   content = content.replace(/<p>/g, "").replace(/<\/p>/g, "\n")
-
-  // Nos aseguramos que cada línea comience con una viñeta
   content = content
     .split("\n")
     .map((line) => {
@@ -192,11 +111,9 @@ function getDiagnosticoEditorContent() {
       return line
     })
     .join("\n")
-
   return content
 }
 
-// Función para destruir el editor
 function destroyDiagnosticoEditor() {
   if (diagnosticoEditor) {
     diagnosticoEditor = null
@@ -207,132 +124,236 @@ function destroyDiagnosticoEditor() {
   }
 }
 
-// Evento para el botón de editar diagnóstico
+function mostrarModalDiagnostico() {
+  const modalHtml = `
+    <div class="modal fade" id="modal-diagnostico-opciones" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-rojo text-white">
+            <h1 class="modal-title fs-5">Agregar Diagnóstico</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="editor-container-diagnostico"></div>
+            
+            <div class="mt-4 p-3 border rounded">
+              <h6 class="mb-3">Opciones de guardado:</h6>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipoGuardadoDiagnostico" id="guardarDiagnosticoIndividual" value="individual" checked>
+                <label class="form-check-label" for="guardarDiagnosticoIndividual">
+                  <strong>Guardar solo para esta cotización</strong>
+                </label>
+              </div>
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="tipoGuardadoDiagnostico" id="guardarDiagnosticoGlobal" value="global">
+                <label class="form-check-label" for="guardarDiagnosticoGlobal">
+                  <strong>Guardar para todas las cotizaciones</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" id="guardar-diagnostico-opciones" class="btn bg-rojo text-white">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+
+  const modalAnterior = document.getElementById("modal-diagnostico-opciones")
+  if (modalAnterior) {
+    modalAnterior.remove()
+  }
+
+  document.body.insertAdjacentHTML("beforeend", modalHtml)
+  const modal = new window.bootstrap.Modal(document.getElementById("modal-diagnostico-opciones"))
+  modal.show()
+}
+
+// Event listeners usando jQuery como en cotizaciones.add
 $(document).ready(() => {
-  $(document)
-    .off("click", "#edit-diagnostico")
-    .on("click", "#edit-diagnostico", (e) => {
-      e.preventDefault()
-      console.log("Botón de editar diagnóstico clickeado")
+  console.log("Inicializando diagnóstico para taller")
 
-      const cotizacionId = $("#cotizacion-id").val() || $("#cotizacion").val()
-      console.log("ID de cotización para diagnóstico:", cotizacionId)
+  // Event listener para el botón de diagnóstico
+  $(document).on("click", "#add-diagnostico", (e) => {
+    e.preventDefault()
+    console.log("Botón de diagnóstico clickeado")
 
-      // Mostrar el modal
-      const modal = new bootstrap.Modal(document.getElementById("modal-diagnostico"))
-      modal.show()
+    const cotizacionId = $("#cotizacion-id").val() || $("#cotizacion").val()
+    console.log("ID de cotización para diagnóstico:", cotizacionId)
 
+    mostrarModalDiagnostico()
+
+    setTimeout(() => {
       if (!cotizacionId) {
-        // Si no hay ID de cotización, estamos en modo de creación
         console.log("Modo: Creación de nuevo diagnóstico")
 
-        // Verificar si hay diagnóstico temporal en sesión
         if (sessionStorage.getItem("temp_diagnostico_taller")) {
           console.log("Cargando diagnóstico temporal de sessionStorage")
           const tempDiagnostico = sessionStorage.getItem("temp_diagnostico_taller")
           diagnosticoEditorContent = tempDiagnostico
           initializeDiagnosticoEditor(tempDiagnostico)
         } else {
-          // Si no hay diagnóstico temporal, cargar el diagnóstico por defecto de diagnostico_repuestos
-          $.get("/jvc/ajas/get/diagnostico/repuestos", (data) => {
-            try {
-              const parsedData = JSON.parse(data)
-              if (parsedData && parsedData.length > 0) {
-                const diagnostico = parsedData[0].nombre
-                diagnosticoEditorContent = diagnostico
-                initializeDiagnosticoEditor(diagnostico)
-              } else {
-                console.warn("No se encontraron diagnósticos por defecto")
+          $.ajax({
+            url: _URL +"/ajas/get/diagnostico/repuestos",
+            type: "GET",
+            dataType: "json",
+            success: (data) => {
+              console.log("Datos de diagnóstico recibidos:", data)
+              try {
+                const parsedData = Array.isArray(data) ? data : [data]
+                if (parsedData && parsedData.length > 0) {
+                  const diagnostico = parsedData[0].nombre
+                  diagnosticoEditorContent = diagnostico
+                  initializeDiagnosticoEditor(diagnostico)
+                } else {
+                  console.warn("No se encontraron diagnósticos por defecto")
+                  initializeDiagnosticoEditor("")
+                }
+              } catch (e) {
+                console.error("Error al procesar diagnósticos por defecto:", e)
                 initializeDiagnosticoEditor("")
               }
-            } catch (e) {
-              console.error("Error al parsear diagnósticos por defecto:", e)
+            },
+            error: (xhr, status, error) => {
+              console.error("Error al obtener diagnósticos por defecto:", error)
               initializeDiagnosticoEditor("")
-            }
-          }).fail(() => {
-            console.error("Error al obtener diagnósticos por defecto")
-            initializeDiagnosticoEditor("")
+            },
           })
         }
       } else {
-        // Si hay ID de cotización, estamos en modo de edición
         console.log("Modo: Edición de diagnóstico existente, ID:", cotizacionId)
-        const url = "/jvc/ajas/get/taller/diagnosticos/cotizacion/" + cotizacionId
-        $.get(url, (data) => {
-          try {
-            console.log("Datos recibidos para diagnóstico:", data)
-            const parsedData = JSON.parse(data)
-            if (parsedData && parsedData.length > 0) {
-              const diagnostico = parsedData[0].diagnostico
-              console.log("Diagnóstico encontrado:", diagnostico)
-              diagnosticoEditorContent = diagnostico
-              initializeDiagnosticoEditor(diagnostico)
-            } else {
-              console.log("No se encontró diagnóstico para esta cotización, usando diagnóstico por defecto")
-              $.get("/jvc/ajas/get/diagnostico/repuestos", (defaultData) => {
-                try {
-                  const parsedDefaultData = JSON.parse(defaultData)
-                  if (parsedDefaultData && parsedDefaultData.length > 0) {
-                    const diagnostico = parsedDefaultData[0].nombre
-                    diagnosticoEditorContent = diagnostico
-                    initializeDiagnosticoEditor(diagnostico)
-                  } else {
-                    console.warn("No se encontraron diagnósticos por defecto")
+        $.ajax({
+          url: `/ajas/get/taller/diagnosticos/cotizacion/${cotizacionId}`,
+          type: "GET",
+          dataType: "json",
+          success: (data) => {
+            console.log("Datos de diagnóstico específico recibidos:", data)
+            try {
+              const parsedData = Array.isArray(data) ? data : [data]
+              if (parsedData && parsedData.length > 0 && parsedData[0].diagnostico) {
+                const diagnostico = parsedData[0].diagnostico
+                console.log("Diagnóstico encontrado:", diagnostico)
+                diagnosticoEditorContent = diagnostico
+                initializeDiagnosticoEditor(diagnostico)
+              } else {
+                console.log("No se encontró diagnóstico para esta cotización, usando diagnóstico por defecto")
+                $.ajax({
+                  url: "/ajas/get/diagnostico/repuestos",
+                  type: "GET",
+                  dataType: "json",
+                  success: (defaultData) => {
+                    console.log("Datos de diagnóstico por defecto:", defaultData)
+                    try {
+                      const parsedDefaultData = Array.isArray(defaultData) ? defaultData : [defaultData]
+                      if (parsedDefaultData && parsedDefaultData.length > 0) {
+                        const diagnostico = parsedDefaultData[0].nombre
+                        diagnosticoEditorContent = diagnostico
+                        initializeDiagnosticoEditor(diagnostico)
+                      } else {
+                        console.warn("No se encontraron diagnósticos por defecto")
+                        initializeDiagnosticoEditor("")
+                      }
+                    } catch (e) {
+                      console.error("Error al parsear diagnósticos por defecto:", e)
+                      initializeDiagnosticoEditor("")
+                    }
+                  },
+                  error: () => {
+                    console.error("Error al obtener diagnósticos por defecto")
                     initializeDiagnosticoEditor("")
-                  }
-                } catch (e) {
-                  console.error("Error al parsear diagnósticos por defecto:", e)
-                  initializeDiagnosticoEditor("")
-                }
-              }).fail(() => {
-                console.error("Error al obtener diagnósticos por defecto")
-                initializeDiagnosticoEditor("")
-              })
+                  },
+                })
+              }
+            } catch (e) {
+              console.error("Error al parsear diagnóstico:", e)
+              initializeDiagnosticoEditor("")
             }
-          } catch (e) {
-            console.error("Error al parsear diagnóstico:", e)
+          },
+          error: (xhr, status, error) => {
+            console.error("Error al obtener diagnóstico de la cotización:", error)
             initializeDiagnosticoEditor("")
-          }
-        }).fail((xhr, status, error) => {
-          console.error("Error al obtener diagnóstico de la cotización:", status, error)
-          console.log("Respuesta del servidor:", xhr.responseText)
-          initializeDiagnosticoEditor("")
+          },
         })
       }
-    })
+    }, 300)
+  })
 
-  // Evento para guardar diagnóstico
-  $(document)
-    .off("click", "#guardar-diagnostico")
-    .on("click", "#guardar-diagnostico", () => {
-      try {
-        const diagnostico = getDiagnosticoEditorContent()
-        diagnosticoEditorContent = diagnostico
-        const cotizacionId = $("#cotizacion-id").val()
+  // Event listener para guardar diagnóstico
+  $(document).on("click", "#guardar-diagnostico-opciones", () => {
+    try {
+      const diagnostico = getDiagnosticoEditorContent()
+      diagnosticoEditorContent = diagnostico
+      const cotizacionId = $("#cotizacion-id").val()
+      tipoGuardadoDiagnostico = $('input[name="tipoGuardadoDiagnostico"]:checked').val()
 
-        console.log("Guardando diagnóstico. ID de cotización:", cotizacionId)
-        console.log("Contenido a guardar:", diagnostico)
+      console.log("Guardando diagnóstico. ID de cotización:", cotizacionId)
+      console.log("Tipo de guardado:", tipoGuardadoDiagnostico)
+      console.log("Contenido a guardar:", diagnostico)
 
-        // Deshabilitar el botón mientras se guarda
-        $("#guardar-diagnostico").prop("disabled", true)
+      $("#guardar-diagnostico-opciones").prop("disabled", true)
 
+      if (tipoGuardadoDiagnostico === "global") {
+        $.post("/jvc/ajas/save/taller/diagnosticos/global", {
+          diagnostico: diagnostico,
+          nombre: "Diagnóstico actualizado " + new Date().toLocaleDateString(),
+        })
+          .done((data) => {
+            console.log("Diagnóstico global guardado:", data)
+
+            if (cotizacionId) {
+              $.post("/ajas/save/taller/diagnosticos/cotizacion", {
+                cotizacion_id: cotizacionId,
+                diagnostico: diagnostico,
+              })
+            } else {
+              sessionStorage.setItem("temp_diagnostico_taller", diagnostico)
+            }
+
+            const modalElement = document.getElementById("modal-diagnostico-opciones")
+            if (modalElement) {
+              const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+              if (modalInstance) modalInstance.hide()
+            }
+
+            setTimeout(() => {
+              window.Swal.fire({
+                title: "Éxito",
+                text: "Diagnóstico guardado como plantilla global y aplicado a esta cotización.",
+                icon: "success",
+              })
+            }, 500)
+          })
+          .fail((error) => {
+            console.error("Error al guardar diagnóstico global:", error)
+            window.Swal.fire({
+              title: "Error",
+              text: "No se pudo guardar el diagnóstico global.",
+              icon: "error",
+            })
+          })
+          .always(() => {
+            $("#guardar-diagnostico-opciones").prop("disabled", false)
+          })
+      } else {
         if (!cotizacionId) {
-          // Si no hay ID de cotización, guardamos en sessionStorage
           sessionStorage.setItem("temp_diagnostico_taller", diagnostico)
           console.log("Diagnóstico guardado en sessionStorage")
 
-          // También enviamos al servidor para guardar en sesión PHP
-          $.post("/jvc/ajas/save/taller/diagnosticos/temp", { diagnostico: diagnostico })
+          $.post("/ajas/save/taller/diagnosticos/temp", { diagnostico: diagnostico })
             .done((data) => {
               console.log("Diagnóstico temporal guardado en sesión PHP:", data)
-              const modalElement = document.getElementById("modal-diagnostico")
-              const modalInstance = bootstrap.Modal.getInstance(modalElement)
-              modalInstance.hide()
+              const modalElement = document.getElementById("modal-diagnostico-opciones")
+              if (modalElement) {
+                const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+                if (modalInstance) modalInstance.hide()
+              }
               if (window.app) {
                 window.app.venta.diagnostico = diagnostico
               }
               setTimeout(() => {
-                Swal.fire({
+                window.Swal.fire({
                   title: "Info",
                   text: "Diagnóstico guardado temporalmente.",
                   icon: "success",
@@ -341,32 +362,32 @@ $(document).ready(() => {
             })
             .fail((error) => {
               console.error("Error al guardar diagnóstico:", error)
-              Swal.fire({
+              window.Swal.fire({
                 title: "Error",
                 text: "No se pudo guardar el diagnóstico temporal.",
                 icon: "error",
               })
             })
             .always(() => {
-              $("#guardar-diagnostico").prop("disabled", false)
+              $("#guardar-diagnostico-opciones").prop("disabled", false)
             })
         } else {
-          // Si hay ID de cotización, guardamos directamente en la base de datos
-          $.post("/jvc/ajas/save/taller/diagnosticos/cotizacion", {
+          $.post("/ajas/save/taller/diagnosticos/cotizacion", {
             cotizacion_id: cotizacionId,
             diagnostico: diagnostico,
           })
             .done((data) => {
               console.log("Diagnóstico de cotización guardado:", data)
-              const modalElement = document.getElementById("modal-diagnostico")
-              const modalInstance = bootstrap.Modal.getInstance(modalElement)
-              modalInstance.hide()
+              const modalElement = document.getElementById("modal-diagnostico-opciones")
+              if (modalElement) {
+                const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+                if (modalInstance) modalInstance.hide()
+              }
 
-              // Limpiar sessionStorage después de guardar
               sessionStorage.removeItem("temp_diagnostico_taller")
 
               setTimeout(() => {
-                Swal.fire({
+                window.Swal.fire({
                   title: "Info",
                   text: "Guardado con éxito!",
                   icon: "success",
@@ -375,29 +396,30 @@ $(document).ready(() => {
             })
             .fail((error) => {
               console.error("Error al guardar diagnóstico:", error)
-              Swal.fire({
+              window.Swal.fire({
                 title: "Error",
                 text: "No se pudo guardar el diagnóstico.",
                 icon: "error",
               })
             })
             .always(() => {
-              $("#guardar-diagnostico").prop("disabled", false)
+              $("#guardar-diagnostico-opciones").prop("disabled", false)
             })
         }
-      } catch (e) {
-        console.error("Error al guardar diagnóstico:", e)
-        Swal.fire({
-          title: "Error",
-          text: "Hubo un problema al guardar el diagnóstico: " + e.message,
-          icon: "error",
-        })
-        $("#guardar-diagnostico").prop("disabled", false)
       }
-    })
+    } catch (e) {
+      console.error("Error al guardar diagnóstico:", e)
+      window.Swal.fire({
+        title: "Error",
+        text: "Hubo un problema al guardar el diagnóstico: " + e.message,
+        icon: "error",
+      })
+      $("#guardar-diagnostico-opciones").prop("disabled", false)
+    }
+  })
 
   // Limpiar recursos cuando se cierra el modal
-  $("#modal-diagnostico").on("hidden.bs.modal", () => {
+  $(document).on("hidden.bs.modal", "#modal-diagnostico-opciones", () => {
     try {
       destroyDiagnosticoEditor()
     } catch (e) {
@@ -407,10 +429,9 @@ $(document).ready(() => {
 
   // Limpiar sessionStorage cuando se recarga la página
   $(window).on("beforeunload", () => {
-    // Limpiar solo si no estamos en modo de edición (no hay ID de cotización)
-    if (!$("#cotizacion-id").val()) {
+    const cotizacionId = $("#cotizacion-id").val()
+    if (!cotizacionId) {
       sessionStorage.removeItem("temp_diagnostico_taller")
     }
   })
 })
-

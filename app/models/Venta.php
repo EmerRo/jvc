@@ -622,15 +622,14 @@ public function setDocReferencia($doc_referencia): void
     }
     public function verFilasPeriodo($periodo)
     {
+      
 
         $temoAr = explode('-', $periodo);
 
-        //Tools::prettyPrint($temoAr);
+        $metodo = isset($temoAr[3]) ? $temoAr[3] : 0;
 
-        $metodo =  $temoAr[3];
-
-        if ($temoAr[2] >0 && $metodo != 0) {
-            echo "a";
+        if (isset($temoAr[2]) && $temoAr[2] > 0 && $metodo != 0) {
+            // Caso específico: día específico + método específico
             $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
             v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
              from ventas as v
@@ -642,8 +641,8 @@ public function setDocReferencia($doc_referencia): void
                  where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
                and YEAR(v.fecha_emision) = '$temoAr[0]'  and MONTH(v.fecha_emision) = '$temoAr[1]'  and day(v.fecha_emision) = '$temoAr[2]'   AND metodo_pago.id_metodo_pago = '$metodo'
              order  by v.fecha_emision asc, v.numero asc";
-        } elseif ($temoAr[2] == 'nn' && $metodo != 0) {
-            echo "b";
+        } elseif (isset($temoAr[2]) && $temoAr[2] == 'nn' && $metodo != 0) {
+            // Caso: mes completo + método específico
             $periodo = $temoAr[0] . $temoAr[1];
             $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2,v.pagado,v.pagado2,
        v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
@@ -656,8 +655,8 @@ public function setDocReferencia($doc_referencia): void
                                                                 
         where v.estado<>2 and v.id_empresa = '$this->id_empresa' and YEAR(v.fecha_emision) = '$temoAr[0]' and MONTH(v.fecha_emision) = '$temoAr[1]'  AND metodo_pago.id_metodo_pago = '$metodo'
         order by v.fecha_emision asc, v.numero asc";
-        } elseif ($temoAr[2] == 'nn' && $metodo == 0) {
-            echo "c";
+        } elseif (isset($temoAr[2]) && $temoAr[2] == 'nn' && $metodo == 0) {
+            // Caso: mes completo + todos los métodos
             $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2,v.pagado,v.pagado2,
             v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
              from ventas as v
@@ -665,12 +664,12 @@ public function setDocReferencia($doc_referencia): void
                  LEFT JOIN clientes c on v.id_cliente = c.id_cliente
                  LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
                  LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
- LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
+                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
              where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
              and YEAR(v.fecha_emision) = '$temoAr[0]' and MONTH(v.fecha_emision) = '$temoAr[1]'
              order by v.fecha_emision asc, v.numero asc";
-        } elseif ($temoAr[2] > 0 && $metodo == 0) {
-            echo "d";
+        } elseif (isset($temoAr[2]) && $temoAr[2] > 0 && $metodo == 0) {
+            // Caso: día específico + todos los métodos
             $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
             v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
              from ventas as v
@@ -678,12 +677,12 @@ public function setDocReferencia($doc_referencia): void
                  LEFT JOIN clientes c on v.id_cliente = c.id_cliente
                  LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
                  LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
+                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
                  where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
                and YEAR(v.fecha_emision) = '$temoAr[0]'  and MONTH(v.fecha_emision) = '$temoAr[1]'  and day(v.fecha_emision) = '$temoAr[2]' 
              order by v.fecha_emision asc, v.numero asc";
         } else {
-            echo "e";
+            // Caso por defecto: formato YYYYMM
             $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
        v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
         from ventas as v
@@ -691,32 +690,11 @@ LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
             LEFT JOIN clientes c on v.id_cliente = c.id_cliente
             LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
             LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-  LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
+            LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
         where v.estado<>2 and  v.id_empresa = '$this->id_empresa' and concat(year(v.fecha_emision), LPAD(month(v.fecha_emision), 2, 0)) = '$periodo'
         order by v.fecha_emision asc, v.numero asc";
         }
-       // die();
 
-
-        /*$sql = "select v.id_venta, v.fecha, ds.abreviatura,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-        where v.id_empresa = '$this->id_empresa' and concat(year(fecha), LPAD(month(fecha), 2, 0)) = '$periodo'
-        order by v.fecha asc, v.numero asc";*/
-
-        /*$sql = "select v.id_venta, v.fecha, ds.abreviatura, v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml
-        from ventas as v
-            inner join documentos_sunat ds on v.id_tido = ds.id_tido
-            inner join clientes c on v.id_cliente = c.id_cliente
-            inner join ventas_sunat vs on v.id_venta = vs.id_venta
-        where v.id_empresa = '$this->id_empresa'
-        order by v.fecha asc, v.numero asc";*/
-
-
-        //echo $sql;
         $rest = $this->conectar->query($sql);
         $lista = [];
         foreach ($rest as $row) {
@@ -724,6 +702,8 @@ LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
             $row['id_venta'] = $row['id_venta'] . '--' . $row['nombre_xml'];
             $lista[] = $row;
         }
+        
+     
         return $lista;
     }
     public function verFilasPorEmpresas($empresa, $sucuarsal)

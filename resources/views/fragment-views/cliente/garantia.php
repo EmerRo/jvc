@@ -7,7 +7,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- Modal de Detalles Mejorado -->
@@ -56,13 +55,27 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Sección de Equipos como Tabla -->
                 <div class="equipos-container">
                     <h6 class="text-rojo mb-3">
                         <i class="fa fa-laptop me-2"></i>Equipos Registrados
                     </h6>
-                    <!-- Contenedor con scroll para los equipos -->
-                    <div id="detalle_equipos" class="mt-3" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                        <!-- Los equipos se agregarán dinámicamente -->
+                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                        <table id="tabla_equipos_modal" class="table table-striped table-bordered table-hover">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Marca</th>
+                                    <th class="text-center">Modelo</th>
+                                    <th class="text-center">Equipo</th>
+                                    <th class="text-center">Número de Serie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalle_equipos">
+                                <!-- Los equipos se agregarán dinámicamente -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -74,32 +87,30 @@
         </div>
     </div>
 </div>
+
 <!-- Tabla de Garantías -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card"
             style="border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Lista de Garantías Registradas</h5>
-                <div>
-                    <a href="garantia/editar-certificado" class="btn border-rojo me-2">
-                        <i class="fa fa-edit"></i> Editar Certificado de Garantía
-                    </a>
-                    <a href="garantia/manual" class="btn bg-rojo text-white me-2">
-                        <i class="fa fa-plus"></i> Añadir Garantía
-                    </a>
-                </div>
+            <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
+                <a href="garantia/editar-certificado" class="btn border-rojo me-2">
+                    <i class="fa fa-edit"></i> Editar Certificado de Garantía
+                </a>
+                <a href="garantia/manual" class="btn bg-rojo text-white">
+                    <i class="fa fa-plus"></i> Añadir Garantía
+                </a>
             </div>
             <div id="conte-vue-modals">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table id="tabla_garantia"
                             class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Item</th>
+                                    <th><i class="fa fa-hashtag me-1"></i> Número</th>
                                     <th>Cliente</th>
-                                    <th>series</th>
+                                    <th>Series</th>
                                     <th>Guía De Remisión</th>
                                     <th>Fecha De Inicio</th>
                                     <th>Fecha De Caducidad</th>
@@ -122,10 +133,9 @@
             ordering: true,
             searching: true,
             destroy: true,
-            "responsive": true, // Habilitar responsividad
-            "scrollX": false,   // Deshabilitar scroll horizontal
-            "autoWidth": false, // Deshabilitar auto-ancho
-
+            "responsive": true,
+            "scrollX": false,
+            "autoWidth": false,
             "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
             ajax: {
                 url: _URL + "/ajs/garantia/render",
@@ -135,239 +145,176 @@
             language: {
                 url: "serverSide/Spanish.json",
             },
-            // Modificar la configuración de columnas en DataTables
-            // Configuración correcta de columnas para DataTables
-columns: [
-    {
-        // Primera columna: Item (número correlativo)
-        data: null,
-        class: "text-center",
-        render: function (data, type, row, meta) {
-            return meta.row + 1; // Esto muestra el número de fila + 1
-        }
-    },
-    // Segunda columna: Cliente
-    { data: "cliente_ruc_dni", class: "text-center" },
-    // Tercera columna: Series (cantidad)
-    { 
-        data: null, 
-        class: "text-center",
-        render: function(data, type, row) {
-            // Verificar si hay series_ids y mostrar la cantidad
-            let seriesCount = 1; // Por defecto, 1 serie
-            if (row.series_ids) {
-                try {
-                    const seriesData = JSON.parse(row.series_ids);
-                    if (Array.isArray(seriesData)) {
-                        seriesCount = seriesData.length;
+            columns: [
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data, type, row, meta) {
+                        if (row.numero) {
+                            return row.numero;
+                        }
+                        const numeroFormateado = String(row.id_garantia).padStart(2, '0');
+                        return `GR-${numeroFormateado}`;
                     }
-                } catch (e) {
-                    console.error("Error al parsear series_ids:", e);
-                }
-            }
-            
-            // Mostrar un badge con la cantidad de series
-            return `<span class="badge bg-info">${seriesCount}</span>`;
-        }
-    },
-    // Cuarta columna: Guía de Remisión
-    {
-        data: null,
-        class: "text-center",
-        render: function (data, type, row) {
-            return row.guia_remision || '-';
-        }
-    },
-    // Quinta columna: Fecha de Inicio
-    { data: "fecha_inicio", class: "text-center" },
-    // Sexta columna: Fecha de Caducidad
-    { data: "fecha_caducidad", class: "text-center" },
-    // Séptima columna: Acciones
-    {
-        data: null,
-        class: "text-center",
-        render: function (data, type, row) {
-            return `<div class="text-center">
-                <div class="btn-group btn-sm">
-                    <button data-id="${row.id_garantia}" class="btn btn-sm btn-info btnDetalle" title="Ver detalles">
-                        <i class="fa fa-eye"></i>
-                    </button>
-                    <button data-id="${row.id_garantia}" class="btn btn-sm btn-warning btnEditar" title="Editar">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                    <a href="${_URL + '/r/garantia/certificado/' + row.id_garantia}" target="_blank" class="btn btn-sm btn-primary" title="Ver certificado">
-                        <i class="fa fa-file"></i>
-                    </a>
-                    <button data-id="${row.id_garantia}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-            </div>`;
-        }
-    }
-]
-        });
-
-        // Manejador para el botón de detalles
-
-       // Modificar el modal de detalles para añadir scroll
-$(document).on('click', '.btnDetalle', function () {
-    const id = $(this).data('id');
-    
-    // Mostrar un indicador de carga
-    Swal.fire({
-        title: 'Cargando...',
-        text: 'Obteniendo detalles de la garantía',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    $.ajax({
-        url: _URL + "/ajs/garantia/getOne",
-        method: "POST",
-        data: { id_garantia: id },
-        success: function (response) {
-            // Cerrar el indicador de carga
-            Swal.close();
-            
-            try {
-                const data = JSON.parse(response);
-                if (data && data.length > 0) {
-                    // Usar el primer elemento para la información general
-                    const garantia = data[0];
-                    
-                    // Depurar los datos recibidos
-                    console.log("Datos de garantía recibidos:", data);
-
-                    // Llenar la información básica
-                    $('#detalle_cliente').text(garantia.cliente_ruc_dni || '-');
-                    $('#detalle_guia').text(garantia.guia_remision || '-');
-                    $('#detalle_fecha_inicio').text(garantia.fecha_inicio || '-');
-                    $('#detalle_fecha_caducidad').text(garantia.fecha_caducidad || '-');
-
-                    // Limpiar la sección de equipos
-                    $('#detalle_equipos').empty();
-                    
-                    // Añadir estilos de scroll al contenedor de equipos
-                    $('#detalle_equipos').css({
-                        'max-height': '400px',
-                        'overflow-y': 'auto',
-                        'padding-right': '10px'
-                    });
-
-                    // Mostrar el contador de series
-                    if (data.length > 1) {
-                        $('#detalle_equipos').append(`
-                            <div class="alert alert-info mb-3 sticky-top" style="top: 0; z-index: 1020; background-color: #cff4fc;">
-                                <i class="fa fa-info-circle me-2"></i>
-                                Esta garantía incluye ${data.length} series.
-                            </div>
-                        `);
-                    }
-                    
-                    // Mostrar cada serie como un equipo
-                    data.forEach((item, index) => {
-                        const marcaNombre = item.marca_nombre || item.marca || '-';
-                        const modeloNombre = item.modelo_nombre || item.modelo || '-';
-                        const equipoNombre = item.equipo_nombre || item.equipo || '-';
-                        const numeroSerie = item.numero_serie || '-';
+                },
+                { data: "cliente_ruc_dni", class: "text-center" },
+                { 
+                    data: null, 
+                    class: "text-center",
+                    render: function(data, type, row) {
+                        let seriesCount = row.total_series || 1;
                         
-                        $('#detalle_equipos').append(`
-                            <div class="card border-0 shadow-sm mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="card-title mb-0">Equipo ${index + 1}</h6>
-                                        <span class="badge bg-rojo">${numeroSerie !== '-' ? 'Serie: ' + numeroSerie : 'Sin número de serie'}</span>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-2">
-                                            <label class="text-muted small">Marca:</label>
-                                            <p class="mb-0 fw-bold">${marcaNombre}</p>
-                                        </div>
-                                        <div class="col-md-4 mb-2">
-                                            <label class="text-muted small">Modelo:</label>
-                                            <p class="mb-0 fw-bold">${modeloNombre}</p>
-                                        </div>
-                                        <div class="col-md-4 mb-2">
-                                            <label class="text-muted small">Equipo:</label>
-                                            <p class="mb-0 fw-bold">${equipoNombre}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                        if (!row.total_series && row.numeros_serie) {
+                            try {
+                                const series = row.numeros_serie.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                                seriesCount = series.length;
+                            } catch (e) {
+                                console.error("Error al contar series:", e);
+                            }
+                        }
+                        
+                        if (row.series_ids) {
+                            try {
+                                const seriesData = JSON.parse(row.series_ids);
+                                if (Array.isArray(seriesData) && seriesData.length > 0) {
+                                    seriesCount = seriesData.length;
+                                }
+                            } catch (e) {
+                                console.error("Error al parsear series_ids:", e);
+                            }
+                        }
+                        
+                        const seriesTooltip = row.numeros_serie || 'Series no disponibles';
+                        return `<span class="badge bg-info" title="${seriesTooltip}" data-bs-toggle="tooltip">${seriesCount} serie${seriesCount > 1 ? 's' : ''}</span>`;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data, type, row) {
+                        return row.guia_remision || '-';
+                    }
+                },
+                { data: "fecha_inicio", class: "text-center" },
+                { data: "fecha_caducidad", class: "text-center" },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data, type, row) {
+                        return `<div class="text-center">
+                            <div class="btn-group btn-sm">
+                                <button data-id="${row.id_garantia}" class="btn btn-sm btn-info btnDetalle" title="Ver detalles">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button data-id="${row.id_garantia}" class="btn btn-sm btn-warning btnEditar" title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <a href="${_URL + '/r/garantia/certificado/' + row.id_garantia}" target="_blank" class="btn btn-sm btn-primary" title="Ver certificado">
+                                    <i class="fa fa-file"></i>
+                                </a>
+                                <button data-id="${row.id_garantia}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar">
+                                    <i class="fa fa-trash"></i>
+                                </button>
                             </div>
-                        `);
-                    });
+                        </div>`;
+                    }
+                }
+            ]
+        });
 
-                    // Mostrar el modal
-                    $('#detalleModal').modal('show');
-                } else {
+        // Manejador mejorado para el modal de detalles con tabla
+        $(document).on('click', '.btnDetalle', function () {
+            const id = $(this).data('id');
+            
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Obteniendo detalles de la garantía',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: _URL + "/ajs/garantia/getOne",
+                method: "POST",
+                data: { id_garantia: id },
+                success: function (response) {
+                    Swal.close();
+                    
+                    try {
+                        const data = JSON.parse(response);
+                        if (data && data.length > 0) {
+                            const garantia = data[0];
+                            
+                            // Llenar la información básica
+                            $('#detalle_cliente').text(garantia.cliente_ruc_dni || '-');
+                            $('#detalle_guia').text(garantia.guia_remision || '-');
+                            $('#detalle_fecha_inicio').text(garantia.fecha_inicio || '-');
+                            $('#detalle_fecha_caducidad').text(garantia.fecha_caducidad || '-');
+
+                            // Limpiar la tabla de equipos
+                            $('#detalle_equipos').empty();
+                            
+                            // Llenar la tabla con los equipos
+                            data.forEach((item, index) => {
+                                const marcaNombre = item.marca_nombre || item.marca || '-';
+                                const modeloNombre = item.modelo_nombre || item.modelo || '-';
+                                const equipoNombre = item.equipo_nombre || item.equipo || '-';
+                                const numeroSerie = item.numero_serie || '-';
+                                
+                                const fila = `
+                                    <tr>
+                                        <td class="text-center fw-bold">${index + 1}</td>
+                                        <td class="text-center">${marcaNombre}</td>
+                                        <td class="text-center">${modeloNombre}</td>
+                                        <td class="text-center">${equipoNombre}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">${numeroSerie}</span>
+                                        </td>
+                                    </tr>
+                                `;
+                                
+                                $('#detalle_equipos').append(fila);
+                            });
+
+                            // Mostrar el modal
+                            $('#detalleModal').modal('show');
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sin datos',
+                                text: 'No se encontraron datos de la garantía'
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error al procesar los datos:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al procesar los datos de la garantía'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Sin datos',
-                        text: 'No se encontraron datos de la garantía'
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cargar la información de la garantía'
                     });
                 }
-            } catch (error) {
-                console.error("Error al procesar los datos:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al procesar los datos de la garantía'
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo cargar la información de la garantía'
             });
-        }
-    });
-
-
-
-            // Función auxiliar para mostrar un único equipo
-            function mostrarEquipoUnico(garantia) {
-                const marcaNombre = garantia.marca_nombre || garantia.marca || '-';
-                const modeloNombre = garantia.modelo_nombre || garantia.modelo || '-';
-                const equipoNombre = garantia.equipo_nombre || garantia.equipo || '-';
-                const numeroSerie = garantia.numero_serie || '-';
-
-                $('#detalle_equipos').append(`
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">Información del Equipo</h6>
-                        <span class="badge bg-rojo">${numeroSerie !== '-' ? 'Serie: ' + numeroSerie : 'Sin número de serie'}</span>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted small">Marca:</label>
-                            <p class="mb-0 fw-bold">${marcaNombre}</p>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted small">Modelo:</label>
-                            <p class="mb-0 fw-bold">${modeloNombre}</p>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <label class="text-muted small">Equipo:</label>
-                            <p class="mb-0 fw-bold">${equipoNombre}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `);
-            }
         });
+
         $('#closeModalButton').click(function () {
             $('#editModal').modal('hide');
         });
+        
         $('#cerrarModalButton').click(function () {
             $('#editModal').modal('hide');
         });
+
         // Manejador para guardar la edición
         $("#formEditarGarantia").on('submit', function (e) {
             e.preventDefault();
@@ -429,9 +376,9 @@ $(document).on('click', '.btnDetalle', function () {
         });
     });
 </script>
+
 <script>
     $(document).ready(function () {
-
         $("#input_buscar_Dataseries").autocomplete({
             source: _URL + "/ajs/buscar/serie/datos",
             minLength: 2,
@@ -444,12 +391,11 @@ $(document).on('click', '.btnDetalle', function () {
                 app.garantia.marc = ui.item.marca;
                 app.garantia.model = ui.item.modelo;
                 $('#input_buscar_DataSeries').val("")
-
             }
         })
+        
         const garantiaData = JSON.parse(sessionStorage.getItem('garantia_data'));
         if (garantiaData) {
-            // Pre-llenar los campos
             app.garantia.cliente_nombre = garantiaData.cliente_nombre;
 
             if (garantiaData.equipos && garantiaData.equipos.length > 0) {
@@ -459,10 +405,9 @@ $(document).on('click', '.btnDetalle', function () {
                 app.garantia.model = primerEquipo.modelo;
             }
 
-            // Limpiar los datos almacenados
             sessionStorage.removeItem('garantia_data');
         }
-
     });
 </script>
+
 <script src="<?= URL::to('public/js/dataTables.spanish.js') ?>?v=<?= time() ?>"></script>

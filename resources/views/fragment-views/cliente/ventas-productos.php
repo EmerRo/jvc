@@ -116,7 +116,6 @@ if (isset($_GET["guia"])) {
                                                 id="example-text-input">
                                         </div>
 
-                                        <!-- Campo Precio -->
                                         <div class="col-lg-3">
                                             <label for="precio-input" class="col-form-label">Precio</label>
                                             <div class="input-group">
@@ -131,48 +130,49 @@ if (isset($_GET["guia"])) {
                                                     style="top: 100%; left: 0; margin-top: 2px;">
                                                     Elija un producto primero
                                                 </p>
-                                                <ul class="dropdown-menu" style="width: 300px; max-width: none;">
+                                                <ul class="dropdown-menu"
+                                                    style="width: 100%; min-width: 180px; left: 0 !important; right: auto !important; transform: none !important;">
                                                     <li>
                                                         <a class="dropdown-item" href="#"
                                                             @click.prevent="seleccionarPrecioConTipo('PV', producto.precioVenta)"
-                                                            style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
-                                                            <span style="width: 150px; display: inline-block;">Precio
+                                                            style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                            <span style="font-weight: 400; font-size: 12px;">Precio
                                                                 Venta:</span>
                                                             <span
-                                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap;">S/
                                                                 {{ producto.precioVenta }}</span>
                                                         </a>
                                                     </li>
                                                     <li>
                                                         <a class="dropdown-item" href="#"
                                                             @click.prevent="seleccionarPrecioConTipo('C', producto.costo)"
-                                                            style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
+                                                            style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
                                                             <span
-                                                                style="width: 150px; display: inline-block;">Costo:</span>
+                                                                style="font-weight: 400; font-size: 12px;">Costo:</span>
                                                             <span
-                                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap;">S/
                                                                 {{ producto.costo }}</span>
                                                         </a>
                                                     </li>
                                                     <li>
                                                         <a class="dropdown-item" href="#"
                                                             @click.prevent="seleccionarPrecioConTipo('PM', producto.precio_mayor)"
-                                                            style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
-                                                            <span style="width: 150px; display: inline-block;">Precio
-                                                                Mayorista:</span>
+                                                            style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                            <span style="font-weight: 400; font-size: 12px;">Precio
+                                                                Mayor:</span>
                                                             <span
-                                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap;">S/
                                                                 {{ producto.precio_mayor }}</span>
                                                         </a>
                                                     </li>
                                                     <li>
                                                         <a class="dropdown-item" href="#"
                                                             @click.prevent="seleccionarPrecioConTipo('PMn', producto.precio_menor)"
-                                                            style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
-                                                            <span style="width: 150px; display: inline-block;">Precio
-                                                                Menorista:</span>
+                                                            style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                            <span style="font-weight: 400; font-size: 12px;">Precio
+                                                                Menor:</span>
                                                             <span
-                                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap;">S/
                                                                 {{ producto.precio_menor }}</span>
                                                         </a>
                                                     </li>
@@ -182,19 +182,19 @@ if (isset($_GET["guia"])) {
                                                         type="button"
                                                         :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
                                                         aria-expanded="false" @click="mostrarMensajeProducto"
-                                                      style="background-color: #CA3438; color: white; height: 38px;">
+                                                        style="background-color: #CA3438; color: white; height: 38px;">
                                                         <i class="fa fa-chevron-down"></i>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end"
-                                                        style="width: 300px; max-width: none;">
+                                                        style="width: 100%; min-width: 18px; left: 0 !important; right: auto !important; transform: none !important;">
                                                         <li v-for="(value, key) in precioProductos" :key="key">
                                                             <a class="dropdown-item" href="#"
                                                                 @click.prevent="seleccionarPrecioConTipo(value.nombre, value.precio)"
-                                                                style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
-                                                                <span style="width: 150px; display: inline-block;">{{
+                                                                style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                                <span style="font-weight: 400; font-size: 12px;">{{
                                                                     value.nombre }}:</span>
                                                                 <span
-                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                    style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; white-space: nowrap;">S/
                                                                     {{ value.precio }}</span>
                                                             </a>
                                                         </li>
@@ -202,7 +202,6 @@ if (isset($_GET["guia"])) {
                                                 </div>
                                             </div>
                                         </div>
-
                                         <!-- Botón Agregar -->
                                         <div class="col-lg-2 d-flex align-items-end">
                                             <button id="submit-a-product" type="submit"
@@ -272,94 +271,101 @@ if (isset($_GET["guia"])) {
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Modal de Edición -->
-                        <div class="modal fade" id="modalEditarProducto" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-rojo text-white">
-                                        <h5 class="modal-title">Editar Producto</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Descripción</label>
-                                            <input type="text" class="form-control" v-model="productoEdit.descripcion">
-                                        </div>
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label">Cantidad</label>
-                                                <input type="number" class="form-control"
-                                                    v-model="productoEdit.cantidad" @keypress="onlyNumber">
-                                            </div>
-                                            <!-- Precio con dropdown en el modal de edición -->
-                                            <div class="mb-3">
-                                                <label class="form-label">Precio</label>
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control dropdown-toggle"
-                                                        data-bs-toggle="dropdown" aria-expanded="false"
-                                                        v-model="productoEdit.precio_mostrado"
-                                                        style="background-color: #f8f9fa; cursor: pointer;" readonly>
-                                                    <ul class="dropdown-menu w-100">
-                                                        <li>
-                                                            <a class="dropdown-item" href="#"
-                                                                @click.prevent="seleccionarPrecioEditConTipo('PV', productoEdit.precioVenta)">
-                                                                PV: {{ productoEdit.precioVenta }}
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="#"
-                                                                @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)">
-                                                                C: {{ productoEdit.costo }}
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="#"
-                                                                @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)">
-                                                                PM: {{ productoEdit.precio_mayor }}
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="#"
-                                                                @click.prevent="seleccionarPrecioEditConTipo('PMn', productoEdit.precio_menor)">
-                                                                PMn: {{ productoEdit.precio_menor }}
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                    <div class="input-group-append">
-                                                        <button class="btn btn-outline-secondary dropdown-toggle"
-                                                            type="button" data-bs-toggle="dropdown"
-                                                            aria-expanded="false"
-                                                            style="background-color: #CA3438; color: white;">
-                                                            <i class="fa fa-chevron-down"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                            <li v-for="(value, key) in precioProductos" :key="key">
-                                                                <a class="dropdown-item" href="#"
-                                                                    @click.prevent="seleccionarPrecioEditConTipo(value.nombre, value.precio)"
-                                                                    style="color: #333; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
-                                                                    <span>{{ value.nombre }}:</span>
-                                                                    <span
-                                                                        style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px;">S/
-                                                                        {{ value.precio }}</span>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn border-rojo"
-                                            data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="button" class="btn bg-rojo text-white"
-                                            @click="actualizarProducto">
-                                            Guardar Cambios
-                                        </button>
-                                    </div>
-                                </div>
+                     <!-- Modal de Edición -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <input type="text" class="form-control" v-model="productoEdit.descripcion">
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control"
+                            v-model="productoEdit.cantidad" @keypress="onlyNumber">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Precio</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control dropdown-toggle"
+                                data-bs-toggle="dropdown" aria-expanded="false"
+                                v-model="productoEdit.precio_mostrado"
+                                style="background-color: #f8f9fa; cursor: pointer;" readonly>
+                            <ul class="dropdown-menu w-100">
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        @click.prevent="seleccionarPrecioEditConTipo('PV', productoEdit.precioVenta)"
+                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 400; font-size: 12px;">Precio Venta:</span>
+                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precioVenta }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)"
+                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 400; font-size: 12px;">Costo:</span>
+                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.costo }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)"
+                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 400; font-size: 12px;">Precio Mayor:</span>
+                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precio_mayor }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                        @click.prevent="seleccionarPrecioEditConTipo('PMn', productoEdit.precio_menor)"
+                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 400; font-size: 12px;">Precio Menor:</span>
+                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precio_menor }}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    style="background-color: #CA3438; color: white;">
+                                    <i class="fa fa-chevron-down"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li v-for="(value, key) in precioProductos" :key="key">
+                                        <a class="dropdown-item" href="#"
+                                            @click.prevent="seleccionarPrecioEditConTipo(value.nombre, value.precio)"
+                                            style="color: #333; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span>{{ value.nombre }}:</span>
+                                            <span
+                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px;">S/
+                                                {{ value.precio }}</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn border-rojo"
+                    data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn bg-rojo text-white"
+                    @click="actualizarProducto">
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
                     </div>
@@ -414,7 +420,7 @@ if (isset($_GET["guia"])) {
                                     </div>
                                     <div class="form-group">
                                         <label class="col-lg-4 control-label">Ser | Num</label>
-                                        <div class="col-lg-12 row">
+                                        <div class=" row">
                                             <div class="col-lg-6">
                                                 <input v-model="venta.serie" type="text"
                                                     class="form-control text-center" readonly="">
@@ -551,15 +557,16 @@ if (isset($_GET["guia"])) {
                                         </div>
                                     </div>
                                     <!-- Campo Doc. de Referencia - solo visible cuando viene de cotización -->
-<div class="form-group mb-3" v-if="vieneDesCotizacion">
-    <div class="col-lg-12">
-        <label>Doc. de Referencia</label>
-        <div class="input-group">
-            <input v-model="venta.doc_referencia" type="text" placeholder="Ingrese documento de referencia" 
-                   class="form-control ui-autocomplete-input" autocomplete="off">
-        </div>
-    </div>
-</div>
+                                    <div class="form-group mb-3" v-if="vieneDesCotizacion">
+                                        <div class="col-lg-12">
+                                            <label>Doc. de Referencia</label>
+                                            <div class="input-group">
+                                                <input v-model="venta.doc_referencia" type="text"
+                                                    placeholder="Ingrese documento de referencia"
+                                                    class="form-control ui-autocomplete-input" autocomplete="off">
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div class="form-group  mb-3">
 
@@ -588,7 +595,7 @@ if (isset($_GET["guia"])) {
                                         </div> -->
                                     </div>
 
-                                    <div class="form-group  mb-3">
+                                    <!-- <div class="form-group  mb-3">
                                         <label>Cantidad de Pagos</label>
                                         <select class="form-control" v-model="venta.cantidadPagos">
                                             <option value="1">1 Pago</option>
@@ -597,7 +604,7 @@ if (isset($_GET["guia"])) {
                                             <option value="4">4 Pagos</option>
                                             <option value="5">5 Pagos</option>
                                         </select>
-                                    </div>
+                                    </div> -->
 
                                     <div v-for="(index, pagoIndex) in parseInt(venta.cantidadPagos)" :key="pagoIndex">
                                         <!-- <div class="col-md-12 form-group">
@@ -877,6 +884,13 @@ if (isset($_GET["guia"])) {
 
     $(document).ready(function () {
 
+        if ($.ui && $.ui.autocomplete) {
+            $.ui.autocomplete.prototype._resizeMenu = function () {
+              var ul = this.menu.element;
+              ul.outerWidth(this.element.outerWidth());
+            }
+        }
+
         console.log($('.idAlmacen').val());
 
         const app = new Vue({
@@ -885,7 +899,7 @@ if (isset($_GET["guia"])) {
                 enProceso: true,
                 usar_scaner: false,
                 apli_igv_is: true,
-                mensajeProductoVisible: false, 
+                mensajeProductoVisible: false,
                 producto: {
                     edicion: false,
                     productoid: "",
@@ -959,7 +973,7 @@ if (isset($_GET["guia"])) {
                     metodo2: 12,
                     moneda: 1,
                     tc: '',
-                     doc_referencia: '',
+                    doc_referencia: '',
                 },
                 dataKey: '',
                 listaTempProd: [],
@@ -967,7 +981,7 @@ if (isset($_GET["guia"])) {
                 numeroCuotas: 1,
                 cuotas: [],
                 pointSel: 1,
-                 vieneDesCotizacion: false,
+                vieneDesCotizacion: false,
             },
             watch: {
 
@@ -1143,15 +1157,22 @@ if (isset($_GET["guia"])) {
                     this.mensajeProductoVisible = false;
                 },
 
-                seleccionarPrecioEditConTipo(tipo, precio) {
-                    this.productoEdit.precio_mostrado = precio;
-                    this.productoEdit.precio = precio;
-                    this.productoEdit.tipo_precio = tipo;
+               seleccionarPrecioEditConTipo(tipo, precio) {
+    this.productoEdit.precio_mostrado = precio;
+    this.productoEdit.precio = precio;
+    this.productoEdit.tipo_precio = tipo;
 
-                    if (tipo === 'PV') {
-                        this.productoEdit.precioVenta = precio;
-                    }
-                },
+    if (tipo === 'PV') {
+        this.productoEdit.precioVenta = precio;
+    }
+    
+    // Cerrar el dropdown después de seleccionar
+    const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+    dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+},
+
                 mounted() {
                     // Recuperar productos guardados si existen
                     const productosGuardados = localStorage.getItem('productosCotizacion');
@@ -1217,7 +1238,7 @@ if (isset($_GET["guia"])) {
                                 if (respuesta) {
                                     $.ajax({
                                         type: "post",
-                                        url: _URL + '/ajas/compra/buscar/producto',
+                                        url: _URL + '/ajs/compra/buscar/producto',
                                         data: {
                                             producto: respuesta // Código escaneado
                                         },
@@ -1925,16 +1946,72 @@ if (isset($_GET["guia"])) {
                     const producto = this.productos[index];
                     this.productoEdit = {
                         index: index,
-                        guia_detalle_id: producto.guia_detalle_id, // Asegúrate de que este campo exista
+                        guia_detalle_id: producto.guia_detalle_id,
                         descripcion: producto.descripcion,
                         cantidad: producto.cantidad,
                         precio: producto.precio,
                         stock: producto.stock,
-                        productoid: producto.productoid
+                        productoid: producto.productoid,
+                        // Agregar todos los precios necesarios
+                        precioVenta: producto.precioVenta,
+                        costo: producto.costo,
+                        precio_mayor: producto.precio_mayor,
+                        precio_menor: producto.precio_menor,
+                        precio2: producto.precio2,
+                        precio_unidad: producto.precio_unidad,
+                        precio_mostrado: producto.precio_mostrado || producto.precioVenta,
+                        tipo_precio: producto.tipo_precio || 'PV'
                     };
+
+                    // Cargar precios adicionales para el producto en edición
+                    if (producto.productoid) {
+                        this.cargarPreciosAdicionales(producto.productoid, 'producto');
+                    }
+
                     // Abrir el modal
                     new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
                 },
+                cargarPreciosAdicionales(idProducto, tipo = 'producto') {
+    console.log("Cargando precios para ID:", idProducto, "Tipo:", tipo);
+    
+    const url = tipo === 'repuesto' 
+        ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
+        : _URL + '/ajs/cargar/producto_precios/' + idProducto;
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log("Precios adicionales recibidos:", data);
+            
+            let array = [];
+            
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    array.push({
+                        nombre: item.nombre,
+                        precio: parseFloat(item.precio).toFixed(2)
+                    });
+                });
+                app.precioProductos = array;
+            } else {
+                app.precioProductos = [
+                    {nombre: 'No hay precios adicionales', precio: app.producto.precio}
+                ];
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error cargando precios:", error);
+            app.precioProductos = [
+                {nombre: 'Error al cargar precios', precio: app.producto.precio}
+            ];
+        }
+    });
+},
+
+                
+
 
                 actualizarProducto() {
                     // Validar cantidad
@@ -2008,23 +2085,23 @@ if (isset($_GET["guia"])) {
 
             },
             created() {
-    console.log("Component created");
-    
-    // Verificar si viene de cotización
-    const cotiId = $("#cotizacion").val();
-    if (cotiId) {
-        console.log("Quote ID found:", cotiId);
-        this.vieneDesCotizacion = true; // Mostrar el campo
-        this.cargarCotizacion();
-    }
-    
-    // Check for guide ID
-    const guiaId = $("#guia").val();
-    if (guiaId) {
-        console.log("Guide ID found:", guiaId);
-        this.cargarDatosGuia();
-    }
-},
+                console.log("Component created");
+
+                // Verificar si viene de cotización
+                const cotiId = $("#cotizacion").val();
+                if (cotiId) {
+                    console.log("Quote ID found:", cotiId);
+                    this.vieneDesCotizacion = true; // Mostrar el campo
+                    this.cargarCotizacion();
+                }
+
+                // Check for guide ID
+                const guiaId = $("#guia").val();
+                if (guiaId) {
+                    console.log("Guide ID found:", guiaId);
+                    this.cargarDatosGuia();
+                }
+            },
 
 
             computed: {
@@ -2272,4 +2349,6 @@ if (isset($_GET["guia"])) {
             event.preventDefault();
         }
     }
+    
+    
 </script>

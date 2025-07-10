@@ -1,18 +1,12 @@
 <!-- resources\views\fragment-views\cliente\pagos.php -->
 <div class="page-title-box">
     <div class="row align-items-center">
-        <!-- <div class="col-md-8">
-            <h6 class="page-title">Ventas</h6>
-            <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="javascript: void(0);">Facturacion</a></li>
-                <li class="breadcrumb-item"><a href="/ventas" class="button-link">Ventas</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Productos</li>
-            </ol>
-        </div> -->
+
         <div class="clearfix">
             <h6 class="page-title text-center">CUENTAS POR PAGAR</h6>
             <ol class="breadcrumb m-0 float-start">
-                <li class="breadcrumb-item"><a href="javascript: void(0);" style="color: #CA3438;">Cuentas Por Pagar</a></li>
+                <li class="breadcrumb-item"><a href="javascript: void(0);" style="color: #CA3438;">Cuentas Por Pagar</a>
+                </li>
             </ol>
         </div>
         <div class="col-md-4">
@@ -35,9 +29,9 @@
                     <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
                         style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th style="text-align: center;">Id</th>
+                                <th style="text-align: center;">Item</th>
                                 <th style="text-align: center;">Codigo</th>
                                 <th style="text-align: center;">F. Emision</th>
                                 <th style="text-align: center;">F. Vencimiento</th>
@@ -74,7 +68,7 @@
                                         style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         <thead class="table-light">
                                             <tr>
-                                                <th style="text-align: center;">Id</th>
+                                                <th style="text-align: center;">Item</th>
                                                 <th style="text-align: center;">Monto</th>
                                                 <th style="text-align: center;">F. Vencimiento</th>
                                                 <th style="text-align: center;">Estado</th>
@@ -119,7 +113,7 @@
         }
         $.ajax({
             type: 'POST',
-            url: _URL + '/ajas/cuentas/ventas/render',
+            url: _URL + '/ajs/cuentas/ventas/render',
             success: function (resp) {
                 let data = JSON.parse(resp)
                 let iguaalcion = data[5]
@@ -138,17 +132,27 @@
             searching: true,
             destroy: true,
             ajax: {
-                url: _URL + "/ajas/cuentas/ventas/render",
+                url: _URL + "/ajs/cuentas/ventas/render",
                 method: "POST",
                 dataSrc: "",
             },
             language: {
                 url: "ServerSide/Spanish.json",
             },
-            columns: [{
-                data: "id_compra",
-                class: "text-center",
-            },
+            columns: [
+            //     {
+            //     data: "id_compra",
+            //     class: "text-center",
+            // },
+   {
+    data: null,
+    class: "text-center",
+    render: function(data, type, row, meta) {
+        // Obtener la información de paginación
+        var info = $('#datatable').DataTable().page.info();
+        return info.start + meta.row + 1;
+    },
+},
             {
                 data: "factura",
                 class: "text-center",
@@ -286,7 +290,7 @@
                 .find(".modal-title")
                 .text("Detalles compra N° " + id);
             $.ajax({
-                url: _URL + "/ajas/getAllCuotas/byIdCompra",
+                url: _URL + "/ajs/getAllCuotas/byIdCompra",
                 data: {
                     id: id,
                 },
@@ -321,61 +325,69 @@
                         language: {
                             url: "ServerSide/Spanish.json",
                         },
-                        columns: [{
-                            data: "dias_compra_id",
-                            class: "text-center",
-                        },
-                        {
-                            data: "monto",
-                            class: "text-center",
-                        },
-                        {
-                            data: "fecha",
-                            class: "text-center",
-                        },
-                        {
-                            data: null,
-                            class: "text-center",
-                            render: function (data, type, row) {
+                        columns: [
+                            //     {
+                            //     data: "dias_compra_id",
+                            //     class: "text-center",
+                            // },
+                            {
+                                data: null,
+                                class: "text-center",
+                                render: function (data, type, row, meta) {
+                                    return meta.row + 1; // Número correlativo
+                                },
+                            },
+                            {
+                                data: "monto",
+                                class: "text-center",
+                            },
+                            {
+                                data: "fecha",
+                                class: "text-center",
+                            },
+                            {
+                                data: null,
+                                class: "text-center",
+                                render: function (data, type, row) {
 
-                                let vencimiento = row.fecha
-                                const [year, month, day] = vencimiento.split('-');
-                                const vencimientoFecha = [month, day, year].join('/');
-                                var today = new Date();
-                                var dd = String(today.getDate()).padStart(2, '0');
-                                var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-                                var yyyy = today.getFullYear();
-                                today = mm + '/' + dd + '/' + yyyy;
-                                if ((today > vencimientoFecha) && row.estado == '0') {
-                                    return `<div class="text-center">
+                                    let vencimiento = row.fecha
+                                    const [year, month, day] = vencimiento.split('-');
+                                    const vencimientoFecha = [month, day, year].join('/');
+                                    var today = new Date();
+                                    var dd = String(today.getDate()).padStart(2, '0');
+                                    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+                                    var yyyy = today.getFullYear();
+                                    today = mm + '/' + dd + '/' + yyyy;
+                                    if ((today > vencimientoFecha) && row.estado == '0') {
+                                        return `<div class="text-center">
               <div class="btn-group"><span class="badge bg-danger">Vencido</span></div></div>`;
-                                } else if ((today < vencimientoFecha || vencimientoFecha == today) && row.estado == '0') {
-                                    return `<div class="text-center">
+                                    } else if ((today < vencimientoFecha || vencimientoFecha == today) && row.estado == '0') {
+                                        return `<div class="text-center">
               <div class="btn-group"><span class="badge bg-success">Vigente</span></div></div>`;
-                                } else if (row.estado == '1') {
-                                    return `<div class="text-center">
+                                    } else if (row.estado == '1') {
+                                        return `<div class="text-center">
               <div class="btn-group"><span class="badge bg-info">Pagado</span></div></div>`;
-                                }
+                                    }
 
 
+                                },
                             },
-                        },
-                        {
-                            data: null,
-                            class: "text-center",
-                            render: function (data, type, row) {
-                                if (row.estado == '0') {
-                                    return `<div class="text-center">
+                            {
+                                data: null,
+                                class: "text-center",
+                                render: function (data, type, row) {
+                                    if (row.estado == '0') {
+                                        return `<div class="text-center">
                                             <div class="btn-group"><button  data-id="${Number(
-                                        row.dias_compra_id
-                                    )}" class="btn btn-success btnPagar btn-sm"><i class="fas fa-money-bill"></i> </button></div></div>`;
-                                }
-                                if (row.estado == '1') {
-                                    return `<div class="text-center">
+                                            row.dias_compra_id
+                                        )}" class="btn btn-success btnPagar btn-sm"><i class="fas fa-money-bill"></i> </button></div></div>`;
+                                    }
+                                    if (row.estado == '1') {
+                                        return `<div class="text-center">
                                             <div class="btn-group"></div></div>`;
-                                }
+                                    }
+                                },
                             },
-                        },
 
                         ],
                     });

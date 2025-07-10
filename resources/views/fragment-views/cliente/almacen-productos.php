@@ -175,114 +175,66 @@ $almacenProducto = 1;
 
     <div class="row">
         <div class="col-12">
-            <div class="card"
-                style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="card-title">Lista de Productos</h4>
-                        </div>
-                        <div class=" text-end">
-                            <!-- descargar excel -->
-                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
-                                    class="fa fa-file-excel"></i>
-                                Descargar Exel por busqueda</button>
-                            <!-- importar excel -->
-                            <button data-bs-toggle="modal" data-bs-target="#importarModal"
-                                class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
-                                Importar</button>
-                            <!-- aumentar stcok -->
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
-                                data-bs-target="#modal-aumentar-stock">
-                                <i class="fa fa-plus"> </i> Aumentar Stock de Productos
-                            </button>
-                            <!-- unidades -->
-                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"> </i> Unidades</a>
-                            <!-- categorias -->
-                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"> </i> Categorias</a>
-
-                            <!-- agregar productos -->
-                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i>
-                                Agregar
-                                Producto</button>
-                            <!-- eliminar productos -->
+            <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
+                <div class="card-header" style="background: #fff; border-bottom: none; padding-bottom: 0;">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Lista de Productos</h4>
+                        <div class="text-end mt-2 mt-md-0">
+                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Descargar Exel por busqueda</button>
+                            <button data-bs-toggle="modal" data-bs-target="#importarModal" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Importar</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"> </i> Aumentar Stock de Productos</button>
+                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"> </i> Unidades</a>
+                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"> </i> Categorias</a>
+                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i> Agregar Producto</button>
                             <button class="btn btn-danger btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
-                                Seleccionar Todos</button>
+                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
                     <div class="row">
-
                         <div class="form-group col-md-2" style="margin:  1rem 0;">
                             <label for="">Almacen</label>
-                            <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                @change="changeAlmacen($event)" v-model="almacen">
+                            <select name="almacenSelect" id="almacenSelect" class="form-control" @change="changeAlmacen($event)" v-model="almacen">
                                 <option value="1">Almacen 1</option>
                                 <option value="2">Almacen 2</option>
                                 <option value="3">Almacen 3</option>
                             </select>
                         </div>
-
-                        <!-- opciones de filtrado -->
                         <div class="d-flex gap-3 align-items-center">
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="maquinas"
-                                    name="filter" value="maquinas">
+                                <input type="checkbox" class="form-check-input filter-option" id="maquinas" name="filter" value="maquinas">
                                 <label class="form-check-label" for="maquinas">#JVC</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="implementos"
-                                    name="filter" value="implementos">
+                                <input type="checkbox" class="form-check-input filter-option" id="implementos" name="filter" value="implementos">
                                 <label class="form-check-label" for="implementos">#IMPLE</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="cep" name="filter"
-                                    value="cep">
+                                <input type="checkbox" class="form-check-input filter-option" id="cep" name="filter" value="cep">
                                 <label class="form-check-label" for="cep">#CEP</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="pad" name="filter"
-                                    value="pad">
+                                <input type="checkbox" class="form-check-input filter-option" id="pad" name="filter" value="pad">
                                 <label class="form-check-label" for="pad">#PAD</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="port" name="filter"
-                                    value="port">
+                                <input type="checkbox" class="form-check-input filter-option" id="port" name="filter" value="port">
                                 <label class="form-check-label" for="port">#PORT</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="acc" name="filter"
-                                    value="acc">
+                                <input type="checkbox" class="form-check-input filter-option" id="acc" name="filter" value="acc">
                                 <label class="form-check-label" for="acc">#ACC</label>
                             </div>
                         </div>
-
-
-
-                        <!-- <div class="form-group col-md-2" style="margin:  1rem 0;">
-                            <label for="">Filtro</label>
-                            <select name="maquinaria" id="maquinaria" class="form-control" @change="changeMaquinaria($event)" v-model="maquinaria">
-                                <option value="1">Almacen 1</option>
-                                <option value="2">Almacen 2</option>
-                            </select>
-                        </div> -->
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
-                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-
-                            <thead>
+                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Codigo</th>
                                     <th>Nombre</th>
                                     <th>Unidades</th>
-                                    <!-- <th>Unidades</th> -->
-                                    <!-- <th>Costo</th> -->
-
                                     <th>Precios </th>
                                     <th>stock</th>
                                     <th>Editar</th>
@@ -293,7 +245,6 @@ $almacenProducto = 1;
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -814,7 +765,7 @@ $almacenProducto = 1;
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Actualizar</button>
+                        <button type="submit" class="btn bg-rojo"><i class="fa fa-save me-1"></i>Actualizar</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i
                                 class="fa fa-times me-1"></i>Cerrar</button>
                     </div>
@@ -1511,7 +1462,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         columnDefs: [
                             {
                                 "targets": [0],
-                                "className": "dt-body-center",
+                                "className": "text-center",
                                 "width": "auto", // Cambiado a auto para que se ajuste al contenido
                                 "render": function (data, type, row, meta) {
                                     return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
@@ -2028,7 +1979,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             columnDefs: [
                 {
                     "targets": [0],
-                    "className": "dt-body-left",
+                    "className": "text-center",
                     "width": "auto", // Cambiado a auto para que se ajuste al contenido
                     "render": function (data, type, row, meta) {
                         return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';

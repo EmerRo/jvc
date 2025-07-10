@@ -1,3 +1,4 @@
+// public\js\taller-cotizaciones\manejo-fotos.js
 $(document).ready(() => {
   // Variables globales
   const selectedFiles = []

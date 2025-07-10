@@ -1,4 +1,4 @@
-// Agregar el manejo del evento popstate para la navegación del navegador
+// public\js\taller-cotizaciones\navegacion.js
 window.addEventListener('popstate', function(event) {
     // Obtener la URL actual
     const currentUrl = window.location.href;

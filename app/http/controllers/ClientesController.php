@@ -75,6 +75,11 @@ public function insertar()
                 $errors['documentoAgregar'] = "El documento es obligatorio";
             } elseif (strlen($doc) != 8 && strlen($doc) != 11) {
                 $errors['documentoAgregar'] = "El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)";
+            } else {
+                // Verificar si el documento ya existe
+                if ($this->cliente->existeDocumento($doc, $_SESSION['id_empresa'])) {
+                    $errors['documentoAgregar'] = "Ya existe un cliente registrado con este documento de identidad";
+                }
             }
             
             if (empty($datosAgregar)) {
@@ -189,6 +194,11 @@ public function editar()
                 $errors['documento'] = "El documento es obligatorio";
             } elseif (strlen($documento) != 8 && strlen($documento) != 11) {
                 $errors['documento'] = "El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)";
+            } else {
+                // Verificar si el documento ya existe (excluyendo el cliente actual)
+                if ($this->cliente->existeDocumento($documento, $_SESSION['id_empresa'], $id)) {
+                    $errors['documento'] = "Ya existe otro cliente registrado con este documento de identidad";
+                }
             }
             
             if (empty($datos)) {

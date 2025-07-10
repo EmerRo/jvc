@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\garantia-add.php -->
 <div id="content-vue-modals" class="container-fluid">
     <div class="warranty-container bg-white py-3" style="max-width: 1000px; margin: 0 auto;">
         <div class="d-flex justify-content-between align-items-center px-4 mb-3">

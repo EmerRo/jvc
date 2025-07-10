@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\usuarios.php -->
 <?php
 require_once "app/models/Cliente.php";
 
@@ -22,15 +23,9 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <div class="row">
     <div class="col-12">
         <div class="card border-0 shadow-sm" style="border-radius:12px;">
-            <div class="card-header bg-white py-2">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" id="add-user" class="btn bg-rojo text-white "><i
-                                class="fa fa-plus me-1 "></i>Agregar</button>
-                        <button type="button" id="manage-roles" class="btn border-rojo"><i
-                                class="fa fa-cogs me-1"></i>Gestionar Roles</button>
-                    </div>
-                </div>
+            <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
+                <button type="button" id="manage-roles" class="btn border-rojo me-2"><i class="fa fa-cogs me-1"></i>Gestionar Roles</button>
+                <button type="button" id="add-user" class="btn bg-rojo text-white"><i class="fa fa-plus me-1"></i>Agregar</button>
             </div>
             <div id="conte-vue-modals">
                 <div class="card-body p-3">
@@ -45,7 +40,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body p-3">
-                                    <table class="table table-sm table-bordered text-center" id="tablaImportarCliente">
+                                    <table class="table  table-bordered text-center" id="tablaImportarCliente">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Documento</th>
@@ -72,8 +67,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 </div>
                                 <div class="modal-footer py-2">
                                     <button @click="agregarListaImport" type="button"
-                                        class="btn btn-primary btn-sm">Guardar</button>
-                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        class="btn bg-rojo">Guardar</button>
+                                    <button type="button" class="btn border-rojo"
                                         data-bs-dismiss="modal">Cancelar</button>
                                 </div>
                             </div>
@@ -108,7 +103,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                     </form>
                                 </div>
                                 <div class="modal-footer py-2">
-                                    <button type="button" class="btn btn-danger btn-sm"
+                                    <button type="button" class="btn border-rojo"
                                         data-bs-dismiss="modal">Cerrar</button>
                                 </div>
                             </div>
@@ -142,8 +137,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <!-- MODAL AGREGAR USUARIO -->
 <div class="modal fade" id="usuario-add-bs" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header py-2 bg-danger text-white">
+        <div class="modal-content border-0 ">
+            <div class="modal-header py-2 bg-rojo text-white">
                 <h5 class="modal-title" id="exampleModalLabel">Crear Usuario</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
@@ -204,22 +199,22 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             </label>
                             <input type="email" name="email" id="email" class="form-control form-control-sm" required>
                         </div>
-                        <!-- <div class="col-md-6">
+                        <div class="col-md-6">
                             <label class="form-label ">
                                 <i class="fa fa-store me-1"></i>Tienda
                             </label>
-                            <select name="tienda" id="tiendau" class="form-select form-select-sm">
+                            <select name="tienda" id="tienda" class="form-select form-select-sm">
                                 <option value="1">Tienda 435</option>
                                 <option value="2">Tienda 426</option>
                             </select>
-                        </div> -->
-                        <!-- <div class="col-md-3">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label ">Rotativo</label>
-                            <select name="rotativo" id="rotativou" class="form-select form-select-sm">
+                            <select name="rotativo" id="rotativo" class="form-select form-select-sm">
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
                             </select>
-                        </div> -->
+                        </div>
                     </div>
                 </form>
             </div>
@@ -238,8 +233,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <div class="modal fade" id="editarModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header py-2 bg-danger text-white">
+        <div class="modal-content border-0">
+            <div class="modal-header py-2 bg-rojo">
                 <h5 class="modal-title" id="exampleModalLabel">Editar</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
@@ -251,43 +246,43 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                         <!-- Primera fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-user-tag me-1"></i>Rol
+                            <label class="form-label ">
+                                <i class="fa fa-user-tag"></i>Rol
                             </label>
                             <select name="rol" id="rol2" class="form-select form-select-sm">
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-signature me-1"></i>Nombre
+                            <label class="form-label ">
+                                <i class="fa fa-signature"></i>Nombre
                             </label>
                             <input type="text" class="form-control form-control-sm" id="datosEditar" name="datosEditar">
                         </div>
 
                         <!-- Segunda fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-id-card me-1"></i>Número de documento
+                            <label class="form-label ">
+                                <i class="fa fa-id-card "></i>Número de documento
                             </label>
                             <input type="text" class="form-control form-control-sm" id="doc" name="doc">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-user-circle me-1"></i>Usuario
+                            <label class="form-label ">
+                                <i class="fa fa-user-circle "></i>Usuario
                             </label>
                             <input type="text" class="form-control form-control-sm" id="usuariou" name="usuariou">
                         </div>
 
                         <!-- Tercera fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-key me-1"></i>Clave
+                            <label class="form-label ">
+                                <i class="fa fa-key "></i>Clave
                             </label>
                             <input type="password" class="form-control form-control-sm" id="claveu" name="claveu">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-phone me-1"></i>Teléfono
+                            <label class="form-label ">
+                                <i class="fa fa-phone "></i>Teléfono
                             </label>
                             <input type="text" class="form-control form-control-sm" id="telefonoEditar"
                                 name="telefonoEditar">
@@ -295,36 +290,36 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                         <!-- Cuarta fila -->
                         <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-envelope me-1"></i>Email
+                            <label class="form-label ">
+                                <i class="fa fa-envelope "></i>Email
                             </label>
                             <input required type="email" class="form-control form-control-sm" id="emailEditar"
                                 name="emailEditar">
                         </div>
-                        <!-- <div class="col-md-6">
-                            <label class="form-label small">
-                                <i class="fa fa-store me-1"></i>Tienda
+                        <div class="col-md-6">
+                            <label class="form-label ">
+                                <i class="fa fa-store "></i>Tienda
                             </label>
                             <select name="tiendau" id="tiendau" class="form-select form-select-sm">
                                 <option value="1">Tienda 435</option>
                                 <option value="2">Tienda 426</option>
                             </select>
-                        </div> -->
-                        <!-- <div class="col-md-3">
-                            <label class="form-label small">Rotativo</label>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label ">Rotativo</label>
                             <select name="rotativou" id="rotativou" class="form-select form-select-sm">
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
                             </select>
-                        </div> -->
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer py-2">
-                <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal">
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                     <i class="fa fa-times me-1"></i>Cerrar
                 </button>
-                <button id="updateCliente" type="button" class="btn btn-primary btn-sm">
+                <button id="updateCliente" type="button" class="btn bg-rojo">
                     <i class="fa fa-save me-1"></i>Guardar
                 </button>
             </div>
@@ -335,7 +330,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <!-- MODAL PARA GESTIONAR ROLES -->
 <div class="modal fade" id="roles-modal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 ">
             <div class="modal-header py-2 bg-rojo text-white">
                 <h5 class="modal-title" id="rolesModalLabel">
                     <i class="fa fa-user-shield me-1"></i>Gestión de Roles
@@ -346,7 +341,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             <div class="modal-body p-3">
                 <div class="row mb-2">
                     <div class="col-md-12">
-                        <button type="button" id="add-rol" class="btn btn-primary btn-sm">
+                        <button type="button" id="add-rol" class="btn bg-rojo">
                             <i class="fa fa-plus me-1"></i>Agregar Rol
                         </button>
                     </div>
@@ -366,7 +361,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 </div>
             </div>
             <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                     <i class="fa fa-times me-1"></i>Cerrar
                 </button>
             </div>
@@ -377,8 +372,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <!-- MODAL PARA CREAR/EDITAR ROL -->
 <div class="modal fade" id="rol-edit-modal" tabindex="-1" aria-labelledby="rolEditModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header py-2 bg-danger text-white">
+        <div class="modal-content border-0">
+            <div class="modal-header py-2 bg-rojo">
                 <h5 class="modal-title" id="rolEditModalLabel">
                     <i class="fa fa-edit me-1"></i>Crear Rol
                 </h5>
@@ -443,10 +438,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 </form>
             </div>
             <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
                     <i class="fa fa-times me-1"></i>Cancelar
                 </button>
-                <button type="button" id="guardarRol" class="btn btn-primary btn-sm">
+                <button type="button" id="guardarRol" class="btn bg-rojo">
                     <i class="fa fa-save me-1"></i>Guardar
                 </button>
             </div>
@@ -574,7 +569,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 url: "ServerSide/Spanish.json",
             },
             columns: [{
-                data: "usuario_id",
+                data: "item",
                 class: "text-center",
             },
             {
@@ -653,8 +648,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             $("#usuariou").val(json.usuario);
                             $("#emailEditar").val(json.email);
                             $("#telefonoEditar").val(json.telefono);
-                            $("#tiendau").val(json.sucursal);
-                            $("#rotativou").val(json.rotativo);
+                            $("#tiendau").val(json.sucursal || 1);
+                            $("#rotativou").val(json.rotativo || 0);
                             $("#idCliente").val(id);
                             $("#trid").val(trid);
                         },
@@ -678,19 +673,38 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 success: function (resp) {
                     $("#loader-menor").hide();
                     console.log(resp);
-                    if (Array.isArray(data)) {
+                    
+                    try {
+                        const response = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                        
+                        if (response.success) {
+                            tabla_clientes.ajax.reload(null, false);
+                            Swal.fire("¡Buen trabajo!", "Actualización exitosa", "success");
+                            $("#editarModal").modal("hide");
+                            $("body").removeClass("modal-open");
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: response.error || "Error al actualizar usuario",
+                            });
+                        }
+                    } catch (e) {
+                        // Si no es JSON válido, asumir que es exitoso (compatibilidad con código anterior)
                         tabla_clientes.ajax.reload(null, false);
                         Swal.fire("¡Buen trabajo!", "Actualización exitosa", "success");
                         $("#editarModal").modal("hide");
                         $("body").removeClass("modal-open");
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: JSON.parse(resp),
-                        });
                     }
                 },
+                error: function(xhr, status, error) {
+                    $("#loader-menor").hide();
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Error de conexión: " + error,
+                    });
+                }
             });
         });
 
@@ -1047,7 +1061,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             $('#roles-modal').modal('hide');
 
             $.ajax({
-                url: _URL + "/ajs/roles/getOne",
+                url: _URL + "/ajs/roles/getRolPermisos",
                 type: "POST",
                 data: { id: id },
                 success: function (response) {

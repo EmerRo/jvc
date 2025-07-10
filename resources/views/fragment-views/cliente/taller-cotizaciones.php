@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\taller-cotizaciones.php -->
 <?php
 // Verificar la sesión del usuario
 if (!isset($_SESSION)) {
@@ -25,6 +26,8 @@ if (isset($_SESSION['id_rol'])) {
     if ($rowRol = $resultRol->fetch_assoc()) {
         $esRolOrdenTrabajo = (strtoupper($rowRol['nombre']) === 'ORDEN TRABAJO');
     }
+    $esRolTaller = (strtoupper($rowRol['nombre']) === 'TALLER');
+
 
     // Verificar permisos generales
     $sql = "SELECT ver_precios, puede_eliminar FROM roles WHERE rol_id = ?";
@@ -50,21 +53,12 @@ if (isset($_SESSION['id_rol'])) {
     }
 }
 
-// Verificar si el origen es ORD TRABAJO
-if (isset($_GET['id'])) {
-    $preAlertaId = $_GET['id'];
-    $conexion = (new Conexion())->getConexion();
-    $sqlOrigen = "SELECT origen FROM pre_alerta WHERE id_preAlerta = ?";
-    $stmtOrigen = $conexion->prepare($sqlOrigen);
-    $stmtOrigen->bind_param("i", $preAlertaId);
-    $stmtOrigen->execute();
-    $resultOrigen = $stmtOrigen->get_result();
-    if ($rowOrigen = $resultOrigen->fetch_assoc()) {
-        $origenEsOrdenTrabajo = ($rowOrigen['origen'] === 'ORD TRABAJO');
-    }
-}
+// Verificar el tipo de origen desde la URL
+$tipoOrigen = isset($_GET['tipo']) ? $_GET['tipo'] : '';
+$origenEsOrdenTrabajo = ($tipoOrigen === 'ORD TRABAJO');
 
 // Determinar si se deben mostrar los botones y campos de descuento
+// Solo ocultar si es rol orden trabajo O si el origen es orden trabajo
 $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 ?>
 <link rel="stylesheet" href="<?= URL::to('public/css/taller/styles.css') ?>">
@@ -78,11 +72,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
-            <h6 class="page-title"><?php echo $esRolOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?></h6>
+            <h6 class="page-title"><?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?></h6>
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Taller</a></li>
                 <li class="breadcrumb-item"><a href="/ventas"
-                        class="button-link"><?php echo $esRolOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?></a>
+                        class="button-link"><?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?></a>
                 </li>
                 <li class="breadcrumb-item active" aria-current="page" style="color: #CA3438;">Nueva Cotizacion</li>
             </ol>
@@ -92,13 +86,12 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                 <button type="button" onclick="$('#btn_finalizar_pedido').click()" class="btn bg-rojo text-white">
                     <i class="fa fa-plus"></i> Guardar
-                    <?php echo $esRolOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
+                    <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
                 </button>
                 <button style="margin-left:25px;" class="btn btn-warning"
                     onclick="window.location.href='<?= URL::to('/taller') ?>'">
                     <i class="fa fa-arrow-left"></i> Regresar
                 </button>
-
 
             </div>
         </div>
@@ -111,8 +104,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
     <div class="col-12 ">
         <div class="card">
             <div class="card-body">
-
-
 
                 <div class="row" id="container-vue" v-cloak>
                     <div class="col-12 row">
@@ -161,7 +152,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                         <div class="col-md-12">
                                             <!-- Formulario de búsqueda de productos -->
                                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
-                                            <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
+                                            <canvas hidden="" id="qr-canvas" v-show="usar_scaner"
                                             style="width: 300px; padding: 10px;"></canvas>
                                                 <div class="form-group row mb-3">
                                                     <label class="col-lg-2 control-label">Buscar</label>
@@ -332,7 +323,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                 <form v-on:submit.prevent role="form" class="form-horizontal">
                                                     <div class="row">
                                                         <!-- Tipo de documento -->
-                                                        <div class="col-md-6 form-group">
+                                                    <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+
                                                             <label class="control-label">Documento</label>
                                                             <div class="col-md-12">
                                                                 <select @change="onChangeTiDoc($event)"
@@ -344,7 +336,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         </div>
 
                                                         <!-- Tipo de pago -->
-                                                        <div class="col-md-6 form-group">
+                                                      <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+
                                                             <label class="control-label">Tipo Pago</label>
                                                             <select v-model="venta.tipo_pago" @change="changeTipoPago"
                                                                 class="form-control">
@@ -380,7 +373,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     </div>
 
                                                     <!-- Fecha -->
-                                                    <div class="form-group mb-3">
+                                               <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+
                                                         <div class="col-lg-12">
                                                             <div class="row">
                                                                 <div class="col-md-6">
@@ -398,7 +392,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     </div>
 
                                                     <!-- Moneda -->
-                                                    <div class="form-group mb-3">
+                                                    <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
                                                         <div class="col-lg-12">
                                                             <div class="row">
                                                                 <div class="col-md-6">
@@ -433,7 +427,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         <label class="col-lg-12 text-center">Cliente</label>
                                                     </div>
 
-                                                    <div class="form-group mb-3">
+                                                    <div class="form-group mb-3"  <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
                                                         <div class="col-lg-12">
                                                             <div class="input-group">
                                                                 <input id="input_datos_cliente" v-model="venta.num_doc"
@@ -455,16 +449,12 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group mb-3">
+                                                    <div class="form-group mb-3"  <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
                                                         <div class="col-lg-12">
                                                             <div class="input-group">
                                                                 <input v-model="venta.dir_cli" type="text"
                                                                     placeholder="Dirección" class="form-control"
                                                                     autocomplete="off">
-                                                                <!-- <div class="input-group-addon">
-                                                                    <input v-model="venta.dir_pos" name="dirserl"
-                                                                        value="1" type="radio" class="form-check-input">
-                                                                </div> -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -475,11 +465,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                                 <input v-model="venta.dir2_cli" type="text"
                                                                     placeholder="Atención" class="form-control"
                                                                     autocomplete="off">
-                                                                <!-- <div class="input-group-addon">
-                                                                    <input :disabled="!isDirreccionCont"
-                                                                        v-model="venta.dir_pos" name="dirserl" value="2"
-                                                                        type="radio" class="form-check-input">
-                                                                </div> -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -499,15 +484,15 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                                             <!-- Botones de acción -->
                                             <?php if ($mostrarBotonesYDescuento): ?>
-                                                <button class="btn border-rojo" id="edit-condiciones"
+                                                <button class="btn border-rojo" id="add-condiciones"
                                                     style="margin-bottom: 5px;">
                                                     Modificar Términos
                                                 </button>
 
-                                                <button class="btn border-rojo" id="edit-diagnostico"
-                                                    style="margin-bottom: 5px;">
-                                                    Diagnóstico
-                                                </button>
+                                              <button class="btn border-rojo" id="add-diagnostico"
+    style="margin-bottom: 5px;">
+    Diagnóstico
+</button>
                                             <?php endif; ?>
 
                                             <button class="btn border-rojo btn-foto" style="margin-bottom: 5px;">
@@ -534,14 +519,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     </h1>
                                                     <div class="text-uppercase">Suma Pedido</div>
                                                 </div>
-                                            <?php else: ?>
-                                                <div class="bg-rojo text-white pv-15 text-center p-3"
-                                                    style="height: 90px; color: white">
-                                                    <h1 class="mv-0 font-400">
-                                                        <i class="fa fa-lock"></i> Información Restringida
-                                                    </h1>
-                                                    <div class="text-uppercase">Contacte a un administrador</div>
-                                                </div>
+                                            
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -549,6 +527,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Modales y resto del contenido -->
                     <div class="modal fade" id="modal-cotizacion-success" tabindex="-1"
                         aria-labelledby="modalCotizacionLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -557,11 +537,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                     <div class="text-center w-100">
                                         <h4 class="modal-title text-success mb-2" id="modalCotizacionLabel">
                                             <i
-                                                class="fas fa-check-circle me-2"></i>¡<?php echo $esRolOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
+                                                class="fas fa-check-circle me-2"></i>¡<?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
                                             Actualizada!
                                         </h4>
                                         <p class="text-muted mb-0">La
-                                            <?php echo $esRolOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?> N°
+                                            <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?> N°
                                             <span id="cotizacion-numero"></span>
                                             ha sido Actualizada correctamente.
                                         </p>
@@ -578,7 +558,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
                                             <i class="fab fa-whatsapp"></i> WHATSAPP
                                         </a>
-                                        <?php if ($esRolOrdenTrabajo): ?>
+                                        <?php if ($esRolOrdenTrabajo || $origenEsOrdenTrabajo): ?>
                                             <a href="#" id="btn-inventario-pdf-modal"
                                                 class="btn btn-outline-danger d-inline-flex align-items-center gap-2">
                                                 <i class="fas fa-file-pdf"></i> REPORTE INVENTARIO PDF
@@ -599,15 +579,14 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 <div class="modal-footer justify-content-between border-top pt-3">
                                     <a href="/taller/coti/view" class="btn border-rojo">
                                         <i class="fas fa-list me-2"></i> LISTA DE
-                                        <?php echo $esRolOrdenTrabajo ? 'ÓRDENES DE TRABAJO' : 'COTIZACIONES'; ?>
+                                        <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'ÓRDENES DE TRABAJO' : 'COTIZACIONES'; ?>
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                  
-                    <!-- Modal de Configuración de Pagos Modificado -->
+                    <!-- Modal de Configuración de Pagos -->
                     <div class="modal fade" id="modal-dias-pagos" tabindex="-1" aria-labelledby="exampleModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
@@ -641,11 +620,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             <input class="form-check-input" type="checkbox"
                                                 v-model="venta.tiene_inicial" id="checkInicial">
                                             <label class="form-check-label" for="checkInicial">
-                                                <input class="form-check-input" type="checkbox"
-                                                    v-model="venta.tiene_inicial" id="checkInicial">
-                                                <label class="form-check-label" for="checkInicial">
-                                                    Incluir pago inicial
-                                                </label>
+                                                Incluir pago inicial
+                                            </label>
                                         </div>
                                         <div v-if="venta.tiene_inicial" class="input-group">
                                             <span class="input-group-text">S/</span>
@@ -806,120 +782,75 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal de términos -->
-<div class="modal fade" id="modal-terminos" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h1 class="modal-title fs-5">Modificar Condiciones</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="editor-container-terminos"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                    Cerrar
-                </button>
-                <button type="button" id="guardar-terminos" class="btn bg-rojo text-white">
-                    Guardar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+               
+                    
 
-<!-- Modal de Diagnóstico -->
-<div class="modal fade" id="modal-diagnostico" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h1 class="modal-title fs-5">Modificar Diagnóstico</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="editor-container-diagnostico"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                    Cerrar
-                </button>
-                <button type="button" id="guardar-diagnostico" class="btn bg-rojo text-white">
-                    Guardar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para subir fotos -->
-<div class="modal fade" id="modalFotos" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title">Subir Fotos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal">
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formFotos" enctype="multipart/form-data">
-                    <input type="hidden" id="id_cotizacion" name="id_cotizacion">
-                    <div class="mb-3">
-                        <label for="imageInput" class="form-label">
-                            Seleccionar imágenes (máximo 12)
-                        </label>
-                        <input type="file" class="form-control" name="images[]" id="imageInput" multiple
-                            accept="image/*" required>
-                        <small class="text-muted">
-                            Formatos permitidos: JPG, PNG, GIF
-                        </small>
+                    <!-- Modal para subir fotos -->
+                    <div class="modal fade" id="modalFotos" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-rojo text-white">
+                                    <h5 class="modal-title">Subir Fotos</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal">
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formFotos" enctype="multipart/form-data">
+                                        <input type="hidden" id="id_cotizacion" name="id_cotizacion">
+                                        <div class="mb-3">
+                                            <label for="imageInput" class="form-label">
+                                                Seleccionar imágenes (máximo 12)
+                                            </label>
+                                            <input type="file" class="form-control" name="images[]" id="imageInput" multiple
+                                                accept="image/*" required>
+                                            <small class="text-muted">
+                                                Formatos permitidos: JPG, PNG, GIF
+                                            </small>
+                                        </div>
+                                        <div id="imagePreview" class="preview-container">
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                                        Cerrar
+                                    </button>
+                                    <button type="button" class="btn bg-rojo text-white" id="btnGuardarFotos">
+                                        Guardar Fotos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="imagePreview" class="preview-container">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                    Cerrar
-                </button>
-                <button type="button" class="btn bg-rojo text-white" id="btnGuardarFotos">
-                    Guardar Fotos
-                </button>
+
+                    <!-- Modal de observaciones -->
+                    <?php if ($esRolOrdenTrabajo || $origenEsOrdenTrabajo): ?>
+                        <div class="modal fade" id="modal-observaciones" tabindex="-1" aria-labelledby="observacionesModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="observacionesModalLabel">Observaciones de Orden de Trabajo</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <textarea id="observaciones-textarea" class="form-control" rows="10"
+                                            placeholder="Escriba las observaciones de la orden de trabajo..."></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                        <button type="button" class="btn bg-rojo text-white" id="guardar-observaciones">Guardar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-
-
-<!-- Reemplazar el modal de observaciones con una versión más simple -->
-<?php if ($esRolOrdenTrabajo || $origenEsOrdenTrabajo): ?>
-    <div class="modal fade" id="modal-observaciones" tabindex="-1" aria-labelledby="observacionesModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="observacionesModalLabel">Observaciones de Orden de Trabajo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <textarea id="observaciones-textarea" class="form-control" rows="10"
-                        placeholder="Escriba las observaciones de la orden de trabajo..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn bg-rojo text-white" id="guardar-observaciones">Guardar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-<?php endif; ?>
 
 <script>
     // Asegurar que la instancia de Vue sea accesible globalmente
@@ -927,17 +858,29 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
     // Esperar a que el documento esté listo
     $(document).ready(function () {
+        // Verificar que jQuery esté cargado
+        if (typeof $ === 'undefined') {
+            console.error('jQuery no está cargado');
+            return;
+        }
+        if (typeof Vue === 'undefined') {
+            console.error('Vue.js no está cargado');
+            return;
+        }
+
         // Destruir instancia anterior si existe
         if (vueApp) {
             vueApp.$destroy();
         }
-        // Crear la instancia de Vue primero
+        
+        // Crear la instancia de Vue
         vueApp = new Vue({
             el: "#container-vue",
             data: {
                 descuentoGeneral: '',
                 productos: [],
                 usar_scaner: false,
+                scanning: false, // Agregar estado de escaneo
                 producto: {
                     editable: false,
                     productoid: "",
@@ -980,7 +923,10 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     moneda: '1',
                     tc: '',
                     id_cotizacion: null,
-                    fotos: [] // Array para almacenar las fotos
+                    fotos: [], // Array para almacenar las fotos
+                    tiene_inicial: false,
+                    monto_inicial: 0,
+                    porcentaje_inicial: 0
                 },
                 dataKey: '',
                 listaTempProd: [],
@@ -990,6 +936,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                 equipoActivo: null,
                 numeroCuotas: 1,
                 cuotas: [],
+                tipoOrigen: '<?php echo $tipoOrigen; ?>' // Agregar el tipo de origen
             },
             mounted() {
                 console.log("Componente montado");
@@ -997,7 +944,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                 this.cargarDatosPreAlerta();
             },
             watch: {
-              
                 'descuentoGeneral': function (newValue) {
                     // Validamos que sea un número y no exceda 100
                     if (newValue && !isNaN(newValue)) {
@@ -1010,14 +956,16 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                 }
             },
             methods: {
-                
+                // Método faltante 1: toggleCamara
                 toggleCamara() {
-                    if (!app.usar_scaner) {
-                        app.encenderCamara();
+                    if (!this.usar_scaner) {
+                        this.encenderCamara();
                     } else {
-                        app.cerrarCamara();
+                        this.cerrarCamara();
                     }
                 },
+
+                // Método faltante 2: encenderCamara
                 encenderCamara() {
                     navigator.mediaDevices
                         .getUserMedia({
@@ -1025,11 +973,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 facingMode: "environment"
                             }
                         })
-                        .then(function (stream) {
-                            app.scanning = true; // Actualiza el estado de escaneo
-                            // Configuración de la cámara y la lógica de escaneo
-
-
+                        .then((stream) => {
+                            this.scanning = true; // Actualiza el estado de escaneo
 
                             const video = document.createElement("video");
                             const canvasElement = document.getElementById("qr-canvas");
@@ -1040,15 +985,15 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                             video.srcObject = stream;
                             video.play();
 
-                            function tick() {
+                            const tick = () => {
                                 canvasElement.height = video.videoHeight;
                                 canvasElement.width = video.videoWidth;
                                 canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
 
-                                app.scanning && requestAnimationFrame(tick);
+                                this.scanning && requestAnimationFrame(tick);
                             }
 
-                            function scan() {
+                            const scan = () => {
                                 try {
                                     qrcode.decode();
                                 } catch (e) {
@@ -1056,9 +1001,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 }
                             }
 
-                            video.addEventListener("loadeddata", function () {
+                            video.addEventListener("loadeddata", () => {
                                 canvasElement.hidden = false;
-
                                 tick();
                                 scan();
                             });
@@ -1068,30 +1012,22 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 if (respuesta) {
                                     $.ajax({
                                         type: "post",
-                                        url: _URL + '/ajas/compra/buscar/producto',
+                                        url: _URL + '/ajs/compra/buscar/producto',
                                         data: {
                                             producto: respuesta // Código escaneado
                                         },
-                                        success: function (response) {
-                                            //console.log(response);
+                                        success: (response) => {
                                             let data = JSON.parse(response);
                                             console.log(data);
-                                            // // Manejar la respuesta del servidor
+                                            // Manejar la respuesta del servidor
                                             if (data.res == true) {
-                                                //alert("es verdadero el producto");
-
                                                 let id = data.data[0].id_producto;
                                                 let codigo_app = data.data[0].codigo;
                                                 let codsunat = data.data[0].codsunat;
                                                 let costo = data.data[0].costo;
-                                                // let descripcion = data.data[0].descripcion;
                                                 let nom_prod = data.data[0].descripcion;
-
-                                                // let idempresa = data.data[0].empresa;
                                                 let precio = data.data[0].precio;
                                                 let precio2 = data.data[0].precio2;
-                                                // let precio3 = data.data[0].precio3;
-                                                // let precio4 = data.data[0].precio4;
                                                 let precio_unidad = data.data[0].precio_unidad;
 
                                                 Swal.fire({
@@ -1100,12 +1036,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     icon: 'success',
                                                     confirmButtonText: 'Cerrar'
                                                 });
-                                                app.addProductQR(id, codigo_app, codsunat, costo, nom_prod, precio, precio2, precio_unidad);
+                                                this.addProductQR(id, codigo_app, codsunat, costo, nom_prod, precio, precio2, precio_unidad);
                                                 $("#input_buscar_productos").val('');
-                                                app.usar_scaner = false;
-                                                app.cerrarCamara();
+                                                this.usar_scaner = false;
+                                                this.cerrarCamara();
                                             } else {
-                                                // alert("el producto no existe");
                                                 $("#input_buscar_productos").val('');
                                                 // Producto no encontrado
                                                 Swal.fire({
@@ -1114,37 +1049,26 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     text: 'No se encontró ningun producto',
                                                     confirmButtonText: 'Cerrar'
                                                 });
-                                                app.usar_scaner = false;
-                                                app.cerrarCamara();
+                                                this.usar_scaner = false;
+                                                this.cerrarCamara();
                                             }
                                         },
-                                        error: function () {
+                                        error: () => {
                                             // Manejar errores de AJAX
                                             alert('Error al buscar el producto.');
                                         }
                                     });
-
-
-                                    // // Swal.fire({
-                                    // //     title: 'Se agrego correctamente',
-                                    // //     text: respuesta,
-                                    // //     icon: 'success',
-                                    // //     confirmButtonText: 'Cerrar'
-                                    // }).then(() => {
-                                    //     app.encenderCamara(); // Detiene la cámara después de escanear
                                 }
-
                             };
                         });
                 },
+
+                // Método faltante 3: cerrarCamara
                 cerrarCamara() {
-                    // Lógica para apagar la cámara
-                    //this.camaraEncendida = false;
-                    app.usar_scaner = false; // Actualiza el estado de escaneo
+                    this.usar_scaner = false;
+                    this.scanning = false; // Actualiza el estado de escaneo
                     const video = document.querySelector("video");
                     const canvasElement = document.getElementById("qr-canvas");
-                    const canvas = canvasElement.getContext("2d");
-
 
                     if (video && video.srcObject) {
                         video.srcObject.getTracks().forEach((track) => {
@@ -1154,7 +1078,100 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     document.getElementById("btn-scan-qr").checked = false;
                     canvasElement.hidden = true;
                 },
-               
+
+                // Método faltante 4: addProductQR
+                addProductQR(id, codigo_app, codsunat, costo, nom_prod, precio, precio2, precio_unidad) {
+                    if (this.equipoActivo === null) {
+                        alertAdvertencia("Por favor, seleccione un equipo primero");
+                        return;
+                    }
+
+                    const nuevoProducto = {
+                        productoid: id,
+                        codigo: codigo_app,
+                        codigo_pp: codigo_app,
+                        codsunat: codsunat,
+                        costo: costo,
+                        descripcion: nom_prod,
+                        nom_prod: nom_prod,
+                        precio: precio,
+                        precio2: precio2,
+                        precio_unidad: precio_unidad,
+                        precioVenta: precio_unidad,
+                        cantidad: '1',
+                        stock: '999', // Valor por defecto para QR
+                        editable: false,
+                        equipoActivo: this.equipoActivo,
+                        almacen: '<?php echo $_SESSION["sucursal"] ?>',
+                        precio_usado: 5
+                    };
+
+                    this.productos = [...this.productos, nuevoProducto];
+                },
+
+                // Método faltante 5: abrirMultipleBusaque
+                abrirMultipleBusaque() {
+                    $("#modalSelMultiProd").modal('show');
+                },
+
+                // Método faltante 6: busquedaKeyPess
+                busquedaKeyPess(evt) {
+                    const vue = this;
+                    vue.listaTempProd = [];
+                    if (this.dataKey.length > 0) {
+                        _get("/ajs/cargar/repuestos/<?php echo $_SESSION["sucursal"] ?>?term=" + this.dataKey, (result) => {
+                            console.log(result);
+                            vue.listaTempProd = result;
+                        });
+                    }
+                },
+
+                // Método faltante 7: pasar2Poiter
+                pasar2Poiter() {
+                    this.itemsLista = this.itemsLista.map(e => {
+                        e.cantidad = '1';
+                        let array = [{
+                            precio: e.precio
+                        },
+                        {
+                            precio: e.precio2
+                        },
+                        {
+                            precio: e.precio_unidad
+                        }
+                        ];
+                        e.precio_unidad = array[array.length - 1].precio || 0;
+                        e.precioProductos = array;
+                        return e;
+                    });
+                    this.pointSel = 2;
+                },
+
+                // Método faltante 8: agregarProducto2Ps
+                agregarProducto2Ps() {
+                    this.pointSel = 1;
+                    this.productos = this.productos.concat(this.itemsLista.map(e => {
+                        e.precioVenta = e.precio_unidad;
+                        e.edicion = false;
+                        return {
+                            ...e,
+                            precioVenta: e.precio_unidad,
+                            edicion: false,
+                            productoid: e.codigo
+                        };
+                    }));
+                    this.itemsLista = [];
+                    this.listaTempProd = [];
+                    this.dataKey = '';
+                    $("#modalSelMultiProd").modal('hide');
+                },
+
+                // Método faltante 9: focusDiasPagos
+                focusDiasPagos() {
+                    $("#modal-dias-pagos").modal("show");
+                },
+
+                // Método faltante 10: generarCuotas
                 generarCuotas() {
                     const numCuotas = parseInt(this.numeroCuotas) || 1;
                     this.cuotas = [];
@@ -1171,7 +1188,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     try {
                         fechaBase = new Date(this.venta.fecha);
                         if (isNaN(fechaBase.getTime())) {
-                            // Si la fecha no es válida, usar la fecha actual
                             fechaBase = new Date();
                             console.error("Fecha base inválida en formatDate:", fechaBase);
                         }
@@ -1184,13 +1200,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                     for (let i = 0; i < numCuotas; i++) {
                         try {
-                            // Crear una nueva fecha para cada cuota para evitar referencias compartidas
                             const fechaCuota = new Date(fechaBase.getTime());
-                            fechaCuota.setMonth(fechaCuota.getMonth() + i + 1); // Incrementar un mes por cada cuota
+                            fechaCuota.setMonth(fechaCuota.getMonth() + i + 1);
 
                             console.log(`Cuota ${i + 1} - Fecha calculada:`, fechaCuota);
 
-                            // Ajustar el monto de la última cuota para evitar problemas de redondeo
                             const monto = i === numCuotas - 1
                                 ? (montoTotal - (montoPorCuota * (numCuotas - 1))).toFixed(2)
                                 : montoPorCuota;
@@ -1208,15 +1222,15 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                     this.actualizarDiasPago();
                 },
+
+                // Método faltante 11: actualizarDiasPago
                 actualizarDiasPago() {
                     try {
-                        // Guardar las cuotas en dias_lista para mantener compatibilidad
                         this.venta.dias_lista = this.cuotas.map(cuota => ({
                             fecha: cuota.fecha,
                             monto: cuota.monto
                         }));
 
-                        // Actualizar la fecha de vencimiento con la última cuota
                         if (this.cuotas.length > 0) {
                             this.venta.fechaVen = this.cuotas[this.cuotas.length - 1].fecha;
                         }
@@ -1228,83 +1242,41 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     }
                 },
 
-                // Actualizar el total de las cuotas
+                // Método faltante 12: actualizarTotalCuotas
                 actualizarTotalCuotas() {
                     this.actualizarDiasPago();
                 },
-                recargarDatos() {
-                    // Recargar datos cuando se regresa a la página
-                    this.productos = [];
-                    this.buscarSNdoc();
-                    this.cargarDatosPreAlerta();
-                },
-                agregarProducto2Ps() {
-                    this.pointSel = 1
-                    this.productos = this.productos.concat(this.itemsLista.map(e => {
-                        e.precioVenta = e.precio_unidad
-                        e.edicion = false
-                        return {
-                            ...e,
-                            precioVenta: e.precio_unidad,
-                            edicion: false,
-                            productoid: e.codigo
-                        }
-                    }))
-                    this.itemsLista = []
-                    this.listaTempProd = []
-                    this.dataKey = ''
-                    $("#modalSelMultiProd").modal('hide')
-                },
-                pasar2Poiter() {
-                    this.itemsLista = this.itemsLista.map(e => {
-                        e.cantidad = '1'
-                        let array = [{
-                            precio: e.precio
-                        },
-                        {
-                            precio: e.precio2
-                        },
-                        {
-                            precio: e.precio_unidad
-                        }
-                        ]
-                        e.precio_unidad = array[array.length - 1].precio || 0
-                        e.precioProductos = array
-                        return e
-                    })
-                    this.pointSel = 2
-                },
-                busquedaKeyPess(evt) {
-                    const vue = this
-                    vue.listaTempProd = []
-                    if (this.dataKey.length > 0) {
-                        _get("/ajs/cargar/repuestos/<?php echo $_SESSION["sucursal"] ?>?term=" + this.dataKey, (result) => {
-                            console.log(result)
-                            vue.listaTempProd = result
-                        })
+
+                // Método faltante 13: confirmarPagos
+                confirmarPagos() {
+                    if (this.venta.tipo_pago === '2' && this.cuotas.length === 0) {
+                        alertAdvertencia('Debe especificar al menos una cuota para crédito');
+                        return;
                     }
-                },
-                abrirMultipleBusaque() {
-                    $("#modalSelMultiProd").modal('show')
-                },
-                cambiarPrecio(event) {
-                    console.log(event.target.value)
-                    var self = this
-                    this.productos.forEach(element => {
-                        if (event.target.value == 1) {
-                            element.precioVenta = element.precio
-                            element.precio_usado = '1'
-                        } else if (event.target.value == 2) {
-                            element.precioVenta = element.precio2
-                            element.precio_usado = '2'
-                        } else {
-                            element.precioVenta = element.precio_unidad
-                            element.precio_usado = '5'
+
+                    if (this.venta.tiene_inicial && !this.venta.monto_inicial) {
+                        alertAdvertencia('Debe especificar el monto inicial');
+                        return;
+                    }
+
+                    this.cuotas.forEach(cuota => {
+                        if (!/^\d{4}-\d{2}-\d{2}$/.test(cuota.fecha)) {
+                            const fechaObj = new Date(cuota.fecha);
+                            cuota.fecha = this.formatDate(fechaObj);
                         }
                     });
+
+                    this.venta.dias_pago = this.cuotas.map(cuota => cuota.fecha).join(',');
+                    this.venta.dias_lista = this.cuotas;
+
+                    if (this.cuotas.length > 0) {
+                        this.venta.fechaVen = this.cuotas[this.cuotas.length - 1].fecha;
+                    }
+
+                    $('#modal-dias-pagos').modal('hide');
                 },
 
-
+                // Método faltante 14: formatDate
                 formatDate(date) {
                     console.log(date);
                     var d = date,
@@ -1319,53 +1291,94 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                     return [year, month, day].join('-');
                 },
-                onlyNumberComas($event) {
-                    let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
-                    if ((keyCode < 48 || keyCode > 57) && keyCode !== 44) {
-                        $event.preventDefault();
-                    }
-                },
-                focusDiasPagos() {
-                    $("#modal-dias-pagos").modal("show")
-                },
-                changeTipoPago(event) {
-                    console.log(event.target.value)
-                    this.venta.fechaVen = this.venta.fecha;
-                    this.venta.dias_lista = []
-                    this.venta.dias_pago = ''
-                },
-                onlyNumber($event) {
-                    let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
-                    if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
-                        $event.preventDefault();
-                    }
-                },
-                eliminarItemPro(index) {
-                    this.productos.splice(index, 1)
-                },
-                buscarDocumentSS() {
-                    if (this.venta.num_doc.length == 8 || this.venta.num_doc.length == 11) {
-                        $("#loader-menor").show();
-                        this.venta.dir_pos = 1;
 
-                        _ajax("/ajs/consulta/doc/cliente", "POST", {
-                            doc: this.venta.num_doc
-                        },
-                            function (resp) {
-                                $("#loader-menor").hide();
-                                console.log(resp);
-                                if (resp.res) {
-                                    app._data.venta.nom_cli = (resp.data.nombre ? resp.data.nombre : '') + (resp.data.razon_social ? resp.data.razon_social : '')
-                                    app._data.venta.dir_cli = resp.data.direccion
-                                } else {
-                                    alertAdvertencia("Documento no encontrado")
+                // Método faltante 15: calcularCuotasRestantes
+                calcularCuotasRestantes() {
+                    if (this.venta.monto_inicial && this.venta.total) {
+                        const porcentaje = (parseFloat(this.venta.monto_inicial) / parseFloat(this.venta.total)) * 100;
+                        this.venta.porcentaje_inicial = porcentaje.toFixed(2);
+                    }
+                    this.generarCuotas();
+                },
+
+                // Método faltante 16: calcularMontoInicial
+                calcularMontoInicial() {
+                    if (this.venta.porcentaje_inicial && this.venta.total) {
+                        const monto = (parseFloat(this.venta.total) * parseFloat(this.venta.porcentaje_inicial)) / 100;
+                        this.venta.monto_inicial = monto.toFixed(2);
+                    }
+                    this.generarCuotas();
+                },
+
+                // Método faltante 17: visualFechaSee
+                visualFechaSee(fecha) {
+                    if (!fecha) return '';
+                    const fechaObj = new Date(fecha);
+                    return fechaObj.toLocaleDateString('es-ES');
+                },
+
+                // Método faltante 18: formatoDecimal
+                formatoDecimal(valor) {
+                    if (!valor) return '0.00';
+                    return parseFloat(valor).toFixed(2);
+                },
+
+                cargarDatosPreAlerta() {
+                    const preAlertaId = new URLSearchParams(window.location.search).get("id");
+                    const tipo = new URLSearchParams(window.location.search).get("tipo") || this.tipoOrigen;
+
+                    console.log("Cargando datos para ID:", preAlertaId, "tipo:", tipo);
+
+                    if (preAlertaId) {
+                        _post("/ajs/taller/prealerta/info", {
+                            id: preAlertaId,
+                            tipo: tipo
+                        }, (resp) => {
+                            console.log("Respuesta de pre-alerta:", resp);
+                            
+                            if (resp && resp.res && resp.data) {
+                                const data = resp.data;
+                                
+                                // Asignar datos del cliente
+                                this.venta.num_doc = data.cliente_doc || "";
+                                this.venta.nom_cli = data.cliente_nombre || "";
+                                this.venta.dir_cli = data.cliente_direccion || "";
+                                this.venta.fecha = data.fecha_ingreso || $("#fecha-app").val();
+
+                                // Procesar equipos CORRECTAMENTE
+                                if (data.marcas && data.marcas.length > 0) {
+                                    this.equiposPreAlerta = [];
+                                    
+                                    for (let i = 0; i < data.marcas.length; i++) {
+                                        this.equiposPreAlerta.push({
+                                            marca: data.marcas[i] ? data.marcas[i].trim() : '',
+                                            equipo: data.equipos[i] ? data.equipos[i].trim() : '',
+                                            modelo: data.modelos[i] ? data.modelos[i].trim() : '',
+                                            numero_serie: data.numeros_serie[i] ? data.numeros_serie[i].trim() : '',
+                                            productos: []
+                                        });
+                                    }
+
+                                    // Activar el primer equipo
+                                    if (this.equiposPreAlerta.length > 0) {
+                                        this.equipoActivo = 0;
+                                        console.log("Equipos cargados:", this.equiposPreAlerta.length);
+                                    }
                                 }
+
+                                this.determinarTipoDocumento(data.cliente_doc);
+                                
+                                // Forzar actualización del DOM
+                                this.$nextTick(() => {
+                                    console.log("Vista actualizada, equipos:", this.equiposPreAlerta);
+                                });
+                            } else {
+                                console.error("No se recibieron datos válidos:", resp);
                             }
-                        )
-                    } else {
-                        alertAdvertencia("Documento, DNI es 8 dígitos y RUC 11 dígitos")
+                        });
                     }
                 },
+
                 guardarVenta() {
                     if (this.productos.length > 0) {
                         var continuar = true;
@@ -1399,13 +1412,17 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                         if (continuar) {
                             const formData = new FormData();
 
-                            // Obtener el ID de pre-alerta de la URL
+                            // Obtener el ID de pre-alerta y tipo de la URL
                             const urlParams = new URLSearchParams(window.location.search);
                             const preAlertaId = urlParams.get('id');
+                            const tipoOrigen = urlParams.get('tipo') || this.tipoOrigen;
 
-                            // Agregar el ID de pre-alerta al formData si existe
+                            // Agregar el ID de pre-alerta y tipo al formData si existe
                             if (preAlertaId) {
                                 formData.append('id_prealerta', preAlertaId);
+                            }
+                            if (tipoOrigen) {
+                                formData.append('tipo_origen', tipoOrigen);
                             }
 
                             // Agregar datos de la venta
@@ -1470,22 +1487,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             const whatsappUrl = `https://wa.me/?text=Cotización N° ${response.cotizacion.cotizacion_id}%0A${encodeURIComponent(pdfUrl)}`;
                                             $('#btn-whatsapp').attr('href', whatsappUrl);
 
-                                            // Actualizar el estado de la pre-alerta a CULMINADO
-                                            const preAlertaId = urlParams.get('id');
-                                            if (preAlertaId) {
-                                                $.ajax({
-                                                    url: _URL + "/ajs/prealerta/culminar",
-                                                    type: "POST",
-                                                    data: { id_preAlerta: preAlertaId },
-                                                    success: function (culminarResp) {
-                                                        console.log("Pre-alerta marcada como CULMINADA:", culminarResp);
-                                                    },
-                                                    error: function (xhr, status, error) {
-                                                        console.error("Error al actualizar estado de pre-alerta:", error);
-                                                    }
-                                                });
-                                            }
-
                                             // Mostrar directamente el modal con el PDF
                                             $('#modal-cotizacion-success').modal('show');
                                         } else {
@@ -1529,39 +1530,30 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                         })
                     }
                 },
-                buscarSNdoc() {
-                    _ajax("/ajs/consulta/sn", "POST", {
-                        doc: this.venta.tipo_doc
-                    },
-                        function (resp) {
-                            app.venta.serie = resp.serie
-                            app.venta.numero = resp.numero
+
+                // Agregar este nuevo método
+                determinarTipoDocumento(numDoc) {
+                    if (numDoc && numDoc.length === 11) {
+                        this.venta.tipo_doc = '2'; // Factura para RUC
+                    } else {
+                        this.venta.tipo_doc = '1'; // Boleta para otros casos
+                    }
+                    this.buscarSNdoc(); // Actualizar serie y número
+                },
+
+                cambiarEquipo(index) {
+                    this.equipoActivo = index;
+                    // Ensure the equiposPreAlerta array exists and has items
+                    if (this.equiposPreAlerta && this.equiposPreAlerta[index]) {
+                        // Make sure the productos array exists for this equipment
+                        if (!this.equiposPreAlerta[index].productos) {
+                            this.equiposPreAlerta[index].productos = [];
                         }
-                    )
-                },
-                onChangeTiDoc(event) {
-                    this.buscarSNdoc();
-                },
-                limpiasDatos() {
-                    this.producto = {
-                        editable: false,
-                        productoid: "",
-                        descripcion: "",
-                        nom_prod: "",
-                        cantidad: "",
-                        stock: "",
-                        precio: "",
-                        codigo: "",
-                        costo: "",
-                        codsunat: "",
-                        precio: '1',
-                        almacen: '<?php echo $_SESSION["sucursal"] ?>',
-                        precio2: '',
-                        precio_unidad: '',
-                        precioVenta: '',
-                        precio_usado: 1
+                        // Update the productos array with the current equipment's products
+                        this.productos = this.equiposPreAlerta[index].productos;
                     }
                 },
+
                 addProduct() {
                     if (this.producto.descripcion.length > 0) {
                         // Verificar si hay stock disponible
@@ -1623,123 +1615,83 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     }
                 },
 
+                // Resto de métodos de Vue...
+                buscarSNdoc() {
+                    _ajax("/ajs/consulta/sn", "POST", {
+                        doc: this.venta.tipo_doc
+                    },
+                        function (resp) {
+                            app.venta.serie = resp.serie
+                            app.venta.numero = resp.numero
+                        }
+                    )
+                },
 
-                cargarDatosPreAlerta() {
+                onChangeTiDoc(event) {
+                    this.buscarSNdoc();
+                },
 
-                    const preAlertaId = new URLSearchParams(window.location.search).get("id")
+                limpiasDatos() {
+                    this.producto = {
+                        editable: false,
+                        productoid: "",
+                        descripcion: "",
+                        nom_prod: "",
+                        cantidad: "",
+                        stock: "",
+                        precio: "",
+                        codigo: "",
+                        costo: "",
+                        codsunat: "",
+                        precio: '1',
+                        almacen: '<?php echo $_SESSION["sucursal"] ?>',
+                        precio2: '',
+                        precio_unidad: '',
+                        precioVenta: '',
+                        precio_usado: 1
+                    }
+                },
 
-                    if (preAlertaId) {
-                        console.log("Cargando datos para pre-alerta ID:", preAlertaId)
+                eliminarItemPro(index) {
+                    this.productos.splice(index, 1)
+                },
 
-                        _post(
-                            "/ajs/taller/prealerta/info",
-                            {
-                                id: preAlertaId,
-                            },
-                            (resp) => {
-                                console.log("Respuesta de pre-alerta:", resp)
-                                if (resp && resp.res) {
-                                    const data = resp.data
-                                    this.venta.num_doc = data.cliente_doc || ""
-                                    this.venta.nom_cli = data.cliente_nombre || ""
-                                    this.venta.dir_cli = data.cliente_direccion || ""
-                                    this.venta.fecha = data.fecha_ingreso || $("#fecha-app").val()
+                onlyNumber($event) {
+                    let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
+                    if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
+                        $event.preventDefault();
+                    }
+                },
 
-                                    // Procesar los arrays concatenados
-                                    const marcas = data.marcas[0].split(",")
-                                    const equipos = data.equipos[0].split(",")
-                                    const modelos = data.modelos[0].split(",")
-                                    const series = data.numeros_serie[0].split(",")
+                buscarDocumentSS() {
+                    if (this.venta.num_doc.length == 8 || this.venta.num_doc.length == 11) {
+                        $("#loader-menor").show();
+                        this.venta.dir_pos = 1;
 
-                                    // Crear array de equipos procesados
-                                    this.equiposPreAlerta = marcas.map((marca, index) => ({
-                                        marca: marca.trim(),
-                                        equipo: equipos[index].trim(),
-                                        modelo: modelos[index].trim(),
-                                        numero_serie: series[index].trim(),
-                                        productos: [], // Array para los productos de cada equipo
-                                    }))
-
-                                    // Activar el primer equipo por defecto
-                                    if (this.equiposPreAlerta.length > 0) {
-                                        this.equipoActivo = 0
-                                    }
-
-                                    this.determinarTipoDocumento(data.cliente_doc)
+                        _ajax("/ajs/consulta/doc/cliente", "POST", {
+                            doc: this.venta.num_doc
+                        },
+                            function (resp) {
+                                $("#loader-menor").hide();
+                                console.log(resp);
+                                if (resp.res) {
+                                    app._data.venta.nom_cli = (resp.data.nombre ? resp.data.nombre : '') + (resp.data.razon_social ? resp.data.razon_social : '')
+                                    app._data.venta.dir_cli = resp.data.direccion
+                                } else {
+                                    alertAdvertencia("Documento no encontrado")
                                 }
-                            },
+                            }
                         )
-                    }
-                },
-
-
-                // Agregar este nuevo método
-                determinarTipoDocumento(numDoc) {
-                    if (numDoc && numDoc.length === 11) {
-                        this.venta.tipo_doc = '2'; // Factura para RUC
                     } else {
-                        this.venta.tipo_doc = '1'; // Boleta para otros casos
-                    }
-                    this.buscarSNdoc(); // Actualizar serie y número
-                },
-
-
-                cambiarEquipo(index) {
-                    this.equipoActivo = index;
-                    // Ensure the equiposPreAlerta array exists and has items
-                    if (this.equiposPreAlerta && this.equiposPreAlerta[index]) {
-                        // Make sure the productos array exists for this equipment
-                        if (!this.equiposPreAlerta[index].productos) {
-                            this.equiposPreAlerta[index].productos = [];
-                        }
-                        // Update the productos array with the current equipment's products
-                        this.productos = this.equiposPreAlerta[index].productos;
+                        alertAdvertencia("Documento, DNI es 8 dígitos y RUC 11 dígitos")
                     }
                 },
 
-
-                actualizarVistaPrevia() {
-                    const preview = document.getElementById('imagePreview');
-                    if (preview) {
-                        preview.innerHTML = '';
-                        this.venta.fotos.forEach((foto, index) => {
-                            this.addImagePreview(foto.url, index, true, foto.name);
-                        });
-                    }
-                },
-                confirmarPagos() {
-                    if (this.venta.tipo_pago === '2' && this.cuotas.length === 0) {
-                        alertAdvertencia('Debe especificar al menos una cuota para crédito');
-                        return;
-                    }
-
-                    if (this.venta.tiene_inicial && !this.venta.monto_inicial) {
-                        alertAdvertencia('Debe especificar el monto inicial');
-                        return;
-                    }
-
-                    // Asegurarse de que las fechas estén en el formato correcto (YYYY-MM-DD)
-                    this.cuotas.forEach(cuota => {
-                        // Verificar si la fecha ya está en formato YYYY-MM-DD
-                        if (!/^\d{4}-\d{2}-\d{2}$/.test(cuota.fecha)) {
-                            // Si no está en el formato correcto, convertirla
-                            const fechaObj = new Date(cuota.fecha);
-                            cuota.fecha = this.formatDate(fechaObj);
-                        }
-                    });
-
-                    // Actualizar el campo dias_pago para mantener compatibilidad
-                    this.venta.dias_pago = this.cuotas.map(cuota => cuota.fecha).join(',');
-
-                    // Actualizar dias_lista con las cuotas actualizadas
-                    this.venta.dias_lista = this.cuotas;
-
-                    // Establecer la fecha de vencimiento como la última cuota
-                    if (this.cuotas.length > 0) {
-                        this.venta.fechaVen = this.cuotas[this.cuotas.length - 1].fecha;
-                    }
-
-                    $('#modal-dias-pagos').modal('hide');
+                changeTipoPago(event) {
+                    console.log(event.target.value)
+                    this.venta.fechaVen = this.venta.fecha;
+                    this.venta.dias_lista = []
+                    this.venta.dias_pago = ''
                 }
             },
             computed: {
@@ -1760,16 +1712,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                 },
                 monedaSibol() {
                     return (this.venta.moneda == 1 ? 'S/' : '$')
-                },
-                totalValorListaDias() {
-                    var total_ = 0;
-                    this.venta.dias_lista.forEach((el) => {
-                        total_ += parseFloat(el.monto + "")
-                    })
-                    return "S/ " + total_.toFixed(4);
-                },
-                isDirreccionCont() {
-                    return this.venta.dir2_cli.length > 0;
                 },
                 totalProdustos() {
                     // Primero calculamos el total sin descuento
@@ -1797,9 +1739,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
         // Hacer la instancia accesible globalmente
         window.app = vueApp;
+        
         $('#modal-cotizacion-success').on('hidden.bs.modal', function () {
             window.location.href = '/taller';
         });
+        
         // Inicializar componentes de UI
         $("#input_datos_cliente").autocomplete({
             source: _URL + "/ajs/buscar/cliente/datos",
@@ -1814,13 +1758,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
             }
         });
 
+        console.log("Vue app inicializada:", window.app);
     });
-
-
 </script>
 
 <!-- Scripts de la aplicación -->
-
 <!-- Funciones utilitarias , toggleInput, formatFechaVisual, formatoDecimal -->
 <script src="<?= URL::to('public/js/taller-cotizaciones/utils.js') ?>?v=<?= time() ?>"></script>
 <!-- Inicialización de componentes UI -->
@@ -1837,7 +1779,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 <script src="<?= URL::to('public/js/taller-cotizaciones/cargar-repuestos.js') ?>?v=<?= time() ?>"></script>
 <!-- Manejo de fotos -->
 <script src="<?= URL::to('public/js/taller-cotizaciones/manejo-fotos.js') ?>?v=<?= time() ?>"></script>
-
 <script src="<?= URL::to('public/js/taller-cotizaciones/navegacion.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= URL::to('public/js/taller-cotizaciones/observaciones-integration.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= URL::to('public/js/taller-cotizaciones/botones-reportes.js') ?>?v=<?= time() ?>"></script>

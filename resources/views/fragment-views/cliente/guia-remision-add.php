@@ -122,15 +122,15 @@ $c_ubigeo = new Ubigeo();
                                             </select>
                                         </div>
                                     </div>
-                                    <!-- Campo de Doc. de Referencia -->
+                                    <!-- ✅ MEJORADO: Campo de Doc. de Referencia con mejor lógica -->
                                     <div class="form-group row mb-3" v-show="mostrarDocReferencia">
                                         <label class="col-md-4 col-form-label text-end" for="doc_referencia">
-                                            Doc. de Referencia
+                                            {{ guia.tipo_doc === '3' ? 'Nro. Orden Compra' : 'Doc. de Referencia' }}
                                         </label>
                                         <div class="col-md-8">
                                             <input type="text" id="doc_referencia" class="form-control"
                                                 v-model="guia.doc_referencia"
-                                                placeholder="Ingrese documento de referencia"
+                                                :placeholder="guia.tipo_doc === '3' ? 'Ingrese número de orden de compra' : 'Ingrese documento de referencia'"
                                                 :required="mostrarDocReferencia">
                                         </div>
                                     </div>
@@ -776,7 +776,8 @@ $c_ubigeo = new Ubigeo();
                         peso: '1',
                         num_bultos: '1',
                     },
-                    mostrarDocReferencia: false,
+                    // ✅ CORREGIDO: Inicializar mostrarDocReferencia como true desde el inicio
+                    mostrarDocReferencia: true, // Cambiado de false a true
                     producto: {
                         editable: false,
                         productoid: "",
@@ -824,6 +825,26 @@ $c_ubigeo = new Ubigeo();
                     'guia.tipo_doc': function (newVal) {
                         // Mostrar Doc. de Referencia solo cuando se selecciona Orden de Compra (valor '3')
                         this.mostrarDocReferencia = newVal === '3';
+                    }
+                },
+                // ✅ NUEVO: Agregar computed para asegurar que se evalúe correctamente
+                computed: {
+                    // Esta propiedad computed se ejecuta automáticamente cuando cambia guia.tipo_doc
+                    deberíaMostrarDocReferencia() {
+                        return this.guia.tipo_doc === '3';
+                    }
+                },
+                // ✅ NUEVO: Agregar mounted para establecer el estado inicial
+                mounted() {
+                    this.getDocumentoGuia();
+                    obtenerProvincias();
+                    
+                    // ✅ CRÍTICO: Establecer el estado inicial del campo Doc. de Referencia
+                    this.mostrarDocReferencia = this.guia.tipo_doc === '3';
+                    
+                    const cotiId = document.getElementById('cotizacion').value;
+                    if (cotiId) {
+                        this.loadCotizacionData(cotiId);
                     }
                 },
                 methods: {
@@ -1058,6 +1079,8 @@ $c_ubigeo = new Ubigeo();
                             fecha_emision: $("#input_fecha").val(),
                             chofer_datos: this.transporte.chofer_datos,
                             cotizacion: cotizacion,
+                            // ✅ NUEVO: Agregar tipo_doc para manejar ref_orden_compra
+                            tipo_doc: this.guia.tipo_doc
                         };
 
                         $("#loader-menor").show();
@@ -1259,14 +1282,6 @@ $c_ubigeo = new Ubigeo();
                         );
                     }
 
-                },
-                mounted() {
-                    this.getDocumentoGuia();
-                    obtenerProvincias();
-                    const cotiId = document.getElementById('cotizacion').value;
-                    if (cotiId) {
-                        this.loadCotizacionData(cotiId);
-                    }
                 }
             });
 
@@ -1276,9 +1291,7 @@ $c_ubigeo = new Ubigeo();
         });
     </script>
     <script src="<?= URL::to('/public/js/guia-remision/motivos.js') ?>?v=<?= time() ?>"> </script>
-
-    <script src="<?= URL::to('/public/js/guia-remision/conductor.js') ?>?v=<?= time() ?>"> </script>
-    <script src="<?= URL::to('/public/js/guia-remision/choferes.js') ?>?v=<?= time() ?>"> </script>
+    <script src="<?= URL::to('/public/js/guia-remision/chofer-configuraciones.js') ?>?v=<?= time() ?>"> </script>
 
 </body>
 

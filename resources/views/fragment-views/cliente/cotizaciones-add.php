@@ -1,3 +1,5 @@
+<!-- resources\views\fragment-views\cliente\cotizaciones-add.php -->
+
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -9,61 +11,6 @@
 <!-- Incluir Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
-<style>
-    .ql-editor {
-        min-height: 200px;
-        font-size: 14px;
-        line-height: 1.8;
-    }
-
-    .ql-editor p {
-        margin-bottom: 8px;
-    }
-
-    .ql-toolbar.ql-snow {
-        border-radius: 4px 4px 0 0;
-    }
-
-    .ql-container.ql-snow {
-        border-radius: 0 0 4px 4px;
-    }
-
-    /* Contenedor del editor */
-    #editor-container {
-        background: white;
-        margin-bottom: 20px;
-    }
-
-    /* Editor */
-    #editor-content {
-        height: 300px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    }
-
-    /* Barra de herramientas */
-    .ql-toolbar.ql-snow {
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem 0.25rem 0 0;
-    }
-
-    /* Área de edición */
-    .ql-container.ql-snow {
-        border: 1px solid #ced4da;
-        border-top: 0;
-        border-radius: 0 0 0.25rem 0.25rem;
-        font-size: 16px;
-    }
-
-    /* Estilos para las viñetas */
-    .ql-editor ul {
-        padding-left: 20px;
-    }
-
-    /* Mejorar la visibilidad del texto seleccionado */
-    .ql-editor ::selection {
-        background-color: #b4d5fe;
-    }
-</style>
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -441,6 +388,17 @@
                                                                                 name="input_fecha"
                                                                                 class="form-control text-center"
                                                                                 value="2021-10-16">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group ">
+                                                                        <label class="control-label">Próximo N°</label>
+                                                                        <div class="col-lg-12">
+                                                                            <div class="form-control text-center" 
+                                                                                 style="background-color: #f8f9fa; color: #6c757d; font-weight: 500;">
+                                                                                {{proximoNumero}}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1141,6 +1099,7 @@
                 descuentoGeneral: '',
                 usar_scaner: false,
                 mensajeProductoVisible: false,
+                proximoNumero: '',
                 producto: {
                     tipo: 'producto',
                     editable: false,
@@ -1219,6 +1178,9 @@
                 preciosAdicionales: [],
                 productoPreciosCache: {},
             },
+            mounted() {
+                this.calcularProximoNumero();
+            },
             watch: {
 
                 'descuentoGeneral': function (newValue) {
@@ -1233,6 +1195,13 @@
                 }
             },
             methods: {
+                calcularProximoNumero() {
+                    _ajax("/ajs/cotizaciones/ultimo-numero", "GET", {}, (resp) => {
+                        const ultimoNumero = resp.ultimo_numero || 0;
+                        const siguiente = ultimoNumero + 1;
+                        this.proximoNumero = `COT-${String(siguiente).padStart(2, '0')}`;
+                    });
+                },
                 mostrarMensajeProducto() {
                     // Mostrar el mensaje solo si no hay producto seleccionado
                     if (this.producto.descripcion.length === 0) {
@@ -1565,7 +1534,7 @@
                                 if (respuesta) {
                                     $.ajax({
                                         type: "post",
-                                        url: _URL + '/ajas/compra/buscar/producto',
+                                        url: _URL + '/ajs/compra/buscar/producto',
                                         data: {
                                             producto: respuesta // Código escaneado
                                         },

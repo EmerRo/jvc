@@ -554,33 +554,7 @@ class RepuestosController extends Controller
         return json_encode($respuesta);
     }
 
-    // Método para obtener términos de repuestos
-    public function getTerminosRepuestos()
-    {
-        $respuesta = [];
-        $sql = "SELECT * FROM terminos_repuestos";
-        $resultado = $this->conexion->query($sql);
-        if ($resultado->num_rows > 0) {
-            while ($row = $resultado->fetch_assoc()) {
-                $respuesta[] = $row;
-            }
-        }
-        return json_encode($respuesta);
-    }
-
-    // Método para obtener diagnóstico de repuestos
-    public function getDiagnosticoRepuestos()
-    {
-        $respuesta = [];
-        $sql = "SELECT * FROM diagnostico_repuestos";
-        $resultado = $this->conexion->query($sql);
-        if ($resultado->num_rows > 0) {
-            while ($row = $resultado->fetch_assoc()) {
-                $respuesta[] = $row;
-            }
-        }
-        return json_encode($respuesta);
-    }
+  
 
     // Método para guardar precios múltiples
     public function guardarPrecios()

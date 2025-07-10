@@ -177,20 +177,19 @@ class ConsultaDelcontroller extends Controller
     $this->mpdf->Output();
 }
 
-    public function getDataTallerCotizacionSS() {
-        $table_data = new TableData();
-        
-        // $user_id = ($_SESSION['rol'] == 1) ? "" : "where usuario = '{$_SESSION['usuario_fac']}' and sucursal = '{$_SESSION['sucursal']}'";
-        
-        $user_id ="";
-        $table_data->get("view_taller_cotizaciones", "cotizacion_id", [
-            "numero",
-            "fecha",
-            "documento",
-            "vendedor",
-            "cotizacion_id",
-            "cotizacion_id",
-            "cotizacion_id"
-        ], $user_id);
-    }
+public function getDataTallerCotizacionSS() {
+    $table_data = new TableData();
+    
+    $user_id = "";
+    $table_data->get("view_taller_cotizaciones", "cotizacion_id", [
+        "numero",
+        "fecha", 
+        "documento",
+        "vendedor",
+        "tipo_origen",  // ✅ AGREGAR ESTA LÍNEA
+        "cotizacion_id",
+        "cotizacion_id"
+    ], $user_id);
+}
+
 }

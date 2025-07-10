@@ -623,7 +623,7 @@ class CotizacionesController extends Controller
 
     public function getVendedores()
     {
-        $sql = "SELECT usuario_id,nombres from usuarios where id_rol =  3";
+        $sql = "SELECT usuario_id,nombres from usuarios where id_rol =  1";
         //echo $sql;
 
         $rest = $this->conexion->query($sql);
@@ -726,5 +726,15 @@ class CotizacionesController extends Controller
         
         return json_encode($precios);
     }
+public function ultimoNumero()
+{
+    $sql = "SELECT MAX(numero) as ultimo_numero FROM cotizaciones WHERE id_empresa = '{$_SESSION['id_empresa']}'";
+    $result = $this->conexion->query($sql);
+    $row = $result->fetch_assoc();
+    
+    return json_encode([
+        'ultimo_numero' => (int)($row['ultimo_numero'] ?? 0)  // ← AGREGAR (int) aquí
+    ]);
+}
     
 }

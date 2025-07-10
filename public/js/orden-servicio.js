@@ -1,3 +1,4 @@
+// public/js/orden-servicio.js
 $(document).ready(() => {
   const app = new Vue({
     el: "#client",
@@ -21,7 +22,7 @@ $(document).ready(() => {
       ultimoNumeroSerie: 16820,
       // Datos para edición
       editando: {
-        id_preAlerta: null,
+        id_orden_servicio: null,
         cliente_Rsocial: "",
         cliente_ruc: "",
         atencion_Encargado: "",
@@ -51,7 +52,6 @@ $(document).ready(() => {
       seriesCount: 0,
     },
     mounted() {
-      // this.generarNumeroSerie()
       this.inicializarEquipos();
       this.cargarCatalogos();
     },
@@ -298,17 +298,16 @@ $(document).ready(() => {
             serie: "",
           },
         ];
-        // this.actualizarNumerosSerie()
       },
 
       cargarCatalogos() {
-        $.get(_URL +"/ajs/get/marcas", (data) => {
+        $.get(_URL + "/ajs/get/marcas", (data) => {
           this.marcasDisponibles = JSON.parse(data);
         });
-        $.get( _URL + "/ajs/get/modelos", (data) => {
+        $.get(_URL + "/ajs/get/modelos", (data) => {
           this.modelosDisponibles = JSON.parse(data);
         });
-        $.get(_URL +"/ajs/get/equipos", (data) => {
+        $.get(_URL + "/ajs/get/equipos", (data) => {
           this.equiposDisponibles = JSON.parse(data);
         });
       },
@@ -339,59 +338,69 @@ $(document).ready(() => {
         this.equipoBase = {
           marca: "",
           modelo: "",
-          tipo: ""
+          tipo: "",
         };
         this.cantidadMaquinasIdenticas = 1;
         this.editando = {
-          id_preAlerta: null,
+          id_orden_servicio: null,
           cliente_Rsocial: "",
           cliente_ruc: "",
           atencion_Encargado: "",
           fecha_ingreso: "",
           observaciones: "",
-          equipos: []
+          equipos: [],
         };
-        
+
         $("#loader-menor").show();
         $.ajax({
-          url: _URL + "/ajs/prealerta/detalles",
+          url: _URL + "/ajs/orden-servicio/detalles", // CAMBIO AQUÍ
           type: "POST",
           data: { id: id },
           success: (response) => {
             $("#loader-menor").hide();
             try {
               // Verificar si la respuesta es HTML (comienza con <!DOCTYPE o <html)
-              if (typeof response === "string" && (response.trim().toLowerCase().startsWith("<!doctype") || response.trim().toLowerCase().startsWith("<html"))) {
-                console.error("La respuesta del servidor es HTML, no JSON:", response.substring(0, 100) + "...");
-                throw new Error("El servidor devolvió HTML en lugar de JSON. Posible sesión expirada.");
+              if (
+                typeof response === "string" &&
+                (response.trim().toLowerCase().startsWith("<!doctype") ||
+                  response.trim().toLowerCase().startsWith("<html"))
+              ) {
+                console.error(
+                  "La respuesta del servidor es HTML, no JSON:",
+                  response.substring(0, 100) + "..."
+                );
+                throw new Error(
+                  "El servidor devolvió HTML en lugar de JSON. Posible sesión expirada."
+                );
               }
-              
-              const datos = typeof response === "object" ? response : JSON.parse(response);
-      
+
+              const datos =
+                typeof response === "object" ? response : JSON.parse(response);
+
               // Cargar datos principales
-              this.editando.id_preAlerta = datos.id_preAlerta;
+              this.editando.id_orden_servicio = datos.id_orden_servicio;
               this.editando.cliente_Rsocial = datos.cliente_razon_social;
               this.editando.cliente_ruc = datos.cliente_ruc;
               this.editando.atencion_Encargado = datos.atencion_encargado;
               this.editando.fecha_ingreso = datos.fecha_ingreso;
               this.editando.observaciones = datos.observaciones || "";
-      
+
               // Cargar equipos
               this.editando.equipos = datos.equipos || [];
-              
+
               // Detectar si los equipos son idénticos y hay más de uno
               if (this.editando.equipos.length > 1) {
                 this.prepararEdicionEquiposIdenticos();
               }
-      
+
               // Actualizar campos del formulario
-              $("#edit_id_preAlerta").val(datos.id_preAlerta);
+              $("#edit_id_orden_servicio").val(datos.id_orden_servicio);
               $("#edit_cliente_Rsocial").val(datos.cliente_razon_social);
               $("#edit_cliente_ruc").val(datos.cliente_ruc);
               $("#edit_atencion_Encargado").val(datos.atencion_encargado);
               $("#edit_fecha_ingreso").val(datos.fecha_ingreso);
               $("#edit_observaciones").val(datos.observaciones || "");
-      
+
               // Mostrar el modal
               $("#modalEditar").modal("show");
             } catch (error) {
@@ -399,35 +408,47 @@ $(document).ready(() => {
               Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Error al cargar los datos para edición. " + (error.message || ""),
-                footer: '<a href="javascript:location.reload()">Recargar la página</a>'
+                text:
+                  "Error al cargar los datos para edición. " +
+                  (error.message || ""),
+                footer:
+                  '<a href="javascript:location.reload()">Recargar la página</a>',
               });
             }
           },
           error: (xhr, status, error) => {
             $("#loader-menor").hide();
             console.error("Error en la petición:", { xhr, status, error });
-            
+
             // Verificar si la respuesta es HTML
-            if (xhr.responseText && (xhr.responseText.trim().toLowerCase().startsWith("<!doctype") || xhr.responseText.trim().toLowerCase().startsWith("<html"))) {
-              console.error("La respuesta del servidor es HTML, no JSON:", xhr.responseText.substring(0, 100) + "...");
+            if (
+              xhr.responseText &&
+              (xhr.responseText.trim().toLowerCase().startsWith("<!doctype") ||
+                xhr.responseText.trim().toLowerCase().startsWith("<html"))
+            ) {
+              console.error(
+                "La respuesta del servidor es HTML, no JSON:",
+                xhr.responseText.substring(0, 100) + "..."
+              );
               Swal.fire({
                 icon: "error",
                 title: "Error de sesión",
                 text: "Es posible que tu sesión haya expirado. Intenta recargar la página.",
-                footer: '<a href="javascript:location.reload()">Recargar la página</a>'
+                footer:
+                  '<a href="javascript:location.reload()">Recargar la página</a>',
               });
             } else {
               Swal.fire({
                 icon: "error",
                 title: "Error",
                 text: "Error al obtener los datos del registro",
-                footer: '<a href="javascript:location.reload()">Recargar la página</a>'
+                footer:
+                  '<a href="javascript:location.reload()">Recargar la página</a>',
               });
             }
           },
           // Agregar timeout para evitar esperas largas
-          timeout: 15000 // 15 segundos
+          timeout: 15000, // 15 segundos
         });
       },
 
@@ -483,7 +504,7 @@ $(document).ready(() => {
         }
 
         const data = {
-          id_preAlerta: this.editando.id_preAlerta,
+          id_orden_servicio: this.editando.id_orden_servicio,
           cliente_razon_social: this.editando.cliente_Rsocial,
           cliente_ruc: this.editando.cliente_ruc,
           atencion_encargado: this.editando.atencion_Encargado,
@@ -496,7 +517,7 @@ $(document).ready(() => {
 
         $.ajax({
           type: "POST",
-          url: _URL +"/ajs/prealerta/update",
+          url: _URL + "/ajs/orden-servicio/update", // CAMBIO AQUÍ
           data: data,
           success: (resp) => {
             $("#loader-menor").hide();
@@ -631,61 +652,42 @@ $(document).ready(() => {
     },
   });
 
-  // DataTables initialization
+  // DataTables initialization para ORDEN DE SERVICIO
   tabla_clientes = $("#tabla_clientes").DataTable({
     paging: true,
     bFilter: true,
     ordering: true,
     searching: true,
     destroy: true,
-    "responsive": true, // Habilitar responsividad
-    "scrollX": false,   // Deshabilitar scroll horizontal
-    "autoWidth": false, // Deshabilitar auto-ancho
-    "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip', 
+    responsive: true, // Habilitar responsividad
+    scrollX: false, // Deshabilitar scroll horizontal
+    autoWidth: false, // Deshabilitar auto-ancho
+    dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
     ajax: {
-      url: _URL + "/ajs/prealerta/render",
+      url: _URL + "/ajs/orden-servicio/render", // CAMBIO AQUÍ
       method: "POST",
       dataSrc: "",
     },
     language: {
-      url: "ServerSide/Spanish.json",
+      url: "../ServerSide/Spanish.json",
     },
     columns: [
       {
-        data: null,
-        class: "text-center",
-        render: (data, type, row, meta) => meta.row + 1,
-      },
+        data: "numero",  // CAMBIO: usar campo numero en lugar de meta.row + 1
+        class: "text-center"
+    },
       { data: "cliente_razon_social", class: "text-center" },
       { data: "cliente_ruc", class: "text-center" },
-
       { data: "atencion_encargado", class: "text-center" },
-
       { data: "fecha_ingreso", class: "text-center" },
-      {
-        data: null,
-        class: "text-center",
-        render: (data, type, row) => `
-                <div class="btn-group btn-group-sm" role="group">
-                    <button type="button" class="btn btn-info btn-ver-detalles" data-id="${row.id_preAlerta}">
-                        <i class="fa fa-eye"></i>
-                    </button>
-                    <button data-id="${row.id_preAlerta}" class="btn btn-warning btnEditar">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                    <button data-id="${row.id_preAlerta}" class="btn btn-danger btnBorrar">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-            `,
-      },
+     
       {
         data: null,
         class: "text-center",
         render: (data, type, row) => {
           // Convertir a número para asegurar una comparación correcta
           const tieneCotizacion = Number.parseInt(row.tiene_cotizacion);
-          
+
           // Estilo común para ambos badges
           const badgeStyle = `
             display: inline-block;
@@ -698,12 +700,12 @@ $(document).ready(() => {
             text-transform: uppercase;
             white-space: nowrap;
           `;
-          
+
           if (tieneCotizacion === 1) {
             // Badge verde para "COTIZACIÓN LISTA"
             return `
               <span 
-                onclick="verCotizacion(${row.id_preAlerta})" 
+                onclick="verCotizacion(${row.id_orden_servicio})" 
                 class="badge" 
                 style="${badgeStyle} background-color: #28a745; color: white; cursor: pointer;"
               >
@@ -721,6 +723,23 @@ $(document).ready(() => {
           }
         },
       },
+       {
+        data: null,
+        class: "text-center",
+        render: (data, type, row) => `
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-info btn-ver-detalles" data-id="${row.id_orden_servicio}">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                    <button data-id="${row.id_orden_servicio}" class="btn btn-warning btnEditar">
+                        <i class="fa fa-edit"></i>
+                    </button>
+                    <button data-id="${row.id_orden_servicio}" class="btn btn-danger btnBorrar">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            `,
+      },
     ],
     drawCallback: function () {
       // Reinicializar tooltips después de cada redibujado
@@ -734,22 +753,32 @@ $(document).ready(() => {
   };
   function mostrarDetalles(id) {
     $.ajax({
-      url: _URL +"/ajs/prealerta/detalles",
+      url: _URL + "/ajs/orden-servicio/detalles", // CAMBIO AQUÍ
       type: "POST",
       data: { id: id },
       success: (response) => {
         try {
           // Verificar si la respuesta es HTML
-          if (typeof response === "string" && (response.trim().toLowerCase().startsWith("<!doctype") || response.trim().toLowerCase().startsWith("<html"))) {
-            console.error("La respuesta del servidor es HTML, no JSON:", response.substring(0, 100) + "...");
-            throw new Error("El servidor devolvió HTML en lugar de JSON. Posible sesión expirada.");
+          if (
+            typeof response === "string" &&
+            (response.trim().toLowerCase().startsWith("<!doctype") ||
+              response.trim().toLowerCase().startsWith("<html"))
+          ) {
+            console.error(
+              "La respuesta del servidor es HTML, no JSON:",
+              response.substring(0, 100) + "..."
+            );
+            throw new Error(
+              "El servidor devolvió HTML en lugar de JSON. Posible sesión expirada."
+            );
           }
-          
-          var detalles = typeof response === "object" ? response : JSON.parse(response);
-          
-        var contenidoModal = `
+
+          var detalles =
+            typeof response === "object" ? response : JSON.parse(response);
+
+          var contenidoModal = `
                 <div class="card border-danger mb-2">
-                    <div class="card-header bg-secondary p-2">Información de Pre Alerta</div>
+                    <div class="card-header bg-secondary p-2">Información de Orden de Servicio</div>
                     <div class="card-body p-2">
                         <div class="row g-0">
                             <div class="col-md-6">
@@ -783,8 +812,8 @@ $(document).ready(() => {
                                 <tbody>
             `;
 
-        detalles.equipos.forEach((equipo, index) => {
-          contenidoModal += `
+          detalles.equipos.forEach((equipo, index) => {
+            contenidoModal += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${equipo.marca}</td>
@@ -793,9 +822,9 @@ $(document).ready(() => {
                         <td>${equipo.numero_serie}</td>
                     </tr>
                 `;
-        });
+          });
 
-        contenidoModal += `
+          contenidoModal += `
                                 </tbody>
                             </table>
                         </div>
@@ -814,44 +843,53 @@ $(document).ready(() => {
                 </div>
             `;
 
-        $("#modalDetalles .modal-body").html(contenidoModal);
-        $("#modalDetalles").modal("show");
-      } catch (error) {
-        console.error("Error al procesar la respuesta:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al procesar los detalles. " + (error.message || ""),
-          footer: '<a href="javascript:location.reload()">Recargar la página</a>'
-        });
-      }
-    },
-    error: (xhr, status, error) => {
-      // Verificar si la respuesta es HTML
-      if (xhr.responseText && (xhr.responseText.trim().toLowerCase().startsWith("<!doctype") || xhr.responseText.trim().toLowerCase().startsWith("<html"))) {
-        console.error("La respuesta del servidor es HTML, no JSON:", xhr.responseText.substring(0, 100) + "...");
-        Swal.fire({
-          icon: "error",
-          title: "Error de sesión",
-          text: "Es posible que tu sesión haya expirado. Intenta recargar la página.",
-          footer: '<a href="javascript:location.reload()">Recargar la página</a>'
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudieron cargar los detalles. " + error,
-          footer: '<a href="javascript:location.reload()">Recargar la página</a>'
-        });
-      }
-      console.error("Error fetching details:", error, xhr, status);
-    },
-    timeout: 15000 // 15 segundos
-  });
-
+          $("#modalDetalles .modal-body").html(contenidoModal);
+          $("#modalDetalles").modal("show");
+        } catch (error) {
+          console.error("Error al procesar la respuesta:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al procesar los detalles. " + (error.message || ""),
+            footer:
+              '<a href="javascript:location.reload()">Recargar la página</a>',
+          });
+        }
+      },
+      error: (xhr, status, error) => {
+        // Verificar si la respuesta es HTML
+        if (
+          xhr.responseText &&
+          (xhr.responseText.trim().toLowerCase().startsWith("<!doctype") ||
+            xhr.responseText.trim().toLowerCase().startsWith("<html"))
+        ) {
+          console.error(
+            "La respuesta del servidor es HTML, no JSON:",
+            xhr.responseText.substring(0, 100) + "..."
+          );
+          Swal.fire({
+            icon: "error",
+            title: "Error de sesión",
+            text: "Es posible que tu sesión haya expirado. Intenta recargar la página.",
+            footer:
+              '<a href="javascript:location.reload()">Recargar la página</a>',
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudieron cargar los detalles. " + error,
+            footer:
+              '<a href="javascript:location.reload()">Recargar la página</a>',
+          });
+        }
+        console.error("Error fetching details:", error, xhr, status);
+      },
+      timeout: 15000, // 15 segundos
+    });
   }
 
-  // Agregar prealerta
+  // Agregar orden de servicio
   $("#submitRegistro").click(() => {
     if (!app) {
       console.error("La aplicación Vue no está inicializada");
@@ -917,10 +955,10 @@ $(document).ready(() => {
 
     $("#loader-menor").show();
 
-    // Enviar datos
+    // Enviar datos - CAMBIO AQUÍ
     $.ajax({
       type: "POST",
-      url: _URL + "/ajs/prealerta/add",
+      url: _URL + "/ajs/orden-servicio/add",
       data: data,
       success: (resp) => {
         $("#loader-menor").hide();
@@ -935,6 +973,13 @@ $(document).ready(() => {
             });
             $("#modalAgregar").modal("hide");
             $("#frmClientesAgregar").trigger("reset");
+
+            // AGREGAR ESTAS LÍNEAS PARA LIMPIAR LOS DATOS DEL CLIENTE:
+            app.prealerta.num_doc = "";
+            app.prealerta.cliente_Rsocial = "";
+            $("#direccion").val("");
+
+            // Resto del código de limpieza existente...
             app.equipos = [];
             app.cantidadEquipos = 1;
             app.inicializarEquipos();
@@ -972,7 +1017,7 @@ $(document).ready(() => {
     });
   });
 
-  // Eliminar prealerta
+  // Eliminar orden de servicio
   $("#tabla_clientes").on("click", ".btnBorrar", function () {
     var id = $(this).data("id");
     const idData = {
@@ -989,7 +1034,7 @@ $(document).ready(() => {
     }).then((result) => {
       if (result.isConfirmed) {
         $.ajax({
-          url: _URL + "/ajs/prealerta/delete",
+          url: _URL + "/ajs/orden-servicio/delete", // CAMBIO AQUÍ
           type: "post",
           data: idData,
           success: (resp) => {
@@ -1011,185 +1056,9 @@ $(document).ready(() => {
     app.cargarDatosEdicion(id);
   });
 
-  // Replace the error-prone edit button click handler with this improved version:
-
-  $("#tabla_clientes").on("click", ".btnEditar", function () {
-    const id = $(this).data("id");
-    $("#loader-menor").show();
-
-    $.ajax({
-      url: _URL + "/ajs/prealerta/detalles",
-      type: "POST",
-      data: { id: id },
-      success: (resp) => {
-        $("#loader-menor").hide();
-        try {
-          const data = typeof resp === "string" ? JSON.parse(resp) : resp;
-
-          if (!data || data.error) {
-            throw new Error(data.error || "Datos inválidos");
-          }
-
-          // Llenar el formulario de edición
-          $("#idCliente").val(data.id_preAlerta);
-          $("#edit_cliente_razon_social").val(data.cliente_razon_social);
-          $("#edit_cliente_ruc").val(data.cliente_ruc);
-          $("#edit_atencion_encargado").val(data.atencion_encargado);
-          $("#edit_fecha_ingreso").val(data.fecha_ingreso);
-
-          // Limpiar y llenar la lista de equipos
-          $("#listaEquipos").empty();
-          if (data.equipos && Array.isArray(data.equipos)) {
-            data.equipos.forEach((equipo, index) => {
-              $("#listaEquipos").append(`
-              <div class="equipo-item mb-3 p-2 border rounded">
-                <h6>Equipo ${index + 1}</h6>
-                <div class="row">
-                  <div class="col-md-3">
-                    <label>Marca</label>
-                    <input type="text" class="form-control equipo-marca" value="${
-                      equipo.marca || ""
-                    }" required>
-                  </div>
-                  <div class="col-md-3">
-                    <label>Modelo</label>
-                    <input type="text" class="form-control equipo-modelo" value="${
-                      equipo.modelo || ""
-                    }" required>
-                  </div>
-                  <div class="col-md-3">
-                    <label>Tipo</label>
-                    <input type="text" class="form-control equipo-tipo" value="${
-                      equipo.equipo || ""
-                    }" required>
-                  </div>
-                  <div class="col-md-3">
-                    <label>Nº Serie</label>
-                    <input type="text" class="form-control equipo-serie" value="${
-                      equipo.numero_serie || ""
-                    }" required>
-                  </div>
-                </div>
-              </div>
-            `);
-            });
-          }
-
-          $("#modalEditar").modal("show");
-        } catch (error) {
-          console.error("Error al procesar datos:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Error al cargar los datos del registro. Por favor, intente nuevamente.",
-          });
-        }
-      },
-      error: (xhr, status, error) => {
-        $("#loader-menor").hide();
-        console.error("Error en la petición:", { xhr, status, error });
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudo cargar los datos del registro",
-        });
-      },
-    });
-  });
-
-  // Also update the submit handler for editing:
-  $("#submitEditar").click(() => {
-    if (!$("#frmClientesEditar")[0].checkValidity()) {
-      $("#frmClientesEditar")[0].reportValidity();
-      return;
-    }
-
-    $("#loader-menor").show();
-
-    const datosPreAlerta = {
-      id_preAlerta: $("#idCliente").val(),
-      cliente_razon_social: $("#edit_cliente_razon_social").val(),
-      cliente_ruc: $("#edit_cliente_ruc").val(),
-      atencion_encargado: $("#edit_atencion_encargado").val(),
-      fecha_ingreso: $("#edit_fecha_ingreso").val(),
-    };
-
-    const equipos = [];
-    $(".equipo-item").each(function () {
-      equipos.push({
-        marca: $(this).find(".equipo-marca").val(),
-        modelo: $(this).find(".equipo-modelo").val(),
-        equipo: $(this).find(".equipo-tipo").val(),
-        numero_serie: $(this).find(".equipo-serie").val(),
-      });
-    });
-
-    $.ajax({
-      type: "POST",
-      url: _URL + "/ajs/prealerta/update",
-      data: {
-        ...datosPreAlerta,
-        equipos: equipos,
-      },
-      success: (resp) => {
-        $("#loader-menor").hide();
-        try {
-          const result = typeof resp === "string" ? JSON.parse(resp) : resp;
-
-          if (result && result.success) {
-            tabla_clientes.ajax.reload(null, false);
-            $("#modalEditar").modal("hide");
-            Swal.fire({
-              icon: "success",
-              title: "¡Éxito!",
-              text: "Registro actualizado correctamente",
-            });
-          } else {
-            throw new Error(result.error || "Error al actualizar");
-          }
-        } catch (error) {
-          console.error("Error al procesar respuesta:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo actualizar el registro",
-          });
-        }
-      },
-      error: (xhr, status, error) => {
-        $("#loader-menor").hide();
-        console.error("Error en la petición:", { xhr, status, error });
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al intentar actualizar el registro",
-        });
-      },
-    });
-  });
-
-  // Agregar una función para actualizar el estado de la cotización
-  function actualizarEstadoCotizacion(id_preAlerta) {
-    $.ajax({
-      url: _URL + "/ajs/prealerta/actualizar-estado-cotizacion",
-      type: "POST",
-      data: { id_preAlerta: id_preAlerta },
-      success: (response) => {
-        if (response.success) {
-          tabla_clientes.ajax.reload(null, false);
-        }
-      },
-    });
-  }
-
-  // Llamar a esta función periódicamente o cuando se guarde una cotización
-  setInterval(() => {
-    tabla_clientes.ajax.reload(null, false);
-  }, 30000); // Actualizar cada 30 segundos, ajusta según necesites
-
   // Funciones para cargar las tablas en los modales
   function cargarTablaMarcas() {
-    $.get("/ajs/get/marcas", (data) => {
+    $.get(_URL + "/ajs/get/marcas", (data) => {
       let html = "";
       JSON.parse(data).forEach((marca) => {
         html += `
@@ -1255,7 +1124,7 @@ $(document).ready(() => {
   }
 
   function cargarTablaTecnicos() {
-    $.get( _URL + "/ajs/get/tecnicos", (data) => {
+    $.get(_URL + "/ajs/get/tecnicos", (data) => {
       let html = "";
       JSON.parse(data).forEach((tecnico) => {
         html += `
@@ -1382,7 +1251,7 @@ $(document).ready(() => {
     const nuevoNombre = td.find("input").val();
 
     $.ajax({
-      url: "/ajs/update/marcas",
+      url: _URL + "/ajs/update/marcas",
       type: "POST",
       data: { id: id, nombre: nuevoNombre },
       success: (response) => {
@@ -1402,7 +1271,7 @@ $(document).ready(() => {
     const nuevoNombre = td.find("input").val();
 
     $.ajax({
-      url: "/ajs/update/modelos",
+      url: _URL + "/ajs/update/modelos",
       type: "POST",
       data: { id: id, nombre: nuevoNombre },
       success: (response) => {
@@ -1422,7 +1291,7 @@ $(document).ready(() => {
     const nuevoNombre = td.find("input").val();
 
     $.ajax({
-      url: "/ajs/update/equipos",
+      url: _URL + "/ajs/update/equipos",
       type: "POST",
       data: { id: id, nombre: nuevoNombre },
       success: (response) => {
@@ -1442,7 +1311,7 @@ $(document).ready(() => {
     const nuevoNombre = td.find("input").val();
 
     $.ajax({
-      url: "/ajs/update/tecnicos",
+      url: _URL + "/ajs/update/tecnicos",
       type: "POST",
       data: { id: id, nombre: nuevoNombre },
       success: (response) => {
@@ -1472,7 +1341,7 @@ $(document).ready(() => {
     }
 
     $.ajax({
-      url: "/ajs/save/marcas",
+      url: _URL + "/ajs/save/marcas",
       type: "POST",
       data: { nombre: nombre },
       success: (response) => {
@@ -1496,7 +1365,7 @@ $(document).ready(() => {
     }
 
     $.ajax({
-      url: "/ajs/save/modelos",
+      url: _URL + "/ajs/save/modelos",
       type: "POST",
       data: { nombre: nombre },
       success: (response) => {
@@ -1520,7 +1389,7 @@ $(document).ready(() => {
     }
 
     $.ajax({
-      url: "/ajs/save/equipos",
+      url: _URL + "/ajs/save/equipos",
       type: "POST",
       data: { nombre: nombre },
       success: (response) => {
@@ -1544,7 +1413,7 @@ $(document).ready(() => {
     }
 
     $.ajax({
-      url: "/ajs/save/tecnicos",
+      url: _URL + "/ajs/save/tecnicos",
       type: "POST",
       data: { nombre: nombre },
       success: (response) => {
@@ -1566,7 +1435,7 @@ $(document).ready(() => {
       (result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: "/ajs/delete/marcas",
+            url: _URL + "/ajs/delete/marcas",
             type: "POST",
             data: { id: id },
             success: () => {
@@ -1593,7 +1462,7 @@ $(document).ready(() => {
       (result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: "/ajs/delete/modelos",
+            url: _URL + "/ajs/delete/modelos",
             type: "POST",
             data: { id: id },
             success: () => {
@@ -1620,7 +1489,7 @@ $(document).ready(() => {
       (result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: "/ajs/delete/equipos",
+            url: _URL + "/ajs/delete/equipos",
             type: "POST",
             data: { id: id },
             success: () => {
@@ -1647,7 +1516,7 @@ $(document).ready(() => {
       (result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: "/ajs/delete/tecnicos",
+            url: _URL + "/ajs/delete/tecnicos",
             type: "POST",
             data: { id: id },
             success: () => {
@@ -1734,7 +1603,7 @@ $(document).ready(() => {
       };
       app.cantidadMaquinasIdenticas = 1;
       app.editando = {
-        id_preAlerta: null,
+        id_orden_servicio: null,
         cliente_Rsocial: "",
         cliente_ruc: "",
         atencion_Encargado: "",
@@ -1743,4 +1612,12 @@ $(document).ready(() => {
       };
     }
   });
+
+  function alertAdvertencia(mensaje) {
+    Swal.fire({
+      icon: "warning",
+      title: "Advertencia",
+      text: mensaje,
+    });
+  }
 });

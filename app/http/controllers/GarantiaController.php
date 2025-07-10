@@ -16,7 +16,6 @@ class GarantiaController extends Controller
     }
 
 
-
 public function insertar()
 {
     // Verificar si se recibieron los datos necesarios
@@ -48,79 +47,55 @@ public function insertar()
                     throw new Exception("Formato de equipos inválido");
                 }
                 
-                // Recolectar todos los detalle_serie_id
-                $detalle_serie_ids = [];
-                $series_data = [];
-                
-                foreach ($equipos as $equipo) {
-                    // Obtener el detalle_serie_id correspondiente al número de serie
-                    $stmt = $this->conectar->prepare("
-                        SELECT id, marca, modelo, equipo, numero_serie FROM detalle_serie 
-                        WHERE numero_serie_id = ? AND numero_serie = ?
-                    ");
-                    $stmt->bind_param("is", $numero_serie_id, $equipo['numero_serie']);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    
-                    if ($result->num_rows === 0) {
-                        throw new Exception("No se encontró el detalle de serie para: " . $equipo['numero_serie']);
-                    }
-                    
-                    $row = $result->fetch_assoc();
-                    $detalle_serie_id = $row['id'];
-                    $detalle_serie_ids[] = $detalle_serie_id;
-                    
-                    // Guardar datos completos de la serie
-                    $series_data[] = [
-                        'id' => $detalle_serie_id,
-                        'numero_serie' => $row['numero_serie'],
-                        'marca' => $row['marca'],
-                        'modelo' => $row['modelo'],
-                        'equipo' => $row['equipo']
-                    ];
-                    
-                    // Verificar si ya existe una garantía para este detalle_serie_id
-                    $stmt = $this->conectar->prepare("
-                        SELECT id_garantia FROM garantia 
-                        WHERE detalle_serie_id = ? OR JSON_CONTAINS(series_ids, ?)
-                    ");
-                    $json_id = json_encode($detalle_serie_id);
-                    $stmt->bind_param("is", $detalle_serie_id, $json_id);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    
-                    if ($result->num_rows > 0) {
-                        throw new Exception("Ya existe una garantía para el número de serie: " . $equipo['numero_serie']);
-                    }
-                }
-                
-                // Usar el primer detalle_serie_id como referencia principal
-                $primer_detalle_serie_id = $detalle_serie_ids[0];
-                
-                // Convertir el array de IDs a JSON
-                $series_ids_json = json_encode($detalle_serie_ids);
-                
-                // Insertar una ÚNICA garantía para todas las series
+                // Obtener el detalle_serie_id para este numero_serie_id
                 $stmt = $this->conectar->prepare("
-                    INSERT INTO garantia (numero_serie_id, detalle_serie_id, series_ids, guia_remision, fecha_inicio, fecha_caducidad) 
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    SELECT id FROM detalle_serie WHERE numero_serie_id = ?
                 ");
-                $stmt->bind_param("iissss", $numero_serie_id, $primer_detalle_serie_id, $series_ids_json, $guia_remision, $fecha_inicio, $fecha_caducidad);
+                $stmt->bind_param("i", $numero_serie_id);
                 $stmt->execute();
+                $result = $stmt->get_result();
                 
-                // Actualizar el estado de todas las series a 'en_garantia'
-                foreach ($detalle_serie_ids as $id) {
-                    $stmt = $this->conectar->prepare("
-                        UPDATE detalle_serie 
-                        SET estado = 'en_garantia' 
-                        WHERE id = ?
-                    ");
-                    $stmt->bind_param("i", $id);
-                    $stmt->execute();
+                if ($result->num_rows === 0) {
+                    throw new Exception("No se encontró el detalle de serie para el ID: " . $numero_serie_id);
                 }
+                
+                $row = $result->fetch_assoc();
+                $detalle_serie_id = $row['id'];
+                
+                // Verificar si ya existe una garantía para este detalle_serie_id
+                $stmt = $this->conectar->prepare("
+                    SELECT id_garantia FROM garantia WHERE detalle_serie_id = ?
+                ");
+                $stmt->bind_param("i", $detalle_serie_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                if ($result->num_rows > 0) {
+                    throw new Exception("Ya existe una garantía para este cliente");
+                }
+                
+                // USAR EL MODELO para insertar con número automático
+                $this->garantia->setNumeroSerieId($numero_serie_id);
+                $this->garantia->setDetalleSerieId($detalle_serie_id);
+                $this->garantia->setGuiaRemision($guia_remision);
+                $this->garantia->setFechaInicio($fecha_inicio);
+                $this->garantia->setFechaCaducidad($fecha_caducidad);
+                
+                // Insertar usando el modelo (que genera el número automáticamente)
+                if (!$this->garantia->insertar()) {
+                    throw new Exception("Error al insertar garantía");
+                }
+                
+                // Actualizar el estado a 'en_garantia'
+                $stmt = $this->conectar->prepare("
+                    UPDATE detalle_serie 
+                    SET estado = 'en_garantia' 
+                    WHERE id = ?
+                ");
+                $stmt->bind_param("i", $detalle_serie_id);
+                $stmt->execute();
             } else {
                 // Formato antiguo: se registra una garantía para todos los equipos
-                // Obtener todos los detalles de serie para este numero_serie_id
                 $stmt = $this->conectar->prepare("
                     SELECT id FROM detalle_serie 
                     WHERE numero_serie_id = ? AND estado = 'disponible'
@@ -133,36 +108,28 @@ public function insertar()
                     throw new Exception("No se encontraron detalles de serie disponibles para el ID: " . $numero_serie_id);
                 }
                 
-                // Recolectar todos los detalle_serie_id
-                $detalle_serie_ids = [];
-                while ($row = $result->fetch_assoc()) {
-                    $detalle_serie_ids[] = $row['id'];
+                $row = $result->fetch_assoc();
+                $detalle_serie_id = $row['id'];
+                
+                // USAR EL MODELO para insertar
+                $this->garantia->setNumeroSerieId($numero_serie_id);
+                $this->garantia->setDetalleSerieId($detalle_serie_id);
+                $this->garantia->setGuiaRemision($guia_remision);
+                $this->garantia->setFechaInicio($fecha_inicio);
+                $this->garantia->setFechaCaducidad($fecha_caducidad);
+                
+                if (!$this->garantia->insertar()) {
+                    throw new Exception("Error al insertar garantía");
                 }
                 
-                // Usar el primer detalle_serie_id como referencia principal
-                $primer_detalle_serie_id = $detalle_serie_ids[0];
-                
-                // Convertir el array de IDs a JSON
-                $series_ids_json = json_encode($detalle_serie_ids);
-                
-                // Insertar una ÚNICA garantía para todas las series
+                // Actualizar el estado a 'en_garantia'
                 $stmt = $this->conectar->prepare("
-                    INSERT INTO garantia (numero_serie_id, detalle_serie_id, series_ids, guia_remision, fecha_inicio, fecha_caducidad) 
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    UPDATE detalle_serie 
+                    SET estado = 'en_garantia' 
+                    WHERE id = ?
                 ");
-                $stmt->bind_param("iissss", $numero_serie_id, $primer_detalle_serie_id, $series_ids_json, $guia_remision, $fecha_inicio, $fecha_caducidad);
+                $stmt->bind_param("i", $detalle_serie_id);
                 $stmt->execute();
-                
-                // Actualizar el estado de todas las series a 'en_garantia'
-                foreach ($detalle_serie_ids as $id) {
-                    $stmt = $this->conectar->prepare("
-                        UPDATE detalle_serie 
-                        SET estado = 'en_garantia' 
-                        WHERE id = ?
-                    ");
-                    $stmt->bind_param("i", $id);
-                    $stmt->execute();
-                }
             }
         } 
         // Verificar si viene de garantia-manual.php (con numero_serie)
@@ -174,16 +141,16 @@ public function insertar()
             $series = array_map('trim', $series);
             
             if (count($series) > 1) {
-                // Múltiples series
-                $detalle_serie_ids = [];
+                // Múltiples series - buscar el primer cliente que contenga todas las series
                 $numero_serie_id = null;
+                $detalle_serie_id = null;
                 
                 foreach ($series as $serie) {
-                    // Buscar el detalle_serie_id y numero_serie_id correspondientes al número de serie
                     $stmt = $this->conectar->prepare("
-                        SELECT ds.id as detalle_serie_id, ds.numero_serie_id 
+                        SELECT ds.id, ds.numero_serie_id 
                         FROM detalle_serie ds
-                        WHERE ds.numero_serie = ? AND ds.estado = 'disponible'
+                        WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL 
+                        AND ds.estado = 'disponible'
                     ");
                     $stmt->bind_param("s", $serie);
                     $stmt->execute();
@@ -194,63 +161,40 @@ public function insertar()
                     }
                     
                     $row = $result->fetch_assoc();
-                    $detalle_serie_id = $row['detalle_serie_id'];
                     
-                    // Asegurarse de que todas las series pertenecen al mismo cliente (numero_serie_id)
                     if ($numero_serie_id === null) {
                         $numero_serie_id = $row['numero_serie_id'];
+                        $detalle_serie_id = $row['id'];
                     } else if ($numero_serie_id != $row['numero_serie_id']) {
                         throw new Exception("Las series seleccionadas pertenecen a diferentes clientes");
                     }
-                    
-                    $detalle_serie_ids[] = $detalle_serie_id;
-                    
-                    // Verificar si ya existe una garantía para este detalle_serie_id
-                    $stmt = $this->conectar->prepare("
-                        SELECT id_garantia FROM garantia 
-                        WHERE detalle_serie_id = ? OR JSON_CONTAINS(series_ids, ?)
-                    ");
-                    $json_id = json_encode($detalle_serie_id);
-                    $stmt->bind_param("is", $detalle_serie_id, $json_id);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    
-                    if ($result->num_rows > 0) {
-                        throw new Exception("Ya existe una garantía para el número de serie: " . $serie);
-                    }
                 }
                 
-                // Usar el primer detalle_serie_id como referencia principal
-                $primer_detalle_serie_id = $detalle_serie_ids[0];
+                // USAR EL MODELO
+                $this->garantia->setNumeroSerieId($numero_serie_id);
+                $this->garantia->setDetalleSerieId($detalle_serie_id);
+                $this->garantia->setGuiaRemision($guia_remision);
+                $this->garantia->setFechaInicio($fecha_inicio);
+                $this->garantia->setFechaCaducidad($fecha_caducidad);
                 
-                // Convertir el array de IDs a JSON
-                $series_ids_json = json_encode($detalle_serie_ids);
+                if (!$this->garantia->insertar()) {
+                    throw new Exception("Error al insertar garantía");
+                }
                 
-                // Insertar una ÚNICA garantía para todas las series
+                // Actualizar estado
                 $stmt = $this->conectar->prepare("
-                    INSERT INTO garantia (numero_serie_id, detalle_serie_id, series_ids, guia_remision, fecha_inicio, fecha_caducidad) 
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    UPDATE detalle_serie 
+                    SET estado = 'en_garantia' 
+                    WHERE id = ?
                 ");
-                $stmt->bind_param("iissss", $numero_serie_id, $primer_detalle_serie_id, $series_ids_json, $guia_remision, $fecha_inicio, $fecha_caducidad);
+                $stmt->bind_param("i", $detalle_serie_id);
                 $stmt->execute();
-                
-                // Actualizar el estado de todas las series a 'en_garantia'
-                foreach ($detalle_serie_ids as $id) {
-                    $stmt = $this->conectar->prepare("
-                        UPDATE detalle_serie 
-                        SET estado = 'en_garantia' 
-                        WHERE id = ?
-                    ");
-                    $stmt->bind_param("i", $id);
-                    $stmt->execute();
-                }
             } else {
-                // Una sola serie (código original)
-                // Buscar el detalle_serie_id y numero_serie_id correspondientes al número de serie
+                // Una sola serie
                 $stmt = $this->conectar->prepare("
-                    SELECT ds.id as detalle_serie_id, ds.numero_serie_id 
+                    SELECT ds.id, ds.numero_serie_id 
                     FROM detalle_serie ds
-                    WHERE ds.numero_serie = ?
+                    WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL
                 ");
                 $stmt->bind_param("s", $numero_serie);
                 $stmt->execute();
@@ -261,32 +205,21 @@ public function insertar()
                 }
                 
                 $row = $result->fetch_assoc();
-                $detalle_serie_id = $row['detalle_serie_id'];
+                $detalle_serie_id = $row['id'];
                 $numero_serie_id = $row['numero_serie_id'];
                 
-                // Verificar si ya existe una garantía para este detalle_serie_id
-                $stmt = $this->conectar->prepare("
-                    SELECT id_garantia FROM garantia 
-                    WHERE detalle_serie_id = ? OR JSON_CONTAINS(series_ids, ?)
-                ");
-                $json_id = json_encode($detalle_serie_id);
-                $stmt->bind_param("is", $detalle_serie_id, $json_id);
-                $stmt->execute();
-                $result = $stmt->get_result();
+                // USAR EL MODELO
+                $this->garantia->setNumeroSerieId($numero_serie_id);
+                $this->garantia->setDetalleSerieId($detalle_serie_id);
+                $this->garantia->setGuiaRemision($guia_remision);
+                $this->garantia->setFechaInicio($fecha_inicio);
+                $this->garantia->setFechaCaducidad($fecha_caducidad);
                 
-                if ($result->num_rows > 0) {
-                    throw new Exception("Ya existe una garantía para el número de serie: " . $numero_serie);
+                if (!$this->garantia->insertar()) {
+                    throw new Exception("Error al insertar garantía");
                 }
                 
-                // Insertar la garantía
-                $stmt = $this->conectar->prepare("
-                    INSERT INTO garantia (numero_serie_id, detalle_serie_id, guia_remision, fecha_inicio, fecha_caducidad) 
-                    VALUES (?, ?, ?, ?, ?)
-                ");
-                $stmt->bind_param("iisss", $numero_serie_id, $detalle_serie_id, $guia_remision, $fecha_inicio, $fecha_caducidad);
-                $stmt->execute();
-                
-                // Actualizar el estado del número de serie a 'en_garantia'
+                // Actualizar estado
                 $stmt = $this->conectar->prepare("
                     UPDATE detalle_serie 
                     SET estado = 'en_garantia' 
@@ -309,21 +242,15 @@ public function insertar()
         echo json_encode(['res' => false, 'msg' => $e->getMessage()]);
     }
 }
+
     public function cargarDatosNumeroSerie()
     {
         if (isset($_GET['id'])) {
             $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 
-            // Consulta modificada para obtener nombres en lugar de IDs
-            $sql = "SELECT ns.*, ds.*, 
-                mo.nombre AS modelo_nombre, 
-                ma.nombre AS marca_nombre, 
-                e.nombre AS equipo_nombre 
+            $sql = "SELECT ns.*, ds.*
                 FROM numero_series ns
                 LEFT JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-                LEFT JOIN modelos mo ON ds.modelo = mo.id
-                LEFT JOIN marcas ma ON ds.marca = ma.id
-                LEFT JOIN equipos e ON ds.equipo = e.id
                 WHERE ns.id = ?";
 
             try {
@@ -335,25 +262,37 @@ public function insertar()
                 $serie = null;
                 $equipos = [];
 
-                while ($row = $resultado->fetch_assoc()) {
-                    if (!$serie) {
-                        $serie = [
-                            'id' => $row['id'],
-                            'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                            'fecha_creacion' => $row['fecha_creacion'],
-                            'cantidad_equipos' => $row['cantidad_equipos']
-                        ];
-                    }
+                if ($row = $resultado->fetch_assoc()) {
+                    $serie = [
+                        'id' => $row['id'],
+                        'cliente_ruc_dni' => $row['cliente_ruc_dni'],
+                        'fecha_creacion' => $row['fecha_creacion'],
+                        'cantidad_equipos' => $row['cantidad_equipos']
+                    ];
+
                     if ($row['numero_serie']) {
-                        $equipos[] = [
-                            'modelo' => $row['modelo'],
-                            'modelo_nombre' => $row['modelo_nombre'],
-                            'marca' => $row['marca'],
-                            'marca_nombre' => $row['marca_nombre'],
-                            'equipo' => $row['equipo'],
-                            'equipo_nombre' => $row['equipo_nombre'],
-                            'numero_serie' => $row['numero_serie']
-                        ];
+                        // Decodificar los arrays JSON
+                        $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
+                        $modelos = json_decode($row['modelo'], true) ?: [];
+                        $marcas = json_decode($row['marca'], true) ?: [];
+                        $equipos_tipos = json_decode($row['equipo'], true) ?: [];
+
+                        // Crear array de equipos combinando los datos
+                        for ($i = 0; $i < count($numeros_serie); $i++) {
+                            $modelo_id = $modelos[$i] ?? '';
+                            $marca_id = $marcas[$i] ?? '';
+                            $equipo_id = $equipos_tipos[$i] ?? '';
+
+                            $equipos[] = [
+                                'modelo' => $modelo_id,
+                                'modelo_nombre' => $this->getNombreById('modelos', $modelo_id),
+                                'marca' => $marca_id,
+                                'marca_nombre' => $this->getNombreById('marcas', $marca_id),
+                                'equipo' => $equipo_id,
+                                'equipo_nombre' => $this->getNombreById('equipos', $equipo_id),
+                                'numero_serie' => $numeros_serie[$i] ?? ''
+                            ];
+                        }
                     }
                 }
 
@@ -369,6 +308,22 @@ public function insertar()
         } else {
             echo json_encode(['success' => false, 'error' => 'ID no proporcionado']);
         }
+    }
+
+    private function getNombreById($tabla, $id)
+    {
+        if (empty($id)) return '';
+        
+        $stmt = $this->conectar->prepare("SELECT nombre FROM {$tabla} WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        
+        if ($row = $resultado->fetch_assoc()) {
+            return $row['nombre'];
+        }
+        
+        return '';
     }
     public function render()
     {
@@ -386,9 +341,10 @@ public function insertar()
         
         try {
             // Primero obtenemos la información básica de la garantía
-            $sql = "SELECT g.*, ns.cliente_ruc_dni, g.series_ids
+            $sql = "SELECT g.*, ns.cliente_ruc_dni, g.series_ids, ds.numero_serie as detalle_numero_serie
                     FROM garantia g
                     JOIN numero_series ns ON g.numero_serie_id = ns.id
+                    JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
                     WHERE g.id_garantia = ?";
             
             $stmt = $this->conectar->prepare($sql);
@@ -403,39 +359,74 @@ public function insertar()
             
             $garantia = $result->fetch_assoc();
             
-            // Verificar si hay series_ids
+            // Procesar las series desde detalle_serie
             $series = [];
-            if (!empty($garantia['series_ids'])) {
-                $seriesIds = json_decode($garantia['series_ids'], true);
+            
+            // Primero intentar obtener desde el campo detalle_numero_serie (JSON)
+            if (!empty($garantia['detalle_numero_serie'])) {
+                $numeros_serie = json_decode($garantia['detalle_numero_serie'], true);
                 
-                if (is_array($seriesIds) && count($seriesIds) > 0) {
-                    // Consultar los detalles de todas las series
-                    $placeholders = implode(',', array_fill(0, count($seriesIds), '?'));
+                if (is_array($numeros_serie) && count($numeros_serie) > 0) {
+                    // Obtener los detalles de marca, modelo y equipo desde detalle_serie
                     $sql = "SELECT ds.*, m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre
                             FROM detalle_serie ds
                             LEFT JOIN marcas m ON ds.marca = m.id
                             LEFT JOIN modelos mo ON ds.modelo = mo.id
                             LEFT JOIN equipos e ON ds.equipo = e.id
-                            WHERE ds.id IN ($placeholders)";
+                            WHERE ds.id = ?";
                     
                     $stmt = $this->conectar->prepare($sql);
-                    
-                    // Crear un array con los tipos de parámetros
-                    $types = str_repeat('i', count($seriesIds));
-                    
-                    // Crear un array con los valores de los parámetros
-                    $params = $seriesIds;
-                    
-                    // Añadir los tipos de parámetros al inicio del array
-                    array_unshift($params, $types);
-                    
-                    // Pasar los parámetros usando call_user_func_array
-                    call_user_func_array([$stmt, 'bind_param'], $this->refValues($params));
-                    
+                    $stmt->bind_param("i", $garantia['detalle_serie_id']);
                     $stmt->execute();
                     $result = $stmt->get_result();
                     
-                    while ($row = $result->fetch_assoc()) {
+                    if ($row = $result->fetch_assoc()) {
+                        // Decodificar los arrays JSON para obtener marca, modelo y equipo
+                        $marcas = json_decode($row['marca'], true) ?: [];
+                        $modelos = json_decode($row['modelo'], true) ?: [];
+                        $equipos = json_decode($row['equipo'], true) ?: [];
+                        
+                        // Crear una entrada por cada número de serie
+                        foreach ($numeros_serie as $index => $numero_serie) {
+                            $marca_id = $marcas[$index] ?? null;
+                            $modelo_id = $modelos[$index] ?? null;
+                            $equipo_id = $equipos[$index] ?? null;
+                            
+                            $marca_nombre = $marca_id ? $this->getNombreById('marcas', $marca_id) : '-';
+                            $modelo_nombre = $modelo_id ? $this->getNombreById('modelos', $modelo_id) : '-';
+                            $equipo_nombre = $equipo_id ? $this->getNombreById('equipos', $equipo_id) : '-';
+                            
+                            $series[] = [
+                                'id_garantia' => $garantia['id_garantia'],
+                                'cliente_ruc_dni' => $garantia['cliente_ruc_dni'],
+                                'guia_remision' => $garantia['guia_remision'],
+                                'fecha_inicio' => $garantia['fecha_inicio'],
+                                'fecha_caducidad' => $garantia['fecha_caducidad'],
+                                'numero_serie' => $numero_serie,
+                                'marca' => $marca_id,
+                                'marca_nombre' => $marca_nombre,
+                                'modelo' => $modelo_id,
+                                'modelo_nombre' => $modelo_nombre,
+                                'equipo' => $equipo_id,
+                                'equipo_nombre' => $equipo_nombre
+                            ];
+                        }
+                    }
+                } else {
+                    // Si no es un array JSON, tratar como serie única
+                    $sql = "SELECT ds.*, m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre
+                            FROM detalle_serie ds
+                            LEFT JOIN marcas m ON ds.marca = m.id
+                            LEFT JOIN modelos mo ON ds.modelo = mo.id
+                            LEFT JOIN equipos e ON ds.equipo = e.id
+                            WHERE ds.id = ?";
+                    
+                    $stmt = $this->conectar->prepare($sql);
+                    $stmt->bind_param("i", $garantia['detalle_serie_id']);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    
+                    if ($row = $result->fetch_assoc()) {
                         $series[] = [
                             'id_garantia' => $garantia['id_garantia'],
                             'cliente_ruc_dni' => $garantia['cliente_ruc_dni'],
@@ -444,46 +435,13 @@ public function insertar()
                             'fecha_caducidad' => $garantia['fecha_caducidad'],
                             'numero_serie' => $row['numero_serie'],
                             'marca' => $row['marca'],
-                            'marca_nombre' => $row['marca_nombre'],
+                            'marca_nombre' => $row['marca_nombre'] ?: '-',
                             'modelo' => $row['modelo'],
-                            'modelo_nombre' => $row['modelo_nombre'],
+                            'modelo_nombre' => $row['modelo_nombre'] ?: '-',
                             'equipo' => $row['equipo'],
-                            'equipo_nombre' => $row['equipo_nombre']
+                            'equipo_nombre' => $row['equipo_nombre'] ?: '-'
                         ];
                     }
-                }
-            }
-            
-            // Si no hay series asociadas, devolver solo la garantía principal
-            if (empty($series)) {
-                // Obtener los detalles de la serie principal
-                $sql = "SELECT ds.*, m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre
-                        FROM detalle_serie ds
-                        LEFT JOIN marcas m ON ds.marca = m.id
-                        LEFT JOIN modelos mo ON ds.modelo = mo.id
-                        LEFT JOIN equipos e ON ds.equipo = e.id
-                        WHERE ds.id = ?";
-                
-                $stmt = $this->conectar->prepare($sql);
-                $stmt->bind_param("i", $garantia['detalle_serie_id']);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                
-                if ($row = $result->fetch_assoc()) {
-                    $series[] = [
-                        'id_garantia' => $garantia['id_garantia'],
-                        'cliente_ruc_dni' => $garantia['cliente_ruc_dni'],
-                        'guia_remision' => $garantia['guia_remision'],
-                        'fecha_inicio' => $garantia['fecha_inicio'],
-                        'fecha_caducidad' => $garantia['fecha_caducidad'],
-                        'numero_serie' => $row['numero_serie'],
-                        'marca' => $row['marca'],
-                        'marca_nombre' => $row['marca_nombre'],
-                        'modelo' => $row['modelo'],
-                        'modelo_nombre' => $row['modelo_nombre'],
-                        'equipo' => $row['equipo'],
-                        'equipo_nombre' => $row['equipo_nombre']
-                    ];
                 }
             }
             
@@ -551,9 +509,9 @@ public function borrar()
     $this->conectar->begin_transaction();
     
     try {
-        // Obtener los detalle_serie_id antes de eliminar la garantía
+        // Obtener el detalle_serie_id antes de eliminar la garantía
         $stmt = $this->conectar->prepare("
-            SELECT detalle_serie_id, series_ids FROM garantia WHERE id_garantia = ?
+            SELECT detalle_serie_id FROM garantia WHERE id_garantia = ?
         ");
         $stmt->bind_param("i", $dataId);
         $stmt->execute();
@@ -565,12 +523,6 @@ public function borrar()
         
         $row = $result->fetch_assoc();
         $detalle_serie_id = $row['detalle_serie_id'];
-        $series_ids = json_decode($row['series_ids'] ?? '[]', true);
-        
-        // Si no hay series_ids, usar solo el detalle_serie_id
-        if (empty($series_ids)) {
-            $series_ids = [$detalle_serie_id];
-        }
         
         // Eliminar la garantía
         $stmt = $this->conectar->prepare("
@@ -579,16 +531,14 @@ public function borrar()
         $stmt->bind_param("i", $dataId);
         $stmt->execute();
         
-        // Restaurar el estado de todas las series a 'disponible'
-        foreach ($series_ids as $id) {
-            $stmt = $this->conectar->prepare("
-                UPDATE detalle_serie 
-                SET estado = 'disponible' 
-                WHERE id = ?
-            ");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-        }
+        // Restaurar el estado a 'disponible'
+        $stmt = $this->conectar->prepare("
+            UPDATE detalle_serie 
+            SET estado = 'disponible' 
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $detalle_serie_id);
+        $stmt->execute();
         
         // Confirmar la transacción
         $this->conectar->commit();

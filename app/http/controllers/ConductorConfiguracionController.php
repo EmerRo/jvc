@@ -41,6 +41,13 @@ class ConductorConfiguracionController extends Controller {
             ORDER BY cc.fecha_registro DESC";
     
     $stmt = $this->conectar->prepare($sql);
+    
+    if (!$stmt) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => false, 'message' => 'Error en la consulta: ' . $this->conectar->error]);
+        return;
+    }
+    
     $stmt->bind_param("i", $chofer_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -62,6 +69,13 @@ class ConductorConfiguracionController extends Controller {
         // Buscar si el chofer ya existe
         $sql_chofer = "SELECT id FROM guia_choferes WHERE dni = ?";
         $stmt = $this->conectar->prepare($sql_chofer);
+        
+        if (!$stmt) {
+            header('Content-Type: application/json');
+            echo json_encode(['status' => false, 'message' => 'Error al preparar consulta de chofer: ' . $this->conectar->error]);
+            return;
+        }
+        
         $stmt->bind_param("s", $chofer_dni);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -73,19 +87,33 @@ class ConductorConfiguracionController extends Controller {
             // Actualizar el nombre si es diferente
             $sql_update = "UPDATE guia_choferes SET nombre = ? WHERE id = ?";
             $stmt_update = $this->conectar->prepare($sql_update);
+            
+            if (!$stmt_update) {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => false, 'message' => 'Error al preparar actualización de chofer: ' . $this->conectar->error]);
+                return;
+            }
+            
             $stmt_update->bind_param("si", $chofer_nombre, $chofer_id);
             $stmt_update->execute();
         } else {
             // Crear nuevo chofer
             $sql_insert = "INSERT INTO guia_choferes (nombre, dni) VALUES (?, ?)";
             $stmt_insert = $this->conectar->prepare($sql_insert);
+            
+            if (!$stmt_insert) {
+                header('Content-Type: application/json');
+                echo json_encode(['status' => false, 'message' => 'Error al preparar inserción de chofer: ' . $this->conectar->error]);
+                return;
+            }
+            
             $stmt_insert->bind_param("ss", $chofer_nombre, $chofer_dni);
             
             if ($stmt_insert->execute()) {
                 $chofer_id = $this->conectar->insert_id;
             } else {
                 header('Content-Type: application/json');
-                echo json_encode(['status' => false, 'message' => 'Error al crear chofer']);
+                echo json_encode(['status' => false, 'message' => 'Error al crear chofer: ' . $stmt_insert->error]);
                 return;
             }
         }
@@ -95,10 +123,17 @@ class ConductorConfiguracionController extends Controller {
         $vehiculo_marca = $this->conectar->real_escape_string($_POST['vehiculo_marca']);
         $licencia_numero = $this->conectar->real_escape_string($_POST['licencia_numero']);
         
-        // Verificar si ya existe esta configuración
+        // Verificar si ya existe esta configuración (SIN la columna activo)
         $sql_check = "SELECT id FROM guia_conductor_configuraciones 
-                      WHERE chofer_id = ? AND vehiculo_placa = ? AND licencia_numero = ? AND activo = 1";
+                      WHERE chofer_id = ? AND vehiculo_placa = ? AND licencia_numero = ?";
         $stmt_check = $this->conectar->prepare($sql_check);
+        
+        if (!$stmt_check) {
+            header('Content-Type: application/json');
+            echo json_encode(['status' => false, 'message' => 'Error al verificar configuración existente: ' . $this->conectar->error]);
+            return;
+        }
+        
         $stmt_check->bind_param("iss", $chofer_id, $vehiculo_placa, $licencia_numero);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
@@ -114,17 +149,25 @@ class ConductorConfiguracionController extends Controller {
                 (chofer_id, chofer_nombre, chofer_dni, vehiculo_placa, vehiculo_marca, licencia_numero) 
                 VALUES (?, ?, ?, ?, ?, ?)";
         
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("isssss", $chofer_id, $chofer_nombre, $chofer_dni, $vehiculo_placa, $vehiculo_marca, $licencia_numero);
+        $stmt_final = $this->conectar->prepare($sql);
         
-        if ($stmt->execute()) {
+        if (!$stmt_final) {
+            header('Content-Type: application/json');
+            echo json_encode(['status' => false, 'message' => 'Error al preparar inserción de configuración: ' . $this->conectar->error]);
+            return;
+        }
+        
+        $stmt_final->bind_param("isssss", $chofer_id, $chofer_nombre, $chofer_dni, $vehiculo_placa, $vehiculo_marca, $licencia_numero);
+        
+        if ($stmt_final->execute()) {
             header('Content-Type: application/json');
             echo json_encode(['status' => true, 'message' => 'Configuración guardada correctamente']);
         } else {
             header('Content-Type: application/json');
-            echo json_encode(['status' => false, 'message' => 'Error al guardar la configuración']);
+            echo json_encode(['status' => false, 'message' => 'Error al guardar la configuración: ' . $stmt_final->error]);
         }
     }
+    
 public function update() {
     if (!isset($_POST['config_id'])) {
         header('Content-Type: application/json');
@@ -191,7 +234,7 @@ public function update() {
         }
     }
 
-    // Verificar que no exista otra configuración igual (excluyendo la actual)
+    // Verificar que no exista otra configuración igual (excluyendo la actual) - SIN columna activo
     $sql_check = "SELECT id FROM guia_conductor_configuraciones 
                   WHERE chofer_id = ? AND vehiculo_placa = ? AND licencia_numero = ? 
                   AND id != ?";
@@ -253,6 +296,13 @@ public function update() {
     // Primero obtenemos el chofer_id antes de eliminar la configuración
     $sql_get_chofer = "SELECT chofer_id FROM guia_conductor_configuraciones WHERE id = ?";
     $stmt_get = $this->conectar->prepare($sql_get_chofer);
+    
+    if (!$stmt_get) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => false, 'message' => 'Error al preparar consulta: ' . $this->conectar->error]);
+        return;
+    }
+    
     $stmt_get->bind_param("i", $config_id);
     $stmt_get->execute();
     $result_chofer = $stmt_get->get_result();
@@ -273,15 +323,25 @@ public function update() {
         // Eliminar físicamente la configuración específica
         $sql_delete_config = "DELETE FROM guia_conductor_configuraciones WHERE id = ?";
         $stmt_delete_config = $this->conectar->prepare($sql_delete_config);
+        
+        if (!$stmt_delete_config) {
+            throw new Exception("Error al preparar eliminación de configuración: " . $this->conectar->error);
+        }
+        
         $stmt_delete_config->bind_param("i", $config_id);
         
         if (!$stmt_delete_config->execute()) {
-            throw new Exception("Error al eliminar la configuración");
+            throw new Exception("Error al eliminar la configuración: " . $stmt_delete_config->error);
         }
         
         // Verificar si el chofer tiene otras configuraciones
         $sql_check_other = "SELECT COUNT(*) as total FROM guia_conductor_configuraciones WHERE chofer_id = ?";
         $stmt_check = $this->conectar->prepare($sql_check_other);
+        
+        if (!$stmt_check) {
+            throw new Exception("Error al verificar otras configuraciones: " . $this->conectar->error);
+        }
+        
         $stmt_check->bind_param("i", $chofer_id);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
@@ -291,10 +351,15 @@ public function update() {
         if ($count_data['total'] == 0) {
             $sql_delete_chofer = "DELETE FROM guia_choferes WHERE id = ?";
             $stmt_delete_chofer = $this->conectar->prepare($sql_delete_chofer);
+            
+            if (!$stmt_delete_chofer) {
+                throw new Exception("Error al preparar eliminación de chofer: " . $this->conectar->error);
+            }
+            
             $stmt_delete_chofer->bind_param("i", $chofer_id);
             
             if (!$stmt_delete_chofer->execute()) {
-                throw new Exception("Error al eliminar el chofer");
+                throw new Exception("Error al eliminar el chofer: " . $stmt_delete_chofer->error);
             }
         }
         

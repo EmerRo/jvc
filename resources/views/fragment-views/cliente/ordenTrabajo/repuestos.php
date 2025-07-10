@@ -54,6 +54,8 @@ $almacenRepuesto = 1;
             <h6 class="page-title text-center">REPUESTOS</h6>
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Almacen</a></li>
+                <li class="breadcrumb-item"><a href="javascript: void(0);"
+                        style="font-weight: 500; color: #CA3438;">Repuestos</a></li>
             </ol>
         </div>
         <div class="col-md-4">
@@ -83,82 +85,36 @@ $almacenRepuesto = 1;
 
     <div class="row">
         <div class="col-12">
-            <div class="card"
-                style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="card-title">Lista de Repuestos</h4>
-                        </div>
-                        <div class=" text-end">
-                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
-                                    class="fa fa-file-excel"></i>
-                                Descargar Excel por búsqueda</button>
-                            <button data-bs-toggle="modal" data-bs-target="#importarModal"
-                                class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
-                                Importar</button>
-
-
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
-                                data-bs-target="#modal-aumentar-stock">
-                                <i class="fa fa-plus"></i> Aumentar Stock de Repuestos
-                            </button>
-
-
-                            <!--unidades -->
-
-                            <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i> Unidades</a>
-
-                            <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"></i> Categorias</a>
-                            <button class="btn bg-rojo text-white bordes" id="add-rep"><i class="fa fa-plus"></i>
-                                Agregar
-                                Repuesto</button>
+            <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
+                <div class="card-header" style="background: #fff; border-bottom: none; padding-bottom: 0;">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Lista de Repuestos</h4>
+                        <div class="text-end mt-2 mt-md-0">
+                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Descargar Excel por búsqueda</button>
+                            <button data-bs-toggle="modal" data-bs-target="#importarModal" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Importar</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"></i> Aumentar Stock de Repuestos</button>
+                            <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Unidades</a>
+                            <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Categorias</a>
+                            <button class="btn bg-rojo text-white bordes" id="add-rep"><i class="fa fa-plus"></i> Agregar Repuesto</button>
                             <button class="btn btn-danger btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
-                                Seleccionar Todos</button>
+                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
                     <div class="row">
-
                         <div class="form-group col-md-2" style="margin:  1rem 0;">
                             <label for="">Almacen</label>
-                            <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                @change="changeAlmacen($event)" v-model="almacen">
+                            <select name="almacenSelect" id="almacenSelect" class="form-control" @change="changeAlmacen($event)" v-model="almacen">
                                 <option value="1">Almacen 1</option>
                                 <option value="2">Almacen 2</option>
                                 <option value="3">Almacen 3</option>
                             </select>
                         </div>
-
-                        <!-- opciones de filtrado -->
-                        <!-- <div class="d-flex gap-3 align-items-center">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="maquinas"
-                                    name="filter" value="maquinas">
-                                <label class="form-check-label" for="maquinas">#JVC</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="implementos"
-                                    name="filter" value="implementos">
-                                <label class="form-check-label" for="implementos">#IMPLE</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="rep" name="filter"
-                                    value="rep">
-                                <label class="form-check-label" for="rep">#REP</label>
-                            </div>
-                        </div> -->
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
-                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-
-                            <thead>
+                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Codigo</th>
                                     <th>Nombre Del Repuesto</th>
@@ -173,7 +129,6 @@ $almacenRepuesto = 1;
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -1359,7 +1314,7 @@ $almacenRepuesto = 1;
                             columnDefs: [
                                 {
                                     "targets": [0, 1],
-                                    "className": "dt-body-left"
+                                    "className": "text-center"
                                 },
                                 {
                                     "targets": 0,
@@ -1877,7 +1832,7 @@ $almacenRepuesto = 1;
                 columnDefs: [
                     {
                         "targets": [0, 1],
-                        "className": "dt-body-left"
+                        "className": "text-center"
                     },
                     {
                         "targets": 0,

@@ -49,9 +49,9 @@
                     <table id="datatable-c" class="table table-bordered dt-responsive nowrap text-center table-sm"
                         style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th>#</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Cliente</th>
                                 <th>Sub. Total</th>
@@ -152,6 +152,14 @@
             },
             columnDefs: [
                 {
+                    targets: 0, // Columna N°
+                    render: function (data, type, row, meta) {
+                        // Formatear el número como COT-XXX con enlace
+                        const numeroFormateado = 'COT-' + String(data).padStart(2, '0');
+                        return `<a href="#" class="text-primary" style="text-decoration: none;">${numeroFormateado}</a>`;
+                    }
+                },
+                {
                     targets: 8,
                     render(data) {
                         return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
@@ -162,11 +170,11 @@
                     targets: 7,
                     render: function (data, type, row, meta) {
                         if (data == '1') {
-                            return '<span class="badge rounded-pill bg-success">Vendido</span>'
+                            return '<span class="badge  bg-success">Vendido</span>'
                         } else if (data == '2') {
-                            return '<span class="badge rounded-pill bg-warning">Facturado</span>'
+                            return '<span class="badge  bg-warning">Facturado</span>'
                         } else {
-                            return '<span class="badge rounded-pill bg-danger">No Vendido</span>'
+                            return '<span class="badge bg-danger">No Vendido</span>'
                         }
                     }
                 },

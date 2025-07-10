@@ -1,6 +1,7 @@
-// Variables globales
+//public\js\taller-cotizaciones\terminos-condiciones.js
 let editor = null
 let editorContent = ""
+let tipoGuardado = "individual"
 
 // Función para inicializar Quill con configuración mejorada
 function initializeEditor(content) {
@@ -54,33 +55,10 @@ function initializeEditor(content) {
         <div id="editor-content" style="min-height: 200px;"></div>
     `
 
-  // Configurar Quill con nuevas opciones
   try {
-    editor = new Quill("#editor-content", {
+    editor = new window.Quill("#editor-content", {
       modules: {
         toolbar: "#toolbar",
-        keyboard: {
-          bindings: {
-            // Configuración personalizada para la tecla Enter
-            enter: {
-              key: 13,
-              handler: function (range) {
-                // Obtener el contenido de la línea actual
-                const currentLine = this.quill.getLine(range.index)[0]
-                const format = currentLine ? currentLine.formats() : {}
-
-                // Insertar nueva línea con viñeta
-                this.quill.insertText(range.index, "\n• ", format)
-
-                // Mover el cursor después de la viñeta
-                this.quill.setSelection(range.index + 3)
-
-                // Prevenir el comportamiento por defecto
-                return false
-              },
-            },
-          },
-        },
         history: {
           delay: 2000,
           maxStack: 500,
@@ -89,99 +67,41 @@ function initializeEditor(content) {
       },
       theme: "snow",
       placeholder: "Escribe aquí los términos y condiciones...",
-      formats: [
-        "bold",
-        "italic",
-        "underline",
-        "strike",
-        "align",
-        "list",
-        "bullet",
-        "link",
-        "color",
-        "background",
-        "font",
-        "header",
-      ],
     })
 
-    // Establecer el contenido inicial formateado
     const formattedContent = formatDatabaseContent(content)
     console.log("Contenido formateado:", formattedContent)
     editor.root.innerHTML = formattedContent
-
-    // Agregar evento para manejar el pegado de texto
-    editor.root.addEventListener("paste", (e) => {
-      e.preventDefault()
-
-      // Obtener el texto plano del portapapeles
-      const text = e.clipboardData.getData("text/plain")
-
-      // Formatear el texto pegado con viñetas
-      const formattedText = text
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line)
-        .map((line) => (line.startsWith("•") ? line : `• ${line}`))
-        .join("\n")
-
-      // Insertar el texto formateado
-      const range = editor.getSelection()
-      if (range) {
-        editor.insertText(range.index, formattedText)
-      }
-    })
   } catch (error) {
     console.error("Error al inicializar Quill:", error)
     return
   }
 }
 
-// Función para formatear el contenido de la base de datos
 function formatDatabaseContent(content) {
   if (!content) return ""
-
-  // Limpiamos el contenido inicial
   content = content.trim()
-
-  // Reemplazamos los caracteres especiales HTML
   content = content.replace(/&amp;/g, "&")
-
-  // Dividimos el texto por saltos de línea
   let lines = content.split("\n")
-
-  // Filtramos líneas vacías y procesamos cada línea
   lines = lines.filter((line) => line.trim() !== "")
-
-  // Formateamos cada línea con el bullet y un espacio
   const formattedContent = lines
     .map((line) => {
       line = line.trim()
-      // Si la línea ya comienza con una viñeta, la dejamos como está
       if (line.startsWith("•")) {
         return "<p>" + line + "</p>"
       }
-      // Si no tiene viñeta, le añadimos una
       return "<p>• " + line + "</p>"
     })
     .join("")
-
   return formattedContent
 }
 
-// Función para obtener el contenido del editor
 function getEditorContent() {
   if (!editor) {
     throw new Error("Editor no inicializado correctamente")
   }
-
-  // Obtenemos el HTML del editor
   let content = editor.root.innerHTML
-
-  // Reemplazamos las etiquetas <p> por saltos de línea
   content = content.replace(/<p>/g, "").replace(/<\/p>/g, "\n")
-
-  // Nos aseguramos que cada línea comience con una viñeta
   content = content
     .split("\n")
     .map((line) => {
@@ -192,11 +112,9 @@ function getEditorContent() {
       return line
     })
     .join("\n")
-
   return content
 }
 
-// Función para destruir el editor
 function destroyEditor() {
   if (editor) {
     editor = null
@@ -207,133 +125,237 @@ function destroyEditor() {
   }
 }
 
-// Evento para el botón de editar condiciones
-$(document).ready(() => {
-  $(document)
-    .off("click", "#edit-condiciones")
-    .on("click", "#edit-condiciones", (e) => {
-      e.preventDefault()
-      console.log("Botón de editar condiciones clickeado")
+function mostrarModalTerminos() {
+  const modalHtml = `
+    <div class="modal fade" id="modal-terminos-opciones" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-rojo text-white">
+            <h1 class="modal-title fs-5">Agregar Términos y Condiciones</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="editor-container-terminos"></div>
+            
+            <div class="mt-4 p-3 border rounded">
+              <h6 class="mb-3">Opciones de guardado:</h6>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipoGuardado" id="guardarIndividual" value="individual" checked>
+                <label class="form-check-label" for="guardarIndividual">
+                  <strong>Guardar solo para esta cotización</strong>
+                </label>
+              </div>
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="radio" name="tipoGuardado" id="guardarGlobal" value="global">
+                <label class="form-check-label" for="guardarGlobal">
+                  <strong>Guardar para todas las cotizaciones</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" id="guardar-terminos-opciones" class="btn bg-rojo text-white">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
 
-      const cotizacionId = $("#cotizacion-id").val() || $("#cotizacion").val()
-      console.log("ID de cotización:", cotizacionId)
+  const modalAnterior = document.getElementById("modal-terminos-opciones")
+  if (modalAnterior) {
+    modalAnterior.remove()
+  }
 
-      // Mostrar el modal
-      const modal = new bootstrap.Modal(document.getElementById("modal-terminos"))
-      modal.show()
+  document.body.insertAdjacentHTML("beforeend", modalHtml)
+  const modal = new window.bootstrap.Modal(document.getElementById("modal-terminos-opciones"))
+  modal.show()
+}
 
+// Event listeners usando jQuery como en cotizaciones.add
+window.jQuery(document).ready(($) => {
+  console.log("Inicializando términos y condiciones para taller")
+
+  // Event listener para el botón de condiciones
+  $(document).on("click", "#add-condiciones", (e) => {
+    e.preventDefault()
+    console.log("Botón de condiciones clickeado")
+
+    const cotizacionId = $("#cotizacion-id").val() || $("#cotizacion").val()
+    console.log("ID de cotización:", cotizacionId)
+
+    mostrarModalTerminos()
+
+    setTimeout(() => {
       if (!cotizacionId) {
-        // Si no hay ID de cotización, estamos en modo de creación
         console.log("Modo: Creación de nueva cotización")
 
-        // Verificar si hay condiciones temporales en sesión
         if (sessionStorage.getItem("temp_condiciones_taller")) {
           console.log("Cargando condiciones temporales de sessionStorage")
           const tempCondiciones = sessionStorage.getItem("temp_condiciones_taller")
           editorContent = tempCondiciones
           initializeEditor(tempCondiciones)
         } else {
-          // Si no hay condiciones temporales, cargar las condiciones por defecto de terminos_repuestos
-          $.get("/jvc/ajs/get/terminos/repuestos", (data) => {
-            try {
-              const parsedData = JSON.parse(data)
-              if (parsedData && parsedData.length > 0) {
-                const condiciones = parsedData[0].nombre
-                editorContent = condiciones
-                initializeEditor(condiciones)
-              } else {
-                console.warn("No se encontraron condiciones por defecto")
+          $.ajax({
+            url: _URL + "/ajs/get/terminos/repuestos",
+            type: "GET",
+            dataType: "json",
+            success: (data) => {
+              console.log("Datos de términos recibidos:", data)
+              try {
+                const parsedData = Array.isArray(data) ? data : [data]
+                if (parsedData && parsedData.length > 0) {
+                  const condiciones = parsedData[0].nombre
+                  editorContent = condiciones
+                  initializeEditor(condiciones)
+                } else {
+                  console.warn("No se encontraron condiciones por defecto")
+                  initializeEditor("")
+                }
+              } catch (e) {
+                console.error("Error al procesar condiciones por defecto:", e)
                 initializeEditor("")
               }
-            } catch (e) {
-              console.error("Error al parsear condiciones por defecto:", e)
+            },
+            error: (xhr, status, error) => {
+              console.error("Error al obtener condiciones por defecto:", error)
               initializeEditor("")
-            }
-          }).fail(() => {
-            console.error("Error al obtener condiciones por defecto")
-            initializeEditor("")
+            },
           })
         }
       } else {
-        // Si hay ID de cotización, estamos en modo de edición
         console.log("Modo: Edición de cotización existente, ID:", cotizacionId)
-        const url = "/jvc/ajs/get/taller/condiciones/cotizacion/" + cotizacionId
-        $.get(url, (data) => {
-          try {
-            console.log("Datos recibidos:", data)
-            const parsedData = JSON.parse(data)
-            if (parsedData && parsedData.length > 0) {
-              const condiciones = parsedData[0].condiciones
-              console.log("Condiciones encontradas:", condiciones)
-              editorContent = condiciones
-              initializeEditor(condiciones)
-            } else {
-              console.log("No se encontraron condiciones para esta cotización, usando condiciones por defecto")
-              $.get("/jvc/ajs/get/terminos/repuestos", (defaultData) => {
-                try {
-                  const parsedDefaultData = JSON.parse(defaultData)
-                  if (parsedDefaultData && parsedDefaultData.length > 0) {
-                    const condiciones = parsedDefaultData[0].nombre
-                    editorContent = condiciones
-                    initializeEditor(condiciones)
-                  } else {
-                    console.warn("No se encontraron condiciones por defecto")
+        $.ajax({
+          url: `/ajs/get/taller/condiciones/cotizacion/${cotizacionId}`,
+          type: "GET",
+          dataType: "json",
+          success: (data) => {
+            console.log("Datos de condiciones específicas recibidos:", data)
+            try {
+              const parsedData = Array.isArray(data) ? data : [data]
+              if (parsedData && parsedData.length > 0 && parsedData[0].condiciones) {
+                const condiciones = parsedData[0].condiciones
+                console.log("Condiciones encontradas:", condiciones)
+                editorContent = condiciones
+                initializeEditor(condiciones)
+              } else {
+                console.log("No se encontraron condiciones para esta cotización, usando condiciones por defecto")
+                $.ajax({
+                  url: "/ajs/get/terminos/repuestos",
+                  type: "GET",
+                  dataType: "json",
+                  success: (defaultData) => {
+                    console.log("Datos por defecto:", defaultData)
+                    try {
+                      const parsedDefaultData = Array.isArray(defaultData) ? defaultData : [defaultData]
+                      if (parsedDefaultData && parsedDefaultData.length > 0) {
+                        const condiciones = parsedDefaultData[0].nombre
+                        editorContent = condiciones
+                        initializeEditor(condiciones)
+                      } else {
+                        console.warn("No se encontraron condiciones por defecto")
+                        initializeEditor("")
+                      }
+                    } catch (e) {
+                      console.error("Error al parsear condiciones por defecto:", e)
+                      initializeEditor("")
+                    }
+                  },
+                  error: () => {
+                    console.error("Error al obtener condiciones por defecto")
                     initializeEditor("")
-                  }
-                } catch (e) {
-                  console.error("Error al parsear condiciones por defecto:", e)
-                  initializeEditor("")
-                }
-              }).fail(() => {
-                console.error("Error al obtener condiciones por defecto")
-                initializeEditor("")
-              })
+                  },
+                })
+              }
+            } catch (e) {
+              console.error("Error al parsear condiciones:", e)
+              initializeEditor("")
             }
-          } catch (e) {
-            console.error("Error al parsear condiciones:", e)
+          },
+          error: (xhr, status, error) => {
+            console.error("Error al obtener condiciones de la cotización:", error)
             initializeEditor("")
-          }
-        }).fail((xhr, status, error) => {
-          console.error("Error al obtener condiciones de la cotización:", status, error)
-          console.log("Respuesta del servidor:", xhr.responseText)
-          initializeEditor("")
+          },
         })
       }
-    })
+    }, 300)
+  })
 
-  // Evento para guardar condiciones
-  $(document)
-    .off("click", "#guardar-terminos")
-    .on("click", "#guardar-terminos", () => {
-      try {
-        const condiciones = getEditorContent()
-        editorContent = condiciones
-        const cotizacionId = $("#cotizacion-id").val()
+  // Event listener para guardar condiciones
+  $(document).on("click", "#guardar-terminos-opciones", () => {
+    try {
+      const condiciones = getEditorContent()
+      editorContent = condiciones
+      const cotizacionId = $("#cotizacion-id").val()
+      tipoGuardado = $('input[name="tipoGuardado"]:checked').val()
 
-        console.log("Guardando condiciones. ID de cotización:", cotizacionId)
-        console.log("Contenido a guardar:", condiciones)
+      console.log("Guardando condiciones. ID de cotización:", cotizacionId)
+      console.log("Tipo de guardado:", tipoGuardado)
+      console.log("Contenido a guardar:", condiciones)
 
-        // Deshabilitar el botón mientras se guarda
-        $("#guardar-terminos").prop("disabled", true)
+      $("#guardar-terminos-opciones").prop("disabled", true)
 
+      if (tipoGuardado === "global") {
+        $.post("/jvc/ajs/save/taller/condiciones/global", {
+          condiciones: condiciones,
+          nombre: "Términos actualizados " + new Date().toLocaleDateString(),
+        })
+          .done((data) => {
+            console.log("Condiciones globales guardadas:", data)
+
+            if (cotizacionId) {
+              $.post("/ajs/save/taller/condiciones/cotizacion", {
+                cotizacion_id: cotizacionId,
+                condiciones: condiciones,
+              })
+            } else {
+              sessionStorage.setItem("temp_condiciones_taller", condiciones)
+            }
+
+            const modalElement = document.getElementById("modal-terminos-opciones")
+            if (modalElement) {
+              const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+              if (modalInstance) modalInstance.hide()
+            }
+
+            setTimeout(() => {
+              window.Swal.fire({
+                title: "Éxito",
+                text: "Condiciones guardadas como plantilla global y aplicadas a esta cotización.",
+                icon: "success",
+              })
+            }, 500)
+          })
+          .fail((error) => {
+            console.error("Error al guardar condiciones globales:", error)
+            window.Swal.fire({
+              title: "Error",
+              text: "No se pudieron guardar las condiciones globales.",
+              icon: "error",
+            })
+          })
+          .always(() => {
+            $("#guardar-terminos-opciones").prop("disabled", false)
+          })
+      } else {
         if (!cotizacionId) {
-          // Si no hay ID de cotización, guardamos en sessionStorage
           sessionStorage.setItem("temp_condiciones_taller", condiciones)
           console.log("Condiciones guardadas en sessionStorage")
 
-          // También enviamos al servidor para guardar en sesión PHP
-          $.post("/jvc/ajs/save/taller/condiciones/temp", { condiciones: condiciones })
+          $.post("/ajs/save/taller/condiciones/temp", { condiciones: condiciones })
             .done((data) => {
               console.log("Condiciones temporales guardadas en sesión PHP:", data)
               if (window.app) {
                 window.app.venta.condiciones = condiciones
               }
-              const modalElement = document.getElementById("modal-terminos")
-              const modalInstance = bootstrap.Modal.getInstance(modalElement)
-              modalInstance.hide()
+              const modalElement = document.getElementById("modal-terminos-opciones")
+              if (modalElement) {
+                const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+                if (modalInstance) modalInstance.hide()
+              }
 
               setTimeout(() => {
-                Swal.fire({
+                window.Swal.fire({
                   title: "Info",
                   text: "Condiciones guardadas temporalmente.",
                   icon: "success",
@@ -342,35 +364,35 @@ $(document).ready(() => {
             })
             .fail((error) => {
               console.error("Error al guardar:", error)
-              Swal.fire({
+              window.Swal.fire({
                 title: "Error",
                 text: "No se pudieron guardar las condiciones temporales.",
                 icon: "error",
               })
             })
             .always(() => {
-              $("#guardar-terminos").prop("disabled", false)
+              $("#guardar-terminos-opciones").prop("disabled", false)
             })
         } else {
-          // Si hay ID de cotización, guardamos directamente en la base de datos
-          $.post("/jvc/ajs/save/taller/condiciones/cotizacion", {
+          $.post("/ajs/save/taller/condiciones/cotizacion", {
             cotizacion_id: cotizacionId,
             condiciones: condiciones,
           })
             .done((data) => {
               console.log("Condiciones de cotización guardadas:", data)
-              const modalElement = document.getElementById("modal-terminos")
-              const modalInstance = bootstrap.Modal.getInstance(modalElement)
-              modalInstance.hide()
+              const modalElement = document.getElementById("modal-terminos-opciones")
+              if (modalElement) {
+                const modalInstance = window.bootstrap.Modal.getInstance(modalElement)
+                if (modalInstance) modalInstance.hide()
+              }
 
               if (window.app) {
                 window.app.venta.condiciones = condiciones
               }
-              // Limpiar sessionStorage después de guardar
               sessionStorage.removeItem("temp_condiciones_taller")
 
               setTimeout(() => {
-                Swal.fire({
+                window.Swal.fire({
                   title: "Info",
                   text: "Guardado con éxito!",
                   icon: "success",
@@ -379,29 +401,30 @@ $(document).ready(() => {
             })
             .fail((error) => {
               console.error("Error al guardar:", error)
-              Swal.fire({
+              window.Swal.fire({
                 title: "Error",
                 text: "No se pudieron guardar las condiciones.",
                 icon: "error",
               })
             })
             .always(() => {
-              $("#guardar-terminos").prop("disabled", false)
+              $("#guardar-terminos-opciones").prop("disabled", false)
             })
         }
-      } catch (e) {
-        console.error("Error al guardar términos:", e)
-        Swal.fire({
-          title: "Error",
-          text: "Hubo un problema al guardar las condiciones: " + e.message,
-          icon: "error",
-        })
-        $("#guardar-terminos").prop("disabled", false)
       }
-    })
+    } catch (e) {
+      console.error("Error al guardar términos:", e)
+      window.Swal.fire({
+        title: "Error",
+        text: "Hubo un problema al guardar las condiciones: " + e.message,
+        icon: "error",
+      })
+      $("#guardar-terminos-opciones").prop("disabled", false)
+    }
+  })
 
   // Limpiar recursos cuando se cierra el modal
-  $("#modal-terminos").on("hidden.bs.modal", () => {
+  $(document).on("hidden.bs.modal", "#modal-terminos-opciones", () => {
     try {
       destroyEditor()
     } catch (e) {
@@ -411,10 +434,9 @@ $(document).ready(() => {
 
   // Limpiar sessionStorage cuando se recarga la página
   $(window).on("beforeunload", () => {
-    // Limpiar solo si no estamos en modo de edición (no hay ID de cotización)
-    if (!$("#cotizacion-id").val()) {
+    const cotizacionId = $("#cotizacion-id").val()
+    if (!cotizacionId) {
       sessionStorage.removeItem("temp_condiciones_taller")
     }
   })
 })
-

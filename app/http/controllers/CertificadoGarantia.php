@@ -76,6 +76,13 @@ public function garantiaCertificado($id_garantia)
     // Activar el salto de página automático
     $this->mpdf->SetAutoPageBreak(true, 35);
     
+    // Obtener todas las series asociadas a esta garantía
+    $series = $garantia->obtenerSeries();
+    $cantidadSeries = count($series);
+    
+    // Determinar si necesitamos separar en páginas
+    $separarEnPaginas = $cantidadSeries > 5; // Si hay más de 5 equipos, separar
+    
     // Iniciar el contenido HTML con margen interno para el contenido
     $html = '
     <!-- Aplicamos un div contenedor con padding para todo el contenido -->
@@ -91,12 +98,12 @@ public function garantiaCertificado($id_garantia)
     } else {
         // Contenido por defecto si no hay plantilla personalizada
         $html .= '
-        <p style="margin: 0;"><strong>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</strong> Garantiza estas Máquinas de uso Industrial, por el término de 12 meses a partir de la fecha de compra, presentando este Certificado de Garantía y la Factura original dentro del plazo antes mencionado.</p>
-        <p style="margin: 0;"> Esta garantía cubre todo defecto o falla de fabricación y/o ensamblaje que pudiera producirse en las máquinas.</p>
-        <p><strong>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</strong> asegura que estos Equipos cumple con las normas de seguridad vigentes.</p>
-        <p>Las condiciones de uso, instalación y mantenimiento necesarias de este equipo deberán hacerse siguiendo y respetando las especificaciones técnicas, instalación, indicación, y consejo que se formulan en el Manual de Instrucciones que forma parte de esta garantía.</p>
-        <p><strong>La presente Garantía dejará de tener validez cuando:</strong></p>
-        <ol style="padding-left: 20px; margin: 0; list-style-type: lower-alpha;">
+        <p style="margin: 0 0 10px 0;"><strong>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</strong> Garantiza estas Máquinas de uso Industrial, por el término de 12 meses a partir de la fecha de compra, presentando este Certificado de Garantía y la Factura original dentro del plazo antes mencionado.</p>
+        <p style="margin: 0 0 10px 0;"> Esta garantía cubre todo defecto o falla de fabricación y/o ensamblaje que pudiera producirse en las máquinas.</p>
+        <p style="margin: 0 0 10px 0;"><strong>COMERCIAL & INDUSTRIAL J.V.C. S.A.C.</strong> asegura que estos Equipos cumple con las normas de seguridad vigentes.</p>
+        <p style="margin: 0 0 10px 0;">Las condiciones de uso, instalación y mantenimiento necesarias de este equipo deberán hacerse siguiendo y respetando las especificaciones técnicas, instalación, indicación, y consejo que se formulan en el Manual de Instrucciones que forma parte de esta garantía.</p>
+        <p style="margin: 0 0 10px 0;"><strong>La presente Garantía dejará de tener validez cuando:</strong></p>
+        <ol style="padding-left: 20px; margin: 0 0 15px 0; list-style-type: lower-alpha;">
             <li>La etiqueta de identificación y/o número de serie hubiera sido dañado, alterado o quitado.</li>
             <li>Hayan intervenido personas ajenas al Servicio Técnico de la Firma.</li>
             <li>No se presente la factura de compra, o la misma tuviera enmiendas y/o faltare la fecha de compra.</li>
@@ -105,82 +112,139 @@ public function garantiaCertificado($id_garantia)
             <li>Se verifique mala manipulación del equipo y/o mal uso del mismo.</li>
             <li>El usuario no realice el mantenimiento preventivo y/o correctivo del equipo anualmente para una buena durabilidad del motor.</li>
         </ol>
-        <p>En caso de falla del equipo, el consumidor deberá llamar a nuestro <strong>CENTRO DE SERVICIO TÉCNICO: 980088015.</strong> Cuando el examen realizado por nuestro Personal Técnico sobre el producto y la documentación pertinente, determine que rigen los términos de la garantía, el mismo será reparado sin cargo alguno.</p>';
+        <p style="margin: 0 0 20px 0;">En caso de falla del equipo, el consumidor deberá llamar a nuestro <strong>CENTRO DE SERVICIO TÉCNICO: 980088015.</strong> Cuando el examen realizado por nuestro Personal Técnico sobre el producto y la documentación pertinente, determine que rigen los términos de la garantía, el mismo será reparado sin cargo alguno.</p>';
     }
     
-    // Agregar la información específica de la garantía con mejor espaciado
+    // Agregar la información específica de la garantía
     $html .= '
-    <div style="margin-top: 30px;">
-        <div style="margin-bottom: 10px;">
-            <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>CLIENTE:</strong> ' . $garantia->getCliente() . '</span>
-        </div>
-        <div style="margin-bottom: 10px;">
-            <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>EQUIPO:</strong></span>
-        </div>';
-    
-    // Obtener todas las series asociadas a esta garantía
-    $series = $garantia->obtenerSeries();
-    
-    if (empty($series)) {
-        // Si no hay series múltiples, mostrar la información básica con mejor espaciado
-        $html .= '
-        <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap;">
-            <div style="min-width: 250px; margin-bottom: 5px;">
-                <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>MARCA:</strong> ' . $garantia->getMarcaNombre() . '</span>
-            </div>
-            <div style="min-width: 250px; margin-bottom: 5px;">
-                <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>MODELO:</strong> ' . $garantia->getModeloNombre() . '</span>
-            </div>
-            <div style="min-width: 250px; margin-bottom: 5px;">
-                <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>SERIE:</strong> ' . $garantia->getNumeroSerie() . '</span>
-            </div>
-        </div>';
-    } else {
-        // Si hay múltiples series, mostrarlas en una tabla con mejor espaciado
-        $html .= '
+    <div style="margin-top: 20px;">
         <div style="margin-bottom: 15px;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
-                <thead>
-                    <tr style="background-color: #f2f2f2;">
-                        <th style="border: 1px solid #ddd; padding: 6px; text-align: center;">N°</th>
-                        <th style="border: 1px solid #ddd; padding: 6px; text-align: left;">MARCA</th>
-                        <th style="border: 1px solid #ddd; padding: 6px; text-align: left;">MODELO</th>
-                        <th style="border: 1px solid #ddd; padding: 6px; text-align: left;">SERIE</th>
-                    </tr>
-                </thead>
-                <tbody>';
+            <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>CLIENTE:</strong> ' . $garantia->getCliente() . '</span>
+        </div>';
+    
+    // Si hay pocos equipos o no queremos separar, mostrar todo en una página
+    if (!$separarEnPaginas) {
+        $html .= '<div style="margin-bottom: 15px;">
+            <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>EQUIPO(S):</strong></span>
+        </div>';
+        
+        if (empty($series)) {
+            // Si no hay series múltiples, mostrar la información básica
+            $html .= '
+            <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap;">
+                <div style="min-width: 250px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>MARCA:</strong> ' . $garantia->getMarcaNombre() . '</span>
+                </div>
+                <div style="min-width: 250px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>MODELO:</strong> ' . $garantia->getModeloNombre() . '</span>
+                </div>
+                <div style="min-width: 250px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>SERIE:</strong> ' . $garantia->getNumeroSerie() . '</span>
+                </div>
+            </div>';
+        } else {
+            // Mostrar tabla de equipos optimizada
+            $html .= '
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">N°</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">MARCA</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">MODELO</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">SERIE</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+            
+            $contador = 1;
+            foreach ($series as $serie) {
+                $html .= '
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">' . $contador . '</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['marca_nombre'] ?? '-') . '</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['modelo_nombre'] ?? '-') . '</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['numero_serie'] ?? '-') . '</td>
+                        </tr>';
+                $contador++;
+            }
+            
+            $html .= '
+                    </tbody>
+                </table>
+            </div>';
+        }
+        
+        // Fechas
+        $html .= '
+            <div style="display: flex; flex-wrap: wrap; margin-top: 20px;">
+                <div style="min-width: 260px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE INICIO:</strong> ' . $garantia->getFechaInicio() . '</span>
+                </div>
+                <div style="min-width: 260px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE CADUCIDAD:</strong> ' . $garantia->getFechaCaducidad() . '</span>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>'; // Cerramos los divs contenedores
+    } else {
+        // Si hay muchos equipos, separar en páginas
+        $html .= '
+            <div style="display: flex; flex-wrap: wrap; margin-top: 20px;">
+                <div style="min-width: 260px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE INICIO:</strong> ' . $garantia->getFechaInicio() . '</span>
+                </div>
+                <div style="min-width: 260px; margin-bottom: 8px;">
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE CADUCIDAD:</strong> ' . $garantia->getFechaCaducidad() . '</span>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>'; // Cerramos los divs contenedores
+        
+        // Agregar salto de página para los equipos
+        $html .= '<pagebreak />';
+        
+        // Nueva página para equipos
+        $html .= '
+        <div style="padding: 0 30px;">
+            <h2 style="text-align: center; color: #000; margin-top: 25px; margin-bottom: 30px;">EQUIPOS INCLUIDOS EN LA GARANTÍA</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <span style="font-weight: bold;">CLIENTE:</span> ' . $garantia->getCliente() . '
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <thead>
+                        <tr style="background-color: #f8f9fa;">
+                            <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">N°</th>
+                            <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">MARCA</th>
+                            <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">MODELO</th>
+                            <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">SERIE</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
         
         $contador = 1;
         foreach ($series as $serie) {
             $html .= '
                     <tr>
-                        <td style="border: 1px solid #ddd; padding: 6px; text-align: center;">' . $contador . '</td>
-                        <td style="border: 1px solid #ddd; padding: 6px;">' . $serie['marca_nombre'] . '</td>
-                        <td style="border: 1px solid #ddd; padding: 6px;">' . $serie['modelo_nombre'] . '</td>
-                        <td style="border: 1px solid #ddd; padding: 6px;">' . $serie['numero_serie'] . '</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">' . $contador . '</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['marca_nombre'] ?? '-') . '</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['modelo_nombre'] ?? '-') . '</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['numero_serie'] ?? '-') . '</td>
                     </tr>';
             $contador++;
         }
         
         $html .= '
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>';
     }
-    
-    // Fechas con mejor alineación y espaciado
-    $html .= '
-        <div style="display: flex; flex-wrap: wrap; margin-top: 15px;">
-            <div style="min-width: 260px; margin-bottom: 5px;">
-                <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE INICIO:</strong> ' . $garantia->getFechaInicio() . '</span>
-            </div>
-            <div style="min-width: 260px; margin-bottom: 5px;">
-                <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>FECHA DE CADUCIDAD:</strong> ' . $garantia->getFechaCaducidad() . '</span>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>'; // Cerramos los tres divs contenedores
 
     // Escribir el HTML al PDF
     $this->mpdf->WriteHTML($html);
@@ -224,9 +288,7 @@ public function garantiaCertificado($id_garantia)
         
         // Guardar los cambios
         $certificado->actualizarCertificado();
-        
-        // Redirigir a la página de éxito o mostrar mensaje
-        // ...
+     
     }
     
     // Método auxiliar para procesar imágenes

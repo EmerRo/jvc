@@ -19,6 +19,7 @@ class GuiaRemision
     private $chofer_datos;
     private $observaciones;
     private $doc_referencia;
+    private $ref_orden_compra; // ✅ NUEVO CAMPO
     private $enviado_sunat;
     private $hash;
     private $nombre_xml;
@@ -36,7 +37,18 @@ class GuiaRemision
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    // Getters y Setters para los nuevos campos
+    // ✅ NUEVOS GETTERS Y SETTERS para ref_orden_compra
+    public function getRefOrdenCompra()
+    {
+        return $this->ref_orden_compra;
+    }
+
+    public function setRefOrdenCompra($ref_orden_compra)
+    {
+        $this->ref_orden_compra = $ref_orden_compra;
+    }
+
+    // Getters y Setters para los campos existentes
     public function getDirPartida()
     {
         return $this->dir_partida;
@@ -338,6 +350,7 @@ public function setIdCotizacion($id_cotizacion)
             $this->chofer_datos = $fila['chofer_datos'];
             $this->observaciones = $fila['observaciones'];
             $this->doc_referencia = $fila['doc_referencia'];
+            $this->ref_orden_compra = $fila['ref_orden_compra']; // ✅ NUEVO CAMPO
             $this->enviado_sunat = $fila['enviado_sunat'];
             $this->hash = $fila['hash'];
             $this->nombre_xml = $fila['nombre_xml'];
@@ -377,6 +390,7 @@ public function setIdCotizacion($id_cotizacion)
     $chofer_datos_escaped = $this->conectar->real_escape_string($this->chofer_datos);
     $observaciones_escaped = $this->conectar->real_escape_string($this->observaciones);
     $doc_referencia_escaped = $this->conectar->real_escape_string($this->doc_referencia);
+    $ref_orden_compra_escaped = $this->conectar->real_escape_string($this->ref_orden_compra); // ✅ NUEVO CAMPO
     $serie_escaped = $this->conectar->real_escape_string($this->serie);
     $numero_escaped = $this->conectar->real_escape_string($this->numero);
     $peso_escaped = $this->conectar->real_escape_string($this->peso);
@@ -402,6 +416,7 @@ public function setIdCotizacion($id_cotizacion)
         chofer_datos,
         observaciones,
         doc_referencia,
+        ref_orden_compra,
         enviado_sunat,
         hash,
         nombre_xml,
@@ -430,6 +445,7 @@ public function setIdCotizacion($id_cotizacion)
         '$chofer_datos_escaped',
         '$observaciones_escaped',
         '$doc_referencia_escaped',
+        '$ref_orden_compra_escaped',
         '0',
         '',
         '',
@@ -485,20 +501,33 @@ public function verFilas()
             WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.datos
             ELSE gr.destinatario_nombre
         END as datos,
-        -- NUEVO: Obtener el documento del cliente para determinar el tipo
+        -- Obtener el documento del cliente para determinar el tipo
         CASE 
             WHEN gr.id_venta IS NOT NULL THEN c_venta.documento
             WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.documento
             ELSE gr.destinatario_documento
         END as documento_cliente,
-        COALESCE(v.serie, '') as serie_venta,
+        -- ✅ MEJORADO: Solo mostrar datos de factura cuando realmente hay una venta
+        CASE 
+            WHEN gr.id_venta IS NOT NULL THEN v.serie
+            ELSE ''
+        END as serie_venta,
         e.ruc as ruc_empresa,
-        COALESCE(v.numero, '') as numero_venta,
+        CASE 
+            WHEN gr.id_venta IS NOT NULL THEN v.numero
+            ELSE ''
+        END as numero_venta,
+        -- ✅ MEJORADO: Mostrar solo facturas reales, N/A para el resto
         CASE
-            WHEN gr.id_venta IS NOT NULL THEN COALESCE(ds.abreviatura, 'MANUAL')
-            WHEN gr.id_cotizacion IS NOT NULL THEN CONCAT('COTI-', LPAD(cot.numero, 3, '0'))
-            ELSE 'MANUAL'
+            WHEN gr.id_venta IS NOT NULL THEN COALESCE(ds.abreviatura, 'DOC')
+            ELSE 'N/A'
         END as doc_venta,
+        -- ✅ NUEVO: Campo para identificar el tipo de guía
+        CASE
+            WHEN gr.id_venta IS NOT NULL THEN 'facturas'
+            WHEN gr.id_cotizacion IS NOT NULL THEN 'cotizaciones'
+            ELSE 'manuales'
+        END as tipo_guia,
         COALESCE(gs.nombre_xml, '') as nom_guia_xml
     FROM guia_remision gr
     LEFT JOIN ventas v ON gr.id_venta = v.id_venta 
@@ -514,7 +543,5 @@ public function verFilas()
 
     return $this->conectar->query($sql);
 }
-
-
 
 }

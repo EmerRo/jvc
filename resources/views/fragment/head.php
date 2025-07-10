@@ -37,7 +37,7 @@ $device_app = Tools::getInfoDeviceConect();
         rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="<?= URL::to('public/plugin/sweetalert2/sweetalert2.min.css') ?>">
 
-    <link href="<?= URL::to('public/plugin/jquery-ui/jquery-ui.css') ?>" rel="stylesheet" type="text/css">
+    <link href="<?= URL::to('public/plugin/jquery-ui/jquery-ui.css') ?>?v=<?= time() ?>" rel="stylesheet" type="text/css">
     <link href="<?= URL::to('public/assets/libs/%40fullcalendar/core/main.min.css') ?>" rel="stylesheet"
         type="text/css" />
     <link href="<?= URL::to('public/assets/libs/%40fullcalendar/daygrid/main.min.css') ?>" rel="stylesheet"

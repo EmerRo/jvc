@@ -44,7 +44,7 @@
                     <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
                         style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th style="text-align: center;">Id</th>
                                 <th style="text-align: center;">F. Emision</th>
@@ -250,7 +250,7 @@
                     // Verificar si hay pagos a crédito
                     $.ajax({
                         type: 'POST',
-                        url: _URL + '/ajas/compra/pagos',
+                        url: _URL + '/ajs/compra/pagos',
                         data: { id: id },
                         success: function (respPagos) {
                             $("#loader-menor").hide();

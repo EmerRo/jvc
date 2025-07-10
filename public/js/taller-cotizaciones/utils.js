@@ -1,4 +1,4 @@
-// utils.js
+// public\js\taller-cotizaciones\utils.js
 // Funciones utilitarias
 function toggleInput(checkbox) {
     const input = checkbox.parentElement.querySelector('.precio-input');

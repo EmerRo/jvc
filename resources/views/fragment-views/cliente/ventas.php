@@ -58,7 +58,7 @@
                     <table id="datatable" class="table table-bordered dt-responsive nowrap "
                       style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <!-- <th></th> -->
                                 <th>Documento</th>
@@ -445,7 +445,7 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo">
                 <h5 class="modal-title" id="exampleModalLabel">Compartir Reporte</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -459,7 +459,7 @@
                                     <input name="email" type="email" class="form-control emailCompartir"
                                         placeholder="ejemplo@gmail.com">
                                     <div class="input-group-prepend">
-                                        <button type="submit" class="btn btn-primary"><i class="fa fa-send"></i>
+                                        <button type="submit" class="btn bg-rojo"><i class="fa fa-send"></i>
                                             Enviar</button>
                                     </div>
                                 </div>
@@ -478,7 +478,7 @@
                                         class="form-control numeroCompartir" oninput="process(this)" maxlength="9">
 
                                     <div class="input-group-prepend">
-                                        <button class="btn btn-primary" type="submit"><i class="fa fa-send"></i>
+                                        <button class="btn bg-rojo" type="submit"><i class="fa fa-send"></i>
                                             Enviar</button>
                                     </div>
                                 </div>
@@ -488,7 +488,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -622,8 +622,12 @@
 $("#txt-generar-resporte-ventas").submit(function (evt) {
     evt.preventDefault();
     $("#loader-menor").show();
-    _post("/ajs/generar/txt/ventareporte", $(this).serialize(),
-        function (resp) {
+    
+    $.ajax({
+        url: _URL +"/ajs/generar/txt/ventareporte",
+        type: "POST",
+        data: $(this).serialize(),
+        success: function (resp) {
             console.log(resp);
             if (resp.error) {
                 alertError("Error: " + resp.error);
@@ -634,10 +638,12 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                 alertAdvertencia("Respuesta inesperada del servidor");
             }
             $("#loader-menor").hide();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error en la solicitud:", error);
+            alertError("Error en la solicitud: " + error);
+            $("#loader-menor").hide();
         }
-    ).fail(function(xhr, status, error) {
-        alertError("Error en la solicitud: " + error);
-        $("#loader-menor").hide();
     });
 })
 
@@ -695,24 +701,24 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                     "previous": "Anterior"
                 }
             },
-           "columnDefs": [
+          "columnDefs": [
     {
         targets: 0, // sn_v (Documento)
         render: function (data, type, row) {
-            if (!row[0]) return '';
-            return '<a class="btn-info-vent" target="_blank" href="' + row[0] + '">' + (data || '') + '</a>';
+            if (!row[8]) return ''; // Cambiar row[0] por row[8]
+            return '<a class="btn-info-vent" target="_blank" href="' + row[8].split('--')[0] + '">' + (data || '') + '</a>';
         }
     },
     {
-        targets: 6, // doc_ventae (Sunat) - era targets: 7
+        targets: 6, // doc_ventae (Sunat)
         render: function (data, type, row) {
             if (!data) return '';
 
             try {
                 const dataParts = data.split("-");
-                if (!row[8]) return ''; // id_venta - era row[9]
+                if (!row[8]) return ''; // Usar row[8] en lugar de row[9]
 
-                const desData = row[8].split('--'); // id_venta - era row[9]
+                const desData = row[8].split('--');
 
                 if (!(desData[1] == '-')) {
                     if (dataParts[0] == '1') {
@@ -733,7 +739,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
         }
     },
     {
-        targets: 7, // estado - era targets: 8
+        targets: 7, // estado
         render: function (data, type, row) {
             if (data == 1) {
                 return '<span class="badge bg-success">Normal</span>';
@@ -744,18 +750,18 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
         }
     },
     {
-        targets: 8, // id_venta (Acción) - era targets: 9
+        targets: 8, // id_venta (Acción)
         className: 'text-center',
         render: function (data, type, row) {
-            if (!row[7] || row[7] != 1) return ""; // estado - era row[8]
+            if (!row[7] || row[7] != 1) return ""; // Usar row[7] para estado
 
             try {
-                if (!row[6]) return ""; // doc_ventae - era row[7]
-                const estadoSunat = row[6].split("-")[0]; // doc_ventae - era row[7]
+                if (!row[6]) return ""; // Usar row[6] para doc_ventae
+                const estadoSunat = row[6].split("-")[0];
                 if (!data) return "";
                 const desData = data.split("--");
 
-                const stpan = '<span id="' + (row[0] || '') + '-nom-xml" style="display: none">' + desData[1] + "</span>";
+                const stpan = '<span id="' + desData[0] + '-nom-xml" style="display: none">' + desData[1] + "</span>";
 
                 return stpan + `
                 <div class="action-menu">
@@ -763,7 +769,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="dropdown-actions">
-                        <a class="btn-info-vent" href="${row[0] || ''}">
+                        <a class="btn-info-vent" href="${desData[0]}">
                             <i class="fa fa-print text-primary"></i> Imprimir
                         </a>
                         <a class="btn-send-fac" data-venta="${desData[0]}">
@@ -799,6 +805,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
         }
     }
 ],
+
             "error": function (xhr, error, thrown) {
                 console.error('Error en DataTables:', error);
                 alertError("Error al cargar los datos de ventas");

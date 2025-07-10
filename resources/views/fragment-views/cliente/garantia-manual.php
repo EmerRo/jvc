@@ -1,29 +1,32 @@
 <!-- resources\views\fragment-views\cliente\garantia-manual.php -->
 <div id="content-vue-modals" class="container-fluid">
-    <div class="warranty-container bg-white py-4 shadow-sm rounded-3"
-        style="max-width: 1000px; margin: 0 auto; border: 1px solid #e0e0e0;">
-        <div class="text-end mb-4 px-4">
-            <a href="/jvc/garantia" class="btn border-rojo text-rojo bg-white">
-                <i class="fa fa-arrow-left me-2"></i> Regresar
-            </a>
-        </div>
-
-        <div class="text-center mb-5">
-            <div class="d-inline-block mb-2" style="background-color: #dc3545; padding: 15px; border-radius: 50%;">
-                <i class="fa fa-shield-alt fa-2x text-white"></i>
+    <div class="warranty-container bg-white py-3" style="max-width: 1000px; margin: 0 auto;">
+        <div class="d-flex justify-content-between align-items-center px-4 mb-3">
+            <h2 class="warranty-title text-rojo mb-0">
+                <i class="fa fa-shield-alt me-2"></i>Registro de Garantía Manual
+            </h2>
+            <div class="d-flex gap-2">
+                <a href="/garantia" class="btn border-rojo text-rojo bg-white">
+                    <i class="fa fa-arrow-left me-1"></i> Regresar
+                </a>
+                <button type="button" id="submitRegistro" class="btn bg-rojo text-white">
+                    <i class="fa fa-save me-1"></i> Guardar Garantía
+                </button>
             </div>
-            <h2 class="warranty-title fw-bold" style="color: #dc3545; letter-spacing: 1px;">REGISTRO DE GARANTÍA</h2>
         </div>
 
-        <div class="alert alert-success" id="alertSuccess"
-            style="display: none; background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
+        <div class="alert alert-success" id="alertSuccess" style="display: none;">
             <i class="fa fa-check-circle me-2"></i> Garantía registrada con éxito.
         </div>
+
         <form class="px-4">
-            <!-- Botones de selección de método de búsqueda -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="d-flex justify-content-center">
+            <!-- Sección de Método de Búsqueda -->
+            <div class="mb-0">
+                <div class="bg-white text-rojo p-2">
+                    <h5 class="mb-0"><i class="fa fa-search me-2"></i>Método de Búsqueda</h5>
+                </div>
+                <div class="p-3">
+                    <div class="d-flex justify-content-center mb-3">
                         <div class="btn-group" role="group" aria-label="Método de búsqueda">
                             <button type="button" id="btn_buscar_serie" class="btn btn-outline-danger active">
                                 <i class="fa fa-barcode me-2"></i>Buscar por Serie
@@ -33,195 +36,195 @@
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Mensaje informativo -->
-            <div class="alert alert-info mb-4">
-                <i class="fa fa-info-circle me-2"></i>
-                <strong>Información:</strong> Seleccione un método de búsqueda para registrar una garantía.
-            </div>
-
-            <div class="row mb-4">
-                <!-- Campo de búsqueda por serie (visible por defecto) -->
-                <div id="grupo_buscar_serie" class="col-md-4">
-                    <label for="input_buscar_Dataseries" class="form-label fw-bold">
-                        <i class="fa fa-search me-2" style="color: #dc3545;"></i> Buscar Serie <span
-                            style="color: #dc3545;">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-barcode"></i>
-                        </span>
-                        <input id="input_buscar_Dataseries" v-model="garantia.buscar_serie" type="text"
-                            placeholder="Ingrese número de serie" class="form-control"
-                            style="border-left: none; box-shadow: none;">
-                    </div>
-                </div>
-
-                <!-- Campo de búsqueda por cliente (oculto inicialmente) -->
-                <div id="grupo_buscar_cliente" class="col-md-4" style="display: none;">
-                    <label for="input_buscar_cliente" class="form-label fw-bold">
-                        <i class="fa fa-users me-2" style="color: #dc3545;"></i> Buscar Cliente <span
-                            style="color: #dc3545;">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-building"></i>
-                        </span>
-                        <input id="input_buscar_cliente" v-model="garantia.buscar_cliente" type="text"
-                            placeholder="Ingrese nombre del cliente" class="form-control"
-                            style="border-left: none; box-shadow: none;">
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <label for="cliente" class="form-label fw-bold">
-                        <i class="fa fa-user me-2" style="color: #dc3545;"></i> Nombre/Razón Social <span
-                            style="color: #dc3545;">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-id-card"></i>
-                        </span>
-                        <input v-model="garantia.cliente_nombre" type="text" placeholder="Nombre del cliente"
-                            class="form-control" style="border-left: none; box-shadow: none;" name="cliente"
-                            id="cliente">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label for="numero_serie" class="form-label fw-bold">
-                        <i class="fa fa-hashtag me-2" style="color: #dc3545;"></i> Número De Serie <span
-                            style="color: #dc3545;">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-qrcode"></i>
-                        </span>
-                        <input v-model="garantia.num_serie" type="text" placeholder="Número de serie"
-                            class="form-control" style="border-left: none; box-shadow: none;" name="numero_serie"
-                            id="numero_serie" required>
+                    <div class="alert alert-primary bg-light-blue border-0 mt-2 mb-0" role="alert"
+                        style="background-color: #e6f0ff;">
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <i class="fa fa-info-circle text-primary"></i>
+                            </div>
+                            <div>
+                                <strong class="text-primary">Información</strong>
+                                <p class="mb-0">Seleccione un método de búsqueda para registrar una garantía.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        <!-- Series seleccionadas (para selección múltiple) -->
-<div id="series_seleccionadas_container" class="row mb-4" style="display: none;">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-light">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">Series seleccionadas</h6>
-                    <span class="badge bg-danger" id="contador_series_seleccionadas">0</span>
+            <!-- Sección de Información del Cliente -->
+            <div class="mb-0">
+                <div class="bg-white text-rojo p-2">
+                    <h5 class="mb-0"><i class="fa fa-user me-2"></i>Información del Cliente</h5>
                 </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
-                            <tr>
-                                <th>Número de Serie</th>
-                                <th>Marca</th>
-                                <th>Modelo</th>
-                                <th>Equipo</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="series_seleccionadas_tbody">
-                            <!-- Aquí se agregarán dinámicamente las series seleccionadas -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                <div class="p-3">
+                    <div class="row">
+                        <!-- Campo de búsqueda por serie (visible por defecto) -->
+                        <div id="grupo_buscar_serie" class="col-md-6 mb-3">
+                            <label for="input_buscar_Dataseries" class="form-label">Buscar Serie <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-barcode"></i></span>
+                                <input id="input_buscar_Dataseries" v-model="garantia.buscar_serie" type="text"
+                                    placeholder="Ingrese número de serie" class="form-control">
+                            </div>
+                        </div>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <label for="marca" class="form-label fw-bold">
-                        <i class="fa fa-tag me-2" style="color: #dc3545;"></i> Marca
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-trademark"></i>
-                        </span>
-                        <input v-model="garantia.marc" type="text" placeholder="Marca" class="form-control"
-                            style="border-left: none; box-shadow: none;" name="marca" id="marca">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label for="modelo" class="form-label fw-bold">
-                        <i class="fa fa-cube me-2" style="color: #dc3545;"></i> Modelo
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-cogs"></i>
-                        </span>
-                        <input v-model="garantia.model" type="text" placeholder="Modelo" name="modelo"
-                            class="form-control" style="border-left: none; box-shadow: none;" id="modelo">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label for="equipo" class="form-label fw-bold">
-                        <i class="fa fa-laptop me-2" style="color: #dc3545;"></i> Equipo
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-desktop"></i>
-                        </span>
-                        <input v-model="garantia.equipo" type="text" name="equipo" placeholder="Equipo"
-                            class="form-control" style="border-left: none; box-shadow: none;" id="equipo">
+                        <!-- Campo de búsqueda por cliente (oculto inicialmente) -->
+                        <div id="grupo_buscar_cliente" class="col-md-6 mb-3" style="display: none;">
+                            <label for="input_buscar_cliente" class="form-label">Buscar Cliente <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-building"></i></span>
+                                <input id="input_buscar_cliente" v-model="garantia.buscar_cliente" type="text"
+                                    placeholder="Ingrese nombre del cliente" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="cliente" class="form-label">Nombre/Razón Social <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-building"></i></span>
+                                <input v-model="garantia.cliente_nombre" type="text" placeholder="Nombre del cliente"
+                                    class="form-control" name="cliente" id="cliente">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <label for="guia_remision" class="form-label fw-bold">
-                        <i class="fa fa-file-alt me-2" style="color: #dc3545;"></i> Guía De Remisión
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-clipboard-list"></i>
-                        </span>
-                        <input v-model="garantia.guiaRemision" type="text" name="guia_remision"
-                            placeholder="Ingrese la guía de remisión" class="form-control"
-                            style="border-left: none; box-shadow: none;" id="guia_remision">
-                    </div>
+            <!-- Series seleccionadas (para selección múltiple) -->
+            <div id="series_seleccionadas_container" class="mb-0" style="display: none;">
+                <div class="bg-white text-rojo p-2">
+                    <h5 class="mb-0"><i class="fa fa-list me-2"></i>Series Seleccionadas</h5>
                 </div>
-                <div class="col-md-4">
-                    <label for="fecha_inicio" class="form-label fw-bold">
-                        <i class="fa fa-calendar-plus me-2" style="color: #dc3545;"></i> Fecha De Inicio
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-calendar-day"></i>
-                        </span>
-                        <input v-model="garantia.fechaInicio" type="date" name="fecha_inicio" class="form-control"
-                            style="border-left: none; box-shadow: none;" id="fecha_inicio">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <label for="fecha_caducidad" class="form-label fw-bold">
-                        <i class="fa fa-calendar-times me-2" style="color: #dc3545;"></i> Fecha De Caducidad
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background-color: #f8f9fa; border-right: none;">
-                            <i class="fa fa-calendar-check"></i>
-                        </span>
-                        <input v-model="garantia.fechaCaducidad" name="fecha_caducidad" type="date" class="form-control"
-                            style="border-left: none; box-shadow: none;" id="fecha_caducidad">
+                <div class="p-3">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Series seleccionadas</h6>
+                                <span class="badge bg-danger" id="contador_series_seleccionadas">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+                                        <tr>
+                                            <th>Número de Serie</th>
+                                            <th>Marca</th>
+                                            <th>Modelo</th>
+                                            <th>Equipo</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="series_seleccionadas_tbody">
+                                        <!-- Aquí se agregarán dinámicamente las series seleccionadas -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="text-center mt-5 mb-3">
-                <button type="button" id="submitRegistro" class="btn px-5 py-2"
-                    style="background-color: #dc3545; color: white; font-weight: bold; border-radius: 30px; min-width: 200px; box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);">
-                    <i class="fa fa-save me-2"></i> Guardar Garantía
-                </button>
+            <!-- Sección de Equipos -->
+            <div class="mb-0">
+                <div class="bg-white text-rojo p-2">
+                    <h5 class="mb-0"><i class="fa fa-tools me-2"></i>Información del Equipo</h5>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="numero_serie" class="form-label">Número De Serie <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-barcode"></i></span>
+                                <input v-model="garantia.num_serie" type="text" placeholder="Número de serie"
+                                    class="form-control" name="numero_serie" id="numero_serie" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="guia_remision" class="form-label">Guía De Remisión</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-file-alt"></i></span>
+                                <input v-model="garantia.guiaRemision" type="text" name="guia_remision"
+                                    placeholder="Ingrese la guía de remisión" class="form-control" id="guia_remision">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="marca" class="form-label">Marca</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-trademark"></i></span>
+                                <input v-model="garantia.marc" type="text" placeholder="Marca" class="form-control"
+                                    name="marca" id="marca">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="modelo" class="form-label">Modelo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-tag"></i></span>
+                                <input v-model="garantia.model" type="text" placeholder="Modelo" name="modelo"
+                                    class="form-control" id="modelo">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="equipo" class="form-label">Equipo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-desktop"></i></span>
+                                <input v-model="garantia.equipo" type="text" name="equipo" placeholder="Equipo"
+                                    class="form-control" id="equipo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Sección de Período de Garantía -->
+            <div class="mb-3">
+                <div class="bg-white text-rojo p-2">
+                    <h5 class="mb-0"><i class="fa fa-calendar-alt me-2"></i>Período de Garantía</h5>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fecha_inicio" class="form-label">Fecha De Inicio</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-calendar"></i></span>
+                                <input v-model="garantia.fechaInicio" type="date" name="fecha_inicio"
+                                    class="form-control" id="fecha_inicio">
+                            </div>
+                            <small class="text-primary"><i class="fa fa-info-circle me-1"></i>Fecha de inicio de la
+                                garantía</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="fecha_caducidad" class="form-label">Fecha De Caducidad</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-calendar"></i></span>
+                                <input v-model="garantia.fechaCaducidad" name="fecha_caducidad" type="date"
+                                    class="form-control" id="fecha_caducidad">
+                            </div>
+                            <small class="text-danger"><i class="fa fa-exclamation-circle me-1"></i>La garantía vence un
+                                año después de la fecha de inicio</small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-primary bg-light-blue border-0 mt-2 mb-0" role="alert"
+                        style="background-color: #e6f0ff;">
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <i class="fa fa-info-circle text-primary"></i>
+                            </div>
+                            <div>
+                                <strong class="text-primary">Información de Garantía</strong>
+                                <p class="mb-0">La garantía tiene una duración de 1 año a partir de la fecha de inicio.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="mt-4 mb-0">
         </form>
     </div>
 </div>
@@ -261,18 +264,6 @@
             }
         });
 
-        // Efecto hover para los campos de entrada
-        $(".input-group").hover(
-            function () {
-                $(this).css("box-shadow", "0 0 5px rgba(220, 53, 69, 0.3)");
-                $(this).find(".input-group-text").css("background-color", "#f1f1f1");
-            },
-            function () {
-                $(this).css("box-shadow", "none");
-                $(this).find(".input-group-text").css("background-color", "#f8f9fa");
-            }
-        );
-
         // Configuración del autocompletado
         $("#input_buscar_Dataseries")
             .on("focus", function () {
@@ -281,7 +272,6 @@
             })
             .on("click", function () {
                 // Al hacer click, también mostrar todas las series
-                // Esto soluciona el problema cuando ya se ha seleccionado una serie
                 $(this).autocomplete("search", "");
             })
             .autocomplete({
@@ -679,107 +669,106 @@
         });
 
         // Validación antes de guardar
-     // Reemplazar este bloque en el evento click del botón submitRegistro
-$("#submitRegistro").click(function () {
-    // Validar que los campos obligatorios no estén vacíos
-    if (!app.garantia.cliente_nombre || !app.garantia.num_serie || !app.garantia.fechaInicio || !app.garantia.fechaCaducidad) {
-        Swal.fire({
-            icon: "error",
-            title: "¡Error!",
-            text: "Por favor complete todos los campos obligatorios.",
-            confirmButtonColor: "#dc3545"
-        });
-        return; // Detener la ejecución si hay campos vacíos
-    }
-
-    // Mostrar indicador de carga
-    Swal.fire({
-        title: "Registrando garantía",
-        html: "Por favor espere mientras se registra la garantía...",
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    // Preparar los datos para enviar
-    let data = {
-        cliente_nombre: app.garantia.cliente_nombre,
-        guia_remision: app.garantia.guiaRemision,
-        fecha_inicio: app.garantia.fechaInicio,
-        fecha_caducidad: app.garantia.fechaCaducidad
-    };
-
-    // Si hay múltiples series seleccionadas, enviarlas como un array
-    if (app.series_seleccionadas.length > 1) {
-        // Convertir el array de objetos a un string JSON
-        data.series = JSON.stringify(app.series_seleccionadas.map(s => s.numero_serie));
-        data.numero_serie = app.garantia.num_serie; // Mantener también el campo num_serie para compatibilidad
-    } else {
-        // Si es una sola serie, enviar como antes
-        data.numero_serie = app.garantia.num_serie;
-    }
-
-    console.log("Datos enviados:", data);
-
-    // Enviar una sola solicitud AJAX con todas las series
-    $.ajax({
-        url: _URL + "/ajs/garantia/add",
-        type: "POST",
-        data: data,
-        success: function (response) {
-            try {
-                const res = JSON.parse(response);
-                if (res.res) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "¡Éxito!",
-                        text: res.msg,
-                        confirmButtonColor: "#dc3545",
-                        allowOutsideClick: false
-                    }).then((result) => {
-                        window.location.href = _URL + "/garantia";
-                    });
-
-                    // Limpiar los campos después de un registro exitoso
-                    app.garantia.cliente_nombre = '';
-                    app.garantia.buscar_serie = '';
-                    app.garantia.num_serie = '';
-                    app.garantia.marc = '';
-                    app.garantia.model = '';
-                    app.garantia.equipo = '';
-                    app.garantia.guiaRemision = '';
-                    app.garantia.fechaInicio = formatearFecha(hoy);
-                    app.garantia.fechaCaducidad = formatearFecha(unAñoDespues);
-                    app.series_seleccionadas = [];
-                    $('#series_seleccionadas_container').hide();
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "¡Error!",
-                        text: res.msg,
-                        confirmButtonColor: "#dc3545"
-                    });
-                }
-            } catch (e) {
-                console.error("Error al procesar la respuesta:", e);
+        $("#submitRegistro").click(function () {
+            // Validar que los campos obligatorios no estén vacíos
+            if (!app.garantia.cliente_nombre || !app.garantia.num_serie || !app.garantia.fechaInicio || !app.garantia.fechaCaducidad) {
                 Swal.fire({
                     icon: "error",
                     title: "¡Error!",
-                    text: "Ocurrió un error al procesar la respuesta del servidor.",
+                    text: "Por favor complete todos los campos obligatorios.",
                     confirmButtonColor: "#dc3545"
                 });
+                return; // Detener la ejecución si hay campos vacíos
             }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
+
+            // Mostrar indicador de carga
             Swal.fire({
-                icon: "error",
-                title: "¡Error!",
-                text: "No se pudo registrar. Intenta nuevamente.",
-                confirmButtonColor: "#dc3545"
+                title: "Registrando garantía",
+                html: "Por favor espere mientras se registra la garantía...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
-        }
-    });
-});
+
+            // Preparar los datos para enviar
+            let data = {
+                cliente_nombre: app.garantia.cliente_nombre,
+                guia_remision: app.garantia.guiaRemision,
+                fecha_inicio: app.garantia.fechaInicio,
+                fecha_caducidad: app.garantia.fechaCaducidad
+            };
+
+            // Si hay múltiples series seleccionadas, enviarlas como un array
+            if (app.series_seleccionadas.length > 1) {
+                // Convertir el array de objetos a un string JSON
+                data.series = JSON.stringify(app.series_seleccionadas.map(s => s.numero_serie));
+                data.numero_serie = app.garantia.num_serie; // Mantener también el campo num_serie para compatibilidad
+            } else {
+                // Si es una sola serie, enviar como antes
+                data.numero_serie = app.garantia.num_serie;
+            }
+
+            console.log("Datos enviados:", data);
+
+            // Enviar una sola solicitud AJAX con todas las series
+            $.ajax({
+                url: _URL + "/ajs/garantia/add",
+                type: "POST",
+                data: data,
+                success: function (response) {
+                    try {
+                        const res = JSON.parse(response);
+                        if (res.res) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "¡Éxito!",
+                                text: res.msg,
+                                confirmButtonColor: "#dc3545",
+                                allowOutsideClick: false
+                            }).then((result) => {
+                                window.location.href = _URL + "/garantia";
+                            });
+
+                            // Limpiar los campos después de un registro exitoso
+                            app.garantia.cliente_nombre = '';
+                            app.garantia.buscar_serie = '';
+                            app.garantia.num_serie = '';
+                            app.garantia.marc = '';
+                            app.garantia.model = '';
+                            app.garantia.equipo = '';
+                            app.garantia.guiaRemision = '';
+                            app.garantia.fechaInicio = formatearFecha(hoy);
+                            app.garantia.fechaCaducidad = formatearFecha(unAñoDespues);
+                            app.series_seleccionadas = [];
+                            $('#series_seleccionadas_container').hide();
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "¡Error!",
+                                text: res.msg,
+                                confirmButtonColor: "#dc3545"
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Error al procesar la respuesta:", e);
+                        Swal.fire({
+                            icon: "error",
+                            title: "¡Error!",
+                            text: "Ocurrió un error al procesar la respuesta del servidor.",
+                            confirmButtonColor: "#dc3545"
+                        });
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "¡Error!",
+                        text: "No se pudo registrar. Intenta nuevamente.",
+                        confirmButtonColor: "#dc3545"
+                    });
+                }
+            });
+        });
     });
 </script>

@@ -26,12 +26,12 @@ Route::get("/r/cotizaciones/reporte-voucher-5-6cm/:coti", "ReportesVentaControll
 
 Route::get("/reporte/ventas/pdf/:periodo","GeneradoresController@reportePeriodoVenta");
 Route::get("/reporte/ventas/producto/lista/pdf/","ReportesVentaController@reporteVentaPorProducto");
+Route::get("/reporte/ventasganancias/pdf/:id","GeneradoresController@reportePeriodoVentaGanancias");
 
 Route::get('/venta/pdf/voucher/8cm/:voucher',"ReportesVentaController@imprimirvoucher8cm");
 Route::get('/venta/pdf/voucher/8cm/:voucher/:nom',"ReportesVentaController@imprimirvoucher8cm");
 Route::get('/venta/pdf/voucher/5.6cm/:voucher',"ReportesVentaController@imprimirvoucher5_6cm");
 Route::get('/venta/pdf/voucher/5.6cm/:voucher/:nom',"ReportesVentaController@imprimirvoucher5_6cm");
-Route::postBase("/reporte/cotizaciones/vendedores","GenerarReporte@reporteVentaPorVendedor");
 
 
 Route::get("/escanear/codigobarra/:empresa/:sucursal","ViewController@escanearBarra");
@@ -90,13 +90,15 @@ Route::postBase("/taller/cotizaciones", "FragmentController@tallerCotizaciones")
 Route::get("/reporte/excel/:fecha","GenerarReporte@generarExcel");
 Route::get("/reporte/producto/excel","GenerarReporte@generarExcelProducto");
 Route::get("/reporte/registros/excel/", "GenerarRegistros@generarExcelSeries");
-
-
 Route::get("/reporte/rvta/excel/:fecha","GenerarReporte@generarExcelRVTA");
-
 /* Route::get("/reporte/excel/test2","GenerarReporte@testExcel"); */
-
 Route::get("/reporte/ingresos/egresos/:id","GenerarReporte@ingresosEgresos");
+Route::get("/reporte/producto/guia","GenerarReporte@generarExcelProductoImporte");
+Route::get("/reporte/caja/excel/:id","GenerarReporte@generarExcelCaja");
+Route::postBase("/reporte/cotizaciones/vendedores", "GenerarReporte@reporteVentaPorVendedor");
+
+
+
 
 Route::get("/reporte/cliente/:id","ReportesVentaController@reporteCliente");
 
@@ -104,11 +106,8 @@ Route::get("/reporte/compras/pdf/:id","ReportesVentaController@reporteCompra");
 
 
 Route::get("/reporte/productos/pdf/:id","ReportesVentaController@reporteProductos");
-Route::get("/reporte/ventasganancias/pdf/:id","GeneradoresController@reportePeriodoVentaGanancias");
 
-Route::get("/reporte/producto/guia","GenerarReporte@generarExcelProductoImporte");
 
-Route::get("/reporte/caja/excel/:id","GenerarReporte@generarExcelCaja");
 Route::get("/reporte/compras","ReportesVentaController@reporteCompraAll");
 Route::postBase("/usuarios","FragmentController@usuariosLista");
 // categorias
@@ -154,7 +153,7 @@ Route::postBase("/motivo","FragmentController@motivo");
 // reporte taller
 
 Route::get("/r/taller/reporte/:id","ReporteTallerController@generateReport");
-Route::get("/r/garantia/certificado/:id_cotizacion","CertificadoGarantia@garantiaCertificado");
+Route::get("/r/garantia/certificado/:id","CertificadoGarantia@garantiaCertificado");
 
 // detalle prealerta pdf
 Route::get("/r/detalle/prealerta/:id_prealerta","DetallePrealertaController@generarPDF");

@@ -7,6 +7,8 @@
 
 <!-- Incluir Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<!-- Incluir estilos específicos del buscador -->
+
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,9 +100,9 @@
                                                                                 <select class="form-select"
                                                                                     v-model="producto.almacen"
                                                                                     @change="actualizarAutocomplete">
-                                                                                    <option value="1">Almacen 1</option>
-                                                                                    <option value="2">Almacen 2</option>
-                                                                                    <option value="3">Almacen 3</option>
+                                                                                    <option value="1">Alm 1</option>
+                                                                                    <option value="2">Alm 2</option>
+                                                                                    <option value="3">Alm 3</option>
                                                                                 </select>
                                                                             </div>
                                                                         </div>
@@ -958,7 +960,7 @@
                                 if (respuesta) {
                                     $.ajax({
                                         type: "post",
-                                        url: _URL + '/ajas/compra/buscar/producto',
+                                        url: _URL + '/ajs/compra/buscar/producto',
                                         data: {
                                             producto: respuesta // Código escaneado
                                         },
@@ -1079,7 +1081,7 @@
                         $("#loader-menor").show()
                         $.ajax({
                             type: "post",
-                            url: _URL + '/ajas/compra/buscar/producto',
+                            url: _URL + '/ajs/compra/buscar/producto',
                             data: {
                                 producto: $("#descripcionBuscar").val()
                             },
@@ -1237,7 +1239,7 @@
                             if (this.venta.fecha !== undefined && this.venta.nom_cli !== '' && this.venta.serie !== '') {
                                 if (this.venta.dir_cli !== undefined) {
                                     $("#loader-menor").hide();
-                                    _ajax("/ajas/compras/add", "POST",
+                                    _ajax("/ajs/compras/add", "POST",
                                         data,
                                         function (resp) {
                                             /*  console.log(JSON.parse(resp)); */
@@ -1415,7 +1417,8 @@
                             app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre;
                             app.producto.nom_prod = ui.item.nombre;
                             app.producto.stock = ui.item.cantidad || ui.item.cnt;
-                            app.producto.precio = parseFloat(ui.item.precio || 0).toFixed(2);
+                            // CORREGIDO: Usar COSTO en lugar de precio para compras
+                            app.producto.precio = parseFloat(ui.item.costo || 0).toFixed(2);
                             app.producto.codigo = ui.item.codigo;
                             app.producto.costo = ui.item.costo;
 
@@ -1453,56 +1456,7 @@
                 }
             }
         })
-        /*    $("#btnBuscar").click(function(e) {
-               e.preventDefault()
-               $('#stockActual').val('')
-               if ($("#descripcionBuscar").val().length > 2) {
-                   $("#loader-menor").show()
-                   $.ajax({
-                       type: "post",
-                       url: _URL + '/buscar/producto',
-                       data: {
-                           producto: $("#descripcionBuscar").val()
-                       },
-                       success: function(resp) {
-                           $("#loader-menor").hide()
-                           let data = JSON.parse(resp);
-                           if (data.res) {
-                               $('#producto')
-                                   .find('option')
-                                   .remove()
-                                   .end()
-                                   .append('<option value="">SELECCIONE</option>')
-
-
-
-                               data.data.forEach(element => {
-                                   $('#producto').append($('<option>', {
-                                       value: element[0],
-                                       text: element[1]
-                                   }));
-
-
-                               });
-
-                           } else {
-                               Swal.fire({
-                                   icon: 'warning',
-                                   title: 'Advertencia',
-                                   text: 'No se encontró ningun producto',
-                               })
-                           }
-
-                       }
-                   });
-               } else {
-                   Swal.fire({
-                       icon: 'warning',
-                       title: 'Advertencia',
-                       text: 'Digite al menos 3 caracter',
-                   })
-               }
-           }) */
+     
 
         $("#descripcionBuscar").autocomplete({
 
@@ -1520,7 +1474,8 @@
                 app.producto.codigo_app = ui.item.codigo_pp
                 app.producto.cantidad = ''
                 app.producto.stock = ui.item.cnt
-                app.producto.precio = ui.item.precio == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio + "").toFixed(2)
+                // CORREGIDO: Usar COSTO en lugar de precio para compras
+                app.producto.precio = ui.item.costo == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.costo + "").toFixed(2)
                 app.producto.precio2 = ui.item.precio2 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio2 + "").toFixed(2)
                 app.producto.precio3 = ui.item.precio3 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio3 + "").toFixed(2)
                 app.producto.precio4 = ui.item.precio4 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio4 + "").toFixed(2)

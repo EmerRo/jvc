@@ -20,20 +20,11 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
     <div class="col-12">
         <div class="card"
             style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#agregarModal"
-                            class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Agregar</button>
-
-                    </div>
-
-                    <div class="col-md-6 text-end">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#importarModal"
-                            class="btn border-rojo bg-white"><i class="fa fa-file-excel"></i> Importar</button>
-                        <!-- <button class="btn btn-success"><i class="fa fa-file-excel"></i> Importar</button> -->
-                    </div>
-                </div>
+            <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#importarModal"
+                    class="btn border-rojo bg-white me-2"><i class="fa fa-file-excel"></i> Importar</button>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#agregarModal"
+                    class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Agregar</button>
             </div>
             <div id="conte-vue-modals">
                 <div class="card-body">
@@ -132,10 +123,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <div class="modal-body">
                                     <!-- Modificaciones para el formulario de agregar cliente -->
                                     <form id="frmClientesAgregar">
-                                        <div class="row g-3">
+                                        <div class="row p-2">
                                             <!-- Fila 1 -->
                                             <div class="col-md-6">
-                                                <label>DNI<span style="color: red;"> (*)</span></label>
+                                                <label>DNI o RUC<span style="color: red;"> (*)</span></label>
                                                 <div class="input-group">
                                                     <input type="text" class="form-control" required maxlength="11"
                                                         id="documentoAgregar" name="documentoAgregar">
@@ -223,7 +214,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 </div>
                                 <div class="modal-body">
                                     <form id="clientesEditar">
-                                        <div class="row g-3">
+                                        <div class="row p-2">
                                             <!-- Fila 1 -->
                                             <div class="col-md-6">
                                                 <label>DNI<span style="color: red;"> (*)</span></label>
@@ -343,7 +334,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         <div class="table-responsive">
                             <table id="tabla_clientes"
                                 class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
                                         <th>Item</th>
                                         <th>Documento</th>

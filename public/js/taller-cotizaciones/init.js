@@ -1,4 +1,4 @@
-// Inicialización y configuración general
+// public\js\taller-cotizaciones\init.js
 $(document).ready(function() {
     // Inicialización de componentes UI
     $("#input_datos_cliente").autocomplete({

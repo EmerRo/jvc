@@ -266,7 +266,7 @@ class ReporteTallerController extends Controller
                 $repuestos = $stmtRepuestos->get_result()->fetch_all(MYSQLI_ASSOC);
 
                 // Generar HTML para la tabla y los totales
-                $tablaHTML = $this->generateTablaHTML($data, $repuestos, $equipo, $index + 1, count($equipos), $puedeVerPrecios);
+               $tablaHTML = $this->generateTablaHTML($data, $repuestos, $equipo, $index + 1, count($equipos), $puedeVerPrecios, $permisos['esRolTaller']);
                 $mpdf->WriteHTML($tablaHTML);
 
                 // Para rol ORDEN TRABAJO, mostrar observaciones en lugar de diagnóstico y condiciones
@@ -307,13 +307,13 @@ class ReporteTallerController extends Controller
     }
 
     // Método para generar el HTML de la tabla y los totales
-    private function generateTablaHTML($data, $repuestos, $equipo, $equipoIndex, $totalEquipos, $puedeVerPrecios = true)
+   private function generateTablaHTML($data, $repuestos, $equipo, $equipoIndex, $totalEquipos, $puedeVerPrecios = true, $esRolTaller = false)
     {
         $total = 0;
         $repuestosHtml = '';
         $colorAlternado = 0; // Variable para alternar colores
         $colorCrema = '#fbf0e8'; // Color crema
-$colorBlanco = '#FFFFFF'; // Color blanco
+        $colorBlanco = '#FFFFFF'; // Color blanco
 
         $tipoDoc = strlen($data['documento']) === 8 ? 'DNI' : 'RUC';
 
@@ -335,16 +335,16 @@ $colorBlanco = '#FFFFFF'; // Color blanco
             }
         }
 
-     foreach ($repuestos as $index => $repuesto) {
-    $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
-    $total += $subtotal;
-    
-    // Alternar colores de fondo
-    $bgColor = ($colorAlternado % 2 == 0) ? $colorCrema : $colorBlanco;
-    $colorAlternado++;
+        foreach ($repuestos as $index => $repuesto) {
+            $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
+            $total += $subtotal;
 
-    if ($puedeVerPrecios) {
-        $repuestosHtml .= "
+            // Alternar colores de fondo
+            $bgColor = ($colorAlternado % 2 == 0) ? $colorCrema : $colorBlanco;
+            $colorAlternado++;
+
+            if ($puedeVerPrecios) {
+                $repuestosHtml .= "
         <tr style='margin:0; padding:0; background-color: {$bgColor};'>
             <td style='border-right: 1px solid #C43438;border-left: 1px solid #C43438; padding: 1px; text-align: center'>" . ($index + 1) . "</td>
             <td style='border-right: 1px solid #C43438;  font-weight: bold;'>{$repuesto['nombre']}</td>
@@ -479,7 +479,8 @@ $colorBlanco = '#FFFFFF'; // Color blanco
                 <div style='margin: 15px 0;'>
                     <p style='margin-bottom: 5px;'>
                         <strong>Señores: </strong>
-                        <strong>{$data['datos']} - {$tipoDoc} N° {$data['documento']}</strong>
+                     
+                          <strong>" . ($esRolTaller ? $data['datos'] : "{$data['datos']} - {$tipoDoc} N° {$data['documento']}") . "</strong>
                     </p>
                     <p style='margin:1px;'>
                         <strong>Dirección: </strong>
@@ -836,7 +837,8 @@ $colorBlanco = '#FFFFFF'; // Color blanco
         if (!isset($_SESSION['usuario_fac'])) {
             return [
                 'puedeVerPrecios' => false,
-                'esRolOrdenTrabajo' => false
+                'esRolOrdenTrabajo' => false,
+                'esRolTaller' => false
             ];
         }
 
@@ -870,6 +872,9 @@ $colorBlanco = '#FFFFFF'; // Color blanco
                     return $permisos;
                 } else if ($nombreRol === 'SERVICIO') {
                     $permisos['puedeVerPrecios'] = false;
+
+                } else if ($nombreRol === 'TALLER') {
+                    $permisos['esRolTaller'] = true;  // ⭐ AGREGAR ESTAS LÍNEAS
                 }
             }
 

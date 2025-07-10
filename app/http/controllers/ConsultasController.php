@@ -468,42 +468,6 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
         return json_encode($array_resultado);
     }
-
-   public function buscarDataSerie()
-{
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
-    
-    // Si no hay término de búsqueda o está vacío, devolver series disponibles (limitado a 100)
-    if (empty($searchTerm)) {
-        $resultados = $this->consulta->obtenerSeriesDisponibles();
-    } else {
-        $resultados = $this->consulta->buscarSerieDisponible($searchTerm);
-    }
-    
-    // Si resultados es un array vacío (error) devolver array vacío
-    if (empty($resultados) || !is_object($resultados)) {
-        return json_encode([]);
-    }
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        $fila = array();
-        $fila['label'] = $value['numero_serie']; // Cambiado de 'value' a 'label' para autocomplete
-        $fila['value'] = $value['numero_serie'];
-        $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
-        $fila['modelo'] = $value['modelo'];
-        $fila['modelo_nombre'] = $value['modelo_nombre'];
-        $fila['marca'] = $value['marca'];
-        $fila['marca_nombre'] = $value['marca_nombre'];
-        $fila['equipo'] = $value['equipo'];
-        $fila['equipo_nombre'] = $value['equipo_nombre'];
-        array_push($array_resultado, $fila);
-    }
-    
-    return json_encode($array_resultado);
-}
-    
-
     public function buscarDocInfo()
     {
         //var_dump($_POST);
@@ -803,84 +767,8 @@ WHERE id_venta='{$_POST['idVenta']}'";
         $result = $this->consulta->exeSQL($sql)->fetch_assoc();
         echo json_encode($result);
     }
-    function consultarGuiaXCoti()
-    {
-        $sql = "SELECT * FROM productos_cotis WHERE id_coti = '{$_POST['cod']}'";
-        $lista = [];
-        foreach ($this->consulta->exeSQL($sql) as $row) {
-            $sql = "SELECT * FROM productos WHERE id_producto = '{$row['id_producto']}'";
 
-            foreach ($this->consulta->exeSQL($sql) as $row2) {
-                // Convertir la cantidad a entero si no tiene decimales
-                $cantidad = floatval($row['cantidad']);
-                $cantidadFormateada = $cantidad == floor($cantidad) ? number_format($cantidad, 0) : $cantidad;
-
-                $lista[] = [
-                    'cantidad' => $cantidadFormateada,
-                    'costo' => $row['costo'],
-                    'id_producto' => $row['id_producto'],
-                    'precio' => $row['precio'],
-                    'nombre' => $row2['nombre'],
-                    'codigo' => $row2['codigo'],
-                    'detalle' => $row2['detalle']
-                ];
-            }
-        }
-        echo json_encode($lista);
-    }
-
-    function consultarGuiaXCotiCliente()
-    {
-        if (!isset($_POST['cod']) || empty($_POST['cod'])) {
-            return json_encode([
-                'error' => true,
-                'mensaje' => 'No se proporcionó un código de cotización válido'
-            ]);
-        }
-
-        // Consulta SQL modificada para manejar ubigeo nulo
-        $sql = "SELECT 
-                    c.datos, 
-                    c.direccion, 
-                    c.documento, 
-                    COALESCE(SUBSTRING(c.ubigeo, 1, 2), '') as departamento,
-                    COALESCE(SUBSTRING(c.ubigeo, 3, 2), '') as provincia,
-                    COALESCE(SUBSTRING(c.ubigeo, 5, 2), '') as distrito,
-                    COALESCE(c.ubigeo, '') as ubigeo 
-                FROM cotizaciones co 
-                JOIN clientes c ON co.id_cliente = c.id_cliente 
-                WHERE co.cotizacion_id = ?";
-
-        $stmt = $this->consulta->getConectar()->prepare($sql);
-        if (!$stmt) {
-            return json_encode([
-                'error' => true,
-                'mensaje' => 'Error al preparar la consulta: ' . $this->consulta->getConectar()->error
-            ]);
-        }
-
-        $stmt->bind_param('s', $_POST['cod']);
-        if (!$stmt->execute()) {
-            return json_encode([
-                'error' => true,
-                'mensaje' => 'Error al ejecutar la consulta: ' . $stmt->error
-            ]);
-        }
-
-        $result = $stmt->get_result();
-
-        if ($result && $result->num_rows > 0) {
-            $data = $result->fetch_assoc();
-            return json_encode($data);
-        } else {
-            return json_encode([
-                'error' => true,
-                'mensaje' => 'No se encontraron datos para esta cotización'
-            ]);
-        }
-    }
-
-
+    
     function getRoles()
     {
         $sql = "SELECT * FROM roles";
@@ -946,11 +834,13 @@ WHERE id_venta='{$_POST['idVenta']}'";
         $fila['label'] = $value['cliente_ruc_dni'];
         $fila['value'] = $value['cliente_ruc_dni'];
         $fila['id'] = $value['id'];
+        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
         array_push($array_resultado, $fila);
     }
     
     return json_encode($array_resultado);
 }
+
 public function buscarSeriesPorCliente()
 {
     $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
@@ -968,6 +858,43 @@ public function buscarSeriesPorCliente()
     
     return json_encode($array_resultado);
 }
+
+   public function buscarDataSerie()
+{
+    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+    
+    // Si no hay término de búsqueda o está vacío, devolver series disponibles (limitado a 100)
+    if (empty($searchTerm)) {
+        $resultados = $this->consulta->obtenerSeriesDisponibles();
+    } else {
+        $resultados = $this->consulta->buscarSerieDisponible($searchTerm);
+    }
+    
+    // Si resultados es un array vacío (error) devolver array vacío
+    if (empty($resultados) || !is_object($resultados)) {
+        return json_encode([]);
+    }
+    
+    $array_resultado = array();
+    while ($value = $resultados->fetch_assoc()) {
+        $fila = array();
+        $fila['label'] = $value['numero_serie']; // Cambiado de 'value' a 'label' para autocomplete
+        $fila['value'] = $value['numero_serie'];
+        $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
+        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
+        $fila['modelo'] = $value['modelo'];
+        $fila['modelo_nombre'] = $value['modelo_nombre'];
+        $fila['marca'] = $value['marca'];
+        $fila['marca_nombre'] = $value['marca_nombre'];
+        $fila['equipo'] = $value['equipo'];
+        $fila['equipo_nombre'] = $value['equipo_nombre'];
+        array_push($array_resultado, $fila);
+    }
+    
+    return json_encode($array_resultado);
+}
+    
+// ✅ CORRECCIÓN CRÍTICA: Agregar el echo que falta
 public function buscarDataSeriePreAlerta()
 {
     $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
@@ -1005,7 +932,7 @@ public function buscarDataSeriePreAlerta()
         $fila['label'] = $value['numero_serie'];
         $fila['value'] = $value['numero_serie'];
         $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
-        $fila['cliente_documento'] = $value['cliente_documento'];
+        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
         $fila['modelo'] = $value['modelo'];
         $fila['modelo_nombre'] = $value['modelo_nombre'];
         $fila['marca'] = $value['marca'];
@@ -1016,7 +943,7 @@ public function buscarDataSeriePreAlerta()
     }
     
     error_log("Array resultado final: " . print_r($array_resultado, true));
-    echo json_encode($array_resultado);
+    echo json_encode($array_resultado); // ✅ ESTE ECHO ESTABA FALTANDO
 }
 
 public function buscarClienteSeriePreAlerta()
@@ -1042,7 +969,7 @@ public function buscarClienteSeriePreAlerta()
         $fila = array();
         $fila['label'] = $value['cliente_ruc_dni'];
         $fila['value'] = $value['cliente_ruc_dni'];
-        $fila['cliente_documento'] = $value['cliente_documento'];
+        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
         $fila['id'] = $value['id'];
         array_push($array_resultado, $fila);
     }

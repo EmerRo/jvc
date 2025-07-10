@@ -1100,7 +1100,7 @@ if (isset($_GET["guia"])) {
                                 if (respuesta) {
                                     $.ajax({
                                         type: "post",
-                                        url: _URL + '/ajas/compra/buscar/producto',
+                                        url: _URL + '/ajs/compra/buscar/producto',
                                         data: {
                                             producto: respuesta
                                         },

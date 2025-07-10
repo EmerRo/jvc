@@ -1,4 +1,4 @@
-// observaciones-integration.js - Versión corregida
+// public\js\taller-cotizaciones\observaciones-integration.js
 $(document).ready(function() {
     // Verificar si estamos en la página de cotizaciones/órdenes de trabajo
     if ($("#container-vue").length > 0 && $("#modal-observaciones").length > 0) {

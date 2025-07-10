@@ -8,11 +8,11 @@
         font-weight: 600;
         text-align: center;
     }
-    
+
     .bg-success {
-        background-color:rgb(138, 138, 138) !important;
+        background-color: rgb(138, 138, 138) !important;
     }
-    
+
     .bg-danger {
         background-color: #ef4444 !important;
     }
@@ -20,26 +20,34 @@
 <div class="page-title-box" style="padding: 12px 0;">
     <div class="row align-items-center">
         <div class="col-md-12">
-            <h6 class="page-title text-center">Registro De Maquina</h6>
+            <h6 class="page-title text-center">REGISTRO DE MAQUINAS </h6>
         </div>
     </div>
 </div>
 
 <div class="row">
+    <div class="col-md-8">
+        <div class="clearfix">
+            <ol class="breadcrumb m-0 float-start" style="background: transparent;">
+                <li class="breadcrumb-item"><a href="javascript: void(0);"
+                        style="color: #718096; text-decoration: none;">Orden Servicio</a></li>
+                <li class="breadcrumb-item"><a href="javascript: void(0);"
+                        style="color: #718096; text-decoration: none;">Gestion Activos</a></li>
+                <li class="breadcrumb-item active " aria-current="page" style="font-weight: 500; color: #CA3438;">
+                    Maquinas</li>
+            </ol>
+        </div>
+    </div>
     <div class="col-12">
         <div class="card"
-            style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#modalMaquina"
-                            class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Nueva Maquina</button>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <a href="gestion/activos" class="btn btn-warning"><i class="fa fa-arrow-left"></i> Regresar</a>
-                    </div>
-                </div>
+            style="border-radius:20px; box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
+
+            <div class="card-title-desc text-end" style="padding: 10px 10px 0 0;">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#modalMaquina"
+                    class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Nueva Maquina</button>
+                <a href="gestion/activos" class="btn border-rojo"><i class="fa fa-arrow-left"></i> Regresar</a>
             </div>
+
             <div id="conte-vue-modals">
                 <div class="card-body">
                     <div class="card-title-desc">
@@ -48,12 +56,12 @@
                                 class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer">
                                 <thead>
                                     <tr>
-                                        <th>Item</th>
-                                        <th>Equipo</th>
+                                        <th><i class="fa fa-hashtag me-1"></i> Número</th>
                                         <th>Marca</th>
                                         <th>Modelo</th>
+                                        <th>Equipo</th>
                                         <th>N° serie</th>
-                                        <th>estado</th>
+                                        <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -68,11 +76,11 @@
                 aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="exampleModalLabel">Agregar Maquina</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="addMaquinaForm"> <!-- Cambiado a "addMaquinaForm" -->
+                        <form id="addMaquinaForm">
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <label for="marca" class="form-label">Marca</label>
@@ -93,8 +101,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" id="submitMaquina" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" id="submitMaquina" class="btn bg-rojo">Guardar</button>
                             </div>
                         </form>
                     </div>
@@ -106,11 +114,11 @@
                 aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="exampleModalLabel">Actualizar Maquina</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <form id="updateMaquinaForm"> <!-- Cambiado a "updateMaquinaForm" -->
+                        <form id="updateMaquinaForm">
                             <div class="modal-body">
                                 <input type="text" id="idMaquinaU" value="" hidden>
                                 <div class="mb-3">
@@ -129,12 +137,10 @@
                                     <label for="numero_serieU" class="form-label">N° serie</label>
                                     <input type="text" class="form-control" id="numero_serieU">
                                 </div>
-
-
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" id="updateMaquinaBtn" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" id="updateMaquinaBtn" class="btn bg-rojo">Guardar</button>
                             </div>
                         </form>
                     </div>
@@ -149,11 +155,11 @@
     $(document).ready(function () {
         // Configuración de DataTable para las maquinas
         tabla_maquinas = $("#tabla_maquinas").DataTable({
-                 "processing": true,
-        "responsive": true,    // ✅ Habilitar responsividad
-        "scrollX": false,      // ✅ Deshabilitar scroll horizontal
-        "autoWidth": false,    // ✅ Deshabilitar auto-ancho
-        "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+            "processing": true,
+            "responsive": true,
+            "scrollX": false,
+            "autoWidth": false,
+            "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
             paging: true,
             bFilter: true,
             ordering: true,
@@ -171,19 +177,19 @@
                 url: "ServerSide/Spanish.json",
             },
             columns: [
-                { data: "id", class: "text-center" },
-                { data: "equipo", class: "text-center" },
+                { data: "numero", class: "text-center" }, // CAMBIO: usar campo numero
                 { data: "marca", class: "text-center" },
                 { data: "modelo", class: "text-center" },
+                { data: "equipo", class: "text-center" },
                 { data: "numero_serie", class: "text-center" },
                 {
-        data: "estado_actual",
-        class: "text-center",
-        render: function (data, type, row) {
-            let badgeClass = data === 'DISPONIBLE' ? 'bg-success' : 'bg-danger';
-            return `<span class="badge ${badgeClass}" style="min-width: 120px;">${data}</span>`;
-        }
-    },
+                    data: "estado_actual",
+                    class: "text-center",
+                    render: function (data, type, row) {
+                        let badgeClass = data === 'DISPONIBLE' ? 'bg-success' : 'bg-danger';
+                        return `<span class="badge ${badgeClass}" style="min-width: 120px;">${data}</span>`;
+                    }
+                },
                 {
                     data: null,
                     class: "text-center",
@@ -203,42 +209,42 @@
             ]
         });
 
-        // Agregar Maquina
+        // Resto del código JavaScript permanece igual...
         $('#submitMaquina').click(function () {
-    $.post(_URL + "/ajs/save/maquinas", {
-        equipo: $('#equipo').val(),
-        marca: $('#marca').val(),
-        modelo: $('#modelo').val(),
-        numero_serie: $('#numero_serie').val(),
-    })
-    .done(function (response) {
-        let data = JSON.parse(response);
-        if (data.status === "success") {
-            Swal.fire({
-                title: "Éxito",
-                text: data.message,
-                icon: "success"
-            });
-            $('#modalMaquina').modal('hide');
-            $('#addMaquinaForm')[0].reset();
-            tabla_maquinas.ajax.reload();
-        } else {
-            Swal.fire({
-                title: "Error",
-                text: data.message,
-                icon: "error"
-            });
-        }
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-        console.error("Error:", textStatus, errorThrown);
-        Swal.fire({
-            title: "Error",
-            text: "No se pudo guardar la máquina",
-            icon: "error"
+            $.post(_URL + "/ajs/save/maquinas", {
+                equipo: $('#equipo').val(),
+                marca: $('#marca').val(),
+                modelo: $('#modelo').val(),
+                numero_serie: $('#numero_serie').val(),
+            })
+                .done(function (response) {
+                    let data = JSON.parse(response);
+                    if (data.status === "success") {
+                        Swal.fire({
+                            title: "Éxito",
+                            text: data.message,
+                            icon: "success"
+                        });
+                        $('#modalMaquina').modal('hide');
+                        $('#addMaquinaForm')[0].reset();
+                        tabla_maquinas.ajax.reload();
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message,
+                            icon: "error"
+                        });
+                    }
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error:", textStatus, errorThrown);
+                    Swal.fire({
+                        title: "Error",
+                        text: "No se pudo guardar la máquina",
+                        icon: "error"
+                    });
+                });
         });
-    });
-});
 
         // Editar Maquina
         $("#tabla_maquinas").on("click", ".btnEditar", function () {

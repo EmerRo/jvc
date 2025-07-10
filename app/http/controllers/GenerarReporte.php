@@ -89,7 +89,7 @@ class GenerarReporte extends Controller
                     </tr>
                 </table>
             </div>
-            <div style='width: 100%;text-align: center'>
+            <div style='width: 100%;'>
                 <span style='font-size: 13px;'>---------------------- Detalle -----------------------</span>
             </div>
             <div style='width: 100%;'>
@@ -543,6 +543,185 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer->save($nombre_exel);
+        header('Location: ' . URL::to($nombre_exel));
+    }
+
+    public function reporteVentaPorVendedor()
+    {
+        // Obtener parámetros del POST o GET
+        $vendedor_id = isset($_POST['vendedor']) ? $_POST['vendedor'] : (isset($_GET['vendedor']) ? $_GET['vendedor'] : '0');
+        $rango_fechas = isset($_POST['rangoFechas']) ? $_POST['rangoFechas'] : (isset($_GET['rangoFechas']) ? $_GET['rangoFechas'] : '');
+        
+        // Procesar el rango de fechas
+        $fecha_inicio = '';
+        $fecha_fin = '';
+        
+        if (!empty($rango_fechas)) {
+            $fechas = explode(' - ', $rango_fechas);
+            if (count($fechas) == 2) {
+                $fecha_inicio = trim($fechas[0]);
+                $fecha_fin = trim($fechas[1]);
+            }
+        }
+
+        // Construir la consulta SQL
+        $sql = "SELECT 
+                    c.cotizacion_id,
+                    c.numero,
+                    c.fecha,
+                    c.total,
+                    c.estado,
+                    CASE 
+                        WHEN u.nombres IS NOT NULL AND u.apellidos IS NOT NULL 
+                        THEN CONCAT(u.nombres, ' ', u.apellidos)
+                        WHEN u.nombres IS NOT NULL 
+                        THEN u.nombres
+                        ELSE u.usuario
+                    END AS vendedor,
+                    cl.documento,
+                    cl.datos AS cliente,
+                    CASE 
+                        WHEN c.estado = '0' THEN 'No Vendido'
+                        WHEN c.estado = '1' THEN 'Vendido'
+                        WHEN c.estado = '2' THEN 'Facturado'
+                        ELSE 'Desconocido'
+                    END AS estado_texto
+                FROM cotizaciones c
+                LEFT JOIN usuarios u ON u.usuario_id = c.id_usuario
+                LEFT JOIN clientes cl ON cl.id_cliente = c.id_cliente
+                WHERE c.id_empresa = '{$_SESSION['id_empresa']}' 
+                AND c.estado <> '2'";
+
+        // Agregar filtros
+        if ($vendedor_id != '0' && !empty($vendedor_id)) {
+            $sql .= " AND c.id_usuario = '$vendedor_id'";
+        }
+
+        if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+            $sql .= " AND c.fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
+        }
+
+        $sql .= " ORDER BY u.nombres ASC, c.fecha DESC";
+
+        $result = $this->conexion->query($sql);
+
+        // Generar el contenido del Excel
+        $tbody = '';
+        $total_general = 0;
+        $contador = 0;
+        $vendedor_actual = '';
+        $total_vendedor = 0;
+
+        foreach ($result as $fila) {
+            $contador++;
+            
+            // Si cambia el vendedor, agregar subtotal del vendedor anterior
+            if ($vendedor_actual != '' && $vendedor_actual != $fila['vendedor']) {
+                $tbody .= '
+                <tr style="background-color: #f0f0f0;">
+                    <td colspan="5" style="font-weight: bold; text-align: right;">Subtotal ' . $vendedor_actual . ':</td>
+                    <td style="font-weight: bold;">S/ ' . number_format($total_vendedor, 2) . '</td>
+                    <td></td>
+                </tr>';
+                $total_vendedor = 0;
+            }
+            
+            $vendedor_actual = $fila['vendedor'];
+            $total_vendedor += $fila['total'];
+            $total_general += $fila['total'];
+
+            $tbody .= '
+            <tr>
+                <td style="font-size: 10px;">' . $contador . '</td>
+                <td style="font-size: 10px;">COT-' . str_pad($fila['numero'], 3, '0', STR_PAD_LEFT) . '</td>
+                <td style="font-size: 10px;">' . date('d/m/Y', strtotime($fila['fecha'])) . '</td>
+                <td style="font-size: 10px;">' . $fila['cliente'] . '</td>
+                <td style="font-size: 10px;">' . $fila['vendedor'] . '</td>
+                <td style="font-size: 10px;">S/ ' . number_format($fila['total'], 2) . '</td>
+                <td style="font-size: 10px;">' . $fila['estado_texto'] . '</td>
+            </tr>';
+        }
+
+        // Agregar subtotal del último vendedor
+        if ($vendedor_actual != '') {
+            $tbody .= '
+            <tr style="background-color: #f0f0f0;">
+                <td colspan="5" style="font-weight: bold; text-align: right;">Subtotal ' . $vendedor_actual . ':</td>
+                <td style="font-weight: bold;">S/ ' . number_format($total_vendedor, 2) . '</td>
+                <td></td>
+            </tr>';
+        }
+
+        // Agregar total general
+        $tbody .= '
+        <tr style="background-color: #CA3438; color: white;">
+            <td colspan="5" style="font-weight: bold; text-align: right;">TOTAL GENERAL:</td>
+            <td style="font-weight: bold;">S/ ' . number_format($total_general, 2) . '</td>
+            <td></td>
+        </tr>';
+
+        // Obtener información de la empresa
+        $empresa = $this->conexion->query("SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'")->fetch_assoc();
+
+        // Obtener nombre del vendedor si se filtró por uno específico
+        $nombre_vendedor = 'TODOS LOS VENDEDORES';
+        if ($vendedor_id != '0' && !empty($vendedor_id)) {
+            $vendedor_info = $this->conexion->query("SELECT nombres, apellidos FROM usuarios WHERE usuario_id = '$vendedor_id'")->fetch_assoc();
+            if ($vendedor_info) {
+                $nombre_vendedor = $vendedor_info['nombres'] . ' ' . ($vendedor_info['apellidos'] ?: '');
+            }
+        }
+
+        $periodo = '';
+        if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+            $periodo = "DEL " . date('d/m/Y', strtotime($fecha_inicio)) . " AL " . date('d/m/Y', strtotime($fecha_fin));
+        } else {
+            $periodo = "TODAS LAS FECHAS";
+        }
+
+        $tabla = "
+        <table>
+            <tr>
+                <td colspan='7' style='background-color: #CA3438; color: white; font-weight: bold; text-align: center; font-size: 14px;'>
+                    REPORTE DE COTIZACIONES POR VENDEDOR
+                </td>
+            </tr>
+            <tr>
+                <td colspan='7' style='background-color: #f8f9fa; font-weight: bold; text-align: center; font-size: 12px;'>
+                    EMPRESA: {$empresa['razon_social']} - RUC: {$empresa['ruc']}
+                </td>
+            </tr>
+            <tr>
+                <td colspan='7' style='background-color: #f8f9fa; font-weight: bold; text-align: center; font-size: 12px;'>
+                    VENDEDOR: $nombre_vendedor
+                </td>
+            </tr>
+            <tr>
+                <td colspan='7' style='background-color: #f8f9fa; font-weight: bold; text-align: center; font-size: 12px;'>
+                    PERÍODO: $periodo
+                </td>
+            </tr>
+            <tr>
+                <th style='background-color: #90BFEB; width: 8px; font-weight: bold;'>N°</th>
+                <th style='background-color: #90BFEB; width: 15px; font-weight: bold;'>COTIZACIÓN</th>
+                <th style='background-color: #90BFEB; width: 12px; font-weight: bold;'>FECHA</th>
+                <th style='background-color: #90BFEB; width: 40px; font-weight: bold;'>CLIENTE</th>
+                <th style='background-color: #90BFEB; width: 25px; font-weight: bold;'>VENDEDOR</th>
+                <th style='background-color: #90BFEB; width: 15px; font-weight: bold;'>TOTAL</th>
+                <th style='background-color: #90BFEB; width: 15px; font-weight: bold;'>ESTADO</th>
+            </tr>
+            <tbody>
+                " . $tbody . "
+            </tbody>
+        </table>";
+
+        // Generar el archivo Excel
+        $nombre_exel = "reporte_cotizaciones_vendedores_" . date('Y-m-d_H-i-s') . ".xlsx";
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+        $spreadsheet = $reader->loadFromString($tabla);
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }

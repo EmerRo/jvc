@@ -201,6 +201,48 @@ class Cliente
     public function getRubro() {
         return $this->rubro;
     }
+
+    /**
+     * Verificar si ya existe un cliente con el mismo documento en la empresa
+     * @param string $documento
+     * @param int $id_empresa
+     * @param int|null $id_cliente_excluir - Para excluir un cliente específico (útil en edición)
+     * @return bool
+     */
+    public function existeDocumento($documento, $id_empresa, $id_cliente_excluir = null)
+    {
+        try {
+            $sql = "SELECT COUNT(*) as total FROM clientes 
+                    WHERE documento = ? AND id_empresa = ?";
+            
+            // Si se proporciona un ID de cliente a excluir (para edición)
+            if ($id_cliente_excluir !== null) {
+                $sql .= " AND id_cliente != ?";
+            }
+            
+            $stmt = $this->conectar->prepare($sql);
+            
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->conectar->error);
+            }
+            
+            if ($id_cliente_excluir !== null) {
+                $stmt->bind_param("sii", $documento, $id_empresa, $id_cliente_excluir);
+            } else {
+                $stmt->bind_param("si", $documento, $id_empresa);
+            }
+            
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+            $stmt->close();
+            
+            return $row['total'] > 0;
+        } catch (Exception $e) {
+            error_log("Error al verificar documento: " . $e->getMessage());
+            throw $e;
+        }
+    }
     
     public function insertar() {
         try {

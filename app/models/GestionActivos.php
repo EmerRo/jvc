@@ -3,6 +3,7 @@
 class GestionActivos
 {
     private $id;
+    private $numero; // NUEVO CAMPO
     private $cliente_razon_social;
     private $motivo;
     private $marca;
@@ -11,7 +12,7 @@ class GestionActivos
     private $numero_serie;
     private $fecha_salida;
     private $fecha_ingreso;
-    private $observaciones; // Campo no obligatorio
+    private $observaciones;
     private $conectar;
 
     public function __construct()
@@ -19,11 +20,42 @@ class GestionActivos
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    // Getters y Setters
+    // NUEVO MÉTODO PARA GENERAR NÚMERO CORRELATIVO
+    private function generarNumero()
+    {
+        try {
+            // Obtener el último número de gestión de activos
+            $sql = "SELECT numero FROM gestion_activos WHERE numero LIKE 'GA-%' ORDER BY id DESC LIMIT 1";
+            $result = $this->conectar->query($sql);
+            
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $ultimoNumero = $row['numero'];
+                // Extraer el número (GA-01 -> 01)
+                $numero = intval(substr($ultimoNumero, 3));
+                $siguienteNumero = $numero + 1;
+            } else {
+                $siguienteNumero = 1;
+            }
+            
+            // Formatear con ceros a la izquierda (01, 02, etc.)
+            return 'GA-' . str_pad($siguienteNumero, 2, '0', STR_PAD_LEFT);
+            
+        } catch (Exception $e) {
+            error_log("Error al generar número: " . $e->getMessage());
+            return 'GA-01'; // Valor por defecto
+        }
+    }
 
+    // Getters y Setters
     public function getId()
     {
         return $this->id;
+    }
+
+    public function getNumero() // NUEVO GETTER
+    {
+        return $this->numero;
     }
 
     public function getClienteRazonSocial()
@@ -116,19 +148,24 @@ class GestionActivos
         $this->observaciones = $observaciones;
     }
 
-    // Métodos CRUD
-
+    // MÉTODO INSERTAR MODIFICADO
     public function insertar()
-{
-    $sql = "INSERT INTO gestion_activos (cliente_razon_social, motivo, marca, equipo, modelo, numero_serie, fecha_salida, fecha_ingreso, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $this->conectar->prepare($sql);
-    $stmt->bind_param("sssssssss", $this->cliente_razon_social, $this->motivo, $this->marca, $this->equipo, $this->modelo, $this->numero_serie, $this->fecha_salida, $this->fecha_ingreso, $this->observaciones);
-    $result = $stmt->execute();
-    if ($result) {
-        $this->id = $this->conectar->insert_id;
+    {
+        // Generar número correlativo
+        $numero = $this->generarNumero();
+        
+        $sql = "INSERT INTO gestion_activos (numero, cliente_razon_social, motivo, marca, equipo, modelo, numero_serie, fecha_salida, fecha_ingreso, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("ssssssssss", $numero, $this->cliente_razon_social, $this->motivo, $this->marca, $this->equipo, $this->modelo, $this->numero_serie, $this->fecha_salida, $this->fecha_ingreso, $this->observaciones);
+        $result = $stmt->execute();
+        if ($result) {
+            $this->id = $this->conectar->insert_id;
+            $this->numero = $numero; // Guardar el número generado
+        }
+        return $result;
     }
-    return $result;
-}
+
+    // MÉTODO MODIFICAR ACTUALIZADO
     public function modificar($id)
     {
         $sql = "UPDATE gestion_activos SET cliente_razon_social = ?, motivo = ?, marca = ?, equipo = ?, modelo = ?, numero_serie = ?, fecha_salida = ?, fecha_ingreso = ?, observaciones = ? WHERE id = ?";
@@ -158,9 +195,24 @@ class GestionActivos
         return $result;
     }
 
+    // MÉTODO MEJORADO PARA INCLUIR CÁLCULO DE DÍAS
     public function verFilas()
     {
-        $sql = "SELECT * FROM gestion_activos ORDER BY id DESC";
+        $sql = "SELECT *, 
+                CASE 
+                    WHEN estado = 'CONFIRMADO' THEN 0
+                    WHEN fecha_ingreso IS NULL OR fecha_ingreso = '0000-00-00' THEN NULL
+                    ELSE DATEDIFF(fecha_ingreso, CURDATE())
+                END as dias_restantes,
+                CASE 
+                    WHEN estado = 'CONFIRMADO' THEN 'CONFIRMADO'
+                    WHEN fecha_ingreso IS NULL OR fecha_ingreso = '0000-00-00' THEN 'SIN_FECHA'
+                    WHEN DATEDIFF(fecha_ingreso, CURDATE()) < 0 THEN 'VENCIDO'
+                    WHEN DATEDIFF(fecha_ingreso, CURDATE()) <= 3 THEN 'URGENTE'
+                    ELSE 'NORMAL'
+                END as estado_dias
+                FROM gestion_activos 
+                ORDER BY id DESC";
         return $this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC);
     }
 
@@ -170,5 +222,26 @@ class GestionActivos
         $stmt = $this->conectar->prepare($sql);
         $stmt->bind_param("i", $id);
         return $stmt->execute();
+    }
+
+    // NUEVO MÉTODO PARA OBTENER EL ÚLTIMO ID
+    public function idLast()
+    {
+        return $this->id;
+    }
+
+    // NUEVO MÉTODO PARA OBTENER ESTADÍSTICAS DE DÍAS
+    public function obtenerEstadisticasDias()
+    {
+        $sql = "SELECT 
+                COUNT(CASE WHEN estado = 'CONFIRMADO' THEN 1 END) as confirmados,
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) < 0 THEN 1 END) as vencidos,
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) BETWEEN 0 AND 3 THEN 1 END) as urgentes,
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) > 3 THEN 1 END) as normales
+                FROM gestion_activos 
+                WHERE fecha_ingreso IS NOT NULL AND fecha_ingreso != '0000-00-00'";
+        
+        $result = $this->conectar->query($sql);
+        return $result->fetch_assoc();
     }
 }

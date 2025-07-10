@@ -2,7 +2,6 @@
 Route::post('/ajs/generar/txt/ventareporte',"GeneradoresController@generarTextLibroVentas")->Middleware([ValidarTokenMiddleware::class]);
 
 /* ============================ INICIO Ventas controller rutas ======================================*/
-
 Route::get('/ajs/ventas',"VentasController@listarVentas")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/ventas/add',"VentasController@guardarVentas")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/ingreso/almacen/add',"VentasController@ingresoAlmacen")->Middleware([ValidarTokenMiddleware::class]);
@@ -17,8 +16,11 @@ Route::post("/ajs/venta/anular","VentasController@anularVenta")->Middleware([Val
 /* ============================ FIN Ventas controller rutas ======================================*/
 
 Route::post('/login',"UsuarioController@login")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/check-session", "UsuarioController@checkSession");
 
-// Rutas para consultasControllrt
+
+/* ============================  ConsultasController rutas ======================================*/
+
 Route::get('/ajs/cargar/productos/:id',"ConsultasController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/cargar/repuestos/:id',"ConsultasController@buscarRepuesto")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/cargar/productos',"ConsultasController@buscarProductoCoti")->Middleware([ValidarTokenMiddleware::class]);
@@ -30,8 +32,7 @@ Route::post("/ajs/consulta/ruc","ConsultasController@consultaRuc")->Middleware([
 Route::post("/ajs/consulta/lista/provincias","ConsultasController@listarProvincias")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/lista/distrito","ConsultasController@listarDistri")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/guia/documentofb","ConsultasController@consultvfb")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/guia/remision/coti/:id","ConsultasController@consultarGuiaXCoti")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/guia/remision/coti/cliente/:id","ConsultasController@consultarGuiaXCotiCliente")->Middleware([ValidarTokenMiddleware::class]);
+
 Route::post('/ajs/consulta/doc/cliente',"ConsultasController@buscarDocInfo")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::get('/ajs/consulta/buscar/dtatranspor',"ConsultasController@buscarTransporteGui")->Middleware([ValidarTokenMiddleware::class]);
@@ -39,7 +40,6 @@ Route::post('/ajs/consulta/add/dtatranspor',"ConsultasController@agregarTranspor
 Route::post('/ajs/consulta/prod/coti',"ConsultasController@buscarProdId")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::get('/ajs/buscar/cliente/datos',"ConsultasController@buscarDataCliente")->Middleware([ValidarTokenMiddleware::class]);
-Route::get('/ajs/buscar/serie/datos',"ConsultasController@buscarDataSerie")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/prealerta/buscar/serie/datos',"ConsultasController@buscarDataSeriePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/ajs/prealerta/buscar/cliente/serie", "ConsultasController@buscarClienteSeriePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/ajs/prealerta/buscar/series/cliente", "ConsultasController@buscarSeriesPorClientePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
@@ -48,24 +48,22 @@ Route::post('/ajs/consulta/buscar/producto',"ConsultasController@buscarProducto"
 
 Route::get("/ajs/buscar/cliente/serie", "ConsultasController@buscarClienteSerie");
 Route::get("/ajs/buscar/series/cliente", "ConsultasController@buscarSeriesPorCliente");
+Route::get('/ajs/buscar/serie/datos',"ConsultasController@buscarDataSerie");
 
 
+/* ============================ INICIO GUIA controller rutas ======================================*/
 
 Route::post('/ajs/guia/remision/add',"GuiaRemisionController@insertar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/guia/remision/add3',"GuiaRemisionController@insertarManual")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/guia/remision/add2',"GuiaRemisionController@insertar2")->Middleware([ValidarTokenMiddleware::class]);
-
 Route::post('/ajs/guia/remision/actualizar-producto', "GuiaRemisionController@actualizarProductoGuia")->Middleware([ValidarTokenMiddleware::class]);
-//CRUD AJAX PARA CLIENTES
-Route::post("/ajs/clientes/add","ClientesController@insertar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/clientes/add/por/lista","ClientesController@insertarXLista")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/clientes/render","ClientesController@render")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/clientes/getOne","ClientesController@getOne")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/clientes/editar","ClientesController@editar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/clientes/borrar","ClientesController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-/* Route::post("/ajs/clientes/importAdd","ClientesController@importAdd"); */
-
-
+Route::post("/ajs/guia/remision/info", "GuiaRemisionController@obtenerInfoGuia");
+Route::post("/ajs/guia/remision/duplicar", "GuiaRemisionController@duplicarGuiaRemision")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/send/sunat/guiaremision", "GuiaRemisionController@enviarDocumentoSunat")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/guia/remision/obtener", "GuiaRemisionController@obtenerGuiaDuplicada")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/guia/remision/coti/:id", "GuiaRemisionController@consultarGuiaXCoti")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/guia/remision/coti/cliente/:id", "GuiaRemisionController@consultarGuiaXCotiCliente")->Middleware([ValidarTokenMiddleware::class]);
+/* ============================ FIN GUIA controller rutas ======================================*/
 
 
 // Rutas para el CRUD de GestionActivos
@@ -84,6 +82,9 @@ Route::post("/ajs/clientes/render","ClientesController@render")->Middleware([Val
 Route::post("/ajs/clientes/getOne","ClientesController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/clientes/editar","ClientesController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/clientes/borrar","ClientesController@borrar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/clientes/add/exel","ClientesController@importarExcel")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/cuentas/cobrar","ClientesController@cuentasCobrar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/cuentas/cobrar/estado","ClientesController@cuentasCobrarEstado")->Middleware([ValidarTokenMiddleware::class]);
 
 //' CRUD AJAX PARA GARANTIA
 Route::post("/ajs/garantia/add", "GarantiaController@insertar")->Middleware([ValidarTokenMiddleware::class]);
@@ -97,6 +98,11 @@ Route::post("/ajs/usuarios/render","UsuariosController@render")->Middleware([Val
 Route::post("/ajs/usuarios/getOne","UsuariosController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/editar","UsuariosController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/borrar","UsuariosController@borrar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/roles/getModulosYSubmodulos", "UsuariosController@getModulosYSubmodulos")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/roles/getRolPermisos", "UsuariosController@getRolPermisos")->Middleware([ValidarTokenMiddleware::class]);
+
+Route::post("/ajs/verificar-permiso", "UsuariosController@verificarPermiso")->Middleware([ValidarTokenMiddleware::class]);
+
 // Rutas para Roles
 Route::post("/ajs/roles/render", "RolesController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getOne", "RolesController@getOne")->Middleware([ValidarTokenMiddleware::class]);
@@ -104,53 +110,22 @@ Route::post("/ajs/roles/crear", "RolesController@crear")->Middleware([ValidarTok
 Route::post("/ajs/roles/editar", "RolesController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/borrar", "RolesController@borrar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getModulos", "RolesController@getModulos")->Middleware([ValidarTokenMiddleware::class]);
-// Nuevas rutas para manejar submodulos
-Route::post("/ajs/roles/getModulosYSubmodulos", "UsuariosController@getModulosYSubmodulos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/roles/getRolPermisos", "UsuariosController@getRolPermisos")->Middleware([ValidarTokenMiddleware::class]);
-// Ruta para verificar permisos
 
-
-Route::post("/ajs/verificar-permiso", "UsuariosController@verificarPermiso")->Middleware([ValidarTokenMiddleware::class]);
-Route::get("/check-session", "UsuarioController@checkSession");
 
 Route::get('/ajs/buscar/maquina/datos',"RegistroMaquinaController@buscarDataMaquina")->Middleware([ValidarTokenMiddleware::class]);
-//importal excel
-Route::post("/ajs/clientes/add/exel","ClientesController@importarExcel")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/cuentas/cobrar","ClientesController@cuentasCobrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/cuentas/cobrar/estado","ClientesController@cuentasCobrarEstado")->Middleware([ValidarTokenMiddleware::class]);
-
-
 Route::post("/ajs/imagenes/guardar", "ImagenesController@guardarImagenes")->Middleware([ValidarTokenMiddleware::class]);
 
 
 
 Route::get("/ajs/server/sider/productos","ProductosController@listaProductoServerSide");
 Route::get("/ajs/server/sider/repuestos","RepuestosController@listaRepuestoServerSide");
+Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
 
-
-//CRUD AJAX PARA PREALERTA
-Route::post("/ajs/prealerta/add", "PreAlertaController@insertar")->middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/prealerta/update", "PreAlertaController@editar")->middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/prealerta/render", "PreAlertaController@render")->middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/prealerta/get/:id", "PreAlertaController@getOne")->middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/prealerta/delete", "PreAlertaController@borrar")->middleware([ValidarTokenMiddleware::class]);
-Route::post('/ajs/prealerta/doc/cliente',"PreAlertaController@buscarDocInfo")->Middleware([ValidarTokenMiddleware::class]);
-
-// Agregar esta nueva ruta junto a las demás rutas de pre_alerta
-Route::post("/ajs/prealerta/culminar", "PreAlertaController@culminarTrabajo")->middleware([ValidarTokenMiddleware::class]);
 
 
 
 // Rutas para fotos de cotizaciones de taller
-Route::post('/ajs/taller/cotizacion/guardar-fotos', "TallerCotizacionesController@guardarFotos")->Middleware([ValidarTokenMiddleware::class]);
-
-Route::get('/ajs/taller/cotizacion/get-fotos/{id}', "TallerCotizacionesController@getFotos")->Middleware([ValidarTokenMiddleware::class]);
-
-Route::post('/ajs/taller/cotizacion/eliminar-foto/{id}/{nombre}', "TallerCotizacionesController@eliminarFoto")->Middleware([ValidarTokenMiddleware::class]);
-
-
-// Route for obtaining notifications
-Route::get('/ajs/notificaciones/obtener', "TallerCotizacionesController@obtenerNotificaciones")->Middleware([ValidarTokenMiddleware::class]);
 
 
 
@@ -258,5 +233,30 @@ Route::post( "/ajs/otro-archivo/guardar-membretes",  "OtroArchivoController@guar
 
 
 
-Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
-Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
+
+//CRUD AJAX PARA PREALERTA
+Route::post('/ajs/prealerta/doc/cliente',"PreAlertaController@buscarDocInfo")->Middleware([ValidarTokenMiddleware::class]);
+
+//CRUD AJAX PARA ORDEN DE TRABAJO
+Route::post("/ajs/orden-trabajo/add", "OrdenTrabajoController@insertar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/update", "OrdenTrabajoController@editar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/render", "OrdenTrabajoController@render")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/get/:id", "OrdenTrabajoController@getOne")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/delete", "OrdenTrabajoController@borrar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/culminar", "OrdenTrabajoController@culminarTrabajo")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-trabajo/detalles", "OrdenTrabajoController@detalles")->middleware([ValidarTokenMiddleware::class]);
+
+//CRUD AJAX PARA ORDEN DE SERVICIO
+Route::post("/ajs/orden-servicio/add", "OrdenServicioController@insertar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/update", "OrdenServicioController@editar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/render", "OrdenServicioController@render")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/get/:id", "OrdenServicioController@getOne")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/delete", "OrdenServicioController@borrar")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/culminar", "OrdenServicioController@culminarTrabajo")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/orden-servicio/detalles", "OrdenServicioController@detalles")->middleware([ValidarTokenMiddleware::class]);
+
+// Rutas para el controlador unificado de taller
+Route::post("/ajs/taller/render-unificado", "TallerController@renderUnificado")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/taller/detalles-unificado", "TallerController@detallesUnificado")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/taller/culminar-unificado", "TallerController@culminarTrabajoUnificado")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/taller/delete-unificado", "TallerController@borrarUnificado")->middleware([ValidarTokenMiddleware::class]);

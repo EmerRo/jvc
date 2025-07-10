@@ -117,17 +117,18 @@ $c_ubigeo = new Ubigeo();
                                     </div>
                                 </div>
 
-                                <!-- Campo de Doc. de Referencia -->
-                                <div class="form-group row mb-3" v-show="mostrarDocReferencia">
-                                    <label class="col-md-4 col-form-label text-end" for="doc_referencia">
-                                        Doc. de Referencia
-                                    </label>
-                                    <div class="col-md-8">
-                                        <input type="text" id="doc_referencia" class="form-control"
-                                            v-model="guia.doc_referencia" placeholder="Ingrese documento de referencia"
-                                            :required="mostrarDocReferencia">
+                                <!-- ✅ CORREGIDO: Campo de ref_orden_compra -->
+                                   <div class="form-group row mb-3" v-show="mostrarDocReferencia">
+                                        <label class="col-md-4 col-form-label text-end" for="ref_orden_compra">
+                                            {{ guia.tipo_doc === '3' ? 'Nro. Orden Compra' : 'Doc. de Referencia' }}
+                                        </label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="ref_orden_compra" class="form-control"
+                                                v-model="guia.ref_orden_compra"
+                                                :placeholder="guia.tipo_doc === '3' ? 'Ingrese número de orden de compra' : 'Ingrese documento de referencia'"
+                                                :required="mostrarDocReferencia">
+                                        </div>
                                     </div>
-                                </div>
                                 <div class="form-group row mb-3">
                                     <div class="col-lg-12 text-center">
                                         <button type="button" class="btn bg-rojo text-white" @click="comprobarVenta">
@@ -947,12 +948,12 @@ $c_ubigeo = new Ubigeo();
                     dir_cli: '',
                     dir_part: 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE',
                     observacion: '',
-                    doc_referencia: '',
+                    ref_orden_compra: '', // ✅ CORREGIDO: Campo correcto
                     peso: '1',
                     num_bultos: '1',
 
                 },
-                mostrarDocReferencia: false,
+                mostrarDocReferencia: true,
                 producto: {
                     editable: false,
                     productoid: "",
@@ -1023,15 +1024,28 @@ $c_ubigeo = new Ubigeo();
                     this.mostrarDocReferencia = newVal === '3';
                 }
             },
-            methods: {
-                mounted() {
-                    // Recuperar productos guardados si existen
-                    const productosGuardados = localStorage.getItem('productosGuiaRemision');
-                    if (productosGuardados) {
-                        this.productos = JSON.parse(productosGuardados);
-                    }
-                },
+            computed: {
+                // Esta propiedad computed se ejecuta automáticamente cuando cambia guia.tipo_doc
+                deberíaMostrarDocReferencia() {
+                    return this.guia.tipo_doc === '3';
+                }
+            },
 
+            mounted() {
+                this.getDocumentoGuia();
+                obtenerProvincias();
+                
+                // ✅ CRÍTICO: Establecer el estado inicial del campo Doc. de Referencia
+                this.mostrarDocReferencia = this.guia.tipo_doc === '3';
+                
+                // Recuperar productos guardados si existen
+                const productosGuardados = localStorage.getItem('productosGuiaRemision');
+                if (productosGuardados) {
+                    this.productos = JSON.parse(productosGuardados);
+                }
+            },
+
+            methods: {
                 onlyNumber($event) {
                     //console.log($event.keyCode); //keyCodes value
                     let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
@@ -1167,15 +1181,18 @@ $c_ubigeo = new Ubigeo();
                         idproducto: prod.idproducto || prod.productoid // Aseguramos que exista idproducto
                     }));
 
-                    // Preparar los datos para enviar
+                    // ✅ CRÍTICO: Preparar los datos para enviar incluyendo tipo_doc
                     const data = {
                         ...this.guia,
                         ...this.transporte,
                         productos: JSON.stringify(productosValidados),
                         ubigeo: $("#select_distrito").val(),
                         motivo: $("#select_motivo").val(),
-                        fecha_emision: $("#input_fecha").val()
+                        fecha_emision: $("#input_fecha").val(),
+                        tipo_doc: this.guia.tipo_doc // ✅ AGREGAR ESTA LÍNEA CRÍTICA
                     };
+
+                    console.log('Datos enviados:', data); // Para debug
 
                     $("#loader-menor").show();
                     _ajax("/ajs/guia/remision/add3", "POST", data,
@@ -1315,7 +1332,7 @@ $c_ubigeo = new Ubigeo();
                     if (this.producto.descripcion.length > 0 && this.producto.cantidad > 0) {
                         const prod = {
                             // descripcion: this.producto.descripcion,
-                             descripcion: this.producto.nom_prod || this.producto.detalle, // ← Solo el nombre/detalle
+                            descripcion: this.producto.nom_prod || this.producto.detalle, // ← Solo el nombre/detalle
                             detalle: this.producto.detalle,
                             cantidad: this.producto.cantidad,
                             precio: this.producto.precio || '0',
@@ -1443,7 +1460,7 @@ $c_ubigeo = new Ubigeo();
                             ...this.productos[index], // Mantener campos originales
                             // Campos que se pueden editar en el modal
                             // descripcion: nuevaDescripcion, 
-                             descripcion: this.productoEdit.nom_prod, 
+                            descripcion: this.productoEdit.nom_prod,
                             detalle: this.productoEdit.detalle,
                             cantidad: parseFloat(this.productoEdit.cantidad),
                             precio: this.productoEdit.precio,

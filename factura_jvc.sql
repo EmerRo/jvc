@@ -320,3 +320,28 @@ CREATE TABLE `historial_stock` (
   PRIMARY KEY (`id_historial`),
   KEY `idx_producto_fecha` (`id_producto`, `fecha_movimiento`)
 );
+
+-- Migración para agregar campo ref_orden_compra a la tabla guia_remision
+
+/*
+  # Agregar campo para referencia de orden de compra
+
+  1. Nuevas Columnas
+    - `ref_orden_compra` (varchar(100)) - Para guardar la referencia de orden de compra específicamente
+  
+  2. Cambios
+    - Se mantiene el campo `doc_referencia` existente para duplicar guías
+    - Se agrega `ref_orden_compra` para el caso específico de órdenes de compra
+    
+  3. Notas
+    - Esta separación permite manejar correctamente ambos casos de uso
+    - El PDF podrá mostrar ambos campos según corresponda
+*/
+
+-- Agregar la nueva columna ref_orden_compra
+ALTER TABLE guia_remision 
+ADD COLUMN ref_orden_compra VARCHAR(100) DEFAULT NULL 
+AFTER doc_referencia;
+
+
+ALTER TABLE taller_cotizaciones ADD COLUMN tipo_origen VARCHAR(20) DEFAULT NULL;

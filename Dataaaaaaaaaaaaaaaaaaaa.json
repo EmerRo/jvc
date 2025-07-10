@@ -1,1 +1,17 @@
-{"certGlobal":false,"cliente":"{\"doc_num\":\"77425200\",\"nom_RS\":\"EMER RODRIGO YARLEQUE ZAPATA\",\"direccion\":\"AH MIRAFLORES\"}","productos":"[{\"precio\":\"3658.00\",\"cantidad\":\"1\",\"cod_pro\":\"1\",\"cod_sunat\":\"\",\"descripcion\":null}]","apli_igv":true,"total":"3658.00","serie":"B001","numero":"661","fechaE":"2025-06-26","fechaV":"2025-06-26","tipo_pago":"1","igv_venta":"0.18","dias_pagos":"[{\"monto\":\"0.000\",\"fecha\":\"2025-06-24\"}]","moneda":"PEN","endpoints":"beta","empresa":"{\"ruc\":\"20538381978\",\"razon_social\":\"COMERCIAL & INDUSTRIAL J. V. C. S.A.C.\",\"direccion\":\"JAVIER PRADO ESTE 8402, LIMA \\u2013 LIMA \\u2013 ATE\\n\",\"ubigeo\":\"040101\",\"distrito\":\"PUEBLO LIBRE\",\"provincia\":\"LIMA\",\"departamento\":\"LIMA\",\"clave_sol\":\"Biker123\",\"usuario_sol\":\"BIKERIM1\"}"}
+{
+  "certGlobal": false,
+  "cliente": "{\"doc_num\":\"77425200\",\"nom_RS\":\"EMER RODRIGO YARLEQUE ZAPATA\",\"direccion\":\"AH MIRAFLORES\"}",
+  "productos": "[{\"precio\":\"3658.00\",\"cantidad\":\"1\",\"cod_pro\":\"1\",\"cod_sunat\":\"\",\"descripcion\":null}]",
+  "apli_igv": true,
+  "total": "3658.00",
+  "serie": "B001",
+  "numero": "661",
+  "fechaE": "2025-06-26",
+  "fechaV": "2025-06-26",
+  "tipo_pago": "1",
+  "igv_venta": "0.18",
+  "dias_pagos": "[{\"monto\":\"0.000\",\"fecha\":\"2025-06-24\"}]",
+  "moneda": "PEN",
+  "endpoints": "beta",
+  "empresa": "{\"ruc\":\"20538381978\",\"razon_social\":\"COMERCIAL & INDUSTRIAL J. V. C. S.A.C.\",\"direccion\":\"JAVIER PRADO ESTE 8402, LIMA \\u2013 LIMA \\u2013 ATE\\n\",\"ubigeo\":\"040101\",\"distrito\":\"PUEBLO LIBRE\",\"provincia\":\"LIMA\",\"departamento\":\"LIMA\",\"clave_sol\":\"Biker123\",\"usuario_sol\":\"BIKERIM1\"}"
+}

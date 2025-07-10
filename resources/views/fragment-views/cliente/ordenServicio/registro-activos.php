@@ -109,20 +109,7 @@
        document.getElementById('enlaceGestion').href = `${_URL}/gestion/activos`;
 
 </script>
-<script>
-    var _URL = (function() {
-        let pathname = window.location.pathname; // Obtiene la ruta actual (ej: /jvc/index.html)
-        let parts = pathname.split('/'); // Divide la ruta en partes
-        if (parts.length > 1) {
-            return '/' + parts[1]; // Devuelve la primera parte de la ruta (ej: /jvc)
-        }
-        return ''; // Si no hay ruta base, devuelve una cadena vacía
-    })();
 
-    console.log("Ruta base detectada:", _URL); // Para verificar la ruta base
-    // Asignar la URL completa al enlace usando jQuery
-    
-</script>
 <script>
     $(document).ready(function () {
         const app = new Vue({

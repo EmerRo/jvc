@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\ordenServicio\pre-alerta-servicio.php -->
 <?php
 require_once 'app/models/PreAlerta.php';
 
@@ -11,7 +12,6 @@ $c_prealerta = new PreAlerta();
     <div class="row align-items-center">
         <div class="col-md-12">
             <h6 class="page-title text-center">
-                <!-- <i class="fa fa-tools me-2"></i> -->
                 REGISTRO DE MAQUINAS A REPARAR 
             </h6>
         </div>
@@ -19,12 +19,20 @@ $c_prealerta = new PreAlerta();
 </div>
 
 <div class="row">
+     <div class="col-md-8">
+            <div class="clearfix">
+                <ol class="breadcrumb m-0 float-start" style="background: transparent;">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" style="color: #718096; text-decoration: none;">Orden Servicio</a></li>
+                    <li class="breadcrumb-item active " aria-current="page" style="font-weight: 500; color: #CA3438;">Pre Alerta</li>
+                </ol>
+            </div>
+        </div>
     <div class="col-12">
         <div class="card"
             style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
-            <div class="card-header">
+               <div class="card-header bg-white bordes">
                 <div class="row align-items-center">
-                    <div class="col-md-6">
+                    <div class="col-md-12 text-end">
                         <button type="button" data-bs-toggle="modal" data-bs-target="#modalAgregar"
                             class="btn bg-rojo text-white ">
                             <i class="fa fa-plus"></i> Añadir
@@ -38,15 +46,16 @@ $c_prealerta = new PreAlerta();
                         <div class="table-responsive">
                             <table id="tabla_clientes"
                                 class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
-                                        <th><i class="fa fa-hashtag me-1"></i> Item</th>
-                                        <th><i class="fa fa-user me-1"></i> Cliente/Razon Social</th>
-                                        <th><i class="fa fa-id-card me-1"></i> N° Documento</th>
-                                        <th><i class="fa fa-user-cog me-1"></i> Tecnico</th>
-                                        <th><i class="fa fa-calendar me-1"></i> Fecha De Ingreso</th>
-                                        <th><i class="fa fa-cogs me-1"></i> Acciones</th>
-                                        <th><i class="fa fa-cogs me-1"></i> Estado De Cotizacion</th>
+                                        <th>Numero</th>
+                                        <th> Cliente/Razon Social</th>
+                                        <th> N° Documento</th>
+                                        <th> Tecnico</th>
+                                        <th> Fecha De Ingreso</th>
+                                        <!-- <th>Fecha De Salida</th> -->
+                                        <th>Estado De Producción</th>
+                                        <th></i> Acciones</th>|
                                     </tr>
                                 </thead>
                             </table>
@@ -59,7 +68,7 @@ $c_prealerta = new PreAlerta();
                 aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
-                        <div class="modal-header bg-danger p-4">
+                        <div class="modal-header bg-rojo text-white p-4">
                             <h5 class="modal-title text-light" id="modalDetallesLabel">
                                 <i class="fa fa-info-circle me-2"></i>
                                 Detalles de <span class="text-white"> ORDEN DE SERVICIO</span>
@@ -74,7 +83,7 @@ $c_prealerta = new PreAlerta();
                 </div>
             </div>
             <div id="client">
-                <!-- Modal Agregar prealerta -->
+                <!-- Modal Agregar orden de servicio -->
                 <div class="modal fade" id="modalAgregar" tabindex="-1" aria-labelledby="exampleModalLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-lg">
@@ -82,14 +91,13 @@ $c_prealerta = new PreAlerta();
                             <div class="modal-header text-white bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">
                                     <i class="fa fa-plus-circle me-2"></i>
-                                    ORDEN DE TRABAJO Y SERVICIO
+                                    ORDEN DE SERVICIO
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form id="frmClientesAgregar">
-                                <input type="hidden" name="origen" value="Ord Servicio">
 
                                     <div class="row">
                                         <div class="col-md-6">
@@ -389,13 +397,13 @@ $c_prealerta = new PreAlerta();
                     aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header text-white bg-danger">
+                            <div class="modal-header text-white bg-rojo">
                                 <div class="d-flex align-items-center">
                                     <h5 class="modal-title me-3" id="modalEditarLabel">
                                         <i class="fa fa-edit me-2"></i> Editar Registro
                                     </h5>
                                     <div v-if="detectarEquiposIdenticos() || maquinasIdenticas">
-                                        <button type="button" class="btn btn-sm btn-outline-primary ms-3"
+                                        <button type="button" class="btn btn-sm bg-rojo ms-3"
                                             @click="maquinasIdenticas = !maquinasIdenticas">
                                             <i class="fa" :class="maquinasIdenticas ? 'fa-list' : 'fa-copy'"></i>
                                             {{ maquinasIdenticas ? 'Modo individual' : 'Máquinas idénticas' }}
@@ -407,8 +415,8 @@ $c_prealerta = new PreAlerta();
                             </div>
                             <div class="modal-body">
                                 <form id="frmClientesEditar">
-                                    <input type="hidden" id="edit_id_preAlerta" name="id_preAlerta"
-                                        v-model="editando.id_preAlerta">
+                                    <input type="hidden" id="edit_id_orden_servicio" name="id_orden_servicio"
+                                        v-model="editando.id_orden_servicio">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group mb-3">
@@ -459,7 +467,7 @@ $c_prealerta = new PreAlerta();
                                                             {{marca.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalMarca">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -481,7 +489,7 @@ $c_prealerta = new PreAlerta();
                                                             {{modelo.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalModelo">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -502,7 +510,7 @@ $c_prealerta = new PreAlerta();
                                                             {{eq.nombre}}
                                                         </option>
                                                     </select>
-                                                    <button class="btn btn-primary" type="button" data-bs-toggle="modal"
+                                                    <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
                                                         data-bs-target="#modalEquipo">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
@@ -528,7 +536,7 @@ $c_prealerta = new PreAlerta();
                                             <div class="col-md-8">
                                                 <label class="form-label">
                                                     <i class="fa fa-barcode me-1"></i> Números de serie
-                                                    <span class="badge bg-primary ms-2" v-if="seriesCount > 0">
+                                                    <span class="badge bg-rojo ms-2" v-if="seriesCount > 0">
                                                         {{ seriesCount }} / {{ cantidadMaquinasIdenticas }}
                                                     </span>
                                                 </label>
@@ -576,7 +584,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{marca.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalMarca">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -599,7 +607,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{modelo.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalModelo">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -623,7 +631,7 @@ $c_prealerta = new PreAlerta();
                                                                 {{eq.nombre}}
                                                             </option>
                                                         </select>
-                                                        <button class="btn btn-primary" type="button"
+                                                        <button class="btn bg-rojo" type="button"
                                                             data-bs-toggle="modal" data-bs-target="#modalEquipo">
                                                             <i class="fa fa-plus"></i>
                                                         </button>
@@ -650,7 +658,7 @@ $c_prealerta = new PreAlerta();
                                     </div>
 
                                     <div class="mb-3">
-                                        <button type="button" class="btn btn-primary btn-sm"
+                                        <button type="button" class="btn bg-rojo btn-sm"
                                             @click="agregarEquipoEdicion">
                                             <i class="fa fa-plus me-1"></i> Agregar Equipo
                                         </button>
@@ -678,7 +686,7 @@ $c_prealerta = new PreAlerta();
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fa fa-times me-1"></i> Cerrar
                                 </button>
-                                <button type="button" id="submitEditar" class="btn btn-primary" @click="guardarEdicion">
+                                <button type="button" id="submitEditar" class="btn bg-rojo" @click="guardarEdicion">
                                     <i class="fa fa-save me-1"></i> Actualizar
                                 </button>
                             </div>
@@ -694,7 +702,7 @@ $c_prealerta = new PreAlerta();
 <div class="modal fade" id="modalMarca" tabindex="-1" aria-labelledby="modalMarcaLabel" aria-hidden="true">
     <div class="modal-dialog modal-stacked">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title" id="modalMarcaLabel">
                     <i class="fa fa-tag me-1"></i> Marcas
                 </h5>
@@ -704,7 +712,7 @@ $c_prealerta = new PreAlerta();
                 <div class="mb-3">
                     <div class="input-group">
                         <input type="text" class="form-control" id="marca_nombre" placeholder="Nombre de la marca">
-                        <button type="button" class="btn btn-primary" id="btnAgregarMarca">
+                        <button type="button" class="btn bg-rojo" id="btnAgregarMarca">
                             <i class="fa fa-save"></i>
                         </button>
                     </div>
@@ -728,7 +736,7 @@ $c_prealerta = new PreAlerta();
 <div class="modal fade" id="modalModelo" tabindex="-1" aria-labelledby="modalModeloLabel" aria-hidden="true">
     <div class="modal-dialog modal-stacked">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo">
                 <h5 class="modal-title" id="modalModeloLabel">
                     <i class="fa fa-cube me-1"></i> Modelos
                 </h5>
@@ -738,7 +746,7 @@ $c_prealerta = new PreAlerta();
                 <div class="mb-3">
                     <div class="input-group">
                         <input type="text" class="form-control" id="modelo_nombre" placeholder="Nombre del modelo">
-                        <button type="button" class="btn btn-primary" id="btnAgregarModelo">
+                        <button type="button" class="btn bg-rojo" id="btnAgregarModelo">
                             <i class="fa fa-save"></i>
                         </button>
                     </div>
@@ -762,7 +770,7 @@ $c_prealerta = new PreAlerta();
 <div class="modal fade" id="modalEquipo" tabindex="-1" aria-labelledby="modalEquipoLabel" aria-hidden="true">
     <div class="modal-dialog modal-stacked">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo">
                 <h5 class="modal-title" id="modalEquipoLabel">
                     <i class="fa fa-laptop me-1"></i> Equipos
                 </h5>
@@ -772,7 +780,7 @@ $c_prealerta = new PreAlerta();
                 <div class="mb-3">
                     <div class="input-group">
                         <input type="text" class="form-control" id="equipo_nombre" placeholder="Nombre del equipo">
-                        <button type="button" class="btn btn-primary" id="btnAgregarEquipo">
+                        <button type="button" class="btn bg-rojo" id="btnAgregarEquipo">
                             <i class="fa fa-save"></i>
                         </button>
                     </div>
@@ -797,7 +805,7 @@ $c_prealerta = new PreAlerta();
 <div class="modal fade" id="modalTecnico" tabindex="-1" aria-labelledby="modalTecnicoLabel" aria-hidden="true">
     <div class="modal-dialog modal-stacked">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title" id="modalTecnicoLabel">
                     <i class="fa fa-user-cog me-1"></i> Técnicos
                 </h5>
@@ -807,7 +815,7 @@ $c_prealerta = new PreAlerta();
                 <div class="mb-3">
                     <div class="input-group">
                         <input type="text" class="form-control" id="tecnico_nombre" placeholder="Nombre del técnico">
-                        <button type="button" class="btn btn-primary" id="btnAgregarTecnico">
+                        <button type="button" class="btn bg-rojo" id="btnAgregarTecnico">
                             <i class="fa fa-save"></i>
                         </button>
                     </div>
@@ -828,7 +836,4 @@ $c_prealerta = new PreAlerta();
     </div>
 </div>
 
-
-
-
-<script src="<?= URL::to('public/js/pre-alerta-servicio.js') ?>?v=<?= time() ?>"></script>
+<script src="<?= URL::to('public/js/orden-servicio.js') ?>?v=<?= time() ?>"></script>

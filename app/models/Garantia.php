@@ -3,6 +3,7 @@
 class Garantia
 {
     private $id_garantia;
+    private $numero; // NUEVO CAMPO
     private $numero_serie_id;
     private $guia_remision;
     private $fecha_inicio;
@@ -15,11 +16,39 @@ class Garantia
     private $modelo;
     private $numero_serie;
     private $detalle_serie_id;
-private $series_ids; // Para almacenar múltiples series
+    private $series_ids; // Para almacenar múltiples series
     private $equipo; // Para almacenar el ID del equipo
+    
     public function __construct()
     {
         $this->conectar = (new Conexion())->getConexion();
+    }
+
+    // NUEVO MÉTODO PARA GENERAR NÚMERO CORRELATIVO
+    private function generarNumero()
+    {
+        try {
+            // Obtener el último número de garantía
+            $sql = "SELECT numero FROM garantia WHERE numero LIKE 'GR-%' ORDER BY id_garantia DESC LIMIT 1";
+            $result = $this->conectar->query($sql);
+            
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $ultimoNumero = $row['numero'];
+                // Extraer el número (GR-01 -> 01)
+                $numero = intval(substr($ultimoNumero, 3));
+                $siguienteNumero = $numero + 1;
+            } else {
+                $siguienteNumero = 1;
+            }
+            
+            // Formatear con ceros a la izquierda (01, 02, etc.)
+            return 'GR-' . str_pad($siguienteNumero, 2, '0', STR_PAD_LEFT);
+            
+        } catch (Exception $e) {
+            error_log("Error al generar número: " . $e->getMessage());
+            return 'GR-01'; // Valor por defecto
+        }
     }
 
     // Getters y setters
@@ -32,6 +61,11 @@ private $series_ids; // Para almacenar múltiples series
     public function setIdGarantia($id_garantia)
     {
         $this->id_garantia = $id_garantia;
+    }
+
+    public function getNumero() // NUEVO GETTER
+    {
+        return $this->numero;
     }
 
     public function getNumeroSerieId()
@@ -119,16 +153,22 @@ private $series_ids; // Para almacenar múltiples series
     {
         $this->equipo = $equipo;
     }
+    
+    // MÉTODO INSERTAR MODIFICADO
     public function insertar()
     {
-        $sql = "INSERT INTO garantia (numero_serie_id, detalle_serie_id, guia_remision, fecha_inicio, fecha_caducidad) 
-                VALUES (?, ?, ?, ?, ?)";
+        // Generar número correlativo
+        $numero = $this->generarNumero();
+        
+        $sql = "INSERT INTO garantia (numero, numero_serie_id, detalle_serie_id, guia_remision, fecha_inicio, fecha_caducidad) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("iisss", $this->numero_serie_id, $this->detalle_serie_id, $this->guia_remision, $this->fecha_inicio, $this->fecha_caducidad);
+        $stmt->bind_param("siisss", $numero, $this->numero_serie_id, $this->detalle_serie_id, $this->guia_remision, $this->fecha_inicio, $this->fecha_caducidad);
         $result = $stmt->execute();
     
         if ($result) {
             $this->id_garantia = $this->conectar->insert_id;
+            $this->numero = $numero; // Guardar el número generado
         }
         return $result;
     }
@@ -191,6 +231,7 @@ private $series_ids; // Para almacenar múltiples series
                 $result = $stmt->get_result();
                 
                 if ($fila = $result->fetch_assoc()) {
+                    $this->numero = $fila['numero'] ?? null; // Cargar el número
                     $this->cliente = $fila['cliente'];
                     $this->marca = $fila['marca'];
                     $this->modelo = $fila['modelo'];
@@ -209,6 +250,7 @@ private $series_ids; // Para almacenar múltiples series
                 $stmt->execute([$this->id_garantia]);
                 
                 if ($fila = $stmt->fetch()) {
+                    $this->numero = $fila['numero'] ?? null; // Cargar el número
                     $this->cliente = $fila['cliente'];
                     $this->marca = $fila['marca'];
                     $this->modelo = $fila['modelo'];
@@ -267,49 +309,27 @@ private $series_ids; // Para almacenar múltiples series
 public function getAllData($filtro = null, $tipo_busqueda = null)
 {
     try {
-        // Verificar si la columna series_ids existe en la tabla garantia
-        $checkColumnSql = "SHOW COLUMNS FROM garantia LIKE 'series_ids'";
-        $columnExists = $this->conectar->query($checkColumnSql)->num_rows > 0;
-        
-        // Construir la consulta SQL base
-        $sql = "SELECT g.*, ns.cliente_ruc_dni, ds.numero_serie, 
-                m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre 
+        // Construir la consulta SQL base - INCLUIR EL CAMPO NUMERO Y EXPANDIR SERIES
+        $sql = "SELECT g.*, g.numero, ns.cliente_ruc_dni, ds.numero_serie, ds.id as detalle_serie_id
                 FROM garantia g
                 JOIN numero_series ns ON g.numero_serie_id = ns.id
-                JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
-                LEFT JOIN marcas m ON ds.marca = m.id
-                LEFT JOIN modelos mo ON ds.modelo = mo.id
-                LEFT JOIN equipos e ON ds.equipo = e.id";
-        
-        // Si la columna series_ids existe, modificar la consulta para usarla
-        if ($columnExists) {
-            $sql = "SELECT g.*, ns.cliente_ruc_dni, 
-                    GROUP_CONCAT(DISTINCT ds.numero_serie SEPARATOR ', ') as numeros_serie,
-                    g.series_ids,
-                    m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre 
-                    FROM garantia g
-                    JOIN numero_series ns ON g.numero_serie_id = ns.id
-                    LEFT JOIN detalle_serie ds ON (g.detalle_serie_id = ds.id)
-                    LEFT JOIN marcas m ON ds.marca = m.id
-                    LEFT JOIN modelos mo ON ds.modelo = mo.id
-                    LEFT JOIN equipos e ON ds.equipo = e.id";
-        }
+                JOIN detalle_serie ds ON g.detalle_serie_id = ds.id";
         
         // Si hay un filtro de búsqueda, añadimos la condición WHERE
         if ($filtro && $tipo_busqueda) {
             if ($tipo_busqueda == 'serie') {
-                $sql .= " WHERE ds.numero_serie LIKE ?";
+                $sql .= " WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL";
             } else if ($tipo_busqueda == 'cliente') {
                 $sql .= " WHERE ns.cliente_ruc_dni LIKE ?";
             }
         }
         
-        $sql .= " GROUP BY g.id_garantia ORDER BY g.id_garantia DESC";
+        $sql .= " ORDER BY g.id_garantia DESC";
         
         // Ejecutar la consulta
         if ($filtro && $tipo_busqueda) {
             $stmt = $this->conectar->prepare($sql);
-            $param = "%$filtro%";
+            $param = $tipo_busqueda == 'serie' ? $filtro : "%$filtro%";
             $stmt->bind_param("s", $param);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -324,8 +344,50 @@ public function getAllData($filtro = null, $tipo_busqueda = null)
             return [];
         }
         
-        // Devolver los resultados
-        return $result->fetch_all(MYSQLI_ASSOC);
+        // Procesar los resultados para expandir las series JSON en filas individuales
+        $garantias = [];
+        while ($row = $result->fetch_assoc()) {
+            // Verificar si numero_serie es un JSON array
+            $numeros_serie_data = json_decode($row['numero_serie'], true);
+            
+            if (is_array($numeros_serie_data) && count($numeros_serie_data) > 0) {
+                // Si es un array JSON, crear una entrada por cada serie
+                foreach ($numeros_serie_data as $index => $serie_individual) {
+                    $garantia_expandida = $row;
+                    $garantia_expandida['numero_serie_individual'] = $serie_individual;
+                    $garantia_expandida['serie_index'] = $index + 1;
+                    $garantia_expandida['total_series'] = count($numeros_serie_data);
+                    
+                    // Crear una cadena con todas las series para mostrar en la tabla
+                    $garantia_expandida['numeros_serie'] = implode(', ', $numeros_serie_data);
+                    
+                    $garantias[] = $garantia_expandida;
+                }
+            } else {
+                // Si no es un array JSON, tratar como serie única
+                $row['numero_serie_individual'] = $row['numero_serie'];
+                $row['serie_index'] = 1;
+                $row['total_series'] = 1;
+                $row['numeros_serie'] = $row['numero_serie'];
+                $garantias[] = $row;
+            }
+        }
+        
+        // Agrupar por garantía para evitar duplicados en la tabla principal
+        $garantias_agrupadas = [];
+        $garantias_procesadas = [];
+        
+        foreach ($garantias as $garantia) {
+            $id_garantia = $garantia['id_garantia'];
+            
+            if (!isset($garantias_procesadas[$id_garantia])) {
+                // Primera vez que vemos esta garantía, agregarla
+                $garantias_agrupadas[] = $garantia;
+                $garantias_procesadas[$id_garantia] = true;
+            }
+        }
+        
+        return $garantias_agrupadas;
     } catch (Exception $e) {
         // Registrar el error y devolver un array vacío
         error_log("Excepción en getAllData: " . $e->getMessage());
@@ -548,4 +610,6 @@ public function obtenerSeries()
             error_log("Error en cargarEquipo: " . $e->getMessage());
         }
     }
+
+  
 }

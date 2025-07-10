@@ -44,7 +44,7 @@ $listaNE = $conexion->query($sql);
                 <table id="tabla-notaselect" class="table table-bordered table-sm text-center" >
                     <thead>
                     <tr>
-                        <th></th>
+                        <!-- <th></th> -->
                         <th>Documento</th>
                         <th>Fecha</th>
                         <th>Cliente</th>
@@ -59,7 +59,7 @@ $listaNE = $conexion->query($sql);
                     foreach ($listaNE as $ne){
                         ?>
                         <tr>
-                            <td><?=$ne['nota_id']?></td>
+                            <!-- <td><?=$ne['nota_id']?></td> -->
                            <td><a target="_blank" href="<?=URL::to('/nota/electronica/pdf/'.$ne['nota_id'].'/'.$ne['nombre_xml'])?>"><?=$ne['nota_nombre']?> | <?=$ne['serie']?>-<?=$ne['numero']?></a></td>
                             <td><?=$ne['fecha']?></td>
                             <td><?=$ne['cliente_ne']?></td>
@@ -91,47 +91,27 @@ $listaNE = $conexion->query($sql);
         alertAdvertencia("Aun se debe configurar para enviarlo a la Sunat")
     }
     $(document).ready(function(){
-        $("#tabla-notaselect").DataTable({
-            order: [[ 0, "desc" ]],
-            columnDefs:[
-                {
-                    targets: 5,
-                    render(data, type, row) {
-                        const desData = data.split('-')
-                        if (desData[0] =='1'){
-                            return '<span class=" badge bg-success">Enviado</span>';
-                        }else{
-                            var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
-                            return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
-                        }
-                    }
-                },
-            ],
-            language: {
-                "sProcessing":     "Procesando...",
-                "sLengthMenu":     "Mostrar _MENU_ registros",
-                "sZeroRecords":    "No se encontraron resultados",
-                "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix":    "",
-                "sSearch":         "Buscar:",
-                "sUrl":            "",
-                "sInfoThousands":  ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst":    "Primero",
-                    "sLast":     "Último",
-                    "sNext":     "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+       $("#tabla-notaselect").DataTable({
+    order: [[ 0, "desc" ]],
+    columnDefs:[
+        {
+            targets: 4,
+            render(data, type, row) {
+                const desData = data.split('-')
+                if (desData[0] =='1'){
+                    return '<span class=" badge bg-success">Enviado</span>';
+                }else{
+                    var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
+                    return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
                 }
             }
-        })
+        }
+    ],
+      language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+        },
+})
+
         $("#tabla-notaselect").on("click",".btn-send-sunat",function (evt) {
             const cod =($(evt.currentTarget).attr('data-item'));
             $("#loader-menor").show()

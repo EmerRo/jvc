@@ -60,21 +60,38 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
     <div class="col-12">
         <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body">
-            <div class="card-title-desc text-end mb-4">
-                    <a href="/guia/remision/registrar" class="btn border-rojo button-link" >
-                        <i class="fa fa-plus me-1"></i> Crear Guía de Remisión
-                    </a>
-                    <a href="/guia/remision/manual/registrar" class="btn bg-rojo text-white bordes button-link" >
-                        <i class="fa fa-plus me-1"></i> Crear Guía de Remisión Manual
-                    </a>
+                <!-- ✅ NUEVO: Filtros y botones -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <label class="form-label mb-0 fw-bold">Filtrar por:</label>
+                            <select id="filtroGuias" class="form-select" style="width: auto;">
+                                <option value="todos">Todas las Guías</option>
+                                <option value="facturas">Guías de Facturas</option>
+                                <option value="cotizaciones">Guías de Cotizaciones</option>
+                                <option value="manuales">Guías Manuales</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-end">
+                            <a href="/guia/remision/registrar" class="btn border-rojo button-link" >
+                                <i class="fa fa-plus me-1"></i> Crear Guía de Remisión
+                            </a>
+                            <a href="/guia/remision/manual/registrar" class="btn bg-rojo text-white bordes button-link" >
+                                <i class="fa fa-plus me-1"></i> Crear Guía de Remisión Manual
+                            </a>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="table-responsive">
                     <table id="datatable" class="table table-bordered dt-responsive nowrap table-sm text-center" style="width: 100%;">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th width="5%">Item</th>
-                                <th width="10%">Fecha</th>
+                                <!-- <th width="5%">Item</th> -->
                                 <th width="15%">Documento</th>
+                                <th width="10%">Fecha</th>
                                 <th width="20%">Cliente</th>
                                 <th width="15%">Factura</th>
                                 <th width="10%">Sunat</th>
@@ -99,18 +116,31 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                                 });
                             }
 
-                            $item = 1;
+                            // $item = 1;
                             foreach ($filas as $fila) {
                                 $doc_guia = "GR | " . $fila['serie'] . "-" . $c_varios->zerofill($fila['numero'], 4);
-                                $doc_venta = $fila['doc_venta'] . " | " . $fila['serie_venta'] . "-" . $c_varios->zerofill($fila['numero_venta'], 4);
+                                
+                                // ✅ MEJORADO: Solo mostrar factura real o N/A
+                                if ($fila['doc_venta'] !== 'N/A' && !empty($fila['serie_venta']) && !empty($fila['numero_venta'])) {
+                                    $doc_venta = $fila['doc_venta'] . " | " . $fila['serie_venta'] . "-" . $c_varios->zerofill($fila['numero_venta'], 4);
+                                } else {
+                                    $doc_venta = "N/A";
+                                }
+                                
                                 $pdf_url = URL::to('/guia/remision/pdf/' . $fila['id_guia_remision'] . '/' . $fila['nom_guia_xml']);
                                 ?>
-                                <tr>
-                                    <td><?php echo $item ?></td>
-                                    <td><?php echo $c_varios->fecha_mysql_web($fila['fecha_emision']) ?></td>
+                                <tr data-tipo="<?php echo $fila['tipo_guia']; ?>">
+                                    <!-- <td><?php echo $item ?></td> -->
                                     <td><a target="_blank" href="<?php echo $pdf_url ?>"><?php echo $doc_guia ?></a></td>
+                                    <td><?php echo $c_varios->fecha_mysql_web($fila['fecha_emision']) ?></td>
                                     <td><?php echo $fila['datos'] ?></td>
-                                    <td><?php echo $doc_venta ?></td>
+                                    <td>
+                                        <?php if ($doc_venta === 'N/A'): ?>
+                                            <span class="text-muted">N/A</span>
+                                        <?php else: ?>
+                                            <?php echo $doc_venta ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if($fila['enviado_sunat'] == '1'): ?>
                                             <span class="badge bg-success">Enviado</span>
@@ -166,7 +196,7 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                                     </td>
                                 </tr>
                                 <?php
-                                $item++;
+                                // $item++;
                             }
                             ?>
                         </tbody>
@@ -269,15 +299,34 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
         max-width: 300px;
     }
 }
+
+/* ✅ NUEVO: Estilos para el filtro */
+.form-select {
+    border: 1px solid #CA3438;
+    border-radius: 8px;
+}
+
+.form-select:focus {
+    border-color: #CA3438;
+    box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.25);
+}
+
+/* ✅ CORREGIDO: N/A sin fondo gris */
+.text-muted {
+    color: #6c757d !important;
+    background: none !important;
+}
 </style>
 
 <script>
 let currentPdfUrl = '';
 let currentGuideNumber = '';
 let currentClientName = '';
+let tabla; // Variable global para la tabla
 
 $(document).ready(function() {
-    var tabla = $("#datatable").DataTable({
+    // Inicializar DataTable
+    tabla = $("#datatable").DataTable({
         responsive: true,
         order: [[1, "desc"]],
         language: {
@@ -287,6 +336,28 @@ $(document).ready(function() {
             targets: '_all',
             className: 'text-center'
         }]
+    });
+
+    // ✅ CORREGIDO: Manejar cambio de filtro SIN refrescar página
+    $('#filtroGuias').on('change', function() {
+        const filtro = $(this).val();
+        
+        // Mostrar/ocultar filas según el filtro seleccionado
+        if (filtro === 'todos') {
+            // Mostrar todas las filas
+            tabla.rows().nodes().to$().show();
+        } else {
+            // Ocultar todas las filas primero
+            tabla.rows().nodes().to$().hide();
+            
+            // Mostrar solo las filas que coinciden con el filtro
+            tabla.rows().nodes().to$().filter(function() {
+                return $(this).data('tipo') === filtro;
+            }).show();
+        }
+        
+        // Redibujar la tabla para actualizar la paginación
+        tabla.draw();
     });
 
     // Manejar el envío a SUNAT
@@ -365,7 +436,6 @@ function crearDocumento(idGuia, tipoDoc) {
 function crearFactura(idGuia) {
     crearDocumento(idGuia, 'factura');
 }
-
 
 function duplicarGuia(idGuia) {
     Swal.fire({

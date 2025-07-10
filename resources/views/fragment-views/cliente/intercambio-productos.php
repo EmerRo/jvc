@@ -31,7 +31,7 @@ $getAll = $c_venta->ingresosEgresosRender();
             style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body" id="container-vue">
 
-                <!-- CAMBIO 1: Usar la misma estructura de botones que compras.php -->
+               
                 <div class="card-title-desc text-end">
                     <button data-bs-toggle="modal" data-bs-target="#nuevaSalida" class="btn bg-white text-rojo"
                         @click="btnCerrar"
@@ -397,7 +397,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                 procesarCodigoQR(codigo) {
                     $.ajax({
                         type: "post",
-                        url: _URL + '/ajas/compra/buscar/producto',
+                        url: _URL + '/ajs/compra/buscar/producto',
                         data: { producto: codigo },
                         success: (response) => {
                             const data = JSON.parse(response);
