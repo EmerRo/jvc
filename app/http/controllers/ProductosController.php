@@ -871,7 +871,7 @@ class ProductosController extends Controller
                              VALUES (?, 'INGRESO', ?, ?, ?)";
             
             $stmt_hist = $this->conexion->prepare($sql_historial);
-            $usuario = $_SESSION['usuario'] ?? 'Sistema';
+            $usuario = $_SESSION['usuario'] ?? 'Administrador'; // Asignar usuario por defecto si no está en sesión
             $stmt_hist->bind_param('iiss', $producto_id, $cantidad, $fecha_actual, $usuario);
             $stmt_hist->execute();
             
@@ -884,6 +884,58 @@ class ProductosController extends Controller
     
     return json_encode($respuesta);
 }
+public function obtenerHistorialStock()
+{
+    $respuesta = ["res" => false, "data" => []];
+    
+    try {
+        $producto_id = isset($_POST['producto_id']) ? $_POST['producto_id'] : null;
+        
+        if ($producto_id) {
+            // Historial de un producto específico
+            $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+                    FROM historial_stock h 
+                    INNER JOIN productos p ON h.id_producto = p.id_producto 
+                    WHERE h.id_producto = ? 
+                    ORDER BY h.fecha_movimiento DESC";
+            
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param('i', $producto_id);
+        } else {
+            // Historial general (últimos 100 movimientos)
+            $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+                    FROM historial_stock h 
+                    INNER JOIN productos p ON h.id_producto = p.id_producto 
+                    ORDER BY h.fecha_movimiento DESC 
+                    LIMIT 100";
+            
+            $stmt = $this->conexion->prepare($sql);
+        }
+        
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        
+        while ($row = $resultado->fetch_assoc()) {
+            $respuesta["data"][] = [
+                "id" => $row['id'],
+                "producto_nombre" => $row['producto_nombre'],
+                "codigo" => $row['codigo'],
+                "tipo_movimiento" => $row['tipo_movimiento'],
+                "cantidad" => $row['cantidad'],
+                "fecha_movimiento" => $row['fecha_movimiento'],
+                "usuario" => $row['usuario']
+            ];
+        }
+        
+        $respuesta["res"] = true;
+        
+    } catch (Exception $e) {
+        $respuesta["error"] = $e->getMessage();
+    }
+    
+    return json_encode($respuesta);
+}
+
 
 }
 

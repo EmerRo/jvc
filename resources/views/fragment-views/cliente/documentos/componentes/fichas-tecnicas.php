@@ -139,18 +139,32 @@
     'use strict';
     
     // Verificar si el módulo ya está inicializado
-    if (window.ModuloFichasTecnicas) {
-        console.log('Módulo de Fichas Técnicas ya inicializado');
+    if (window.ModuloFichasTecnicas && window.ModuloFichasTecnicas.inicializado) {
+        console.log('Módulo de Fichas Técnicas ya inicializado, omitiendo reinicialización');
         return;
     }
     
-    // Marcar el módulo como inicializado
-    window.ModuloFichasTecnicas = true;
+    // Crear namespace del módulo si no existe
+    window.ModuloFichasTecnicas = window.ModuloFichasTecnicas || {};
+    
+    // Marcar como inicializado
+    window.ModuloFichasTecnicas.inicializado = true;
+    
+    // Limpiar eventos duplicados antes de inicializar
+    function limpiarEventosDuplicados() {
+        $('#buscar-ficha_tecnica').off('keyup.fichasTecnicas');
+        $('#nuevaFichaForm').off('submit.fichasTecnicas');
+        $('#nueva-ficha-btn').off('click.fichasTecnicas');
+        $(document).off('click.fichasTecnicas');
+    }
+    
+    // Ejecutar limpieza
+    limpiarEventosDuplicados();
 // Esperar a que el documento esté listo
 $(document).ready(function () {
     limpiarEventosDuplicados();
     // Inicializar el módulo de fichas técnicas
-    console.log('Inicializando módulo de Fichas Técnicas...');
+    // console.log('Inicializando módulo de Fichas Técnicas...');
     
     // Cargar las fichas técnicas al inicio
     // cargarFichas();
@@ -160,14 +174,14 @@ $(document).ready(function () {
         cargarFichas();
     }, 300);
     // Botón Nueva Ficha
-    $('#nueva-ficha-btn').on('click', function() {
+    $('#nueva-ficha-btn').off('click.fichasTecnicas').on('click.fichasTecnicas', function() {
         // Cambiar a la pestaña de nueva ficha
         $('#lista-fichas').removeClass('show active');
         $('#nueva-ficha').addClass('show active');
     });
     
     // Inicializar búsqueda
-    $('#buscar-ficha_tecnica').on('keyup', function() {
+ $('#buscar-ficha_tecnica').off('keyup.fichasTecnicas').on('keyup.fichasTecnicas', function() {
         buscarFichas($(this).val());
     });
     
@@ -319,9 +333,10 @@ function getPreviewHTML(ficha) {
         
         // Inicializar la carga del PDF después de que se renderice el HTML
         // Aumentar el delay para evitar renderizados múltiples
-        setTimeout(() => {
-            renderPdfPreview(ficha.ruta_adjunto, canvasId);
-        }, 200 + Math.random() * 100); // Delay aleatorio para evitar colisiones
+     setTimeout(() => {
+    renderPdfPreview(ficha.ruta_adjunto, canvasId);
+}, 100);
+
         
         return `<div class="document-preview">
             <canvas id="${canvasId}" class="pdf-preview-canvas"></canvas>
@@ -345,90 +360,111 @@ function limpiarTareasRenderizado() {
         if (task && typeof task.cancel === 'function') {
             task.cancel();
         }
+        // Limpiar el canvas
+        clearCanvas(canvasId);
+        // Liberar el lock
+        canvasLocks.delete(canvasId);
+        renderQueue.delete(canvasId);
     });
     activeRenderTasks.clear();
-    console.log('Todas las tareas de renderizado han sido canceladas');
+  
+    // console.log('Todas las tareas de renderizado han sido canceladas');
 }
+
+// Función para limpiar un canvas específico
+function clearCanvas(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (canvas) {
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 // Variable global para rastrear las tareas de renderizado activas
 const activeRenderTasks = new Map();
+const canvasLocks = new Map(); // Para evitar renderizados simultáneos
+const renderQueue = new Map(); // Cola de renderizado por canvas
 
 // Función para renderizar la vista previa del PDF (versión mejorada)
 function renderPdfPreview(pdfUrl, canvasId) {
     // Verificar si pdfjsLib está disponible
     if (!window.pdfjsLib || typeof window.pdfjsLib.getDocument !== 'function') {
-        console.log('PDF.js aún no está cargado completamente, reintentando en 100ms...');
         setTimeout(() => renderPdfPreview(pdfUrl, canvasId), 100);
         return;
+    }
+    
+    // Verificar si ya hay una operación en curso para este canvas
+    if (canvasLocks.has(canvasId)) {
+        return; // Salir silenciosamente si ya está siendo procesado
     }
     
     try {
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
-            console.error('Canvas no encontrado:', canvasId);
             return;
         }
         
-        // Cancelar cualquier tarea de renderizado activa para este canvas
+        // Bloquear este canvas para evitar renderizados simultáneos
+        canvasLocks.set(canvasId, true);
+        
+        // Cancelar cualquier tarea anterior para este canvas
         if (activeRenderTasks.has(canvasId)) {
-            console.log('Cancelando tarea de renderizado anterior para:', canvasId);
-            activeRenderTasks.get(canvasId).cancel();
+            const previousTask = activeRenderTasks.get(canvasId);
+            if (previousTask && typeof previousTask.cancel === 'function') {
+                previousTask.cancel();
+            }
             activeRenderTasks.delete(canvasId);
         }
         
-        // Cargar el documento PDF usando la API de promesas
-        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        // Limpiar el canvas antes de empezar
+        clearCanvas(canvasId);
         
-        // Guardar la tarea de carga para poder cancelarla si es necesario
+        // Cargar el documento PDF
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
         activeRenderTasks.set(canvasId, loadingTask);
         
         loadingTask.promise.then(function(pdf) {
             // Verificar si la tarea fue cancelada
-            if (!activeRenderTasks.has(canvasId)) {
-                console.log('Tarea cancelada para:', canvasId);
-                return;
+            if (!activeRenderTasks.has(canvasId) || !canvasLocks.has(canvasId)) {
+                return Promise.reject(new Error('Task cancelled'));
             }
             
-            // Obtener la primera página
             return pdf.getPage(1);
         }).then(function(page) {
             // Verificar nuevamente si la tarea fue cancelada
-            if (!activeRenderTasks.has(canvasId)) {
-                console.log('Tarea cancelada para:', canvasId);
-                return;
+            if (!activeRenderTasks.has(canvasId) || !canvasLocks.has(canvasId)) {
+                return Promise.reject(new Error('Task cancelled'));
             }
             
             const canvas = document.getElementById(canvasId);
             if (!canvas) {
-                console.error('Canvas no encontrado durante el renderizado:', canvasId);
-                activeRenderTasks.delete(canvasId);
-                return;
+                return Promise.reject(new Error('Canvas not found'));
             }
             
             const context = canvas.getContext('2d');
             
-            // Obtener el tamaño del contenedor padre
+            // Configurar el canvas
             const container = canvas.parentElement;
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
             
-            // Establecer el tamaño del canvas al tamaño del contenedor
             canvas.width = containerWidth * 2;
             canvas.height = containerHeight * 2;
             
-            // Obtener el viewport original del PDF
+            // Configurar el viewport
             const viewport = page.getViewport({ scale: 1.0 });
-            
-            // Calcular la escala para que el PDF llene el ancho del canvas
             const scale = (canvas.width / viewport.width) * 1.0;
-            
-            // Crear un nuevo viewport con la escala calculada
             const scaledViewport = page.getViewport({ scale: scale });
             
-            // Calcular el desplazamiento horizontal para centrar el contenido
             const offsetX = (canvas.width - scaledViewport.width) / 2;
             const offsetY = 0;
             
-            // Renderizar la página en el canvas con alta calidad
+            // Limpiar el canvas nuevamente antes de renderizar
+            clearCanvas(canvasId);
+            
+            // Configurar el contexto de renderizado
             const renderContext = {
                 canvasContext: context,
                 viewport: scaledViewport,
@@ -436,30 +472,23 @@ function renderPdfPreview(pdfUrl, canvasId) {
                 intent: 'display'
             };
             
-            // Limpiar el canvas antes de renderizar
-            context.fillStyle = 'white';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Crear la tarea de renderizado
+            // Crear y ejecutar la tarea de renderizado
             const renderTask = page.render(renderContext);
-            
-            // Actualizar la tarea activa con la tarea de renderizado
             activeRenderTasks.set(canvasId, renderTask);
             
-            // Renderizar la página
             return renderTask.promise;
         }).then(function() {
-            console.log('PDF renderizado correctamente para:', canvasId);
-            // Limpiar la tarea completada
+            // Renderizado exitoso - limpiar referencias
             activeRenderTasks.delete(canvasId);
+            canvasLocks.delete(canvasId);
         }).catch(function(error) {
-            // Limpiar la tarea con error
+            // Limpiar en caso de error
             activeRenderTasks.delete(canvasId);
+            canvasLocks.delete(canvasId);
             
             // Solo mostrar error si no fue una cancelación
-            if (error.name !== 'RenderingCancelledException') {
-                console.error('Error al renderizar el PDF:', error);
-                // Mostrar un icono de PDF en caso de error
+            if (error.message !== 'Task cancelled' && error.name !== 'RenderingCancelledException') {
+                console.error('Error al renderizar PDF:', error);
                 const canvas = document.getElementById(canvasId);
                 if (canvas) {
                     canvas.parentNode.innerHTML = `
@@ -474,8 +503,10 @@ function renderPdfPreview(pdfUrl, canvasId) {
     } catch (error) {
         console.error('Error general al renderizar PDF:', error);
         activeRenderTasks.delete(canvasId);
+        canvasLocks.delete(canvasId);
     }
 }
+
 // Función para convertir URL de YouTube a formato embed
 function getYouTubeEmbedUrl(url) {
     if (!url) return '';
@@ -1379,7 +1410,7 @@ function limpiarEventosDuplicados() {
     $('#buscar_producto').off('input');
     $('.producto-item').off('click');
     
-    console.log('Eventos duplicados limpiados');
+    // console.log('Eventos duplicados limpiados');
 }
 // Función para guardar una ficha técnica
 function guardarFicha(form) {

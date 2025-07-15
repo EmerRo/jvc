@@ -32,7 +32,7 @@
                     <a href="/compras/add" class="btn bg-rojo text-white button-link">
                         <i class="fa fa-plus "></i> Agregar Compra
                     </a>
-                    <a target="_blank" href="/jvc/reporte/compras" class="btn bg-white text-rojo "
+                    <a target="_blank" href="/reporte/compras" class="btn bg-white text-rojo "
                         style="border-radius: 10px; padding: 8px 16px; font-weight: 500; border: 1px solid #CA3438; margin-left: 8px; transition: all 0.3s ease;">
                         <i class="fa fa-file me-1"></i> Exportar Reporte
                     </a>
@@ -46,11 +46,9 @@
 
                         <thead class="table-light">
                             <tr>
-                                <th style="text-align: center;">Id</th>
+                                <th style="text-align: center;">Documento</th>
                                 <th style="text-align: center;">F. Emision</th>
                                 <th style="text-align: center;">F. Vencimiento</th>
-                                <th style="text-align: center;">Serie</th>
-                                <th style="text-align: center;">Numero</th>
                                 <th style="text-align: center;" width="50%">Razon Social</th>
                                 <th style="text-align: center;">Usuario</th>
                                 <th style="text-align: center;">Detalles</th>
@@ -150,24 +148,23 @@
             language: {
                 url: "ServerSide/Spanish.json",
             },
-            columns: [{
-                data: "id_compra",
-                class: "text-center",
-            },
+            columns: [
+                // mostrar serie y numero de compra con concatenación serie + '-' + numero
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data, type, row) {
+                        return row.serie + '-' + row.numero;
+                    },
+                },
+                
+                
             {
                 data: "fecha_emision",
                 class: "text-center",
             },
             {
                 data: "fecha_vencimiento",
-                class: "text-center",
-            },
-            {
-                data: "serie",
-                class: "text-center",
-            },
-            {
-                data: "numero",
                 class: "text-center",
             },
             {

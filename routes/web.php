@@ -102,13 +102,13 @@ Route::postBase("/reporte/cotizaciones/vendedores", "GenerarReporte@reporteVenta
 
 Route::get("/reporte/cliente/:id","ReportesVentaController@reporteCliente");
 
-Route::get("/reporte/compras/pdf/:id","ReportesVentaController@reporteCompra");
+Route::get("/reporte/compras/pdf/:id","ReporteOrdenCompraController@reporteCompra");
+Route::get("/reporte/compras","ReporteOrdenCompraController@reporteCompraAll");
+
 
 
 Route::get("/reporte/productos/pdf/:id","ReportesVentaController@reporteProductos");
 
-
-Route::get("/reporte/compras","ReportesVentaController@reporteCompraAll");
 Route::postBase("/usuarios","FragmentController@usuariosLista");
 // categorias
 Route::postBase("/categorias","FragmentController@categoria");

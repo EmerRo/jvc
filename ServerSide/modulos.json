@@ -1,0 +1,248 @@
+{
+  "modulos": [
+    {
+      "id": "dashboard",
+      "nombre": "DASHBOARD",
+      "descripcion": "Panel principal del sistema",
+      "icono": "ri-dashboard-3-line",
+      "ruta": "/",
+      "submodulos": []
+    },
+    {
+      "id": "facturacion",
+      "nombre": "FACTURACIÓN",
+      "descripcion": "Gestión de facturación",
+      "icono": "ri-bill-line",
+      "ruta": "/ventas",
+      "submodulos": [
+        {
+          "id": "ventas",
+          "nombre": "Ventas",
+          "descripcion": "Gestión de ventas",
+          "ruta": "/ventas"
+        },
+        {
+          "id": "guias_remision",
+          "nombre": "Guías Remisión",
+          "descripcion": "Gestión de guías de remisión",
+          "ruta": "/guias/remision"
+        },
+        {
+          "id": "notas_electronicas",
+          "nombre": "Notas Electrónicas",
+          "descripcion": "Gestión de notas electrónicas",
+          "ruta": "/nota/electronica/lista"
+        }
+      ]
+    },
+    {
+      "id": "cotizaciones",
+      "nombre": "COTIZACIONES",
+      "descripcion": "Gestión de cotizaciones",
+      "icono": "ri-file-list-3-line",
+      "ruta": "/cotizaciones",
+      "submodulos": []
+    },
+    {
+      "id": "cuentas_cobrar",
+      "nombre": "CUENTAS POR COBRAR",
+      "descripcion": "Gestión de cuentas por cobrar",
+      "icono": "ri-bank-card-line",
+      "ruta": "/cobranzas",
+      "submodulos": []
+    },
+    {
+      "id": "cuentas_pagar",
+      "nombre": "CUENTAS POR PAGAR",
+      "descripcion": "Gestión de cuentas por pagar",
+      "icono": "ri-wallet-3-line",
+      "ruta": "/pagos",
+      "submodulos": []
+    },
+    {
+      "id": "cajas",
+      "nombre": "CAJAS",
+      "descripcion": "Gestión de cajas",
+      "icono": "ri-safe-2-line",
+      "ruta": "/cajaRegistros",
+      "submodulos": [
+        {
+          "id": "registros",
+          "nombre": "Registros",
+          "descripcion": "Registros de caja",
+          "ruta": "/cajaRegistros"
+        },
+        {
+          "id": "caja_chica",
+          "nombre": "Caja Chica",
+          "descripcion": "Gestión de caja chica",
+          "ruta": "/caja/flujo"
+        }
+      ]
+    },
+    {
+      "id": "orden_compra",
+      "nombre": "ORDEN DE COMPRA",
+      "descripcion": "Gestión de compras",
+      "icono": "ri-shopping-cart-2-line",
+      "ruta": "/compras",
+      "submodulos": []
+    },
+    {
+      "id": "almacen",
+      "nombre": "ALMACÉN",
+      "descripcion": "Gestión de almacén",
+      "icono": "ri-archive-line",
+      "ruta": "/almacen/productos",
+      "submodulos": [
+        {
+          "id": "kardex",
+          "nombre": "Kardex",
+          "descripcion": "Gestión de kardex",
+          "ruta": "/almacen/productos"
+        },
+        {
+          "id": "repuestos",
+          "nombre": "Repuestos",
+          "descripcion": "Gestión de repuestos",
+          "ruta": "/almacen/orden/repuestos"
+        },
+        {
+          "id": "intercambio_productos",
+          "nombre": "Intercambio de productos",
+          "descripcion": "Gestión de intercambio de productos",
+          "ruta": "/almacen/intercambio/productos"
+        }
+      ]
+    },
+    {
+      "id": "orden_trabajo",
+      "nombre": "ORDEN DE TRABAJO",
+      "descripcion": "Gestión de órdenes de trabajo",
+      "icono": "ri-clipboard-line",
+      "ruta": "/preAlerta",
+      "submodulos": [
+        {
+          "id": "pre_alerta_trabajo",
+          "nombre": "Pre alerta",
+          "descripcion": "Gestión de pre alertas",
+          "ruta": "/preAlerta"
+        }
+      ]
+    },
+    {
+      "id": "orden_servicio",
+      "nombre": "ORDEN DE SERVICIO",
+      "descripcion": "Gestión de órdenes de servicio",
+      "icono": "ri-briefcase-4-line",
+      "ruta": "/servicio/prealerta",
+      "submodulos": [
+        {
+          "id": "pre_alerta_servicio",
+          "nombre": "Pre alerta",
+          "descripcion": "Gestión de pre alertas de servicio",
+          "ruta": "/servicio/prealerta"
+        },
+        {
+          "id": "gestion_activos",
+          "nombre": "Gestión de activos",
+          "descripcion": "Gestión de activos",
+          "ruta": "/gestion/activos"
+        }
+      ]
+    },
+    {
+      "id": "numero_series",
+      "nombre": "NUMERO DE SERIES",
+      "descripcion": "Gestión de números de series",
+      "icono": "ri-barcode-box-line",
+      "ruta": "/numeroSeries",
+      "submodulos": []
+    },
+    {
+      "id": "garantia",
+      "nombre": "GARANTÍA",
+      "descripcion": "Gestión de garantías",
+      "icono": "ri-shield-check-line",
+      "ruta": "/garantia",
+      "submodulos": []
+    },
+    {
+      "id": "taller",
+      "nombre": "TALLER",
+      "descripcion": "Gestión de taller",
+      "icono": "ri-tools-line",
+      "ruta": "/taller",
+      "submodulos": []
+    },
+    {
+      "id": "cotizaciones_taller",
+      "nombre": "COTIZACIONES TALLER",
+      "descripcion": "Gestión de cotizaciones de taller",
+      "icono": "ri-file-list-3-line",
+      "ruta": "/taller/coti/view",
+      "submodulos": []
+    },
+    {
+      "id": "clientes",
+      "nombre": "CLIENTES",
+      "descripcion": "Gestión de clientes",
+      "icono": "ri-team-line",
+      "ruta": "/clientes",
+      "submodulos": []
+    },
+    {
+      "id": "usuarios",
+      "nombre": "USUARIOS",
+      "descripcion": "Gestión de usuarios",
+      "icono": "ri-user-settings-line",
+      "ruta": "/usuarios",
+      "submodulos": []
+    },
+    {
+      "id": "documentos",
+      "nombre": "DOCUMENTOS",
+      "descripcion": "Gestión de documentos del sistema",
+      "icono": "ri-file-text-line",
+      "ruta": "/documentos",
+      "submodulos": [
+        {
+          "id": "ficha_tecnica",
+          "nombre": "Ficha técnica",
+          "descripcion": "Gestión de fichas técnicas",
+          "ruta": "/documentos"
+        },
+        {
+          "id": "informe",
+          "nombre": "Informe",
+          "descripcion": "Gestión de informes",
+          "ruta": "/documentos/informe"
+        },
+        {
+          "id": "cartas",
+          "nombre": "Cartas",
+          "descripcion": "Gestión de cartas",
+          "ruta": "/documentos/cartas"
+        },
+        {
+          "id": "constancias",
+          "nombre": "Constancias",
+          "descripcion": "Gestión de constancias",
+          "ruta": "/documentos/constancias"
+        },
+        {
+          "id": "archivos_internos",
+          "nombre": "Archivos internos",
+          "descripcion": "Gestión de archivos internos",
+          "ruta": "/documentos/archivos/internos"
+        },
+        {
+          "id": "otros",
+          "nombre": "Otros",
+          "descripcion": "Gestión de otros documentos",
+          "ruta": "/documentos/otros"
+        }
+      ]
+    }
+  ]
+}

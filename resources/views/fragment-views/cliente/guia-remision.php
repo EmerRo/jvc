@@ -64,7 +64,8 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="d-flex align-items-center gap-3">
-                            <label class="form-label mb-0 fw-bold">Filtrar por:</label>
+                          <span class="text-muted">Filtrar</span>
+                                <i class="fas fa-filter text-muted"></i>
                             <select id="filtroGuias" class="form-select" style="width: auto;">
                                 <option value="todos">Todas las Guías</option>
                                 <option value="facturas">Guías de Facturas</option>
@@ -73,6 +74,9 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                             </select>
                         </div>
                     </div>
+                       
+               
+                     
                     <div class="col-md-6">
                         <div class="text-end">
                             <a href="/guia/remision/registrar" class="btn border-rojo button-link" >
@@ -207,126 +211,32 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
     </div>
 </div>
 
-<style>
-.modal-content {
-    border: none;
-}
 
-.modal-header {
-    border-bottom: none;
-}
-
-.btn-close:focus {
-    box-shadow: none;
-}
-
-#whatsappNumber:focus {
-    box-shadow: none;
-    border-color: #0d6efd;
-}
-
-.input-group-text {
-    background-color: #f8f9fa;
-    border-radius: 8px 0 0 8px;
-}
-
-/* Estilos para la tabla y el responsive */
-.table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Estilos para el menú desplegable */
-.dropdown-menu {
-    min-width: 200px;
-    padding: 0.5rem 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    position: absolute;
-    transform: translate3d(0px, 40px, 0px);
-    top: 0;
-    left: auto;
-    right: 0;
-    will-change: transform;
-}
-.dropdown {
-    position: relative;
-}
-
-
-.dropdown-item {
-    padding: 0.5rem 1rem;
-    color: #333;
-    transition: background-color 0.2s;
-    cursor: pointer;
-}
-
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-}
-
-.dropdown-item i {
-    width: 20px;
-}
-
-/* Asegurar que el menú desplegable no se corte */
-.dropdown-menu-end {
-    right: 0;
-    left: auto;
-}
-.table-responsive {
-    overflow: visible;
-}
-.card {
-    overflow: visible;
-}
-
-/* Ajustes para la tabla */
-.table th, .table td {
-    white-space: nowrap;
-    vertical-align: middle;
-}
-
-/* Ajuste para dispositivos móviles */
-@media (max-width: 768px) {
-    .dropdown-menu {
-        position: fixed;
-        top: auto;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 20px;
-        width: 90%;
-        max-width: 300px;
-    }
-}
-
-/* ✅ NUEVO: Estilos para el filtro */
-.form-select {
-    border: 1px solid #CA3438;
-    border-radius: 8px;
-}
-
-.form-select:focus {
-    border-color: #CA3438;
-    box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.25);
-}
-
-/* ✅ CORREGIDO: N/A sin fondo gris */
-.text-muted {
-    color: #6c757d !important;
-    background: none !important;
-}
-</style>
 
 <script>
-let currentPdfUrl = '';
-let currentGuideNumber = '';
-let currentClientName = '';
-let tabla; // Variable global para la tabla
+// ✅ SOLUCIÓN: Verificar si las variables ya existen antes de declararlas
+if (typeof window.currentPdfUrl === 'undefined') {
+    window.currentPdfUrl = '';
+}
+if (typeof window.currentGuideNumber === 'undefined') {
+    window.currentGuideNumber = '';
+}
+if (typeof window.currentClientName === 'undefined') {
+    window.currentClientName = '';
+}
+if (typeof window.tablaGuias === 'undefined') {
+    window.tablaGuias = null;
+}
 
 $(document).ready(function() {
+    // Limpiar DataTable existente si existe
+    if (window.tablaGuias && $.fn.DataTable.isDataTable('#datatable')) {
+        window.tablaGuias.destroy();
+        $('#datatable').empty();
+    }
+
     // Inicializar DataTable
-    tabla = $("#datatable").DataTable({
+    window.tablaGuias = $("#datatable").DataTable({
         responsive: true,
         order: [[1, "desc"]],
         language: {
@@ -345,19 +255,19 @@ $(document).ready(function() {
         // Mostrar/ocultar filas según el filtro seleccionado
         if (filtro === 'todos') {
             // Mostrar todas las filas
-            tabla.rows().nodes().to$().show();
+            window.tablaGuias.rows().nodes().to$().show();
         } else {
             // Ocultar todas las filas primero
-            tabla.rows().nodes().to$().hide();
+            window.tablaGuias.rows().nodes().to$().hide();
             
             // Mostrar solo las filas que coinciden con el filtro
-            tabla.rows().nodes().to$().filter(function() {
+            window.tablaGuias.rows().nodes().to$().filter(function() {
                 return $(this).data('tipo') === filtro;
             }).show();
         }
         
         // Redibujar la tabla para actualizar la paginación
-        tabla.draw();
+        window.tablaGuias.draw();
     });
 
     // Manejar el envío a SUNAT
@@ -384,9 +294,9 @@ $(document).ready(function() {
 
     // Manejar envío por WhatsApp
     $(document).on('click', '.whatsapp-share', function() {
-        currentPdfUrl = $(this).data('pdf-url');
-        currentGuideNumber = $(this).data('guide');
-        currentClientName = $(this).data('client');
+        window.currentPdfUrl = $(this).data('pdf-url');
+        window.currentGuideNumber = $(this).data('guide');
+        window.currentClientName = $(this).data('client');
         $('#whatsappNumber').val('');
         $('#whatsappModal').modal('show');
     });
@@ -413,7 +323,7 @@ $(document).ready(function() {
         }
 
         const whatsappUrl = 'https://api.whatsapp.com/send?phone=51' + phoneNumber +
-            '&text=' + encodeURIComponent('Guía de remisión ' + currentGuideNumber + ' para ' + currentClientName + ': ' + currentPdfUrl);
+            '&text=' + encodeURIComponent('Guía de remisión ' + window.currentGuideNumber + ' para ' + window.currentClientName + ': ' + window.currentPdfUrl);
 
         $('#whatsappModal').modal('hide');
         window.open(whatsappUrl, '_blank');

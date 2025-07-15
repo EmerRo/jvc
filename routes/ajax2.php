@@ -42,6 +42,8 @@ Route::post("/ajs/data/producto/edt/precios", "ProductosController@actualizarPre
 Route::post("/ajs/data/producto/info/code", "ProductosController@informacionPorCodigo")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/info", "ProductosController@informacion")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/restock", "ProductosController@restock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/producto/historial/stock", "ProductosController@obtenerHistorialStock")->Middleware([ValidarTokenMiddleware::class]);
+
 Route::post("/ajs/data/producto/add/exel", "ProductosController@importarExel")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/save/condiciones", "ProductosController@saveCondicion");
 //* Nuevas rutas para condiciones específicas por cotización
@@ -96,6 +98,7 @@ Route::get("/ajs/get/observaciones/compra/:id", "ComprasController@getObservacio
 Route::post("/ajs/save/observaciones/compra", "ComprasController@saveObservacionCompra");
 Route::post("/ajs/save/observaciones/temp", "ComprasController@saveObservacionTemp");
 Route::post("/ajs/save/observaciones/default", "ComprasController@saveObservacionDefault");
+Route::get("/ajs/compra/serie-numero", "ComprasController@obtenerSerieNumeroCompra");
 
 // ================  DashboardController ===================================
 Route::get("/ajs/dashboard/cliente-detalle", "DashboardController@getClienteDetalle");

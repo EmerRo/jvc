@@ -1,4 +1,5 @@
 <?php
+require_once "utils/DocumentRouteGenerator.php";
 Route::post('/ajs/generar/txt/ventareporte',"GeneradoresController@generarTextLibroVentas")->Middleware([ValidarTokenMiddleware::class]);
 
 /* ============================ INICIO Ventas controller rutas ======================================*/
@@ -86,24 +87,24 @@ Route::post("/ajs/clientes/add/exel","ClientesController@importarExcel")->Middle
 Route::post("/ajs/cuentas/cobrar","ClientesController@cuentasCobrar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/cuentas/cobrar/estado","ClientesController@cuentasCobrarEstado")->Middleware([ValidarTokenMiddleware::class]);
 
-//' CRUD AJAX PARA GARANTIA
+// ================  GarantiaController ===================================
+
 Route::post("/ajs/garantia/add", "GarantiaController@insertar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/garantia/editar", "GarantiaController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/garantia/render", "GarantiaController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/garantia/getOne", "GarantiaController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/garantia/borrar", "GarantiaController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::get("/ajs/garantia/cargar/datos/serie", "GarantiaController@cargarDatosNumeroSerie")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/garantia/cargar/datos/serie", "GarantiaController@cargarDatosNumeroSerie")->Middleware([ValidarTokenMiddleware::class]); 
 
+// ================  UsuariosController ===================================
 Route::post("/ajs/usuarios/render","UsuariosController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/getOne","UsuariosController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/editar","UsuariosController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/borrar","UsuariosController@borrar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getModulosYSubmodulos", "UsuariosController@getModulosYSubmodulos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getRolPermisos", "UsuariosController@getRolPermisos")->Middleware([ValidarTokenMiddleware::class]);
-
 Route::post("/ajs/verificar-permiso", "UsuariosController@verificarPermiso")->Middleware([ValidarTokenMiddleware::class]);
-
-// Rutas para Roles
+// ================  RolesController ===================================
 Route::post("/ajs/roles/render", "RolesController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getOne", "RolesController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/crear", "RolesController@crear")->Middleware([ValidarTokenMiddleware::class]);
@@ -155,41 +156,12 @@ Route::post("/ajs/informe/insertar-tipo-informe", "InformeController@insertarTip
 Route::post("/ajs/informe/editar-tipo-informe", "InformeController@editarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/informe/eliminar-tipo-informe", "InformeController@eliminarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
 
-// Rutas para cartas
-Route::get( "/ajs/carta/render",  "CartaController@render")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/getOne",  "CartaController@getOne")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/insertar",  "CartaController@insertar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/editar",  "CartaController@editar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/borrar",  "CartaController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/carta/generarPDF",  "CartaController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/carta/obtener-template",  "CartaController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/guardar-template",  "CartaController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/vista-previa",  "CartaController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/carta/getTipos",  "CartaController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/carta/obtener-membretes",  "CartaController@obtenerMembretes")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/guardar-membretes",  "CartaController@guardarMembretes")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/carta/obtener-tipos-cartas",  "CartaController@obtenerTiposCartas")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/insertar-tipo-carta",  "CartaController@insertarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/editar-tipo-carta",  "CartaController@editarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/carta/eliminar-tipo-carta",  "CartaController@eliminarTipoCarta")->Middleware([ValidarTokenMiddleware::class]);
+// Registrar rutas para cartas
+DocumentRouteGenerator::registerRoutes('carta', 'CartaController');
 
-// Rutas para constancias
-Route::get( "/ajs/constancia/render",  "ConstanciaController@render")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/getOne",  "ConstanciaController@getOne")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/insertar",  "ConstanciaController@insertar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/editar",  "ConstanciaController@editar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/borrar",  "ConstanciaController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/constancia/generarPDF",  "ConstanciaController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/constancia/obtener-template",  "ConstanciaController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/guardar-template",  "ConstanciaController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/vista-previa",  "ConstanciaController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/constancia/getTipos",  "ConstanciaController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/constancia/obtener-tipos-constancias",  "ConstanciaController@obtenerTipoConstancias")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/insertar-tipo-constancia",  "ConstanciaController@insertarTipoConstancia")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/editar-tipo-constancia",  "ConstanciaController@editarTipoConstancia")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/eliminar-tipo-constancia",  "ConstanciaController@eliminarTipoConstancia")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/constancia/obtener-membretes",  "ConstanciaController@obtenerMembretes")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/constancia/guardar-membretes",  "ConstanciaController@guardarMembretes")->Middleware([ValidarTokenMiddleware::class]);
+// Registrar rutas para constancias  
+DocumentRouteGenerator::registerRoutes('constancia', 'ConstanciaController', );
+
 
 // Rutas para archivos internos
 Route::get( "/ajs/archivo-interno/render",  "ArchivoInternoController@render")->Middleware([ValidarTokenMiddleware::class]);

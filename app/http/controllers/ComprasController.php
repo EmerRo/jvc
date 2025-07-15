@@ -12,6 +12,76 @@ class ComprasController extends Controller
         $this->conectar = (new Conexion())->getConexion();
     }
 
+    // Nuevo método para obtener serie y número automático para compras
+    public function obtenerSerieNumeroCompra()
+    {
+        try {
+            $id_empresa = $_SESSION['id_empresa'];
+            $sucursal = $_SESSION['sucursal'];
+            
+            // Para órdenes de compra, usamos un id_tido específico (puedes ajustar según tu sistema)
+            $id_tido_compra = 12; // Nota de compra según tu select en el frontend
+            
+            // Verificar si existe configuración para órdenes de compra
+            $sql = "SELECT serie, numero 
+                    FROM documentos_empresas 
+                    WHERE id_empresa = '$id_empresa' 
+                    AND id_tido = '$id_tido_compra' 
+                    AND sucursal = '$sucursal'";
+            
+            $result = $this->conectar->query($sql);
+            
+            if ($result->num_rows > 0) {
+                $fila = $result->fetch_assoc();
+                $serie = $fila['serie'];
+                $numero = $fila['numero'];
+            } else {
+                // Si no existe configuración, crear una nueva con valores por defecto
+                $serie = "OC";
+                $numero = 1;
+                
+                $sqlInsert = "INSERT INTO documentos_empresas (id_empresa, id_tido, sucursal, serie, numero) 
+                             VALUES ('$id_empresa', '$id_tido_compra', '$sucursal', '$serie', '$numero')";
+                $this->conectar->query($sqlInsert);
+            }
+            
+            // Formatear el número con ceros a la izquierda
+            $numeroFormateado = str_pad($numero, 3, '0', STR_PAD_LEFT);
+            
+            return json_encode([
+                'success' => true,
+                'serie' => $serie,
+                'numero' => $numeroFormateado
+            ]);
+            
+        } catch (Exception $e) {
+            return json_encode([
+                'success' => false,
+                'message' => 'Error al obtener serie y número: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Método para actualizar el número después de guardar una compra
+    public function actualizarNumeroCompra($id_tido)
+    {
+        try {
+            $id_empresa = $_SESSION['id_empresa'];
+            $sucursal = $_SESSION['sucursal'];
+            
+            $sql = "UPDATE documentos_empresas 
+                   SET numero = numero + 1 
+                   WHERE id_empresa = '$id_empresa' 
+                   AND id_tido = '$id_tido' 
+                   AND sucursal = '$sucursal'";
+            
+            return $this->conectar->query($sql);
+            
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
     public function guardarCompras()
     {
         /* $this->sunatApi = new SunatApi(); */
@@ -51,6 +121,9 @@ class ComprasController extends Controller
             $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario);
 
             if (is_int($insertarCompra)) {
+                // Actualizar el número correlativo después de guardar exitosamente
+                $this->actualizarNumeroCompra($id_tido);
+                
                 // Si hay observaciones temporales, guardarlas para esta compra
                 if (isset($_SESSION['temp_observaciones'])) {
                     $observaciones = $this->conectar->real_escape_string($_SESSION['temp_observaciones']);
@@ -324,7 +397,4 @@ class ComprasController extends Controller
             return json_encode(['success' => false, 'message' => 'Error al guardar: ' . $this->conectar->error]);
         }
     }
-
-
-
 }

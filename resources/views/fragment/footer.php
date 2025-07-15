@@ -1,11 +1,12 @@
+<!-- resources\views\fragment\footer.php -->
 <script src="<?=URL::to('public/assets/libs/jquery/jquery.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/libs/bootstrap/js/bootstrap.bundle.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/libs/metismenu/metisMenu.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/libs/simplebar/simplebar.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/libs/node-waves/waves.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/js/app.js')?>"></script>
-<script src="<?=URL::to('public/js/tools.js?v=0.0.3')?>"></script>
-<script src="<?=URL::to('public/js/main.js')?>"></script>
+<script src="<?=URL::to('public/js/tools.js') ?>?v=<?= time() ?>"> </script>
+<script src="<?=URL::to('public/js/main.js') ?>?v=<?= time() ?>"> </script>
 <script src="<?=URL::to('public/assets/libs/datatables.net/js/jquery.dataTables.min.js')?>"></script>
 <script src="<?=URL::to('public/assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js')?>"></script>
 <script src="<?=URL::to('public/plugin/jquery-ui/jquery-ui.min.js')?>" type="text/javascript"></script>

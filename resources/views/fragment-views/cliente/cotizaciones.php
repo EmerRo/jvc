@@ -60,7 +60,7 @@
                                 <th>Vendedor</th>
                                 <th>Estado</th>
                                 <th>Vender</th>
-                                <th>Guía Remisión</th>
+                                <th>Guía </th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -159,12 +159,7 @@
                         return `<a href="#" class="text-primary" style="text-decoration: none;">${numeroFormateado}</a>`;
                     }
                 },
-                {
-                    targets: 8,
-                    render(data) {
-                        return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
-                    }
-                },
+                
                 
                 {
                     targets: 7,
@@ -178,7 +173,20 @@
                         }
                     }
                 },
+                {
+                    targets: 8,
+                    render(data) {
+                        return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
+                    }
+                },
 
+                
+                {
+                    targets: 9,
+                    render(data) {
+                        return `<a href="/guia/remision/registrar?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
+                    }
+                },
                 {
                     targets: 10,
                     render: function (data, type, row, meta) {
@@ -188,12 +196,6 @@
                         <a href="${_URL + '/r/cotizaciones/reporte/' + data}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
                         <button onclick="eliminarCotizacion(${data})" data-cod="" type="button" class="btn-del btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
                     </div>`;
-                    }
-                },
-                {
-                    targets: 9,
-                    render(data) {
-                        return `<a href="/guia/remision/registrar?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
                     }
                 },
                 {

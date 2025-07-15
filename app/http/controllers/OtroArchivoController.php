@@ -73,6 +73,9 @@ class OtroArchivoController extends Controller
                     'es_pdf_subido' => $this->otroArchivo->getEsPdfSubido(),
                     'header_image_url' => $this->otroArchivo->getHeaderImageUrl(),
                     'footer_image_url' => $this->otroArchivo->getFooterImageUrl(),
+                    'cliente_nombre' => $this->otroArchivo->getClienteNombre(),
+                    'cliente_documento' => $this->otroArchivo->getClienteDocumento(),
+                    'cliente_direccion' => $this->otroArchivo->getClienteDireccion(),
                     'estado' => $this->otroArchivo->getEstado()
                 ]
             ];

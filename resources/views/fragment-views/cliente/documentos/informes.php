@@ -249,11 +249,14 @@
 <!-- Añadir PDF.js para la vista previa de documentos -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
-    // Configurar el worker de PDF.js
-    window.pdfjsLib = window.pdfjsLib || {};
-    window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    // Configurar PDF.js worker solo una vez
+    (function () {
+        if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        }
+    })();
 </script>
+
 <div class="tab-content" id="informesTabsContent">
     <!-- Navegación entre Lista y Nuevo Informe -->
     <div class="d-flex mb-4 gap-2">
@@ -270,6 +273,10 @@
         <button class="btn border-rojo" onclick="$('#gestionarMembretesInformeModal').modal('show')">
             <i class="fas fa-image me-2"></i>Gestionar Membretes
         </button>
+        <button class="btn bg-rojo hover:bg-white" onclick="window.InformesModule.reiniciar()">
+    <i class="fas fa-sync me-2"></i>Reiniciar Módulo
+</button>
+
     </div>
     <!-- Lista de Informes -->
     <div class="tab-pane fade show active" id="lista-informes" role="tabpanel">
@@ -578,190 +585,398 @@
 
 <!-- Script para el módulo de informes -->
 <script>
-    // Variables globales
-    let informes = [];
-    let filtroActual = '';
-    let tipoFiltroActual = 'todos';
-    let informeEditor = null;
-    let templateEditor = null;
-    let headerImageChanged = false;
-    let footerImageChanged = false;
-    let headerTemplateImageChanged = false;
-    let footerTemplateImageChanged = false;
-    let currentHeaderImage = null;
-    let currentFooterImage = null;
-    let currentHeaderTemplateImage = null;
-    let currentFooterTemplateImage = null;
-    let editMode = false;
-    let informeId = null;
-    let moduloInformesInicializado = false;
-    let vistaPreviewEnProceso = false;
-    let imagen1InformeChanged = false;
-    let imagen2InformeChanged = false;
-    let currentImagen1Informe = null;
-    let currentImagen2Informe = null;
-    // Inicializar inmediatamente cuando se carga la página
-    $(document).ready(function () {
-        console.log("Documento listo, inicializando módulo de informes...");
+    window.InformesModule = window.InformesModule || (function () {
+        // Variables globales
+        let informes = [];
+        let filtroActual = '';
+        let tipoFiltroActual = 'todos';
+        let informeEditor = null;
+        let templateEditor = null;
+        let headerImageChanged = false;
+        let footerImageChanged = false;
+        let headerTemplateImageChanged = false;
+        let footerTemplateImageChanged = false;
+        let currentHeaderImage = null;
+        let currentFooterImage = null;
+        let currentHeaderTemplateImage = null;
+        let currentFooterTemplateImage = null;
+        let editMode = false;
+        let informeId = null;
+        let moduloInformesInicializado = false;
+        let vistaPreviewEnProceso = false;
+        let imagen1InformeChanged = false;
+        let imagen2InformeChanged = false;
+        let currentImagen1Informe = null;
+        let currentImagen2Informe = null;
+// En informes.php, dentro del módulo InformesModule
+function cleanup() {
+    console.log('Limpiando módulo de informes completamente...');
+    
+    // Limpiar editores
+    if (informeEditor) {
+        try {
+            informeEditor.off('text-change');
+            informeEditor = null;
+        } catch (e) {
+            console.error('Error al limpiar informeEditor:', e);
+        }
+    }
 
-        // Inicializar el módulo de informes directamente
-        inicializarModuloInformes();
+    if (templateEditor) {
+        try {
+            templateEditor.off('text-change');
+            templateEditor = null;
+        } catch (e) {
+            console.error('Error al limpiar templateEditor:', e);
+        }
+    }
 
-        // Mantener el código existente para la inicialización en cambio de pestaña
-        $('#informes-tab').on('shown.bs.tab', function (e) {
+    // Limpiar TODOS los eventos del documento
+    $(document).off('.informes');
+    $(document).off('click.informes');
+    $(document).off('keyup.informes');
+    $(document).off('change.informes');
+    $(document).off('shown.bs.tab.informes');
+    $(document).off('hidden.bs.modal.informes');
+    $(document).off('show.bs.modal.informes');
+
+    // Limpiar eventos del window
+    $(window).off('beforeunload.informes');
+
+    // Limpiar modales
+    $('#editarPlantillaInformeModal').off();
+    $('#gestionarMembretesInformeModal').off();
+    $('.modal').modal('hide');
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open');
+
+    // Remover elementos dinámicos
+    $('[id^="previewTemplateModal_"]').remove();
+    $('#imageModal').remove();
+
+    // Resetear variables globales
+    informes = [];
+    filtroActual = '';
+    tipoFiltroActual = 'todos';
+    editMode = false;
+    informeId = null;
+    vistaPreviewEnProceso = false;
+    moduloInformesInicializado = false;
+    
+    // Resetear flags de imágenes
+    headerImageChanged = false;
+    footerImageChanged = false;
+    headerTemplateImageChanged = false;
+    footerTemplateImageChanged = false;
+    imagen1InformeChanged = false;
+    imagen2InformeChanged = false;
+    
+    console.log('Módulo de informes limpiado completamente');
+}
+
+        // Función para limpiar el módulo
+        function limpiarModulo() {
+            console.log('Limpiando módulo de informes...');
+
+            // Limpiar editores
+            if (informeEditor) {
+                try {
+                    informeEditor.off('text-change');
+                    informeEditor = null;
+                } catch (e) {
+                    console.error('Error al limpiar informeEditor:', e);
+                }
+            }
+
+            if (templateEditor) {
+                try {
+                    templateEditor.off('text-change');
+                    templateEditor = null;
+                } catch (e) {
+                    console.error('Error al limpiar templateEditor:', e);
+                }
+            }
+
+            // Limpiar eventos
+            $(document).off('click.informes');
+            $(document).off('keyup.informes');
+            $(document).off('change.informes');
+
+            // Limpiar modales
+            $('#editarPlantillaInformeModal').off('show.bs.modal');
+            $('#editarPlantillaInformeModal').off('shown.bs.modal');
+            $('#editarPlantillaInformeModal').off('hidden.bs.modal');
+            $('#gestionarMembretesInformeModal').off('show.bs.modal');
+
+            // Remover elementos dinámicos
+            $('[id^="previewTemplateModal_"]').remove();
+            $('#imageModal').remove();
+
+            // Resetear variables
+            informes = [];
+            filtroActual = '';
+            tipoFiltroActual = 'todos';
+            editMode = false;
+            informeId = null;
+            vistaPreviewEnProceso = false;
+
+            // Resetear flags de imágenes
+            headerImageChanged = false;
+            footerImageChanged = false;
+            headerTemplateImageChanged = false;
+            footerTemplateImageChanged = false;
+            imagen1InformeChanged = false;
+            imagen2InformeChanged = false;
+
+            // Limpiar imágenes actuales
+            currentHeaderImage = null;
+            currentFooterImage = null;
+            currentHeaderTemplateImage = null;
+            currentFooterTemplateImage = null;
+            currentImagen1Informe = null;
+            currentImagen2Informe = null;
+
+            // NO resetear moduloInformesInicializado aquí
+        }
+        // Función para reiniciar completamente el módulo
+        function reiniciarModuloCompleto() {
+            console.log('Reiniciando módulo completo...');
+            limpiarModulo();
+            moduloInformesInicializado = false;
+            window.informesModuloInicializado = false;
             inicializarModuloInformes();
-        });
-    });
-
-
-
-    function inicializarModuloInformes() {
-        // Evitar inicialización múltiple
-        if (moduloInformesInicializado) {
-            console.log('El módulo de informes ya está inicializado, omitiendo reinicialización.');
-            return;
         }
 
-        console.log('Inicializando módulo de Informes...');
-        moduloInformesInicializado = true;
 
-        // Cargar los informes
-        cargarInformes();
 
-        // Cargar los tipos de informes para el filtro
-        cargarTiposInforme();
+        $(document).ready(function () {
+            console.log("Documento listo, configurando módulo de informes...");
 
-        // Configurar el modal de confirmación para eliminar
-        $('#confirmarEliminarInformeModal').on('show.bs.modal', function (event) {
-            const button = $(event.relatedTarget);
-            const id = button.data('id');
-
-            $('#btn-confirmar-eliminar-informe').off('click').on('click', function () {
-                eliminarInforme(id);
-            });
-        });
-
-        // Configurar eventos de búsqueda
-        $("#buscar-informe").on("keyup", function () {
-            buscarInformes();
-        });
-
-        // Inicializar los modales
-        $("#editarPlantillaInformeModal").on('show.bs.modal', function () {
-            console.log('Modal Editar Plantilla abriendo...');
-
-            // Destruir el editor existente si hay uno
-            if (templateEditor) {
-                try {
-                    // Eliminar todos los elementos de la barra de herramientas
-                    const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
-                    if (toolbarElement) {
-                        toolbarElement.remove();
-                    }
-
-                    // Eliminar el contenedor del editor
-                    const editorElement = document.querySelector('#editor-container-template .ql-editor');
-                    if (editorElement) {
-                        editorElement.remove();
-                    }
-
-                    // Limpiar el contenedor principal
-                    const container = document.getElementById('editor-container-template');
-                    if (container) {
-                        container.innerHTML = '';
-                    }
-
-                    templateEditor = null;
-                } catch (e) {
-                    console.error('Error al limpiar editor:', e);
-                }
+            // Configurar PDF.js worker globalmente
+            if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
             }
 
-            // LIMPIAR TODOS LOS EVENTOS ANTERIORES
-            $("#btn-preview-template").off('click');
-            $("#btn-save-template").off('click');
+            // Inicializar módulo directamente
+            window.InformesModule.init();
 
-            cargarDatosPlantillaYMembretes();
-        });
 
-        $("#editarPlantillaInformeModal").on('shown.bs.modal', function () {
-            console.log('Modal completamente abierto');
 
-            // ASIGNAR EVENTOS UNA SOLA VEZ
-            $("#btn-preview-template").off('click').on('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Vista previa clickeada UNA vez');
-                mostrarVistaPreviewTemplate();
+            // Configurar PDF.js worker globalmente
+            if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            }
+
+            // Inicializar módulo directamente
+            window.InformesModule.init();
+
+
+            // Evento para cambio de pestaña
+            $('#informes-tab').off('shown.bs.tab.informes').on('shown.bs.tab.informes', function (e) {
+                console.log('Pestaña informes activada');
+                // Forzar recarga de informes cuando se activa la pestaña
+                setTimeout(function () {
+                    if (moduloInformesInicializado) {
+                        cargarInformes();
+                    } else {
+                        window.InformesModule.init();
+                    }
+                }, 100);
             });
 
-            $("#btn-save-template").off('click').on('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Guardar clickeado UNA vez');
-                guardarTemplate();
-            });
-        });
-
-        // Limpiar editor cuando se cierra el modal
-        $("#editarPlantillaInformeModal").on('hidden.bs.modal', function () {
-            console.log('Modal cerrado, limpiando editor...');
-            if (templateEditor) {
-                try {
-                    // Eliminar todos los elementos de la barra de herramientas
-                    const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
-                    if (toolbarElement) {
-                        toolbarElement.remove();
-                    }
-
-                    // Limpiar el contenedor
-                    const container = document.getElementById('editor-container-template');
-                    if (container) {
-                        container.innerHTML = '';
-                    }
-
-                    templateEditor = null;
-                } catch (e) {
-                    console.error('Error al limpiar editor:', e);
+            // Limpiar módulo cuando se cambie de pestaña
+            $('a[data-bs-toggle="tab"]').not('#informes-tab').off('shown.bs.tab.informes').on('shown.bs.tab.informes', function (e) {
+                console.log('Cambiando de pestaña, limpiando informes...');
+                // Solo limpiar editores, no resetear la inicialización
+                if (window.InformesModule) {
+                    limpiarModulo();
                 }
+            });
+
+        });
+
+        // Limpiar al salir de la página
+        $(window).on('beforeunload', function () {
+            if (window.InformesModule) {
+                window.InformesModule.cleanup();
             }
         });
 
-        $("#gestionarMembretesInformeModal").on('show.bs.modal', function () {
-            cargarDatosPlantillaYMembretes();
-        });
 
-        // Configurar eventos para los botones de los modales de membretes
-        $("#btn-preview-membretes").off('click').on("click", function () {
-            mostrarVistaPreviewMembretes();
-        });
 
-        $("#btn-save-membretes").off('click').on("click", function () {
-            guardarMembretes();
-        });
+        function inicializarModuloInformes() {
+            console.log('Inicializando módulo de Informes...');
 
-        // Manejar la vista previa de las imágenes seleccionadas
-        $("#header_image_template").on("change", function () {
-            previewImage(this, "header-preview-template", "header-placeholder-template");
-            headerTemplateImageChanged = true;
-        });
+            // Si ya está inicializado, solo recargar informes
+            if (moduloInformesInicializado) {
+                console.log('Módulo ya inicializado, solo recargando informes...');
+                cargarInformes();
+                return;
+            }
 
-        $("#footer_image_template").on("change", function () {
-            previewImage(this, "footer-preview-template", "footer-placeholder-template");
-            footerTemplateImageChanged = true;
-        });
 
-        // Manejar los botones de restablecer
-        $("#reset-header-template").on("click", function () {
-            resetImage("header_image_template", "header-preview-template", "header-placeholder-template", currentHeaderTemplateImage);
-        });
+            // Limpiar módulo anterior si existe
+            limpiarModulo();
 
-        $("#reset-footer-template").on("click", function () {
-            resetImage("footer_image_template", "footer-preview-template", "footer-placeholder-template", currentFooterTemplateImage);
-        });
 
-        // Agregar CSS dinámicamente para solucionar problemas de z-index y aria-hidden
-        const customCSS = `
+            console.log('Inicializando módulo de Informes...');
+
+            // Configurar PDF.js worker si no está configurado
+            if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            }
+
+            moduloInformesInicializado = true;
+
+
+            console.log('Inicializando módulo de Informes...');
+            moduloInformesInicializado = true;
+
+            // Cargar los informes
+            cargarInformes();
+
+            // Cargar los tipos de informes para el filtro
+            cargarTiposInforme();
+
+            // Configurar el modal de confirmación para eliminar
+            $('#confirmarEliminarInformeModal').off('show.bs.modal.informes').on('show.bs.modal.informes', function (event) {
+
+                const button = $(event.relatedTarget);
+                const id = button.data('id');
+
+                $('#btn-confirmar-eliminar-informe').off('click').on('click', function () {
+                    eliminarInforme(id);
+                });
+            });
+
+            // Configurar eventos de búsqueda
+            $("#buscar-informe").off('keyup.informes').on("keyup.informes", function () {
+
+                buscarInformes();
+            });
+
+            // Inicializar los modales
+            $("#editarPlantillaInformeModal").off('show.bs.modal.informes').on('show.bs.modal.informes', function () {
+
+                // console.log('Modal Editar Plantilla abriendo...');
+
+                // Destruir el editor existente si hay uno
+                if (templateEditor) {
+                    try {
+                        // Eliminar todos los elementos de la barra de herramientas
+                        const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
+                        if (toolbarElement) {
+                            toolbarElement.remove();
+                        }
+
+                        // Eliminar el contenedor del editor
+                        const editorElement = document.querySelector('#editor-container-template .ql-editor');
+                        if (editorElement) {
+                            editorElement.remove();
+                        }
+
+                        // Limpiar el contenedor principal
+                        const container = document.getElementById('editor-container-template');
+                        if (container) {
+                            container.innerHTML = '';
+                        }
+
+                        templateEditor = null;
+                    } catch (e) {
+                        console.error('Error al limpiar editor:', e);
+                    }
+                }
+
+                // LIMPIAR TODOS LOS EVENTOS ANTERIORES
+                $("#btn-preview-template").off('click');
+                $("#btn-save-template").off('click');
+
+                cargarDatosPlantillaYMembretes();
+            });
+
+            $("#editarPlantillaInformeModal").off('shown.bs.modal.informes').on('shown.bs.modal.informes', function () {
+
+                console.log('Modal completamente abierto');
+
+                // ASIGNAR EVENTOS UNA SOLA VEZ
+                $("#btn-preview-template").off('click.informes').on('click.informes', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!vistaPreviewEnProceso) {
+                        console.log('Vista previa clickeada UNA vez');
+                        mostrarVistaPreviewTemplate();
+                    }
+                });
+
+                $("#btn-save-template").off('click.informes').on('click.informes', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Guardar clickeado UNA vez');
+                    guardarTemplate();
+                });
+
+            });
+
+            // Limpiar editor cuando se cierra el modal
+            $("#editarPlantillaInformeModal").off('hidden.bs.modal.informes').on('hidden.bs.modal.informes', function () {
+
+                console.log('Modal cerrado, limpiando editor...');
+                if (templateEditor) {
+                    try {
+                        // Eliminar todos los elementos de la barra de herramientas
+                        const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
+                        if (toolbarElement) {
+                            toolbarElement.remove();
+                        }
+
+                        // Limpiar el contenedor
+                        const container = document.getElementById('editor-container-template');
+                        if (container) {
+                            container.innerHTML = '';
+                        }
+
+                        templateEditor = null;
+                    } catch (e) {
+                        console.error('Error al limpiar editor:', e);
+                    }
+                }
+            });
+
+            $("#gestionarMembretesInformeModal").on('show.bs.modal', function () {
+                cargarDatosPlantillaYMembretes();
+            });
+
+            // Configurar eventos para los botones de los modales de membretes
+            $("#btn-preview-membretes").off('click').on("click", function () {
+                mostrarVistaPreviewMembretes();
+            });
+
+            $("#btn-save-membretes").off('click').on("click", function () {
+                guardarMembretes();
+            });
+
+            // Manejar la vista previa de las imágenes seleccionadas
+            $("#header_image_template").on("change", function () {
+                previewImage(this, "header-preview-template", "header-placeholder-template");
+                headerTemplateImageChanged = true;
+            });
+
+            $("#footer_image_template").on("change", function () {
+                previewImage(this, "footer-preview-template", "footer-placeholder-template");
+                footerTemplateImageChanged = true;
+            });
+
+            // Manejar los botones de restablecer
+            $("#reset-header-template").on("click", function () {
+                resetImage("header_image_template", "header-preview-template", "header-placeholder-template", currentHeaderTemplateImage);
+            });
+
+            $("#reset-footer-template").on("click", function () {
+                resetImage("footer_image_template", "footer-preview-template", "footer-placeholder-template", currentFooterTemplateImage);
+            });
+
+            // Agregar CSS dinámicamente para solucionar problemas de z-index y aria-hidden
+            const customCSS = `
         #editarPlantillaInformeModal {
             z-index: 1055 !important;
         }
@@ -794,16 +1009,22 @@
         }
     `;
 
-        // Agregar el CSS al documento
-        const styleElement = document.createElement('style');
-        styleElement.textContent = customCSS;
-        document.head.appendChild(styleElement);
-    }
-    // Función para cargar los informes
+            // Agregar el CSS al documento
+            const styleElement = document.createElement('style');
+            styleElement.textContent = customCSS;
+            document.head.appendChild(styleElement);
+        }
+        // Función para cargar los informes
+        function cargarInformes() {
+            // VERIFICAR QUE EL CONTENEDOR EXISTA
+            if (!$("#lista-informes-container").length) {
+                console.error("Contenedor de informes no encontrado");
+                return;
+            }
 
-    function cargarInformes() {
-        // Mostrar indicador de carga
-        $("#lista-informes-container").html(`
+            // Mostrar indicador de carga
+            $("#lista-informes-container").html(`
+
         <div class="col-12 text-center py-5">
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
@@ -812,25 +1033,48 @@
         </div>
     `);
 
-        // Construir la URL con los filtros
-        let url = _URL + "/ajs/informe/render";
-        if (filtroActual && tipoFiltroActual !== 'todos') {
-            url += `?filtro=${encodeURIComponent(filtroActual)}&tipo_busqueda=${tipoFiltroActual}`;
-        }
 
-        // Realizar petición AJAX para obtener los informes
-        $.ajax({
-            url: url,
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                // Asegurarse de que data sea un array
-                informes = Array.isArray(data) ? data : [];
-                renderizarInformes();
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar informes:", status, error);
+            // VERIFICAR QUE _URL ESTÉ DEFINIDA
+            if (typeof _URL === 'undefined') {
+                console.error('Variable _URL no está definida');
                 $("#lista-informes-container").html(`
+        <div class="col-12 text-center py-5">
+            <div class="alert alert-danger" role="alert">
+                Error de configuración. Variable _URL no definida.
+            </div>
+        </div>
+    `);
+                return;
+            }
+
+            // Construir la URL con los filtros
+            let url = _URL + "/ajs/informe/render";
+
+            if (filtroActual && tipoFiltroActual !== 'todos') {
+                url += `?filtro=${encodeURIComponent(filtroActual)}&tipo_busqueda=${tipoFiltroActual}`;
+            }
+
+            // Realizar petición AJAX para obtener los informes
+            $.ajax({
+                url: url,
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    console.log('Datos recibidos:', data);
+                    // Asegurarse de que data sea un array
+                    informes = Array.isArray(data) ? data : [];
+
+                    // Verificar si el contenedor aún existe antes de renderizar
+                    if ($("#lista-informes-container").length) {
+                        renderizarInformes();
+                    } else {
+                        console.error('Contenedor de informes desapareció durante la carga');
+                    }
+                },
+
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar informes:", status, error);
+                    $("#lista-informes-container").html(`
                 <div class="col-12 text-center py-5">
                     <div class="alert alert-danger" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -841,236 +1085,236 @@
                     </button>
                 </div>
             `);
-            }
-        });
-    }
-    function cargarDatosPlantillaYMembretes() {
-        $.ajax({
-            url: _URL + "/ajs/informe/obtener-template",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    // Cargar datos en el modal de Editar Plantilla
-                    $("#titulo_template").val(data.titulo);
+                }
+            });
+        }
+        function cargarDatosPlantillaYMembretes() {
+            $.ajax({
+                url: _URL + "/ajs/informe/obtener-template",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        // Cargar datos en el modal de Editar Plantilla
+                        $("#titulo_template").val(data.titulo);
 
-                    // LIMPIAR EDITOR EXISTENTE ANTES DE INICIALIZAR UNO NUEVO
-                    if (templateEditor) {
-                        templateEditor = null;
-                    }
-
-                    // Limpiar el contenedor COMPLETAMENTE
-                    const editorContainer = document.getElementById('editor-container-template');
-                    if (editorContainer) {
-                        // Eliminar todos los elementos hijos
-                        while (editorContainer.firstChild) {
-                            editorContainer.removeChild(editorContainer.firstChild);
+                        // LIMPIAR EDITOR EXISTENTE ANTES DE INICIALIZAR UNO NUEVO
+                        if (templateEditor) {
+                            templateEditor = null;
                         }
-                        // Limpiar cualquier texto residual
-                        editorContainer.innerHTML = '';
-                        editorContainer.textContent = '';
-                    }
 
-                    // Usar setTimeout para asegurar que el DOM esté listo
-                    setTimeout(function () {
-                        // Verificar que el contenido esté limpio antes de inicializar
-                        const contenidoLimpio = data.contenido || '';
-                        console.log('Contenido a cargar:', contenidoLimpio);
-                        inicializarTemplateEditor(contenidoLimpio);
-                    }, 200);
+                        // Limpiar el contenedor COMPLETAMENTE
+                        const editorContainer = document.getElementById('editor-container-template');
+                        if (editorContainer) {
+                            // Eliminar todos los elementos hijos
+                            while (editorContainer.firstChild) {
+                                editorContainer.removeChild(editorContainer.firstChild);
+                            }
+                            // Limpiar cualquier texto residual
+                            editorContainer.innerHTML = '';
+                            editorContainer.textContent = '';
+                        }
 
-                    // Cargar datos en el modal de Gestionar Membretes
-                    currentHeaderTemplateImage = data.header_image;
-                    currentFooterTemplateImage = data.footer_image;
+                        // Usar setTimeout para asegurar que el DOM esté listo
+                        setTimeout(function () {
+                            // Verificar que el contenido esté limpio antes de inicializar
+                            const contenidoLimpio = data.contenido || '';
+                            console.log('Contenido a cargar:', contenidoLimpio);
+                            inicializarTemplateEditor(contenidoLimpio);
+                        }, 200);
 
-                    // Mostrar las imágenes actuales
-                    if (data.header_image) {
-                        $("#header-preview-template").attr("src", data.header_image).show();
-                        $("#header-placeholder-template").hide();
-                    } else {
-                        $("#header-preview-template").hide();
-                        $("#header-placeholder-template").show();
-                    }
-
-                    if (data.footer_image) {
-                        $("#footer-preview-template").attr("src", data.footer_image).show();
-                        $("#footer-placeholder-template").hide();
-                    } else {
-                        $("#footer-preview-template").hide();
-                        $("#footer-placeholder-template").show();
-                    }
-                } else {
-                    console.error("Error al cargar plantilla:", data.error);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar plantilla:", status, error);
-            }
-        });
-    }
-    // Función para mostrar la vista previa de membretes
-    function mostrarVistaPreviewMembretes() {
-        // Mostrar indicador de carga
-        Swal.fire({
-            title: 'Generando vista previa',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        // Crear un objeto FormData para enviar archivos
-        const formData = new FormData();
-        formData.append('titulo', "VISTA PREVIA DE MEMBRETES");
-        formData.append('contenido', "<p>Este es un ejemplo de contenido para visualizar los membretes.</p>");
-
-        // Añadir las imágenes si han sido cambiadas
-        if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
-            formData.append('header_image', document.getElementById('header_image_template').files[0]);
-        } else if (currentHeaderTemplateImage) {
-            formData.append('header_image_base64', currentHeaderTemplateImage);
-        }
-
-        if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
-        } else if (currentFooterTemplateImage) {
-            formData.append('footer_image_base64', currentFooterTemplateImage);
-        }
-
-        // Enviar datos para generar vista previa
-        $.ajax({
-            url: _URL + "/ajs/informe/vista-previa",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
-                Swal.close();
-
-                if (data.success && data.pdfBase64) {
-                    // Crear un objeto Blob con el PDF base64
-                    const byteCharacters = atob(data.pdfBase64);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-                    // Crear una URL para el blob
-                    const pdfUrl = URL.createObjectURL(blob);
-
-                    // Mostrar el PDF en el iframe
-                    $("#preview-frame-membretes").attr("src", pdfUrl);
-
-                    // Ocultar el modal de membretes y mostrar el de vista previa
-                    $("#gestionarMembretesInformeModal").modal("hide");
-                    $("#previewMembretesModal").modal("show");
-
-                    // Cuando se cierre el modal de vista previa, volver a mostrar el de membretes
-                    $("#previewMembretesModal").on('hidden.bs.modal', function () {
-                        URL.revokeObjectURL(pdfUrl);
-                        $("#gestionarMembretesInformeModal").modal("show");
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: data.msg || 'No se pudo generar la vista previa',
-                        icon: 'error'
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al generar vista previa:", status, error);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
-                    icon: 'error'
-                });
-            }
-        });
-    }
-
-    // Función para guardar los membretes
-    function guardarMembretes() {
-        // Mostrar indicador de carga
-        Swal.fire({
-            title: 'Guardando',
-            text: 'Guardando membretes...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        // Crear un objeto FormData para enviar archivos
-        const formData = new FormData();
-        formData.append('titulo', $("#titulo_template").val() || "INFORME");
-        formData.append('contenido', templateEditor ? templateEditor.root.innerHTML : "");
-
-        // Añadir las imágenes si han sido cambiadas
-        if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
-            formData.append('header_image', document.getElementById('header_image_template').files[0]);
-        }
-
-        if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
-        }
-
-        // Enviar datos al servidor
-        $.ajax({
-            url: _URL + "/ajs/informe/guardar-template",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    // Actualizar las imágenes actuales si se proporcionaron nuevas URLs
-                    if (data.header_image) {
+                        // Cargar datos en el modal de Gestionar Membretes
                         currentHeaderTemplateImage = data.header_image;
-                    }
-
-                    if (data.footer_image) {
                         currentFooterTemplateImage = data.footer_image;
+
+                        // Mostrar las imágenes actuales
+                        if (data.header_image) {
+                            $("#header-preview-template").attr("src", data.header_image).show();
+                            $("#header-placeholder-template").hide();
+                        } else {
+                            $("#header-preview-template").hide();
+                            $("#header-placeholder-template").show();
+                        }
+
+                        if (data.footer_image) {
+                            $("#footer-preview-template").attr("src", data.footer_image).show();
+                            $("#footer-placeholder-template").hide();
+                        } else {
+                            $("#footer-preview-template").hide();
+                            $("#footer-placeholder-template").show();
+                        }
+                    } else {
+                        console.error("Error al cargar plantilla:", data.error);
                     }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar plantilla:", status, error);
+                }
+            });
+        }
+        // Función para mostrar la vista previa de membretes
+        function mostrarVistaPreviewMembretes() {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Generando vista previa',
+                text: 'Por favor espere...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-                    // Restablecer los indicadores de cambio
-                    headerTemplateImageChanged = false;
-                    footerTemplateImageChanged = false;
+            // Crear un objeto FormData para enviar archivos
+            const formData = new FormData();
+            formData.append('titulo', "VISTA PREVIA DE MEMBRETES");
+            formData.append('contenido', "<p>Este es un ejemplo de contenido para visualizar los membretes.</p>");
 
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: 'Los membretes se han guardado correctamente',
-                        icon: 'success'
-                    }).then(() => {
-                        // Cerrar el modal
+            // Añadir las imágenes si han sido cambiadas
+            if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
+                formData.append('header_image', document.getElementById('header_image_template').files[0]);
+            } else if (currentHeaderTemplateImage) {
+                formData.append('header_image_base64', currentHeaderTemplateImage);
+            }
+
+            if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
+                formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
+            } else if (currentFooterTemplateImage) {
+                formData.append('footer_image_base64', currentFooterTemplateImage);
+            }
+
+            // Enviar datos para generar vista previa
+            $.ajax({
+                url: _URL + "/ajs/informe/vista-previa",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    Swal.close();
+
+                    if (data.success && data.pdfBase64) {
+                        // Crear un objeto Blob con el PDF base64
+                        const byteCharacters = atob(data.pdfBase64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                        // Crear una URL para el blob
+                        const pdfUrl = URL.createObjectURL(blob);
+
+                        // Mostrar el PDF en el iframe
+                        $("#preview-frame-membretes").attr("src", pdfUrl);
+
+                        // Ocultar el modal de membretes y mostrar el de vista previa
                         $("#gestionarMembretesInformeModal").modal("hide");
-                    });
-                } else {
+                        $("#previewMembretesModal").modal("show");
+
+                        // Cuando se cierre el modal de vista previa, volver a mostrar el de membretes
+                        $("#previewMembretesModal").on('hidden.bs.modal', function () {
+                            URL.revokeObjectURL(pdfUrl);
+                            $("#gestionarMembretesInformeModal").modal("show");
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudo generar la vista previa',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al generar vista previa:", status, error);
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg || 'No se pudieron guardar los membretes',
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al guardar los membretes:", status, error);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
-                    icon: 'error'
-                });
+            });
+        }
+
+        // Función para guardar los membretes
+        function guardarMembretes() {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Guardando',
+                text: 'Guardando membretes...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Crear un objeto FormData para enviar archivos
+            const formData = new FormData();
+            formData.append('titulo', $("#titulo_template").val() || "INFORME");
+            formData.append('contenido', templateEditor ? templateEditor.root.innerHTML : "");
+
+            // Añadir las imágenes si han sido cambiadas
+            if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
+                formData.append('header_image', document.getElementById('header_image_template').files[0]);
             }
-        });
-    }
-    function renderizarInformes() {
-        if (!informes || informes.length === 0) {
-            $("#lista-informes-container").html(`
+
+            if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
+                formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
+            }
+
+            // Enviar datos al servidor
+            $.ajax({
+                url: _URL + "/ajs/informe/guardar-template",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        // Actualizar las imágenes actuales si se proporcionaron nuevas URLs
+                        if (data.header_image) {
+                            currentHeaderTemplateImage = data.header_image;
+                        }
+
+                        if (data.footer_image) {
+                            currentFooterTemplateImage = data.footer_image;
+                        }
+
+                        // Restablecer los indicadores de cambio
+                        headerTemplateImageChanged = false;
+                        footerTemplateImageChanged = false;
+
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'Los membretes se han guardado correctamente',
+                            icon: 'success'
+                        }).then(() => {
+                            // Cerrar el modal
+                            $("#gestionarMembretesInformeModal").modal("hide");
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudieron guardar los membretes',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al guardar los membretes:", status, error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo conectar con el servidor',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+        function renderizarInformes() {
+            if (!informes || informes.length === 0) {
+                $("#lista-informes-container").html(`
             <div class="col-12 text-center py-5">
                 <div class="alert alert-info" role="alert">
                     <i class="fas fa-info-circle me-2"></i>
@@ -1081,19 +1325,19 @@
                 </button>
             </div>
         `);
-            return;
-        }
+                return;
+            }
 
-        let html = '';
+            let html = '';
 
-        informes.forEach(function (informe) {
-            const fecha = new Date(informe.fecha_creacion).toLocaleDateString();
-            const cliente = informe.cliente_nombre || 'Sin cliente';
+            informes.forEach(function (informe) {
+                const fecha = new Date(informe.fecha_creacion).toLocaleDateString();
+                const cliente = informe.cliente_nombre || 'Sin cliente';
 
-            // Generar un ID único para el canvas de PDF
-            const canvasId = `pdf-preview-${informe.id_informe}`;
+                // Generar un ID único para el canvas de PDF
+                const canvasId = `pdf-preview-${informe.id_informe}`;
 
-            html += `
+                html += `
             <div class="col">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -1142,91 +1386,91 @@
                 </div>
             </div>
         `;
-        });
+            });
 
-        $("#lista-informes-container").html(html);
+            $("#lista-informes-container").html(html);
 
-        // Inicializar la carga de PDFs después de que el HTML esté en el DOM
-        informes.forEach(function (informe) {
-            const canvasId = `pdf-preview-${informe.id_informe}`;
-            setTimeout(() => {
-                renderPdfPreview(`${_URL}/ajs/informe/generarPDF?id=${informe.id_informe}`, canvasId);
-            }, 100);
-        });
-    }
+            // Inicializar la carga de PDFs después de que el HTML esté en el DOM
+            informes.forEach(function (informe) {
+                const canvasId = `pdf-preview-${informe.id_informe}`;
+                setTimeout(() => {
+                    renderPdfPreview(`${_URL}/ajs/informe/generarPDF?id=${informe.id_informe}`, canvasId);
+                }, 100);
+            });
+        }
 
-    // Función para cargar los tipos de informes para el filtro
-    function cargarTiposInforme() {
-        $.ajax({
-            url: _URL + "/ajs/informe/getTipos",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                if (data.success && data.tipos && data.tipos.length > 0) {
-                    let html = `
+        // Función para cargar los tipos de informes para el filtro
+        function cargarTiposInforme() {
+            $.ajax({
+                url: _URL + "/ajs/informe/getTipos",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.tipos && data.tipos.length > 0) {
+                        let html = `
                     <li><h6 class="dropdown-header">Tipo de Informe</h6></li>
                     <li><a class="dropdown-item active" href="#" data-tipo="todos">Todos</a></li>
                 `;
 
-                    data.tipos.forEach(function (tipo) {
-                        html += `<li><a class="dropdown-item" href="#" data-tipo="tipo" data-valor="${tipo.tipo}">${tipo.tipo}</a></li>`;
-                    });
+                        data.tipos.forEach(function (tipo) {
+                            html += `<li><a class="dropdown-item" href="#" data-tipo="tipo" data-valor="${tipo.tipo}">${tipo.tipo}</a></li>`;
+                        });
 
-                    $("#filtro-tipos").html(html);
+                        $("#filtro-tipos").html(html);
 
-                    // Configurar los eventos de clic para los filtros
-                    $("#filtro-tipos .dropdown-item").on("click", function (e) {
-                        e.preventDefault();
+                        // Configurar los eventos de clic para los filtros
+                        $("#filtro-tipos .dropdown-item").on("click", function (e) {
+                            e.preventDefault();
 
-                        // Actualizar la clase active
-                        $("#filtro-tipos .dropdown-item").removeClass("active");
-                        $(this).addClass("active");
+                            // Actualizar la clase active
+                            $("#filtro-tipos .dropdown-item").removeClass("active");
+                            $(this).addClass("active");
 
-                        // Obtener el tipo de filtro
-                        const tipo = $(this).data("tipo");
+                            // Obtener el tipo de filtro
+                            const tipo = $(this).data("tipo");
 
-                        if (tipo === "todos") {
-                            tipoFiltroActual = "todos";
-                            filtroActual = "";
-                        } else {
-                            tipoFiltroActual = "tipo";
-                            filtroActual = $(this).data("valor");
-                        }
+                            if (tipo === "todos") {
+                                tipoFiltroActual = "todos";
+                                filtroActual = "";
+                            } else {
+                                tipoFiltroActual = "tipo";
+                                filtroActual = $(this).data("valor");
+                            }
 
-                        // Recargar los informes con el filtro
-                        cargarInformes();
-                    });
+                            // Recargar los informes con el filtro
+                            cargarInformes();
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar tipos de informe:", status, error);
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar tipos de informe:", status, error);
-            }
-        });
-    }
-
-    // Función para buscar informes
-    function buscarInformes() {
-        const busqueda = $("#buscar-informe").val().trim().toLowerCase();
-
-        if (busqueda === "") {
-            // Si la búsqueda está vacía, mostrar todos los informes según el filtro de tipo
-            if (tipoFiltroActual === "todos") {
-                filtroActual = "";
-            }
-        } else {
-            // Si hay texto de búsqueda, filtrar por título
-            filtroActual = busqueda;
-            tipoFiltroActual = "titulo";
+            });
         }
 
-        // Recargar los informes con el filtro
-        cargarInformes();
-    }
+        // Función para buscar informes
+        function buscarInformes() {
+            const busqueda = $("#buscar-informe").val().trim().toLowerCase();
 
-    // Función para mostrar el formulario de nuevo informe
-    function mostrarFormularioNuevoInforme() {
-        // Mostrar indicador de carga
-        $("#nuevo-informe").html(`
+            if (busqueda === "") {
+                // Si la búsqueda está vacía, mostrar todos los informes según el filtro de tipo
+                if (tipoFiltroActual === "todos") {
+                    filtroActual = "";
+                }
+            } else {
+                // Si hay texto de búsqueda, filtrar por título
+                filtroActual = busqueda;
+                tipoFiltroActual = "titulo";
+            }
+
+            // Recargar los informes con el filtro
+            cargarInformes();
+        }
+
+        // Función para mostrar el formulario de nuevo informe
+        function mostrarFormularioNuevoInforme() {
+            // Mostrar indicador de carga
+            $("#nuevo-informe").html(`
         <div class="text-center py-5">
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
@@ -1235,21 +1479,21 @@
         </div>
     `);
 
-        // Mostrar la pestaña de nuevo informe
-        $('#lista-informes').removeClass('show active');
-        $('#nuevo-informe').addClass('show active');
+            // Mostrar la pestaña de nuevo informe
+            $('#lista-informes').removeClass('show active');
+            $('#nuevo-informe').addClass('show active');
 
-        // Cargar el formulario
-        $.ajax({
-            url: _URL + "/ajs/informe/obtener-template",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                renderizarFormularioInforme(false, null, data);
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar plantilla:", status, error);
-                $("#nuevo-informe").html(`
+            // Cargar el formulario
+            $.ajax({
+                url: _URL + "/ajs/informe/obtener-template",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    renderizarFormularioInforme(false, null, data);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar plantilla:", status, error);
+                    $("#nuevo-informe").html(`
                 <div class="alert alert-danger" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Error al cargar el formulario. Por favor, intente nuevamente.
@@ -1258,14 +1502,14 @@
                     <i class="fas fa-sync me-2"></i>Reintentar
                 </button>
             `);
-            }
-        });
-    }
+                }
+            });
+        }
 
-    // Función para editar un informe existente
-    function editarInforme(id) {
-        // Mostrar indicador de carga
-        $("#editar-informe").html(`
+        // Función para editar un informe existente
+        function editarInforme(id) {
+            // Mostrar indicador de carga
+            $("#editar-informe").html(`
         <div class="text-center py-5">
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
@@ -1274,22 +1518,22 @@
         </div>
     `);
 
-        // Mostrar la pestaña de editar informe
-        $('#lista-informes').removeClass('show active');
-        $('#editar-informe').addClass('show active');
+            // Mostrar la pestaña de editar informe
+            $('#lista-informes').removeClass('show active');
+            $('#editar-informe').addClass('show active');
 
-        // Cargar los datos del informe
-        $.ajax({
-            url: _URL + "/ajs/informe/getOne",
-            method: "POST",
-            data: { id_informe: id },
-            dataType: 'json',
-            success: function (data) {
-                if (!data.error) {
-                    renderizarFormularioInforme(true, data);
-                } else {
-                    console.error("Error al cargar informe:", data.error);
-                    $("#editar-informe").html(`
+            // Cargar los datos del informe
+            $.ajax({
+                url: _URL + "/ajs/informe/getOne",
+                method: "POST",
+                data: { id_informe: id },
+                dataType: 'json',
+                success: function (data) {
+                    if (!data.error) {
+                        renderizarFormularioInforme(true, data);
+                    } else {
+                        console.error("Error al cargar informe:", data.error);
+                        $("#editar-informe").html(`
                     <div class="alert alert-danger" role="alert">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         Error al cargar el informe. Por favor, intente nuevamente.
@@ -1298,11 +1542,11 @@
                         <i class="fas fa-arrow-left me-2"></i>Volver a la lista
                     </button>
                 `);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar informe:", status, error);
-                $("#editar-informe").html(`
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar informe:", status, error);
+                    $("#editar-informe").html(`
                 <div class="alert alert-danger" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Error al cargar el informe. Por favor, intente nuevamente.
@@ -1311,43 +1555,43 @@
                     <i class="fas fa-arrow-left me-2"></i>Volver a la lista
                 </button>
             `);
-            }
-        });
-    }
+                }
+            });
+        }
 
-    // Modificar la función editarPlantillaInforme
-    function editarPlantillaInforme() {
-        // Mostrar el modal en lugar de cambiar la pestaña
-        $("#editarPlantillaInformeModal").modal("show");
-    }
-    function renderizarFormularioInforme(esEdicion, informe, plantilla = null) {
-        editMode = esEdicion;
-        informeId = esEdicion ? informe.id_informe : null;
+        // Modificar la función editarPlantillaInforme
+        function editarPlantillaInforme() {
+            // Mostrar el modal en lugar de cambiar la pestaña
+            $("#editarPlantillaInformeModal").modal("show");
+        }
+        function renderizarFormularioInforme(esEdicion, informe, plantilla = null) {
+            editMode = esEdicion;
+            informeId = esEdicion ? informe.id_informe : null;
 
-        const contenedor = esEdicion ? $("#editar-informe") : $("#nuevo-informe");
-        const titulo = esEdicion ? "Editar Informe" : "Nuevo Informe";
+            const contenedor = esEdicion ? $("#editar-informe") : $("#nuevo-informe");
+            const titulo = esEdicion ? "Editar Informe" : "Nuevo Informe";
 
-        // Valores por defecto
-        const valores = {
-            id_informe: esEdicion ? informe.id_informe : '',
-            tipo: esEdicion ? informe.tipo : '',
-            titulo: esEdicion ? informe.titulo : (plantilla ? plantilla.titulo : ''),
-            contenido: esEdicion ? informe.contenido : (plantilla ? plantilla.contenido : ''),
-            cliente_id: esEdicion ? informe.cliente_id : '',
-            cliente_nombre: esEdicion ? informe.cliente_nombre : '',
-            cliente_documento: esEdicion ? informe.cliente_documento : '',
-            cliente_direccion: esEdicion ? informe.cliente_direccion : '',
-            persona_entregar: esEdicion ? informe.persona_entregar : '',
-            header_image: esEdicion ? informe.header_image : '', // Solo mostrar imágenes en modo edición
-            footer_image: esEdicion ? informe.footer_image : ''  // Solo mostrar imágenes en modo edición
-        };
+            // Valores por defecto
+            const valores = {
+                id_informe: esEdicion ? informe.id_informe : '',
+                tipo: esEdicion ? informe.tipo : '',
+                titulo: esEdicion ? informe.titulo : (plantilla ? plantilla.titulo : ''),
+                contenido: esEdicion ? informe.contenido : (plantilla ? plantilla.contenido : ''),
+                cliente_id: esEdicion ? informe.cliente_id : '',
+                cliente_nombre: esEdicion ? informe.cliente_nombre : '',
+                cliente_documento: esEdicion ? informe.cliente_documento : '',
+                cliente_direccion: esEdicion ? informe.cliente_direccion : '',
+                persona_entregar: esEdicion ? informe.persona_entregar : '',
+                header_image: esEdicion ? informe.header_image : '', // Solo mostrar imágenes en modo edición
+                footer_image: esEdicion ? informe.footer_image : ''  // Solo mostrar imágenes en modo edición
+            };
 
-        // Guardar las imágenes actuales
-        currentHeaderImage = valores.header_image;
-        currentFooterImage = valores.footer_image;
+            // Guardar las imágenes actuales
+            currentHeaderImage = valores.header_image;
+            currentFooterImage = valores.footer_image;
 
-        // Renderizar el formulario con contenedores COMPLETAMENTE SEPARADOS
-        contenedor.html(`
+            // Renderizar el formulario con contenedores COMPLETAMENTE SEPARADOS
+            contenedor.html(`
     <div class="card border-0 shadow-sm">
         <div class="card-header text-white py-3" style="background-image: linear-gradient(to right, #CA3438, #d04a4e);">
             <h5 class="card-title mb-0 fw-bold">${titulo}</h5>
@@ -1593,145 +1837,145 @@
 `);
 
 
-        // Inicializar el editor Quill
-        inicializarInformeEditor(valores.contenido);
+            // Inicializar el editor Quill
+            inicializarInformeEditor(valores.contenido);
 
-        // Inicializar autocomplete para búsqueda de clientes
-        $("#cliente_search").autocomplete({
-            source: _URL + "/ajs/buscar/cliente/datos", // Usamos la ruta existente
-            minLength: 2,
-            select: function (event, ui) {
-                event.preventDefault();
+            // Inicializar autocomplete para búsqueda de clientes
+            $("#cliente_search").autocomplete({
+                source: _URL + "/ajs/buscar/cliente/datos", // Usamos la ruta existente
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
 
-                // Establecer los valores seleccionados
-                $("#cliente_id").val(ui.item.codigo);
-                $("#cliente_nombre").text(ui.item.datos);
-                $("#cliente_documento").text("Documento: " + ui.item.documento);
-                $("#cliente_direccion").text("Dirección: " + (ui.item.direccion || "No especificada"));
+                    // Establecer los valores seleccionados
+                    $("#cliente_id").val(ui.item.codigo);
+                    $("#cliente_nombre").text(ui.item.datos);
+                    $("#cliente_documento").text("Documento: " + ui.item.documento);
+                    $("#cliente_direccion").text("Dirección: " + (ui.item.direccion || "No especificada"));
 
-                // Mostrar la información del cliente en el contenedor separado
-                $("#cliente_info_container").slideDown(300);
+                    // Mostrar la información del cliente en el contenedor separado
+                    $("#cliente_info_container").slideDown(300);
 
-                verificarTipoDocumento(ui.item.documento);
+                    verificarTipoDocumento(ui.item.documento);
 
-                // Establecer el valor en el campo de búsqueda
-                $(this).val(ui.item.datos);
+                    // Establecer el valor en el campo de búsqueda
+                    $(this).val(ui.item.datos);
 
-                return false;
+                    return false;
+                }
+            }).autocomplete("instance")._renderItem = function (ul, item) {
+                return $("<li>")
+                    .append("<div class='autocomplete-item'><strong>" + item.documento + "</strong> | " + item.datos + "</div>")
+                    .appendTo(ul);
+            };
+
+            // Agregar botón para limpiar la selección
+            $("#btn-search-cliente").on("click", function () {
+                if ($("#cliente_search").val().trim() === "") {
+                    // Si está vacío, limpiar la selección
+                    $("#cliente_id").val("");
+                    $("#cliente_info_container").slideUp(300);
+                    $("#campo-persona-entregar").slideUp(300);
+                } else {
+                    // Si tiene texto, iniciar búsqueda
+                    $("#cliente_search").autocomplete("search", $("#cliente_search").val());
+                }
+            });
+
+            // Si hay un cliente seleccionado, mostrar su información
+            if (valores.cliente_id && valores.cliente_nombre) {
+                $("#cliente_search").val(valores.cliente_nombre);
+                $("#cliente_info_container").show();
+                if (esEdicion && informe.cliente_documento) {
+                    verificarTipoDocumento(informe.cliente_documento);
+                }
             }
-        }).autocomplete("instance")._renderItem = function (ul, item) {
-            return $("<li>")
-                .append("<div class='autocomplete-item'><strong>" + item.documento + "</strong> | " + item.datos + "</div>")
-                .appendTo(ul);
-        };
 
-        // Agregar botón para limpiar la selección
-        $("#btn-search-cliente").on("click", function () {
-            if ($("#cliente_search").val().trim() === "") {
-                // Si está vacío, limpiar la selección
-                $("#cliente_id").val("");
-                $("#cliente_info_container").slideUp(300);
-                $("#campo-persona-entregar").slideUp(300);
+            // Manejar el envío del formulario usando el botón de guardar
+            $("#btn-save-informe").on("click", function () {
+                guardarInforme();
+            });
+
+            // Manejar la vista previa
+            $("#btn-preview-informe").on("click", function () {
+                mostrarVistaPrevia();
+            });
+            // Configurar eventos para las imágenes del informe
+            $("#imagen1_informe").on("change", function () {
+                previewImage(this, "imagen1-preview-informe", "imagen1-placeholder-informe");
+                imagen1InformeChanged = true;
+            });
+
+            $("#imagen2_informe").on("change", function () {
+                previewImage(this, "imagen2-preview-informe", "imagen2-placeholder-informe");
+                imagen2InformeChanged = true;
+            });
+
+            // Botones de limpiar
+            $("#reset-imagen1-informe").on("click", function () {
+                resetImage("imagen1_informe", "imagen1-preview-informe", "imagen1-placeholder-informe", currentImagen1Informe);
+                imagen1InformeChanged = false;
+            });
+
+            $("#reset-imagen2-informe").on("click", function () {
+                resetImage("imagen2_informe", "imagen2-preview-informe", "imagen2-placeholder-informe", currentImagen2Informe);
+                imagen2InformeChanged = false;
+            });
+
+            // Mostrar imágenes existentes si estamos editando (reemplazar código existente)
+            if (valores.header_image) {
+                const container1 = document.getElementById('preview-container-1');
+                const uploadArea1 = document.getElementById('upload-area-1');
+                const previewArea1 = document.getElementById('preview-area-1');
+                const previewImg1 = document.getElementById('preview-img-1');
+                const imageInfo1 = document.getElementById('image-info-1');
+
+                previewImg1.src = valores.header_image;
+                uploadArea1.style.display = 'none';
+                previewArea1.style.display = 'block';
+                container1.classList.add('has-image');
+                imageInfo1.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
+                currentImagen1Informe = valores.header_image;
+            }
+
+            if (valores.footer_image) {
+                const container2 = document.getElementById('preview-container-2');
+                const uploadArea2 = document.getElementById('upload-area-2');
+                const previewArea2 = document.getElementById('preview-area-2');
+                const previewImg2 = document.getElementById('preview-img-2');
+                const imageInfo2 = document.getElementById('image-info-2');
+
+                previewImg2.src = valores.footer_image;
+                uploadArea2.style.display = 'none';
+                previewArea2.style.display = 'block';
+                container2.classList.add('has-image');
+                imageInfo2.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
+                currentImagen2Informe = valores.footer_image;
+            }
+
+            // Cargar tipos de informe en el select
+            cargarTiposInformeSelect(valores.tipo);
+        }    // Función para renderizar el formulario de plantilla
+
+        function verificarTipoDocumento(documento) {
+            // RUC en Perú: 11 dígitos y empieza con 20, 15, 16, 17
+            const esRUC = documento && documento.length === 11 && /^(20|15|16|17)/.test(documento);
+
+            if (esRUC) {
+                $("#campo-persona-entregar").slideDown(300);
+                $("#persona_entregar").attr('placeholder', 'Nombre de la persona responsable o a quien va dirigido');
             } else {
-                // Si tiene texto, iniciar búsqueda
-                $("#cliente_search").autocomplete("search", $("#cliente_search").val());
-            }
-        });
-
-        // Si hay un cliente seleccionado, mostrar su información
-        if (valores.cliente_id && valores.cliente_nombre) {
-            $("#cliente_search").val(valores.cliente_nombre);
-            $("#cliente_info_container").show();
-            if (esEdicion && informe.cliente_documento) {
-                verificarTipoDocumento(informe.cliente_documento);
+                $("#campo-persona-entregar").slideUp(300);
+                $("#persona_entregar").val(''); // Limpiar el campo si no es RUC
             }
         }
+        function renderizarFormularioPlantilla(data) {
+            // Guardar las imágenes actuales
+            currentHeaderTemplateImage = data.header_image;
+            currentFooterTemplateImage = data.footer_image;
 
-        // Manejar el envío del formulario usando el botón de guardar
-        $("#btn-save-informe").on("click", function () {
-            guardarInforme();
-        });
-
-        // Manejar la vista previa
-        $("#btn-preview-informe").on("click", function () {
-            mostrarVistaPrevia();
-        });
-        // Configurar eventos para las imágenes del informe
-        $("#imagen1_informe").on("change", function () {
-            previewImage(this, "imagen1-preview-informe", "imagen1-placeholder-informe");
-            imagen1InformeChanged = true;
-        });
-
-        $("#imagen2_informe").on("change", function () {
-            previewImage(this, "imagen2-preview-informe", "imagen2-placeholder-informe");
-            imagen2InformeChanged = true;
-        });
-
-        // Botones de limpiar
-        $("#reset-imagen1-informe").on("click", function () {
-            resetImage("imagen1_informe", "imagen1-preview-informe", "imagen1-placeholder-informe", currentImagen1Informe);
-            imagen1InformeChanged = false;
-        });
-
-        $("#reset-imagen2-informe").on("click", function () {
-            resetImage("imagen2_informe", "imagen2-preview-informe", "imagen2-placeholder-informe", currentImagen2Informe);
-            imagen2InformeChanged = false;
-        });
-
-        // Mostrar imágenes existentes si estamos editando (reemplazar código existente)
-        if (valores.header_image) {
-            const container1 = document.getElementById('preview-container-1');
-            const uploadArea1 = document.getElementById('upload-area-1');
-            const previewArea1 = document.getElementById('preview-area-1');
-            const previewImg1 = document.getElementById('preview-img-1');
-            const imageInfo1 = document.getElementById('image-info-1');
-
-            previewImg1.src = valores.header_image;
-            uploadArea1.style.display = 'none';
-            previewArea1.style.display = 'block';
-            container1.classList.add('has-image');
-            imageInfo1.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
-            currentImagen1Informe = valores.header_image;
-        }
-
-        if (valores.footer_image) {
-            const container2 = document.getElementById('preview-container-2');
-            const uploadArea2 = document.getElementById('upload-area-2');
-            const previewArea2 = document.getElementById('preview-area-2');
-            const previewImg2 = document.getElementById('preview-img-2');
-            const imageInfo2 = document.getElementById('image-info-2');
-
-            previewImg2.src = valores.footer_image;
-            uploadArea2.style.display = 'none';
-            previewArea2.style.display = 'block';
-            container2.classList.add('has-image');
-            imageInfo2.innerHTML = '<strong>Imagen existente</strong><br>Cargada previamente';
-            currentImagen2Informe = valores.footer_image;
-        }
-
-        // Cargar tipos de informe en el select
-        cargarTiposInformeSelect(valores.tipo);
-    }    // Función para renderizar el formulario de plantilla
-
-    function verificarTipoDocumento(documento) {
-        // RUC en Perú: 11 dígitos y empieza con 20, 15, 16, 17
-        const esRUC = documento && documento.length === 11 && /^(20|15|16|17)/.test(documento);
-
-        if (esRUC) {
-            $("#campo-persona-entregar").slideDown(300);
-            $("#persona_entregar").attr('placeholder', 'Nombre de la persona responsable o a quien va dirigido');
-        } else {
-            $("#campo-persona-entregar").slideUp(300);
-            $("#persona_entregar").val(''); // Limpiar el campo si no es RUC
-        }
-    }
-    function renderizarFormularioPlantilla(data) {
-        // Guardar las imágenes actuales
-        currentHeaderTemplateImage = data.header_image;
-        currentFooterTemplateImage = data.footer_image;
-
-        // Renderizar el formulario
-        $("#editar-plantilla").html(`
+            // Renderizar el formulario
+            $("#editar-plantilla").html(`
         <div class="card border-0 shadow-sm">
             <div class="card-header text-white py-3" style="background-image: linear-gradient(to right, #CA3438, #d04a4e);">
                 <h5 class="card-title mb-0 fw-bold">Editor de Plantilla de Informes</h5>
@@ -1826,657 +2070,657 @@
         </div>
     `);
 
-        // Inicializar el editor Quill
-        inicializarTemplateEditor(data.contenido);
+            // Inicializar el editor Quill
+            inicializarTemplateEditor(data.contenido);
 
-        // Manejar el envío del formulario usando el botón de guardar
-        $("#btn-save-template").on("click", function () {
-            guardarTemplate();
-        });
+            // Manejar el envío del formulario usando el botón de guardar
+            $("#btn-save-template").on("click", function () {
+                guardarTemplate();
+            });
 
-        // Manejar la vista previa
-        $("#btn-preview-template").on("click", function () {
-            mostrarVistaPreviewTemplate();
-        });
+            // Manejar la vista previa
+            $("#btn-preview-template").on("click", function () {
+                mostrarVistaPreviewTemplate();
+            });
 
-        // Manejar la vista previa de las imágenes seleccionadas
-        $("#header_image_template").on("change", function () {
-            previewImage(this, "header-preview-template", "header-placeholder-template");
-            headerTemplateImageChanged = true;
-        });
+            // Manejar la vista previa de las imágenes seleccionadas
+            $("#header_image_template").on("change", function () {
+                previewImage(this, "header-preview-template", "header-placeholder-template");
+                headerTemplateImageChanged = true;
+            });
 
-        $("#footer_image_template").on("change", function () {
-            previewImage(this, "footer-preview-template", "footer-placeholder-template");
-            footerTemplateImageChanged = true;
-        });
+            $("#footer_image_template").on("change", function () {
+                previewImage(this, "footer-preview-template", "footer-placeholder-template");
+                footerTemplateImageChanged = true;
+            });
 
-        // Manejar los botones de restablecer
-        $("#reset-header-template").on("click", function () {
-            resetImage("header_image_template", "header-preview-template", "header-placeholder-template", currentHeaderTemplateImage);
-        });
+            // Manejar los botones de restablecer
+            $("#reset-header-template").on("click", function () {
+                resetImage("header_image_template", "header-preview-template", "header-placeholder-template", currentHeaderTemplateImage);
+            });
 
-        $("#reset-footer-template").on("click", function () {
-            resetImage("footer_image_template", "footer-preview-template", "footer-placeholder-template", currentFooterTemplateImage);
-        });
-    }
+            $("#reset-footer-template").on("click", function () {
+                resetImage("footer_image_template", "footer-preview-template", "footer-placeholder-template", currentFooterTemplateImage);
+            });
+        }
 
-    function inicializarInformeEditor(contenido = '') {
-        try {
-            console.log('Inicializando editor Quill para informes...');
+        function inicializarInformeEditor(contenido = '') {
+            try {
+                console.log('Inicializando editor Quill para informes...');
 
-            if (informeEditor) {
-                informeEditor.root.innerHTML = contenido;
+                if (informeEditor) {
+                    informeEditor.root.innerHTML = contenido;
+                    return;
+                }
+
+                // Verificar si Quill está cargado
+                if (typeof Quill === 'undefined') {
+                    // Cargar Quill dinámicamente
+                    const quillScript = document.createElement('script');
+                    quillScript.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+                    document.head.appendChild(quillScript);
+
+                    const quillStyle = document.createElement('link');
+                    quillStyle.rel = 'stylesheet';
+                    quillStyle.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+                    document.head.appendChild(quillStyle);
+
+                    quillScript.onload = function () {
+                        inicializarQuillInforme(contenido);
+                    };
+                } else {
+                    inicializarQuillInforme(contenido);
+                }
+            } catch (error) {
+                console.error('Error al inicializar Quill para informes:', error);
+            }
+        }
+
+        function inicializarQuillInforme(contenido) {
+            const toolbarOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'header': 1 }, { 'header': 2 }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                [{ 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'font': [] }],
+                [{ 'align': [] }],
+                ['clean']
+            ];
+
+            // Asegurarse de que el contenedor existe
+            const editorContainer = document.getElementById('editor-container-informe');
+            if (!editorContainer) {
+                console.error('No se encontró el contenedor del editor');
                 return;
             }
 
-            // Verificar si Quill está cargado
-            if (typeof Quill === 'undefined') {
-                // Cargar Quill dinámicamente
-                const quillScript = document.createElement('script');
-                quillScript.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
-                document.head.appendChild(quillScript);
+            informeEditor = new Quill('#editor-container-informe', {
+                modules: {
+                    toolbar: toolbarOptions,
+                    clipboard: {
+                        matchVisual: false
+                    }
+                },
+                theme: 'snow',
+                placeholder: 'Contenido del informe...',
+                bounds: '#editor-container-informe' // Limitar el alcance del editor a su contenedor
+            });
 
-                const quillStyle = document.createElement('link');
-                quillStyle.rel = 'stylesheet';
-                quillStyle.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
-                document.head.appendChild(quillStyle);
-
-                quillScript.onload = function () {
-                    inicializarQuillInforme(contenido);
-                };
-            } else {
-                inicializarQuillInforme(contenido);
+            // Establecer el contenido inicial
+            if (contenido) {
+                informeEditor.root.innerHTML = contenido;
             }
-        } catch (error) {
-            console.error('Error al inicializar Quill para informes:', error);
-        }
-    }
 
-    function inicializarQuillInforme(contenido) {
-        const toolbarOptions = [
-            ['bold', 'italic', 'underline', 'strike'],
-            ['blockquote', 'code-block'],
-            [{ 'header': 1 }, { 'header': 2 }],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            [{ 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }],
-            [{ 'size': ['small', false, 'large', 'huge'] }],
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'font': [] }],
-            [{ 'align': [] }],
-            ['clean']
-        ];
+            console.log('Editor Quill para informes inicializado correctamente');
 
-        // Asegurarse de que el contenedor existe
-        const editorContainer = document.getElementById('editor-container-informe');
-        if (!editorContainer) {
-            console.error('No se encontró el contenedor del editor');
-            return;
+            // Asegurarse de que los eventos de los botones funcionen
+            setTimeout(function () {
+                // Volver a asignar los eventos a los botones
+                $("#btn-preview-informe").off('click').on("click", function () {
+                    mostrarVistaPrevia();
+                });
+
+                $("#btn-save-informe").off('click').on("click", function () {
+                    guardarInforme();
+                });
+            }, 500);
         }
 
-        informeEditor = new Quill('#editor-container-informe', {
-            modules: {
-                toolbar: toolbarOptions,
-                clipboard: {
-                    matchVisual: false
+        // Función para inicializar el editor de plantillas
+        function inicializarTemplateEditor(contenido = '') {
+            try {
+                console.log('Inicializando editor Quill para plantillas...');
+
+                if (templateEditor) {
+                    templateEditor.root.innerHTML = contenido;
+                    return;
                 }
-            },
-            theme: 'snow',
-            placeholder: 'Contenido del informe...',
-            bounds: '#editor-container-informe' // Limitar el alcance del editor a su contenedor
-        });
 
-        // Establecer el contenido inicial
-        if (contenido) {
-            informeEditor.root.innerHTML = contenido;
+                // Verificar si Quill está cargado
+                if (typeof Quill === 'undefined') {
+                    // Cargar Quill dinámicamente
+                    const quillScript = document.createElement('script');
+                    quillScript.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
+                    document.head.appendChild(quillScript);
+
+                    const quillStyle = document.createElement('link');
+                    quillStyle.rel = 'stylesheet';
+                    quillStyle.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
+                    document.head.appendChild(quillStyle);
+
+                    quillScript.onload = function () {
+                        inicializarQuillTemplate(contenido);
+                    };
+                } else {
+                    inicializarQuillTemplate(contenido);
+                }
+            } catch (error) {
+                console.error('Error al inicializar Quill para plantillas:', error);
+            }
         }
 
-        console.log('Editor Quill para informes inicializado correctamente');
+        function inicializarQuillTemplate(contenido) {
+            console.log('Inicializando Quill Template con contenido:', contenido);
 
-        // Asegurarse de que los eventos de los botones funcionen
-        setTimeout(function () {
-            // Volver a asignar los eventos a los botones
-            $("#btn-preview-informe").off('click').on("click", function () {
-                mostrarVistaPrevia();
-            });
-
-            $("#btn-save-informe").off('click').on("click", function () {
-                guardarInforme();
-            });
-        }, 500);
-    }
-
-    // Función para inicializar el editor de plantillas
-    function inicializarTemplateEditor(contenido = '') {
-        try {
-            console.log('Inicializando editor Quill para plantillas...');
+            const editorContainer = document.getElementById('editor-container-template');
+            if (!editorContainer) {
+                console.error('No se encontró el contenedor del editor de plantillas');
+                return;
+            }
 
             if (templateEditor) {
-                templateEditor.root.innerHTML = contenido;
+                templateEditor = null;
+            }
+
+            while (editorContainer.firstChild) {
+                editorContainer.removeChild(editorContainer.firstChild);
+            }
+            editorContainer.innerHTML = '';
+            editorContainer.textContent = '';
+
+            editorContainer.offsetHeight;
+
+            const editorDiv = document.createElement('div');
+            editorDiv.id = 'quill-editor-' + Date.now();
+            editorDiv.style.minHeight = '300px';
+            // IMPORTANTE: No agregar borde aquí para evitar duplicación
+            editorDiv.style.border = 'none';
+            editorContainer.appendChild(editorDiv);
+
+            const toolbarOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'header': 1 }, { 'header': 2 }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                [{ 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'font': [] }],
+                [{ 'align': [] }],
+                ['clean']
+            ];
+
+            templateEditor = new Quill('#' + editorDiv.id, {
+                modules: {
+                    toolbar: toolbarOptions,
+                    clipboard: {
+                        matchVisual: false
+                    }
+                },
+                theme: 'snow',
+                placeholder: 'Escriba el contenido de la plantilla aquí...',
+                bounds: '#editor-container-template'
+            });
+
+            templateEditor.setText('');
+
+            if (contenido && contenido.trim() !== '') {
+                setTimeout(function () {
+                    templateEditor.root.innerHTML = contenido;
+                }, 100);
+            }
+
+            console.log('Editor Quill para plantillas inicializado correctamente');
+        }
+        function cargarClientes(clienteSeleccionado = '') {
+            $.ajax({
+                url: _URL + "/ajs/clientes/listar",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        let options = '<option value="">Seleccione un cliente</option>';
+                        data.forEach(function (cliente) {
+                            const selected = cliente.id == clienteSeleccionado ? 'selected' : '';
+                            options += `<option value="${cliente.id}" ${selected}>${cliente.nombre}</option>`;
+                        });
+                        $("#cliente_id").html(options);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar clientes:", status, error);
+                }
+            });
+        }
+
+        // Función para guardar un informe
+        function guardarInforme() {
+            // Obtener el contenido del editor
+            if (!informeEditor) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'El editor no está inicializado correctamente',
+                    icon: 'error'
+                });
                 return;
             }
 
-            // Verificar si Quill está cargado
-            if (typeof Quill === 'undefined') {
-                // Cargar Quill dinámicamente
-                const quillScript = document.createElement('script');
-                quillScript.src = 'https://cdn.quilljs.com/1.3.6/quill.min.js';
-                document.head.appendChild(quillScript);
+            const contenido = informeEditor.root.innerHTML;
+            const tipo = $("#tipo_informe").val();
+            const titulo = $("#titulo_informe").val();
+            const cliente_id = $("#cliente_id").val();
+            const persona_entregar = $("#persona_entregar").val();
 
-                const quillStyle = document.createElement('link');
-                quillStyle.rel = 'stylesheet';
-                quillStyle.href = 'https://cdn.quilljs.com/1.3.6/quill.snow.css';
-                document.head.appendChild(quillStyle);
-
-                quillScript.onload = function () {
-                    inicializarQuillTemplate(contenido);
-                };
-            } else {
-                inicializarQuillTemplate(contenido);
+            // Validar campos obligatorios
+            if (!tipo.trim() || !titulo.trim()) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Los campos Tipo y Título son obligatorios',
+                    icon: 'error'
+                });
+                return;
             }
-        } catch (error) {
-            console.error('Error al inicializar Quill para plantillas:', error);
-        }
-    }
 
-    function inicializarQuillTemplate(contenido) {
-        console.log('Inicializando Quill Template con contenido:', contenido);
-
-        const editorContainer = document.getElementById('editor-container-template');
-        if (!editorContainer) {
-            console.error('No se encontró el contenedor del editor de plantillas');
-            return;
-        }
-
-        if (templateEditor) {
-            templateEditor = null;
-        }
-
-        while (editorContainer.firstChild) {
-            editorContainer.removeChild(editorContainer.firstChild);
-        }
-        editorContainer.innerHTML = '';
-        editorContainer.textContent = '';
-
-        editorContainer.offsetHeight;
-
-        const editorDiv = document.createElement('div');
-        editorDiv.id = 'quill-editor-' + Date.now();
-        editorDiv.style.minHeight = '300px';
-        // IMPORTANTE: No agregar borde aquí para evitar duplicación
-        editorDiv.style.border = 'none';
-        editorContainer.appendChild(editorDiv);
-
-        const toolbarOptions = [
-            ['bold', 'italic', 'underline', 'strike'],
-            ['blockquote', 'code-block'],
-            [{ 'header': 1 }, { 'header': 2 }],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-            [{ 'script': 'sub' }, { 'script': 'super' }],
-            [{ 'indent': '-1' }, { 'indent': '+1' }],
-            [{ 'direction': 'rtl' }],
-            [{ 'size': ['small', false, 'large', 'huge'] }],
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'font': [] }],
-            [{ 'align': [] }],
-            ['clean']
-        ];
-
-        templateEditor = new Quill('#' + editorDiv.id, {
-            modules: {
-                toolbar: toolbarOptions,
-                clipboard: {
-                    matchVisual: false
-                }
-            },
-            theme: 'snow',
-            placeholder: 'Escriba el contenido de la plantilla aquí...',
-            bounds: '#editor-container-template'
-        });
-
-        templateEditor.setText('');
-
-        if (contenido && contenido.trim() !== '') {
-            setTimeout(function () {
-                templateEditor.root.innerHTML = contenido;
-            }, 100);
-        }
-
-        console.log('Editor Quill para plantillas inicializado correctamente');
-    }
-    function cargarClientes(clienteSeleccionado = '') {
-        $.ajax({
-            url: _URL + "/ajs/clientes/listar",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                if (data && data.length > 0) {
-                    let options = '<option value="">Seleccione un cliente</option>';
-                    data.forEach(function (cliente) {
-                        const selected = cliente.id == clienteSeleccionado ? 'selected' : '';
-                        options += `<option value="${cliente.id}" ${selected}>${cliente.nombre}</option>`;
-                    });
-                    $("#cliente_id").html(options);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar clientes:", status, error);
-            }
-        });
-    }
-
-    // Función para guardar un informe
-    function guardarInforme() {
-        // Obtener el contenido del editor
-        if (!informeEditor) {
+            // Mostrar indicador de carga
             Swal.fire({
-                title: 'Error',
-                text: 'El editor no está inicializado correctamente',
-                icon: 'error'
+                title: 'Guardando',
+                text: 'Guardando informe...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
-            return;
-        }
 
-        const contenido = informeEditor.root.innerHTML;
-        const tipo = $("#tipo_informe").val();
-        const titulo = $("#titulo_informe").val();
-        const cliente_id = $("#cliente_id").val();
-        const persona_entregar = $("#persona_entregar").val();
+            // Crear un objeto FormData para enviar archivos
+            const formData = new FormData();
+            formData.append('tipo', tipo);
+            formData.append('titulo', titulo);
+            formData.append('contenido', contenido);
+            formData.append('cliente_id', cliente_id);
+            formData.append('persona_entregar', persona_entregar);
 
-        // Validar campos obligatorios
-        if (!tipo.trim() || !titulo.trim()) {
-            Swal.fire({
-                title: 'Error',
-                text: 'Los campos Tipo y Título son obligatorios',
-                icon: 'error'
-            });
-            return;
-        }
-
-        // Mostrar indicador de carga
-        Swal.fire({
-            title: 'Guardando',
-            text: 'Guardando informe...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            if (editMode) {
+                formData.append('id_informe', informeId);
             }
-        });
 
-        // Crear un objeto FormData para enviar archivos
-        const formData = new FormData();
-        formData.append('tipo', tipo);
-        formData.append('titulo', titulo);
-        formData.append('contenido', contenido);
-        formData.append('cliente_id', cliente_id);
-        formData.append('persona_entregar', persona_entregar);
+            // Añadir las imágenes específicas del informe
+            if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
+                formData.append('header_image', document.getElementById('imagen1_informe').files[0]);
+            } else if (currentImagen1Informe && editMode) {
+                formData.append('header_image_base64', currentImagen1Informe);
+            }
 
-        if (editMode) {
-            formData.append('id_informe', informeId);
-        }
+            if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
+                formData.append('footer_image', document.getElementById('imagen2_informe').files[0]);
+            } else if (currentImagen2Informe && editMode) {
+                formData.append('footer_image_base64', currentImagen2Informe);
+            }
 
-        // Añadir las imágenes específicas del informe
-        if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
-            formData.append('header_image', document.getElementById('imagen1_informe').files[0]);
-        } else if (currentImagen1Informe && editMode) {
-            formData.append('header_image_base64', currentImagen1Informe);
-        }
+            // Determinar la URL según el modo
+            const url = editMode ?
+                _URL + "/ajs/informe/editar" :
+                _URL + "/ajs/informe/insertar";
 
-        if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
-            formData.append('footer_image', document.getElementById('imagen2_informe').files[0]);
-        } else if (currentImagen2Informe && editMode) {
-            formData.append('footer_image_base64', currentImagen2Informe);
-        }
-
-        // Determinar la URL según el modo
-        const url = editMode ?
-            _URL + "/ajs/informe/editar" :
-            _URL + "/ajs/informe/insertar";
-
-        // Enviar datos al servidor
-        $.ajax({
-            url: url,
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
-                if (data.res) {
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: data.msg,
-                        icon: 'success'
-                    }).then(() => {
-                        // REFRESCAR LA PÁGINA COMPLETA
-                        window.location.reload();
-                    });
-                } else {
+            // Enviar datos al servidor
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.res) {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: data.msg,
+                            icon: 'success'
+                        }).then(() => {
+                            // REFRESCAR LA PÁGINA COMPLETA
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudo guardar el informe',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al guardar el informe:", status, error);
+                    console.log("Respuesta del servidor:", xhr.responseText);
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg || 'No se pudo guardar el informe',
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al guardar el informe:", status, error);
-                console.log("Respuesta del servidor:", xhr.responseText);
+            });
+        }
+
+        // Función para guardar la plantilla
+        function guardarTemplate() {
+            // Obtener el contenido del editor
+            if (!templateEditor) {
                 Swal.fire({
                     title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
+                    text: 'El editor no está inicializado correctamente',
                     icon: 'error'
                 });
+                return;
             }
-        });
-    }
 
-    // Función para guardar la plantilla
-    function guardarTemplate() {
-        // Obtener el contenido del editor
-        if (!templateEditor) {
-            Swal.fire({
-                title: 'Error',
-                text: 'El editor no está inicializado correctamente',
-                icon: 'error'
-            });
-            return;
-        }
+            const contenido = templateEditor.root.innerHTML;
+            const titulo = $("#titulo_template").val();
 
-        const contenido = templateEditor.root.innerHTML;
-        const titulo = $("#titulo_template").val();
-
-        // Validar que haya contenido
-        if (!titulo.trim()) {
-            Swal.fire({
-                title: 'Error',
-                text: 'El título no puede estar vacío',
-                icon: 'error'
-            });
-            return;
-        }
-
-        // Mostrar indicador de carga
-        Swal.fire({
-            title: 'Guardando',
-            text: 'Guardando cambios...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            // Validar que haya contenido
+            if (!titulo.trim()) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'El título no puede estar vacío',
+                    icon: 'error'
+                });
+                return;
             }
-        });
 
-        // Crear un objeto FormData para enviar archivos
-        const formData = new FormData();
-        formData.append('titulo', titulo);
-        formData.append('contenido', contenido);
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Guardando',
+                text: 'Guardando cambios...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-        // Añadir las imágenes si han sido cambiadas
-        if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
-            formData.append('header_image', document.getElementById('header_image_template').files[0]);
-        }
+            // Crear un objeto FormData para enviar archivos
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('contenido', contenido);
 
-        if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
-        }
+            // Añadir las imágenes si han sido cambiadas
+            if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
+                formData.append('header_image', document.getElementById('header_image_template').files[0]);
+            }
 
-        // Enviar datos al servidor
-        $.ajax({
-            url: _URL + "/ajs/informe/guardar-template",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    // Actualizar las imágenes actuales si se proporcionaron nuevas URLs
-                    if (data.header_image) {
-                        currentHeaderTemplateImage = data.header_image;
+            if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
+                formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
+            }
+
+            // Enviar datos al servidor
+            $.ajax({
+                url: _URL + "/ajs/informe/guardar-template",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        // Actualizar las imágenes actuales si se proporcionaron nuevas URLs
+                        if (data.header_image) {
+                            currentHeaderTemplateImage = data.header_image;
+                        }
+
+                        if (data.footer_image) {
+                            currentFooterTemplateImage = data.footer_image;
+                        }
+
+                        // Restablecer los indicadores de cambio
+                        headerTemplateImageChanged = false;
+                        footerTemplateImageChanged = false;
+
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'La plantilla se ha guardado correctamente',
+                            icon: 'success'
+                        }).then(() => {
+                            // Volver a la lista de informes
+                            volverAListaInformes();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudo guardar la plantilla',
+                            icon: 'error'
+                        });
                     }
-
-                    if (data.footer_image) {
-                        currentFooterTemplateImage = data.footer_image;
-                    }
-
-                    // Restablecer los indicadores de cambio
-                    headerTemplateImageChanged = false;
-                    footerTemplateImageChanged = false;
-
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: 'La plantilla se ha guardado correctamente',
-                        icon: 'success'
-                    }).then(() => {
-                        // Volver a la lista de informes
-                        volverAListaInformes();
-                    });
-                } else {
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al guardar la plantilla:", status, error);
+                    console.log("Respuesta del servidor:", xhr.responseText);
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg || 'No se pudo guardar la plantilla',
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al guardar la plantilla:", status, error);
-                console.log("Respuesta del servidor:", xhr.responseText);
+            });
+        }
+
+        // Función para mostrar la vista previa de un informe
+        function mostrarVistaPrevia() {
+            // Verificar que el editor esté inicializado
+            if (!informeEditor) {
                 Swal.fire({
                     title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
+                    text: 'El editor no está inicializado correctamente',
                     icon: 'error'
                 });
+                return;
             }
-        });
-    }
 
-    // Función para mostrar la vista previa de un informe
-    function mostrarVistaPrevia() {
-        // Verificar que el editor esté inicializado
-        if (!informeEditor) {
-            Swal.fire({
-                title: 'Error',
-                text: 'El editor no está inicializado correctamente',
-                icon: 'error'
-            });
-            return;
-        }
+            // Obtener el contenido actual
+            const contenido = informeEditor.root.innerHTML;
+            const titulo = $("#titulo_informe").val();
 
-        // Obtener el contenido actual
-        const contenido = informeEditor.root.innerHTML;
-        const titulo = $("#titulo_informe").val();
-
-        if (!titulo.trim()) {
-            Swal.fire({
-                title: 'Error',
-                text: 'El título no puede estar vacío',
-                icon: 'error'
-            });
-            return;
-        }
-
-        // Mostrar indicador de carga
-        Swal.fire({
-            title: 'Generando vista previa',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            if (!titulo.trim()) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'El título no puede estar vacío',
+                    icon: 'error'
+                });
+                return;
             }
-        });
 
-        // Crear un objeto FormData para enviar archivos
-        const formData = new FormData();
-        formData.append('titulo', titulo);
-        formData.append('contenido', contenido);
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Generando vista previa',
+                text: 'Por favor espere...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-        // Añadir las imágenes específicas del informe para vista previa
-        if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
-            formData.append('imagen1_informe', document.getElementById('imagen1_informe').files[0]);
-        } else if (currentImagen1Informe) {
-            formData.append('imagen1_informe_base64', currentImagen1Informe);
-        }
+            // Crear un objeto FormData para enviar archivos
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('contenido', contenido);
 
-        if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
-            formData.append('imagen2_informe', document.getElementById('imagen2_informe').files[0]);
-        } else if (currentImagen2Informe) {
-            formData.append('imagen2_informe_base64', currentImagen2Informe);
-        }
+            // Añadir las imágenes específicas del informe para vista previa
+            if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
+                formData.append('imagen1_informe', document.getElementById('imagen1_informe').files[0]);
+            } else if (currentImagen1Informe) {
+                formData.append('imagen1_informe_base64', currentImagen1Informe);
+            }
+
+            if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
+                formData.append('imagen2_informe', document.getElementById('imagen2_informe').files[0]);
+            } else if (currentImagen2Informe) {
+                formData.append('imagen2_informe_base64', currentImagen2Informe);
+            }
 
 
-        // Enviar datos para generar vista previa
-        $.ajax({
-            url: _URL + "/ajs/informe/vista-previa",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
-                Swal.close();
+            // Enviar datos para generar vista previa
+            $.ajax({
+                url: _URL + "/ajs/informe/vista-previa",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    Swal.close();
 
-                if (data.success && data.pdfBase64) {
-                    // Crear un objeto Blob con el PDF base64
-                    const byteCharacters = atob(data.pdfBase64);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    if (data.success && data.pdfBase64) {
+                        // Crear un objeto Blob con el PDF base64
+                        const byteCharacters = atob(data.pdfBase64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+                        // Crear una URL para el blob
+                        const pdfUrl = URL.createObjectURL(blob);
+
+                        // Mostrar el PDF en el iframe
+                        $("#preview-frame-informe").attr("src", pdfUrl);
+                        $("#previewInformeModal").modal("show");
+
+                        // Limpiar la URL cuando se cierre el modal
+                        $("#previewInformeModal").on('hidden.bs.modal', function () {
+                            URL.revokeObjectURL(pdfUrl);
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudo generar la vista previa',
+                            icon: 'error'
+                        });
                     }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-                    // Crear una URL para el blob
-                    const pdfUrl = URL.createObjectURL(blob);
-
-                    // Mostrar el PDF en el iframe
-                    $("#preview-frame-informe").attr("src", pdfUrl);
-                    $("#previewInformeModal").modal("show");
-
-                    // Limpiar la URL cuando se cierre el modal
-                    $("#previewInformeModal").on('hidden.bs.modal', function () {
-                        URL.revokeObjectURL(pdfUrl);
-                    });
-                } else {
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al generar vista previa:", status, error);
+                    console.log("Respuesta del servidor:", xhr.responseText);
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg || 'No se pudo generar la vista previa',
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al generar vista previa:", status, error);
-                console.log("Respuesta del servidor:", xhr.responseText);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
-                    icon: 'error'
-                });
-            }
-        });
-    }
-
-    function mostrarVistaPreviewTemplate() {
-        console.log('Función mostrarVistaPreviewTemplate llamada');
-
-        // Prevenir ejecuciones múltiples
-        if (vistaPreviewEnProceso) {
-            console.log('Vista previa ya en proceso, ignorando...');
-            return;
-        }
-
-        vistaPreviewEnProceso = true;
-        console.log('Vista previa clickeada UNA vez');
-
-        if (!templateEditor) {
-            console.error('templateEditor no está inicializado');
-            vistaPreviewEnProceso = false;
-            Swal.fire({
-                title: 'Error',
-                text: 'El editor no está inicializado correctamente',
-                icon: 'error'
             });
-            return;
         }
 
-        const contenido = templateEditor.root.innerHTML;
-        const titulo = $("#titulo_template").val();
+        function mostrarVistaPreviewTemplate() {
+            console.log('Función mostrarVistaPreviewTemplate llamada');
 
-        Swal.fire({
-            title: 'Generando vista previa',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+            // Prevenir ejecuciones múltiples
+            if (vistaPreviewEnProceso) {
+                console.log('Vista previa ya en proceso, ignorando...');
+                return;
             }
-        });
 
-        const formData = new FormData();
-        formData.append('titulo', titulo);
-        formData.append('contenido', contenido);
+            vistaPreviewEnProceso = true;
+            console.log('Vista previa clickeada UNA vez');
 
-        if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
-            formData.append('header_image', document.getElementById('header_image_template').files[0]);
-        } else if (currentHeaderTemplateImage) {
-            formData.append('header_image_base64', currentHeaderTemplateImage);
-        }
-
-        if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
-            formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
-        } else if (currentFooterTemplateImage) {
-            formData.append('footer_image_base64', currentFooterTemplateImage);
-        }
-
-        $.ajax({
-            url: _URL + "/ajs/informe/vista-previa",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (data) {
+            if (!templateEditor) {
+                console.error('templateEditor no está inicializado');
                 vistaPreviewEnProceso = false;
-                Swal.close();
+                Swal.fire({
+                    title: 'Error',
+                    text: 'El editor no está inicializado correctamente',
+                    icon: 'error'
+                });
+                return;
+            }
 
-                if (data.success && data.pdfBase64) {
-                    const byteCharacters = atob(data.pdfBase64);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/pdf' });
-                    const pdfUrl = URL.createObjectURL(blob);
+            const contenido = templateEditor.root.innerHTML;
+            const titulo = $("#titulo_template").val();
 
-                    // Guardar el contenido actual del editor antes de cerrarlo
-                    const savedContent = templateEditor.root.innerHTML;
-                    const savedTitle = $("#titulo_template").val();
+            Swal.fire({
+                title: 'Generando vista previa',
+                text: 'Por favor espere...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-                    // Destruir el editor actual para evitar duplicación
-                    try {
-                        // Eliminar todos los elementos de la barra de herramientas
-                        const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
-                        if (toolbarElement) {
-                            toolbarElement.remove();
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('contenido', contenido);
+
+            if (headerTemplateImageChanged && document.getElementById('header_image_template').files[0]) {
+                formData.append('header_image', document.getElementById('header_image_template').files[0]);
+            } else if (currentHeaderTemplateImage) {
+                formData.append('header_image_base64', currentHeaderTemplateImage);
+            }
+
+            if (footerTemplateImageChanged && document.getElementById('footer_image_template').files[0]) {
+                formData.append('footer_image', document.getElementById('footer_image_template').files[0]);
+            } else if (currentFooterTemplateImage) {
+                formData.append('footer_image_base64', currentFooterTemplateImage);
+            }
+
+            $.ajax({
+                url: _URL + "/ajs/informe/vista-previa",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (data) {
+                    vistaPreviewEnProceso = false;
+                    Swal.close();
+
+                    if (data.success && data.pdfBase64) {
+                        const byteCharacters = atob(data.pdfBase64);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: 'application/pdf' });
+                        const pdfUrl = URL.createObjectURL(blob);
+
+                        // Guardar el contenido actual del editor antes de cerrarlo
+                        const savedContent = templateEditor.root.innerHTML;
+                        const savedTitle = $("#titulo_template").val();
+
+                        // Destruir el editor actual para evitar duplicación
+                        try {
+                            // Eliminar todos los elementos de la barra de herramientas
+                            const toolbarElement = document.querySelector('#editor-container-template .ql-toolbar');
+                            if (toolbarElement) {
+                                toolbarElement.remove();
+                            }
+
+                            // Limpiar el contenedor
+                            const container = document.getElementById('editor-container-template');
+                            if (container) {
+                                container.innerHTML = '';
+                            }
+
+                            templateEditor = null;
+                        } catch (e) {
+                            console.error('Error al limpiar editor:', e);
                         }
 
-                        // Limpiar el contenedor
-                        const container = document.getElementById('editor-container-template');
-                        if (container) {
-                            container.innerHTML = '';
-                        }
-
-                        templateEditor = null;
-                    } catch (e) {
-                        console.error('Error al limpiar editor:', e);
-                    }
-
-                    const modalId = 'previewTemplateModal_' + Date.now();
-                    const previewModal = `
+                        const modalId = 'previewTemplateModal_' + Date.now();
+                        const previewModal = `
                     <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true" style="z-index: 1060 !important;">
                         <div class="modal-dialog modal-xl">
                             <div class="modal-content">
@@ -2495,464 +2739,497 @@
                     </div>
                 `;
 
-                    $('[id^="previewTemplateModal_"]').remove();
-                    $("body").append(previewModal);
-                    $("#editarPlantillaInformeModal").modal("hide");
+                        $('[id^="previewTemplateModal_"]').remove();
+                        $("body").append(previewModal);
+                        $("#editarPlantillaInformeModal").modal("hide");
 
-                    setTimeout(function () {
-                        const modalElement = document.getElementById(modalId);
-                        const bsModal = new bootstrap.Modal(modalElement);
-                        bsModal.show();
+                        setTimeout(function () {
+                            const modalElement = document.getElementById(modalId);
+                            const bsModal = new bootstrap.Modal(modalElement);
+                            bsModal.show();
 
-                        $(modalElement).on('hidden.bs.modal', function () {
-                            URL.revokeObjectURL(pdfUrl);
-                            $(modalElement).remove();
+                            $(modalElement).on('hidden.bs.modal', function () {
+                                URL.revokeObjectURL(pdfUrl);
+                                $(modalElement).remove();
 
-                            // Volver a mostrar el modal principal
-                            $("#editarPlantillaInformeModal").modal("show");
+                                // Volver a mostrar el modal principal
+                                $("#editarPlantillaInformeModal").modal("show");
 
-                            // Recrear el editor con el contenido guardado después de que el modal esté visible
-                            $("#editarPlantillaInformeModal").one('shown.bs.modal', function () {
-                                setTimeout(function () {
-                                    // Limpiar cualquier texto residual en el contenedor
-                                    const editorContainer = document.getElementById('editor-container-template');
-                                    if (editorContainer) {
-                                        editorContainer.innerHTML = '';
-                                    }
+                                // Recrear el editor con el contenido guardado después de que el modal esté visible
+                                $("#editarPlantillaInformeModal").one('shown.bs.modal', function () {
+                                    setTimeout(function () {
+                                        // Limpiar cualquier texto residual en el contenedor
+                                        const editorContainer = document.getElementById('editor-container-template');
+                                        if (editorContainer) {
+                                            editorContainer.innerHTML = '';
+                                        }
 
-                                    // Inicializar un nuevo editor con el contenido guardado
-                                    inicializarQuillTemplate(savedContent);
-                                    $("#titulo_template").val(savedTitle);
-                                }, 300);
+                                        // Inicializar un nuevo editor con el contenido guardado
+                                        inicializarQuillTemplate(savedContent);
+                                        $("#titulo_template").val(savedTitle);
+                                    }, 300);
+                                });
                             });
+                        }, 300);
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg || 'No se pudo generar la vista previa',
+                            icon: 'error'
                         });
-                    }, 300);
-                } else {
+                    }
+                },
+                error: function (xhr, status, error) {
+                    vistaPreviewEnProceso = false;
+                    console.error("Error al generar vista previa:", status, error);
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg || 'No se pudo generar la vista previa',
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
                 }
-            },
-            error: function (xhr, status, error) {
-                vistaPreviewEnProceso = false;
-                console.error("Error al generar vista previa:", status, error);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
-                    icon: 'error'
-                });
-            }
-        });
-    }
-    // Función para eliminar un informe
-    function eliminarInforme(id) {
-        // Mostrar indicador de carga
-        $("#btn-confirmar-eliminar-informe").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...').prop('disabled', true);
+            });
+        }
+        // Función para eliminar un informe
+        function eliminarInforme(id) {
+            // Mostrar indicador de carga
+            $("#btn-confirmar-eliminar-informe").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...').prop('disabled', true);
 
-        // Realizar petición AJAX para eliminar el informe
-        $.ajax({
-            url: _URL + "/ajs/informe/borrar",
-            method: "POST",
-            data: { id_informe: id },
-            dataType: 'json',
-            success: function (data) {
-                // Cerrar el modal
-                $('#confirmarEliminarInformeModal').modal('hide');
+            // Realizar petición AJAX para eliminar el informe
+            $.ajax({
+                url: _URL + "/ajs/informe/borrar",
+                method: "POST",
+                data: { id_informe: id },
+                dataType: 'json',
+                success: function (data) {
+                    // Cerrar el modal
+                    $('#confirmarEliminarInformeModal').modal('hide');
 
-                if (data.res) {
-                    // Mostrar mensaje de éxito
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: data.msg,
-                        icon: 'success'
-                    }).then(() => {
-                        // Recargar los informes
-                        cargarInformes();
-                    });
-                } else {
+                    if (data.res) {
+                        // Mostrar mensaje de éxito
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: data.msg,
+                            icon: 'success'
+                        }).then(() => {
+                            // Recargar los informes
+                            cargarInformes();
+                        });
+                    } else {
+                        // Mostrar mensaje de error
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.msg,
+                            icon: 'error'
+                        });
+                    }
+
+                    // Restaurar el botón
+                    $("#btn-confirmar-eliminar-informe").html('Eliminar').prop('disabled', false);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al eliminar informe:", status, error);
+
+                    // Cerrar el modal
+                    $('#confirmarEliminarInformeModal').modal('hide');
+
                     // Mostrar mensaje de error
                     Swal.fire({
                         title: 'Error',
-                        text: data.msg,
+                        text: 'No se pudo conectar con el servidor',
                         icon: 'error'
                     });
+
+                    // Restaurar el botón
+                    $("#btn-confirmar-eliminar-informe").html('Eliminar').prop('disabled', false);
                 }
+            });
+        }
 
-                // Restaurar el botón
-                $("#btn-confirmar-eliminar-informe").html('Eliminar').prop('disabled', false);
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al eliminar informe:", status, error);
+        // Función para volver a la lista de informes
+        function volverAListaInformes() {
+            // Limpiar los editores
+            informeEditor = null;
+            templateEditor = null;
+            imagen1InformeChanged = false;
+            imagen2InformeChanged = false;
+            currentImagen1Informe = null;
+            currentImagen2Informe = null;
 
-                // Cerrar el modal
-                $('#confirmarEliminarInformeModal').modal('hide');
+            // Mostrar la pestaña de lista
+            $('#nuevo-informe, #editar-informe, #editar-plantilla').removeClass('show active');
+            $('#lista-informes').addClass('show active');
 
-                // Mostrar mensaje de error
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo conectar con el servidor',
-                    icon: 'error'
-                });
+            // Recargar los informes
+            cargarInformes();
+        }
 
-                // Restaurar el botón
-                $("#btn-confirmar-eliminar-informe").html('Eliminar').prop('disabled', false);
+        // Función auxiliar para previsualizar imágenes
+        function previewImage(input, previewId, placeholderId) {
+            const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById(placeholderId);
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                    placeholder.style.display = "none";
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                // NO mostrar imagen por defecto, solo ocultar
+                preview.style.display = "none";
+                placeholder.style.display = "block";
+                preview.removeAttribute('src'); // ELIMINAR cualquier src por defecto
             }
-        });
-    }
+        }
 
-    // Función para volver a la lista de informes
-    function volverAListaInformes() {
-        // Limpiar los editores
-        informeEditor = null;
-        templateEditor = null;
-        imagen1InformeChanged = false;
-        imagen2InformeChanged = false;
-        currentImagen1Informe = null;
-        currentImagen2Informe = null;
+        // Función auxiliar para restablecer imágenes
+        function resetImage(inputId, previewId, placeholderId, defaultImage) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById(placeholderId);
 
-        // Mostrar la pestaña de lista
-        $('#nuevo-informe, #editar-informe, #editar-plantilla').removeClass('show active');
-        $('#lista-informes').addClass('show active');
+            // Limpiar el input file
+            input.value = "";
 
-        // Recargar los informes
-        cargarInformes();
-    }
-
-    // Función auxiliar para previsualizar imágenes
-    function previewImage(input, previewId, placeholderId) {
-        const preview = document.getElementById(previewId);
-        const placeholder = document.getElementById(placeholderId);
-
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-                preview.src = e.target.result;
+            if (defaultImage) {
+                // Si hay una imagen por defecto, mostrarla
+                preview.src = defaultImage;
                 preview.style.display = "block";
                 placeholder.style.display = "none";
-            };
+            } else {
+                // Si no hay imagen por defecto, mostrar el placeholder
+                preview.style.display = "none";
+                placeholder.style.display = "block";
+            }
 
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            // NO mostrar imagen por defecto, solo ocultar
-            preview.style.display = "none";
-            placeholder.style.display = "block";
-            preview.removeAttribute('src'); // ELIMINAR cualquier src por defecto
+            // Marcar que la imagen ha sido restablecida
+            if (inputId === "header_image") {
+                headerImageChanged = false;
+            } else if (inputId === "footer_image") {
+                footerImageChanged = false;
+            } else if (inputId === "header_image_template") {
+                headerTemplateImageChanged = false;
+            } else if (inputId === "footer_image_template") {
+                footerTemplateImageChanged = false;
+            } else if (inputId === "imagen1_informe") {
+                imagen1InformeChanged = false;
+            } else if (inputId === "imagen2_informe") {
+                imagen2InformeChanged = false;
+            }
+
         }
-    }
+        function renderPdfPreview(pdfUrl, canvasId) {
+            console.log('Renderizando PDF:', pdfUrl, 'en canvas:', canvasId);
 
-    // Función auxiliar para restablecer imágenes
-    function resetImage(inputId, previewId, placeholderId, defaultImage) {
-        const input = document.getElementById(inputId);
-        const preview = document.getElementById(previewId);
-        const placeholder = document.getElementById(placeholderId);
+            // Verificar que PDF.js esté configurado
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('Error: PDF.js no está cargado');
+                return;
+            }
 
-        // Limpiar el input file
-        input.value = "";
+            // Verificar que el worker esté configurado
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            }
 
-        if (defaultImage) {
-            // Si hay una imagen por defecto, mostrarla
-            preview.src = defaultImage;
-            preview.style.display = "block";
-            placeholder.style.display = "none";
-        } else {
-            // Si no hay imagen por defecto, mostrar el placeholder
-            preview.style.display = "none";
-            placeholder.style.display = "block";
-        }
+            // Verificar que PDF.js esté disponible
+            if (typeof pdfjsLib === 'undefined') {
 
-        // Marcar que la imagen ha sido restablecida
-        if (inputId === "header_image") {
-            headerImageChanged = false;
-        } else if (inputId === "footer_image") {
-            footerImageChanged = false;
-        } else if (inputId === "header_image_template") {
-            headerTemplateImageChanged = false;
-        } else if (inputId === "footer_image_template") {
-            footerTemplateImageChanged = false;
-        } else if (inputId === "imagen1_informe") {
-            imagen1InformeChanged = false;
-        } else if (inputId === "imagen2_informe") {
-            imagen2InformeChanged = false;
-        }
-
-    }
-    // Función para renderizar la vista previa del PDF
-    function renderPdfPreview(pdfUrl, canvasId) {
-        console.log('Renderizando PDF:', pdfUrl, 'en canvas:', canvasId);
-
-        // Verificar que pdfjsLib esté disponible
-        if (typeof pdfjsLib === 'undefined') {
-            console.error('Error: PDF.js no está cargado');
-            const canvas = document.getElementById(canvasId);
-            if (canvas) {
-                canvas.parentNode.innerHTML = `
+                console.error('Error: PDF.js no está cargado');
+                const canvas = document.getElementById(canvasId);
+                if (canvas) {
+                    canvas.parentNode.innerHTML = `
                 <div class="text-center p-4">
                     <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
                     <p class="mt-2">Error: PDF.js no disponible</p>
                 </div>
             `;
-            }
-            return;
-        }
-
-        // Cargar el documento PDF
-        pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
-            // Obtener la primera página
-            pdf.getPage(1).then(function (page) {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) {
-                    console.error('Canvas no encontrado:', canvasId);
-                    return;
                 }
+                return;
+            }
 
-                const context = canvas.getContext('2d');
+            // Cargar el documento PDF
+            pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+                // Obtener la primera página
+                pdf.getPage(1).then(function (page) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) {
+                        console.error('Canvas no encontrado:', canvasId);
+                        return;
+                    }
 
-                // Obtener el tamaño del contenedor padre
-                const container = canvas.parentElement;
-                const containerWidth = container.clientWidth;
-                const containerHeight = container.clientHeight;
+                    const context = canvas.getContext('2d');
 
-                // Establecer el tamaño del canvas al tamaño del contenedor
-                canvas.width = containerWidth * 2;
-                canvas.height = containerHeight * 2;
+                    // Obtener el tamaño del contenedor padre
+                    const container = canvas.parentElement;
+                    const containerWidth = container.clientWidth;
+                    const containerHeight = container.clientHeight;
 
-                // Obtener el viewport original del PDF
-                const viewport = page.getViewport({ scale: 1.0 });
+                    // Establecer el tamaño del canvas al tamaño del contenedor
+                    canvas.width = containerWidth * 2;
+                    canvas.height = containerHeight * 2;
 
-                // Calcular la escala para que el PDF llene el ancho del canvas
-                const scale = (canvas.width / viewport.width) * 1.0;
+                    // Obtener el viewport original del PDF
+                    const viewport = page.getViewport({ scale: 1.0 });
 
-                // Crear un nuevo viewport con la escala calculada
-                const scaledViewport = page.getViewport({ scale: scale });
+                    // Calcular la escala para que el PDF llene el ancho del canvas
+                    const scale = (canvas.width / viewport.width) * 1.0;
 
-                // Calcular el desplazamiento horizontal para centrar el contenido
-                const offsetX = (canvas.width - scaledViewport.width) / 2;
-                const offsetY = 0; // Esto hace que se muestre desde arriba
+                    // Crear un nuevo viewport con la escala calculada
+                    const scaledViewport = page.getViewport({ scale: scale });
 
-                // Renderizar la página en el canvas con alta calidad
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: scaledViewport,
-                    transform: [1, 0, 0, 1, offsetX, offsetY],
-                    intent: 'display'
-                };
+                    // Calcular el desplazamiento horizontal para centrar el contenido
+                    const offsetX = (canvas.width - scaledViewport.width) / 2;
+                    const offsetY = 0; // Esto hace que se muestre desde arriba
 
-                // Limpiar el canvas antes de renderizar
-                context.fillStyle = 'white';
-                context.fillRect(0, 0, canvas.width, canvas.height);
+                    // Renderizar la página en el canvas con alta calidad
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: scaledViewport,
+                        transform: [1, 0, 0, 1, offsetX, offsetY],
+                        intent: 'display'
+                    };
 
-                // Renderizar la página
-                page.render(renderContext).promise.then(function () {
-                    console.log('PDF renderizado correctamente en', canvasId);
+                    // Limpiar el canvas antes de renderizar
+                    context.fillStyle = 'white';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Renderizar la página
+                    page.render(renderContext).promise.then(function () {
+                        console.log('PDF renderizado correctamente en', canvasId);
+                    }).catch(function (error) {
+                        console.error('Error al renderizar el PDF:', error);
+                    });
                 }).catch(function (error) {
-                    console.error('Error al renderizar el PDF:', error);
-                });
-            }).catch(function (error) {
-                console.error('Error al obtener la página del PDF:', error);
-                // Mostrar un icono de PDF en caso de error
-                const canvas = document.getElementById(canvasId);
-                if (canvas) {
-                    canvas.parentNode.innerHTML = `
+                    console.error('Error al obtener la página del PDF:', error);
+                    // Mostrar un icono de PDF en caso de error
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        canvas.parentNode.innerHTML = `
                     <div class="text-center p-4">
                         <i class="fas fa-file-pdf fa-4x text-danger"></i>
                         <p class="mt-2">Ver PDF</p>
                     </div>
                 `;
-                }
-            });
-        }).catch(function (error) {
-            console.error('Error al cargar el PDF:', error);
-            // Mostrar un icono de PDF en caso de error
-            const canvas = document.getElementById(canvasId);
-            if (canvas) {
-                canvas.parentNode.innerHTML = `
+                    }
+                });
+            }).catch(function (error) {
+                console.error('Error al cargar el PDF:', error);
+                // Mostrar un icono de PDF en caso de error
+                const canvas = document.getElementById(canvasId);
+                if (canvas) {
+                    canvas.parentNode.innerHTML = `
                 <div class="text-center p-4">
                     <i class="fas fa-file-pdf fa-4x text-danger"></i>
                     <p class="mt-2">Ver PDF</p>
                 </div>
             `;
-            }
-        });
-    }
-    // Función para abrir el modal de tipos
-    function abrirModalTipos() {
-        cargarTiposInforme();
-        $('#gestionarTiposInformeModal').modal('show');
-    }
-    // Funciones mejoradas para manejo de imágenes
-    function handleImagePreview(input, imageNumber) {
-        const file = input.files[0];
-        const container = document.getElementById(`preview-container-${imageNumber}`);
-        const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
-        const previewArea = document.getElementById(`preview-area-${imageNumber}`);
-        const previewImg = document.getElementById(`preview-img-${imageNumber}`);
-        const imageInfo = document.getElementById(`image-info-${imageNumber}`);
+                }
+            });
+        }
+        // Función para abrir el modal de tipos
+        function abrirModalTipos() {
+            cargarTiposInforme();
+            $('#gestionarTiposInformeModal').modal('show');
+        }
+        // Funciones mejoradas para manejo de imágenes
+        function handleImagePreview(input, imageNumber) {
+            const file = input.files[0];
+            const container = document.getElementById(`preview-container-${imageNumber}`);
 
-        if (file) {
-            // Validar tamaño (5MB máximo)
-            if (file.size > 5 * 1024 * 1024) {
-                Swal.fire({
-                    title: 'Archivo muy grande',
-                    text: 'El archivo debe ser menor a 5MB',
-                    icon: 'warning'
-                });
-                input.value = '';
+            // VERIFICAR QUE LOS ELEMENTOS EXISTAN
+            if (!container) {
+                console.error(`Container preview-container-${imageNumber} no encontrado`);
                 return;
             }
 
-            // Validar tipo
-            if (!file.type.startsWith('image/')) {
-                Swal.fire({
-                    title: 'Tipo de archivo no válido',
-                    text: 'Solo se permiten imágenes (PNG, JPG, GIF)',
-                    icon: 'warning'
-                });
-                input.value = '';
-                return;
-            }
+            const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
+            const previewArea = document.getElementById(`preview-area-${imageNumber}`);
+            const previewImg = document.getElementById(`preview-img-${imageNumber}`);
+            const imageInfo = document.getElementById(`image-info-${imageNumber}`);
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                previewImg.src = e.target.result;
-                uploadArea.style.display = 'none';
-                previewArea.style.display = 'block';
-                container.classList.add('has-image');
+            if (file) {
+                // Validar tamaño (5MB máximo)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        title: 'Archivo muy grande',
+                        text: 'El archivo debe ser menor a 5MB',
+                        icon: 'warning'
+                    });
+                    input.value = '';
+                    return;
+                }
 
-                // Mostrar información del archivo
-                const sizeKB = (file.size / 1024).toFixed(1);
-                imageInfo.innerHTML = `
+                // Validar tipo
+                if (!file.type.startsWith('image/')) {
+                    Swal.fire({
+                        title: 'Tipo de archivo no válido',
+                        text: 'Solo se permiten imágenes (PNG, JPG, GIF)',
+                        icon: 'warning'
+                    });
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    uploadArea.style.display = 'none';
+                    previewArea.style.display = 'block';
+                    container.classList.add('has-image');
+
+                    // Mostrar información del archivo
+                    const sizeKB = (file.size / 1024).toFixed(1);
+                    imageInfo.innerHTML = `
                 <strong>${file.name}</strong><br>
                 Tamaño: ${sizeKB} KB | Tipo: ${file.type.split('/')[1].toUpperCase()}
             `;
 
-                // Marcar como cambiado
-                if (imageNumber === 1) {
-                    imagen1InformeChanged = true;
-                } else {
-                    imagen2InformeChanged = true;
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function clearImagePreview(imageNumber) {
-        const input = document.getElementById(`imagen${imageNumber}_informe`);
-        const container = document.getElementById(`preview-container-${imageNumber}`);
-        const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
-        const previewArea = document.getElementById(`preview-area-${imageNumber}`);
-
-        // Limpiar input
-        input.value = '';
-
-        // Mostrar área de upload y ocultar preview
-        uploadArea.style.display = 'block';
-        previewArea.style.display = 'none';
-        container.classList.remove('has-image');
-
-        // Marcar como no cambiado
-        if (imageNumber === 1) {
-            imagen1InformeChanged = false;
-            currentImagen1Informe = null;
-        } else {
-            imagen2InformeChanged = false;
-            currentImagen2Informe = null;
-        }
-    }
-
-    function showImageModal(imageSrc) {
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('modalImage');
-
-        modal.style.display = 'block';
-        modalImg.src = imageSrc;
-
-        // Prevenir scroll del body
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeImageModal() {
-        const modal = document.getElementById('imageModal');
-        modal.style.display = 'none';
-
-        // Restaurar scroll del body
-        document.body.style.overflow = 'auto';
-    }
-
-    // Agregar soporte para drag & drop
-    function setupDragAndDrop() {
-        [1, 2].forEach(imageNumber => {
-            const container = document.getElementById(`preview-container-${imageNumber}`);
-            const input = document.getElementById(`imagen${imageNumber}_informe`);
-
-            container.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                container.style.borderColor = '#CA3438';
-                container.style.backgroundColor = '#fff5f5';
-            });
-
-            container.addEventListener('dragleave', function (e) {
-                e.preventDefault();
-                container.style.borderColor = '#e0e0e0';
-                container.style.backgroundColor = '';
-            });
-
-            container.addEventListener('drop', function (e) {
-                e.preventDefault();
-                container.style.borderColor = '#e0e0e0';
-                container.style.backgroundColor = '';
-
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    input.files = files;
-                    handleImagePreview(input, imageNumber);
-                }
-            });
-        });
-    }
-
-    // Inicializar drag & drop cuando se carga el formulario
-    $(document).ready(function () {
-        setupDragAndDrop();
-    });
-
-
-    // Función para cargar tipos de informe en el select
-    function cargarTiposInformeSelect(tipoSeleccionado = '') {
-        $.ajax({
-            url: _URL + "/ajs/informe/obtener-tipos-informe",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                if (data.success && data.tipos) {
-                    let options = '<option value="">Seleccione un tipo</option>';
-                    data.tipos.forEach(function (tipo) {
-                        const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
-                        options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
-                    });
-                    $("#tipo_informe").html(options);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar tipos:", error);
+                    // Marcar como cambiado
+                    if (imageNumber === 1) {
+                        imagen1InformeChanged = true;
+                    } else {
+                        imagen2InformeChanged = true;
+                    }
+                };
+                reader.readAsDataURL(file);
             }
-        });
-    }
+        }
 
-    // Función para cargar tipos en el modal
-    function cargarTiposInforme() {
-        $.ajax({
-            url: _URL + "/ajs/informe/obtener-tipos-informe",
-            method: "GET",
-            dataType: 'json',
-            success: function (data) {
-                if (data.success && data.tipos) {
-                    let html = '';
-                    data.tipos.forEach(function (tipo) {
-                        html += `
+        function clearImagePreview(imageNumber) {
+            const input = document.getElementById(`imagen${imageNumber}_informe`);
+            const container = document.getElementById(`preview-container-${imageNumber}`);
+            const uploadArea = document.getElementById(`upload-area-${imageNumber}`);
+            const previewArea = document.getElementById(`preview-area-${imageNumber}`);
+
+            // Limpiar input
+            input.value = '';
+
+            // Mostrar área de upload y ocultar preview
+            uploadArea.style.display = 'block';
+            previewArea.style.display = 'none';
+            container.classList.remove('has-image');
+
+            // Marcar como no cambiado
+            if (imageNumber === 1) {
+                imagen1InformeChanged = false;
+                currentImagen1Informe = null;
+            } else {
+                imagen2InformeChanged = false;
+                currentImagen2Informe = null;
+            }
+        }
+
+        function showImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+
+            // Prevenir scroll del body
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+
+            // Restaurar scroll del body
+            document.body.style.overflow = 'auto';
+        }
+
+        // Agregar soporte para drag & drop
+        function setupDragAndDrop() {
+            [1, 2].forEach(imageNumber => {
+                const container = document.getElementById(`preview-container-${imageNumber}`);
+                const input = document.getElementById(`imagen${imageNumber}_informe`);
+
+                // VERIFICAR QUE LOS ELEMENTOS EXISTAN
+                if (!container || !input) {
+                    console.log(`Elementos drag&drop no encontrados para imagen ${imageNumber}`);
+                    return;
+                }
+
+                container.addEventListener('dragover', function (e) {
+
+                    e.preventDefault();
+                    container.style.borderColor = '#CA3438';
+                    container.style.backgroundColor = '#fff5f5';
+                });
+
+                container.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    container.style.borderColor = '#e0e0e0';
+                    container.style.backgroundColor = '';
+                });
+
+                container.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    container.style.borderColor = '#e0e0e0';
+                    container.style.backgroundColor = '';
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        handleImagePreview(input, imageNumber);
+                    }
+                });
+            });
+        }
+        // Función para limpiar cliente seleccionado
+        function limpiarCliente() {
+            $("#cliente_id").val("");
+            $("#cliente_search").val("");
+            $("#cliente_info_container").slideUp(300);
+            $("#campo-persona-entregar").slideUp(300);
+        }
+
+
+        // Inicializar drag & drop cuando se carga el formulario
+        setTimeout(function () {
+            setupDragAndDrop();
+        }, 500); // Dar tiempo a que se cree el DOM
+
+
+        // Función para cargar tipos de informe en el select
+        function cargarTiposInformeSelect(tipoSeleccionado = '') {
+            $.ajax({
+                url: _URL + "/ajs/informe/obtener-tipos-informe",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.tipos) {
+                        let options = '<option value="">Seleccione un tipo</option>';
+                        data.tipos.forEach(function (tipo) {
+                            const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
+                            options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
+                        });
+                        $("#tipo_informe").html(options);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar tipos:", error);
+                }
+            });
+        }
+
+        // Función para cargar tipos en el modal
+        function cargarTiposInforme() {
+            $.ajax({
+                url: _URL + "/ajs/informe/obtener-tipos-informe",
+                method: "GET",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success && data.tipos) {
+                        let html = '';
+                        data.tipos.forEach(function (tipo) {
+                            html += `
                         <tr>
                             <td>${tipo.nombre}</td>
                         
@@ -2966,122 +3243,152 @@
                             </td>
                         </tr>
                     `;
-                    });
-                    $("#lista-tipos-informe").html(html);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error al cargar tipos:", error);
-            }
-        });
-    }
-
-    // Función para agregar nuevo tipo
-    function agregarTipoInforme() {
-        const nombre = $("#nuevo-tipo-nombre").val().trim();
-
-        if (!nombre) {
-            Swal.fire('Error', 'El nombre es obligatorio', 'error');
-            return;
-        }
-
-        $.ajax({
-            url: _URL + "/ajs/informe/insertar-tipo-informe",
-            method: "POST",
-            data: {
-                nombre: nombre
-                // descripcion: descripcion
-            },
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    Swal.fire('Éxito', data.msg, 'success');
-                    $("#nuevo-tipo-nombre").val('');
-                    cargarTiposInforme();
-                    cargarTiposInformeSelect(); // Actualizar el select también
-                } else {
-                    Swal.fire('Error', data.msg, 'error');
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-            }
-        });
-    }
-
-    // Función para editar tipo
-    function editarTipo(id, nombre) {
-        $("#editar-tipo-id").val(id);
-        $("#editar-tipo-nombre").val(nombre);
-        $("#editarTipoModal").modal('show');
-    }
-
-    // Función para guardar tipo editado
-    function guardarTipoEditado() {
-        const id = $("#editar-tipo-id").val();
-        const nombre = $("#editar-tipo-nombre").val().trim();
-
-        if (!nombre) {
-            Swal.fire('Error', 'El nombre es obligatorio', 'error');
-            return;
-        }
-
-        $.ajax({
-            url: _URL + "/ajs/informe/editar-tipo-informe",
-            method: "POST",
-            data: {
-                id: id,
-                nombre: nombre
-            },
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    Swal.fire('Éxito', data.msg, 'success');
-                    $("#editarTipoModal").modal('hide');
-                    cargarTiposInforme();
-                    cargarTiposInformeSelect(); // Actualizar el select también
-                } else {
-                    Swal.fire('Error', data.msg, 'error');
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-            }
-        });
-    }
-
-    // Función para eliminar tipo
-    function eliminarTipo(id, nombre) {
-        Swal.fire({
-            title: '¿Está seguro?',
-            text: `¿Desea eliminar el tipo "${nombre}"?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: _URL + "/ajs/informe/eliminar-tipo-informe",
-                    method: "POST",
-                    data: { id: id },
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.success) {
-                            Swal.fire('Eliminado', data.msg, 'success');
-                            cargarTiposInforme();
-                            cargarTiposInformeSelect(); // Actualizar el select también
-                        } else {
-                            Swal.fire('Error', data.msg, 'error');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                        });
+                        $("#lista-tipos-informe").html(html);
                     }
-                });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar tipos:", error);
+                }
+            });
+        }
+
+        // Función para agregar nuevo tipo
+        function agregarTipoInforme() {
+            const nombre = $("#nuevo-tipo-nombre").val().trim();
+
+            if (!nombre) {
+                Swal.fire('Error', 'El nombre es obligatorio', 'error');
+                return;
             }
-        });
-    }
+
+            $.ajax({
+                url: _URL + "/ajs/informe/insertar-tipo-informe",
+                method: "POST",
+                data: {
+                    nombre: nombre
+                    // descripcion: descripcion
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire('Éxito', data.msg, 'success');
+                        $("#nuevo-tipo-nombre").val('');
+                        cargarTiposInforme();
+                        cargarTiposInformeSelect(); // Actualizar el select también
+                    } else {
+                        Swal.fire('Error', data.msg, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                }
+            });
+        }
+
+        // Función para editar tipo
+        function editarTipo(id, nombre) {
+            $("#editar-tipo-id").val(id);
+            $("#editar-tipo-nombre").val(nombre);
+            $("#editarTipoModal").modal('show');
+        }
+
+        // Función para guardar tipo editado
+        function guardarTipoEditado() {
+            const id = $("#editar-tipo-id").val();
+            const nombre = $("#editar-tipo-nombre").val().trim();
+
+            if (!nombre) {
+                Swal.fire('Error', 'El nombre es obligatorio', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: _URL + "/ajs/informe/editar-tipo-informe",
+                method: "POST",
+                data: {
+                    id: id,
+                    nombre: nombre
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire('Éxito', data.msg, 'success');
+                        $("#editarTipoModal").modal('hide');
+                        cargarTiposInforme();
+                        cargarTiposInformeSelect(); // Actualizar el select también
+                    } else {
+                        Swal.fire('Error', data.msg, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                }
+            });
+        }
+
+        // Función para eliminar tipo
+        function eliminarTipo(id, nombre) {
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: `¿Desea eliminar el tipo "${nombre}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: _URL + "/ajs/informe/eliminar-tipo-informe",
+                        method: "POST",
+                        data: { id: id },
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.success) {
+                                Swal.fire('Eliminado', data.msg, 'success');
+                                cargarTiposInforme();
+                                cargarTiposInformeSelect(); // Actualizar el select también
+                            } else {
+                                Swal.fire('Error', data.msg, 'error');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Funciones globales para compatibilidad con HTML
+        window.mostrarFormularioNuevoInforme = mostrarFormularioNuevoInforme;
+        window.editarInforme = editarInforme;
+        window.volverAListaInformes = volverAListaInformes;
+        window.abrirModalTipos = abrirModalTipos;
+        window.agregarTipoInforme = agregarTipoInforme;
+        window.editarTipo = editarTipo;
+        window.guardarTipoEditado = guardarTipoEditado;
+        window.eliminarTipo = eliminarTipo;
+        window.handleImagePreview = handleImagePreview;
+        window.clearImagePreview = clearImagePreview;
+        window.showImageModal = showImageModal;
+        window.closeImageModal = closeImageModal;
+        window.limpiarCliente = limpiarCliente;
+
+        // Exponer funciones públicas
+        return {
+            init: inicializarModuloInformes,
+            cleanup: limpiarModulo,
+            cargarInformes: cargarInformes,
+            reiniciar: reiniciarModuloCompleto,
+            mostrarFormularioNuevoInforme: mostrarFormularioNuevoInforme,
+            editarInforme: editarInforme,
+            eliminarInforme: eliminarInforme,
+            volverAListaInformes: volverAListaInformes,
+            renderPdfPreview: renderPdfPreview
+        };
+    })();
+
 </script>

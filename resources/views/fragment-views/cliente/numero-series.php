@@ -732,19 +732,19 @@
 
         // Función para mostrar feedback visual
         function mostrarFeedbackSerie(input, existe) {
-            // Eliminar clases y feedback previos
+            const feedbackContainer = input.siblings('.feedback-container');
             input.removeClass('is-valid is-invalid');
-            input.siblings('.invalid-feedback, .valid-feedback').remove();
+            feedbackContainer.empty();
 
             if (existe) {
                 // El número de serie ya existe
                 input.addClass('is-invalid');
-                input.after('<div class="invalid-feedback">Este número de serie ya existe en la base de datos.</div>');
+                feedbackContainer.html('<div class="invalid-feedback d-block">Este número de serie ya existe en la base de datos.</div>');
                 return false;
             } else if (input.val().trim() !== '') {
                 // El número de serie es válido
                 input.addClass('is-valid');
-                input.after('<div class="valid-feedback">Número de serie disponible.</div>');
+                feedbackContainer.html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
                 return true;
             }
             return true;

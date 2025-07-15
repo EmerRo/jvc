@@ -1,12 +1,6 @@
-<!-- resources\views\fragment-views\cliente\documentos\otros-archivos.php -->
+<!-- resources/views/fragment-views/cliente/documentos/componentes/archivos-internos.php -->
 <style>
     /* Estilos generales */
-
-
-    /* Contenedor de la vista previa del documento */
-
-
-    /* Estilos para las imágenes de cabecera y pie */
     .image-preview {
         max-width: 100%;
         max-height: 150px;
@@ -21,14 +15,12 @@
         color: #999;
     }
 
-    /* Estilos para el editor */
     .editor-container {
         height: 300px;
         margin-bottom: 20px;
         border: 1px solid #dee2e6;
     }
 
-    /* Estilos para las vistas */
     .vista {
         display: none;
     }
@@ -37,7 +29,6 @@
         display: block;
     }
 
-    /* Estilos para las tarjetas de archivos */
     .archivo-card {
         transition: all 0.3s ease;
         height: 100%;
@@ -48,13 +39,36 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
-    /* Cabecera de formulario */
     .form-header {
         background-color: #dc3545;
         color: white;
         padding: 15px;
         margin-bottom: 20px;
         border-radius: 4px;
+    }
+
+    .document-preview {
+        height: 250px;
+        overflow: hidden;
+        display: block;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    .pdf-preview-canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .btn-outline-secondary {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto;
     }
 </style>
 
@@ -66,86 +80,78 @@
     window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 </script>
-<!-- Actualizar Quill.js a versión más reciente -->
-<link href="https://cdn.quilljs.com/2.0.2/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/2.0.2/quill.min.js"></script>
+
 <!-- Botones de acción -->
 <div class="mb-4">
-    <button class="btn btn-rojo" id="btn-lista-archivos">
-        <i class="fas fa-list me-1"></i> Lista de OtrosArchivos
+    <button class="btn border-rojo" id="btn-lista-archivos-internos">
+        <i class="fas fa-list me-2"></i>Lista de Archivos Internos
     </button>
-    <button class="btn btn-outline-danger" id="btn-nueva-archivo">
-        <i class="fas fa-plus me-1"></i> Nueva OtroArchivo
+    <button class="btn bg-rojo text-white" id="btn-nuevo-archivo-interno">
+        <i class="fas fa-plus me-2"></i>Nuevo Archivo Interno
     </button>
-    <button class="btn btn-outline-danger" id="btn-editar-plantilla">
-        <i class="fas fa-file-alt me-1"></i> Editar Plantilla
+    <button class="btn border-rojo" id="btn-editar-plantilla">
+        <i class="fas fa-edit me-2"></i>Editar Plantilla
     </button>
-    <button class="btn bg-rojo text-white" id="btn-gestionar-membretes">
-        <i class="fas fa-image me-1"></i> Gestionar Membretes
+    <button class="btn border-rojo" id="btn-gestionar-membretes">
+        <i class="fas fa-image me-2"></i>Gestionar Membretes
     </button>
 </div>
 
-<!-- Vista de lista de archivos -->
-<div id="vista-lista-archivos" class="vista active">
+<!-- Vista de lista de archivos internos -->
+<div id="vista-lista-archivos-internos" class="vista active">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>OtrosArchivos</h3>
+        <h3>Archivos Internos</h3>
         <div class="input-group" style="max-width: 300px;">
-            <input type="text" class="form-control border-rojo" id="buscar-archivo" placeholder="Buscar archivos...">
+            <input type="text" class="form-control border-rojo" id="buscar-archivo-interno" placeholder="Buscar archivos internos...">
             <button class="btn bg-rojo text-white" type="button">
                 <i class="fas fa-search"></i>
             </button>
         </div>
     </div>
 
-    <div id="lista-archivos-container">
-        <!-- Aquí se cargarán dinámicamente las archivos -->
+    <div id="lista-archivos-internos-container">
+        <!-- Aquí se cargarán dinámicamente los archivos internos -->
         <div class="text-center py-5">
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-2 text-muted">Cargando archivos...</p>
+            <p class="mt-2 text-muted">Cargando archivos internos...</p>
         </div>
     </div>
 </div>
 
-<!-- Vista de formulario de nueva/editar archivo -->
-<div id="vista-editar-archivo" class="vista">
+<!-- Vista de formulario de nuevo/editar archivo interno -->
+<div id="vista-editar-archivo-interno" class="vista">
     <div class="form-header">
-        <h3 id="titulo-pagina-archivo" class="m-0">Nueva OtroArchivo</h3>
-        <p class="m-0">Complete la información de la archivo</p>
+        <h3 id="titulo-pagina-archivo-interno" class="m-0">Nuevo Archivo Interno</h3>
+        <p class="m-0">Complete la información del archivo interno</p>
     </div>
 
-    <form id="formOtroArchivo" enctype="multipart/form-data">
-        <input type="hidden" id="id_archivo" name="id">
-        <input type="hidden" id="contenido_archivo" name="contenido">
+    <form id="formArchivoInterno" enctype="multipart/form-data">
+        <input type="hidden" id="id_archivo_interno" name="id">
+        <input type="hidden" id="contenido_archivo_interno" name="contenido">
         <input type="hidden" id="header_image_data" name="header_image">
         <input type="hidden" id="footer_image_data" name="footer_image">
 
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="titulo_archivo" class="form-label">Título de la OtroArchivo</label>
-                    <input type="text" class="form-control" id="titulo_archivo" name="titulo" required>
+                    <label for="titulo_archivo_interno" class="form-label">Título del Archivo Interno</label>
+                    <input type="text" class="form-control" id="titulo_archivo_interno" name="titulo" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="tipo_archivo" class="form-label">Tipo de OtroArchivo</label>
+                    <label for="tipo_archivo_interno" class="form-label">Tipo de Archivo Interno</label>
                     <div class="input-group">
-                        <select class="form-select" id="tipo_archivo" name="tipo" required>
+                        <select class="form-select" id="tipo_archivo_interno" name="tipo" required>
                             <option value="">Seleccione un tipo</option>
                         </select>
-                        <button class="btn bg-rojo text-white" type="button" id="btn-gestionar-tipos-archivo"
-                            onclick="abrirModalTiposOtrosArchivos()">
+                        <button class="btn bg-rojo text-white" type="button" id="btn-gestionar-tipos-archivo-interno"
+                            onclick="abrirModalTiposArchivosInternos()">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
-                    <div class="form-text text-gris small">Este campo se usará para categorizar las archivos.</div>
-                </div>
-                <div class="mb-3">
-                    <label for="motivo_archivo" class="form-label">Motivo o Descripción</label>
-                    <textarea class="form-control" id="motivo_archivo" name="motivo" rows="3"
-                        placeholder="Describe el motivo o propósito de este archivo..."></textarea>
-                    <div class="form-text text-gris small">Campo opcional para describir el propósito del archivo.</div>
+                    <div class="form-text text-gris small">Este campo se usará para categorizar los archivos internos.</div>
                 </div>
             </div>
 
@@ -171,30 +177,31 @@
             </div>
         </div>
         <div class="mb-3">
-            <label for="editor-container-archivo" class="form-label">Contenido de la OtroArchivo</label>
-            <div id="editor-container-archivo" class="editor-container"></div>
+            <label for="editor-container-archivo-interno" class="form-label">Contenido del Archivo Interno</label>
+            <div id="editor-container-archivo-interno" class="editor-container"></div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn btn-secondary" id="btn-cancel-archivo">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-archivo-interno">
                 <i class="fas fa-times me-1"></i> Cancelar
             </button>
-            <button type="button" class="btn border-rojo" id="btn-preview-archivo">
+            <button type="button" class="btn border-rojo" id="btn-preview-archivo-interno">
                 <i class="fas fa-eye me-1"></i> Vista Previa
             </button>
-            <button type="button" class="btn btn-rojo" id="btn-save-archivo">
+            <button type="button" class="btn btn-rojo" id="btn-save-archivo-interno">
                 <i class="fas fa-save me-1"></i> Guardar
             </button>
         </div>
     </form>
 </div>
-<!-- Modal para Gestionar Tipos de OtroArchivo -->
-<div class="modal fade" id="gestionarTiposOtroArchivoModal" tabindex="-1"
-    aria-labelledby="gestionarTiposOtroArchivoModalLabel" aria-hidden="true">
+
+<!-- Modal para Gestionar Tipos de Archivo Interno -->
+<div class="modal fade" id="gestionarTiposArchivoInternoModal" tabindex="-1" aria-labelledby="gestionarTiposArchivoInternoModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="gestionarTiposOtroArchivoModalLabel">Gestionar Tipos de OtroArchivo</h5>
+                <h5 class="modal-title" id="gestionarTiposArchivoInternoModalLabel">Gestionar Tipos de Archivo Interno</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
@@ -207,14 +214,13 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-8">
-                                <label for="nuevo-tipo-archivo-nombre" class="form-label">Nombre del Tipo <span
+                                <label for="nuevo-tipo-archivo-interno-nombre" class="form-label">Nombre del Tipo <span
                                         class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nuevo-tipo-archivo-nombre"
+                                <input type="text" class="form-control" id="nuevo-tipo-archivo-interno-nombre"
                                     placeholder="Ej: COMERCIAL, FORMAL, NOTIFICACIÓN">
                             </div>
                             <div class="col-md-4 d-flex align-items-end">
-                                <button type="button" class="btn bg-rojo text-white w-100"
-                                    onclick="agregarTipoOtroArchivo()">
+                                <button type="button" class="btn bg-rojo text-white w-100" onclick="agregarTipoArchivoInterno()">
                                     <i class="fas fa-plus me-2"></i>Agregar
                                 </button>
                             </div>
@@ -236,7 +242,7 @@
                                         <th width="120">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="lista-tipos-archivo">
+                                <tbody id="lista-tipos-archivo-interno">
                                     <tr>
                                         <td colspan="2" class="text-center">
                                             <div class="spinner-border spinner-border-sm text-rojo" role="status">
@@ -258,26 +264,26 @@
 </div>
 
 <!-- Modal para Editar Tipo -->
-<div class="modal fade" id="editarTipoOtroArchivoModal" tabindex="-1" aria-labelledby="editarTipoOtroArchivoModalLabel"
+<div class="modal fade" id="editarTipoArchivoInternoModal" tabindex="-1" aria-labelledby="editarTipoArchivoInternoModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="editarTipoOtroArchivoModalLabel">Editar Tipo de OtroArchivo</h5>
+                <h5 class="modal-title" id="editarTipoArchivoInternoModalLabel">Editar Tipo de Archivo Interno</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="editar-tipo-archivo-id">
+                <input type="hidden" id="editar-tipo-archivo-interno-id">
                 <div class="mb-3">
-                    <label for="editar-tipo-archivo-nombre" class="form-label">Nombre del Tipo <span
+                    <label for="editar-tipo-archivo-interno-nombre" class="form-label">Nombre del Tipo <span
                             class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="editar-tipo-archivo-nombre">
+                    <input type="text" class="form-control" id="editar-tipo-archivo-interno-nombre">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoOtroArchivoEditado()">Guardar
+                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoArchivoInternoEditado()">Guardar
                     Cambios</button>
             </div>
         </div>
@@ -285,16 +291,16 @@
 </div>
 
 <!-- Modal de Vista Previa -->
-<div class="modal fade" id="previewOtroArchivoModal" tabindex="-1" aria-labelledby="previewOtroArchivoModalLabel"
+<div class="modal fade" id="previewArchivoInternoModal" tabindex="-1" aria-labelledby="previewArchivoInternoModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="previewOtroArchivoModalLabel">Vista Previa de la OtroArchivo</h5>
+                <h5 class="modal-title" id="previewArchivoInternoModalLabel">Vista Previa del Archivo Interno</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <iframe id="preview-frame-archivo" style="width: 100%; height: 600px; border: none;"></iframe>
+                <iframe id="preview-frame-archivo-interno" style="width: 100%; height: 600px; border: none;"></iframe>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -307,24 +313,25 @@
 </div>
 
 <!-- Modal de Confirmación para Eliminar -->
-<div class="modal fade" id="confirmarEliminarOtroArchivoModal" tabindex="-1"
-    aria-labelledby="confirmarEliminarOtroArchivoModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmarEliminarArchivoInternoModal" tabindex="-1"
+    aria-labelledby="confirmarEliminarArchivoInternoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmarEliminarOtroArchivoModalLabel">Confirmar Eliminación</h5>
+                <h5 class="modal-title" id="confirmarEliminarArchivoInternoModalLabel">Confirmar Eliminación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                ¿Está seguro de que desea eliminar esta archivo? Esta acción no se puede deshacer.
+                ¿Está seguro de que desea eliminar este archivo interno? Esta acción no se puede deshacer.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-archivo">Eliminar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-archivo-interno">Eliminar</button>
             </div>
         </div>
     </div>
 </div>
+
 <!-- Modal de Gestión de Membretes -->
 <div class="modal fade" id="gestionarMembretesModal" tabindex="-1" aria-labelledby="gestionarMembretesModalLabel"
     aria-hidden="true">
@@ -339,8 +346,8 @@
             <div class="modal-body">
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    <strong>Información:</strong> Las imágenes configuradas aquí se aplicarán automáticamente a todas
-                    las archivos y plantillas.
+                    <strong>Información:</strong> Las imágenes configuradas aquí se aplicarán automáticamente a todos
+                    los archivos internos y plantillas.
                 </div>
 
                 <form id="formMembretes" enctype="multipart/form-data">
@@ -406,19 +413,20 @@
         </div>
     </div>
 </div>
+
 <!-- Modal de Edición de Plantilla -->
-<div class="modal fade" id="editarPlantillaOtroArchivoModal" tabindex="-1"
-    aria-labelledby="editarPlantillaOtroArchivoModalLabel" aria-hidden="true">
+<div class="modal fade" id="editarPlantillaArchivoInternoModal" tabindex="-1" aria-labelledby="editarPlantillaArchivoInternoModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="editarPlantillaOtroArchivoModalLabel">Editar Plantilla de OtroArchivo</h5>
+                <h5 class="modal-title" id="editarPlantillaArchivoInternoModalLabel">Editar Plantilla de Archivo Interno</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formPlantillaOtroArchivo" enctype="multipart/form-data">
-                    <input type="hidden" id="id_plantilla_archivo" name="id">
+                <form id="formPlantillaArchivoInterno" enctype="multipart/form-data">
+                    <input type="hidden" id="id_plantilla" name="id">
                     <input type="hidden" id="contenido_plantilla" name="contenido">
                     <input type="hidden" id="plantilla_header_image_data" name="header_image">
                     <input type="hidden" id="plantilla_footer_image_data" name="footer_image">
@@ -447,1942 +455,237 @@
     </div>
 </div>
 
+<!-- Cargar utilidades compartidas -->
+<script src="<?= URL::to('public/js/modulo-documentos/utils.js') ?>?v=<?= time() ?>"></script>
+
 <script>
-    // Encapsulamos todo el código en una función anónima autoejecutable (IIFE)
-    // para evitar contaminar el espacio de nombres global
-    (function () {
-        // Verificamos si el módulo ya ha sido inicializado
-        if (window.archivosModuleInitialized) {
-            console.log("El módulo de archivos ya ha sido inicializado. Evitando reinicialización.");
+    // Configuración específica para archivos internos
+    const archivosInternosConfig = {
+        tipo: 'archivo-interno',
+        urls: {
+            render: _URL + "/ajs/archivo-interno/render",
+            insertar: _URL + "/ajs/archivo-interno/insertar",
+            editar: _URL + "/ajs/archivo-interno/editar",
+            borrar: _URL + "/ajs/archivo-interno/borrar",
+            getOne: _URL + "/ajs/archivo-interno/getOne",
+            generarPDF: _URL + "/ajs/archivo-interno/generarPDF",
+            vistaPrevia: _URL + "/ajs/archivo-interno/vista-previa",
+            obtenerTemplate: _URL + "/ajs/archivo-interno/obtener-template",
+            guardarTemplate: _URL + "/ajs/archivo-interno/guardar-template",
+            obtenerMembretes: _URL + "/ajs/archivo-interno/obtener-membretes",
+            guardarMembretes: _URL + "/ajs/archivo-interno/guardar-membretes",
+            obtenerTipos: _URL + "/ajs/archivo-interno/obtener-tipos-archivos"
+        },
+        elementos: {
+            // Botones principales
+            btnLista: "#btn-lista-archivos-internos",
+            btnNuevo: "#btn-nuevo-archivo-interno",
+            btnEditarPlantilla: "#btn-editar-plantilla",
+            btnGestionarMembretes: "#btn-gestionar-membretes",
+            
+            // Vistas
+            vistaLista: "#vista-lista-archivos-internos",
+            vistaFormulario: "#vista-editar-archivo-interno",
+            contenedorLista: "#lista-archivos-internos-container",
+            
+            // Formulario principal
+            formulario: "#formArchivoInterno",
+            idDocumento: "#id_archivo_interno",
+            tituloDocumento: "#titulo_archivo_interno",
+            tipoDocumento: "#tipo_archivo_interno",
+            contenidoDocumento: "#contenido_archivo_interno",
+            clienteId: "#cliente_id",
+            tituloPagina: "#titulo-pagina-archivo-interno",
+            
+            // Editor
+            editorPrincipal: "#editor-container-archivo-interno",
+            
+            // Búsqueda
+            inputBuscar: "#buscar-archivo-interno",
+            
+            // Botones de formulario
+            btnCancelar: "#btn-cancel-archivo-interno",
+            btnGuardar: "#btn-save-archivo-interno",
+            btnPreview: "#btn-preview-archivo-interno",
+            
+            // Modales
+            modalEliminar: "#confirmarEliminarArchivoInternoModal",
+            btnConfirmarEliminar: "#btn-confirmar-eliminar-archivo-interno",
+            modalPreview: "#previewArchivoInternoModal",
+            previewFrame: "#preview-frame-archivo-interno",
+            btnDownloadPdf: "#btn-download-pdf",
+            
+            // Plantilla
+            modalPlantilla: "#editarPlantillaArchivoInternoModal",
+            editorPlantilla: "#editor-container-plantilla",
+            formularioPlantilla: "#formPlantillaArchivoInterno",
+            btnGuardarPlantilla: "#btn-save-plantilla",
+            btnPreviewPlantilla: "#btn-preview-plantilla",
+            
+            // Membretes
+            modalMembretes: "#gestionarMembretesModal",
+            formularioMembretes: "#formMembretes",
+            headerImageInput: "#membrete_header_image",
+            footerImageInput: "#membrete_footer_image",
+            resetHeaderBtn: "#reset-membrete-header",
+            resetFooterBtn: "#reset-membrete-footer",
+            btnGuardarMembretes: "#btn-save-membretes",
+            btnPreviewMembretes: "#btn-preview-membretes"
+        }
+    };
+
+    // Inicializar el módulo de archivos internos
+    let archivosInternosUtils;
+
+    $(document).ready(function() {
+        archivosInternosUtils = new DocumentosUtils(archivosInternosConfig);
+        
+        // Exponer funciones globales para compatibilidad
+        window.recargarArchivosInternos = () => archivosInternosUtils.cargarDocumentos();
+        window.editarArchivoInterno = (id) => archivosInternosUtils.editarDocumento(id);
+        window.eliminarArchivoInterno = (id) => archivosInternosUtils.eliminarDocumento(id);
+        window.editarPlantillaArchivoInterno = () => archivosInternosUtils.editarPlantilla();
+        window.mostrarFormularioNuevoArchivoInterno = () => archivosInternosUtils.mostrarFormularioNuevo();
+        window.mostrarVistaListaArchivosInternos = () => archivosInternosUtils.mostrarVistaLista();
+        window.mostrarVistaPreviewPlantilla = () => archivosInternosUtils.mostrarVistaPreviewPlantilla();
+        window.mostrarVistaPreviewMembretes = () => archivosInternosUtils.mostrarVistaPreviewMembretes();
+        window.gestionarMembretes = () => archivosInternosUtils.gestionarMembretes();
+    });
+
+    // Funciones específicas para tipos de archivos internos
+    function abrirModalTiposArchivosInternos() {
+        cargarTiposArchivosInternosModal();
+        $('#gestionarTiposArchivoInternoModal').modal('show');
+    }
+
+    function cargarTiposArchivosInternosModal() {
+        $.ajax({
+            url: _URL + "/ajs/archivo-interno/obtener-tipos-archivos",
+            method: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.success && data.tipos) {
+                    let html = '';
+                    data.tipos.forEach(function (tipo) {
+                        html += `
+                            <tr>
+                                <td>${tipo.nombre}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTipoArchivoInterno(${tipo.id}, '${tipo.nombre}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarTipoArchivoInterno(${tipo.id}, '${tipo.nombre}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $("#lista-tipos-archivo-interno").html(html);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error al cargar tipos:", error);
+            }
+        });
+    }
+
+    function agregarTipoArchivoInterno() {
+        const nombre = $("#nuevo-tipo-archivo-interno-nombre").val().trim();
+
+        if (!nombre) {
+            Swal.fire('Error', 'El nombre es obligatorio', 'error');
             return;
         }
 
-        // Marcamos el módulo como inicializado
-        window.archivosModuleInitialized = true;
-
-        console.log("Inicializando módulo de archivos...");
-
-        // Verificar compatibilidad del navegador
-        if (!window.MutationObserver) {
-            console.warn('MutationObserver no está disponible en este navegador');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Navegador no compatible',
-                text: 'Su navegador no es compatible con todas las funciones. Por favor, actualice su navegador.'
-            });
-        }
-        // Variables del módulo (no globales)
-        var archivos = [];
-        var filtroActual = '';
-        var tipoFiltroActual = 'todos';
-        var archivoEditor = null;
-        var templateEditor = null;
-        var quillLoaded = false;
-        var quillCssLoaded = false;
-        var procesandoAccion = false;
-
-        // Inicializar cuando el DOM esté listo
-        $(document).ready(function () {
-            console.log("DOM cargado, configurando eventos del módulo de archivos...");
-
-            // Configurar eventos para los botones de navegación
-            $("#btn-lista-archivos").on("click", function () {
-                mostrarVistaListaOtrosArchivos();
-            });
-            $("#btn-nueva-archivo").on("click", function () {
-                if (procesandoAccion) return; // Evitar múltiples clics
-                procesandoAccion = true;
-
-                mostrarFormularioNuevoOtroArchivo();
-
-                setTimeout(function () {
-                    procesandoAccion = false;
-                }, 500);
-            });
-
-            $("#btn-editar-plantilla").on("click", function () {
-                editarPlantillaOtroArchivo();
-            });
-
-            // Configurar el modal de confirmación para eliminar
-            $('#confirmarEliminarOtroArchivoModal').on('show.bs.modal', function (event) {
-                const button = $(event.relatedTarget);
-                const id = button.data('id');
-
-                $('#btn-confirmar-eliminar-archivo').off('click').on('click', function () {
-                    eliminarOtroArchivo(id);
-                });
-            });
-
-            // Configurar eventos de búsqueda
-            $("#buscar-archivo").on("keyup", function () {
-                buscarOtrosArchivos();
-            });
-
-            // Configurar eventos para el formulario de archivo
-            $("#btn-cancel-archivo").on("click", function () {
-                mostrarVistaListaOtrosArchivos();
-            });
-
-            $("#btn-save-archivo").on("click", function () {
-                guardarOtroArchivo();
-            });
-
-            $("#btn-preview-archivo").on("click", function () {
-                mostrarVistaPreviaOtroArchivo();
-            });
-
-
-            // Configurar eventos para el formulario de plantilla
-            $("#btn-save-plantilla").on("click", function () {
-                guardarPlantilla();
-            });
-
-
-
-
-            $("#btn-gestionar-membretes").on("click", function () {
-                gestionarMembretes();
-            });
-
-            // Configurar eventos para el formulario de membretes
-            $("#btn-save-membretes").on("click", function () {
-                guardarMembretes();
-            });
-
-            $("#membrete_header_image").on("change", function (e) {
-                manejarCambioImagen(e, 'membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
-            });
-
-            $("#membrete_footer_image").on("change", function (e) {
-                manejarCambioImagen(e, 'membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
-            });
-
-            $("#reset-membrete-header").on("click", function () {
-                restablecerImagen('membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
-            });
-
-            $("#reset-membrete-footer").on("click", function () {
-                restablecerImagen('membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
-            });
-            $("#btn-preview-plantilla").on("click", function () {
-                mostrarVistaPreviewPlantilla();
-            });
-            $("#btn-preview-membretes").on("click", function () {
-                mostrarVistaPreviewMembretes();
-            });
-
-            // Cargar archivos
-            cargarOtrosArchivos();
-
-            // Cargar Quill si no está cargado
-            cargarQuillSiNoExiste();
+        $.ajax({
+            url: _URL + "/ajs/archivo-interno/insertar-tipo-archivo",
+            method: "POST",
+            data: { nombre: nombre },
+            dataType: 'json',
+            success: function (data) {
+                if (data.success) {
+                    Swal.fire('Éxito', data.msg, 'success');
+                    $("#nuevo-tipo-archivo-interno-nombre").val('');
+                    cargarTiposArchivosInternosModal();
+                    archivosInternosUtils.cargarTiposSelect();
+                } else {
+                    Swal.fire('Error', data.msg, 'error');
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+            }
         });
+    }
 
-        // Función para mostrar la vista de lista de archivos
-        function mostrarVistaListaOtrosArchivos() {
-            $(".vista").removeClass("active");
-            $("#vista-lista-archivos").addClass("active");
+    function editarTipoArchivoInterno(id, nombre) {
+        $("#editar-tipo-archivo-interno-id").val(id);
+        $("#editar-tipo-archivo-interno-nombre").val(nombre);
+        $("#editarTipoArchivoInternoModal").modal('show');
+    }
 
-            // Actualizar estado de los botones
-            $("#btn-lista-archivos").removeClass("btn-outline-danger").addClass("btn-rojo");
-            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
+    function guardarTipoArchivoInternoEditado() {
+        const id = $("#editar-tipo-archivo-interno-id").val();
+        const nombre = $("#editar-tipo-archivo-interno-nombre").val().trim();
 
-            // Destruir el editor correctamente
-            destruirEditor();
-
-            // Recargar la lista de archivos
-            cargarOtrosArchivos();
+        if (!nombre) {
+            Swal.fire('Error', 'El nombre es obligatorio', 'error');
+            return;
         }
 
-
-        // Función para cargar Quill si no existe
-        function cargarQuillSiNoExiste() {
-            if (typeof Quill === 'undefined') {
-                console.log("Quill no está cargado, cargando la biblioteca...");
-
-                // Cargar CSS de Quill si no está cargado
-                if (!quillCssLoaded) {
-                    var quillCSS = document.createElement('link');
-                    quillCSS.rel = 'stylesheet';
-                    quillCSS.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css';
-                    document.head.appendChild(quillCSS);
-                    quillCssLoaded = true;
+        $.ajax({
+            url: _URL + "/ajs/archivo-interno/editar-tipo-archivo",
+            method: "POST",
+            data: { id: id, nombre: nombre },
+            dataType: 'json',
+            success: function (data) {
+                if (data.success) {
+                    Swal.fire('Éxito', data.msg, 'success');
+                    $("#editarTipoArchivoInternoModal").modal('hide');
+                    cargarTiposArchivosInternosModal();
+                    archivosInternosUtils.cargarTiposSelect();
+                } else {
+                    Swal.fire('Error', data.msg, 'error');
                 }
-
-                // Cargar JavaScript de Quill
-                var quillScript = document.createElement('script');
-                quillScript.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js';
-                quillScript.onload = function () {
-                    console.log("Quill cargado correctamente");
-                    quillLoaded = true;
-                };
-                quillScript.onerror = function () {
-                    console.error("Error al cargar Quill");
-                };
-                document.head.appendChild(quillScript);
-            } else {
-                quillLoaded = true;
+            },
+            error: function (xhr, status, error) {
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
             }
-        }
+        });
+    }
 
-        // Función para cargar las archivos
-        function cargarOtrosArchivos() {
-            console.log("Cargando archivos...");
-
-            // Mostrar indicador de carga
-            $("#lista-archivos-container").html(`
-        <div class="text-center py-5">
-            <div class="spinner-border text-rojo" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2 text-muted">Cargando archivos...</p>
-        </div>
-    `);
-
-            // Construir la URL con los filtros
-            let url = _URL + "/ajs/otro-archivo/render";
-            if (filtroActual && tipoFiltroActual !== 'todos') {
-                url += `?filtro=${encodeURIComponent(filtroActual)}&tipo_busqueda=${tipoFiltroActual}`;
-            }
-
-            console.log("URL de carga:", url);
-
-            // Realizar petición AJAX para obtener las archivos
-            $.ajax({
-                url: url,
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    console.log("Respuesta de archivos:", data);
-
-                    // Asegurarse de que data.archivos sea un array
-                    if (!data || !data.archivos) {
-                        console.log("No se recibieron datos, mostrando mensaje de no hay archivos");
-                        mostrarNoHayOtrosArchivos();
-                        return;
-                    }
-
-                    archivos = Array.isArray(data.archivos) ? data.archivos : [];
-                    console.log("OtrosArchivos procesadas:", archivos);
-                    renderizarOtrosArchivos();
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al cargar archivos:", status, error);
-                    $("#lista-archivos-container").html(`
-                <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Error al cargar las archivos. Por favor, intente nuevamente.
-                </div>
-                <button class="btn btn-rojo mt-3" onclick="window.recargarOtrosArchivos()">
-                    <i class="fas fa-sync me-2"></i>Reintentar
-                </button>
-            `);
-                }
-            });
-        }
-
-        // Función para mostrar mensaje de no hay archivos
-        function mostrarNoHayOtrosArchivos() {
-            $("#lista-archivos-container").html(`
-            <div class="alert alert-info" role="alert">
-                <i class="fas fa-info-circle me-2"></i>
-                No se encontraron archivos.
-            </div>
-            <button class="btn btn-rojo mt-3" id="btn-crear-primera-archivo">
-                <i class="fas fa-plus me-2"></i>Crear primera archivo
-            </button>
-        `);
-
-            // Agregar evento al botón de crear primera archivo
-            $("#btn-crear-primera-archivo").on("click", function () {
-                mostrarFormularioNuevoOtroArchivo();
-            });
-        }
-
-        // Función para renderizar las archivos
-        function renderizarOtrosArchivos() {
-            if (!archivos || archivos.length === 0) {
-                mostrarNoHayOtrosArchivos();
-                return;
-            }
-
-            let html = '<div class="row row-cols-1 row-cols-md-3 g-4">';
-
-            archivos.forEach(function (archivo) {
-                const fecha = new Date(archivo.fecha_creacion).toLocaleDateString();
-                const cliente = archivo.cliente_nombre || 'Sin cliente';
-
-                html += `
-                <div class="col">
-                    <div class="card archivo-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge bg-rojo">${archivo.tipo || 'Sin tipo'}</span>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownOtroArchivo${archivo.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownOtroArchivo${archivo.id}">
-                                    <li><a class="dropdown-item" href="${_URL}/ajs/otro-archivo/generarPDF?id=${archivo.id}" target="_blank">
-                                        <i class="fas fa-file-pdf me-2"></i> Ver PDF
-                                    </a></li>
-                                    <li><a class="dropdown-item archivo-editar" href="#" data-id="${archivo.id}">
-                                        <i class="fas fa-edit me-2"></i> Editar
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#confirmarEliminarOtroArchivoModal" data-id="${archivo.id}">
-                                        <i class="fas fa-trash-alt me-2"></i> Eliminar
-                                    </a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">${archivo.titulo}</h5>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-user me-1"></i> ${cliente}<br>
-                                    <i class="fas fa-calendar-alt me-1"></i> ${fecha}
-                                </small>
-                            </p>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between">
-                            <a href="${_URL}/ajs/otro-archivo/generarPDF?id=${archivo.id}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                                <i class="fas fa-file-pdf me-1"></i> Ver PDF
-                            </a>
-                            <button class="btn btn-sm btn-rojo archivo-editar" data-id="${archivo.id}">
-                                <i class="fas fa-edit me-1"></i> Editar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            });
-
-            html += '</div>';
-            $("#lista-archivos-container").html(html);
-
-            // Agregar eventos a los botones de editar
-            $(".archivo-editar").on("click", function () {
-                const id = $(this).data('id');
-                editarOtroArchivo(id);
-            });
-        }
-
-        // Función para buscar archivos
-        function buscarOtrosArchivos() {
-            const busqueda = $("#buscar-archivo").val().trim().toLowerCase();
-
-            if (busqueda === "") {
-                // Si la búsqueda está vacía, mostrar todas las archivos según el filtro de tipo
-                if (tipoFiltroActual === "todos") {
-                    filtroActual = "";
-                }
-            } else {
-                // Si hay texto de búsqueda, filtrar por título
-                filtroActual = busqueda;
-                tipoFiltroActual = "titulo";
-            }
-
-            // Recargar las archivos con el filtro
-            cargarOtrosArchivos();
-        }
-
-        function destruirEditor() {
-            if (archivoEditor) {
-                try {
-                    // Remover event listeners de forma segura
-                    if (archivoEditor.off) {
-                        archivoEditor.off();
-                    }
-
-                    // Limpiar DOM de manera segura
-                    const container = archivoEditor.container;
-                    if (container && container.parentNode) {
-                        // Remover toolbars
-                        const toolbars = container.parentNode.querySelectorAll('.ql-toolbar');
-                        toolbars.forEach(toolbar => {
-                            if (toolbar && toolbar.parentNode) {
-                                try {
-                                    toolbar.parentNode.removeChild(toolbar);
-                                } catch (e) {
-                                    console.warn('Error removiendo toolbar:', e);
-                                }
-                            }
-                        });
-
-                        // Limpiar contenedor
-                        try {
-                            container.innerHTML = '';
-                        } catch (e) {
-                            console.warn('Error limpiando contenedor:', e);
-                        }
-                    }
-
-                    // Limpiar con jQuery como respaldo
-                    $('#editor-container-archivo').empty();
-                    archivoEditor = null;
-                } catch (error) {
-                    console.error("Error al destruir el editor:", error);
-                    // Forzar limpieza
-                    $('#editor-container-archivo').empty();
-                    archivoEditor = null;
-                }
-            }
-
-            // Ocultar autocomplete si existe
-            const autocompleteResults = elementoSeguro('autocomplete-results');
-            if (autocompleteResults) {
-                autocompleteResults.style.display = 'none';
-            }
-        }
-        function mostrarVistaPreviewMembretes() {
-            // Marcar que debemos regresar al modal de membretes
-            window.regresarAMembretes = true;
-
-            // CERRAR el modal de membretes PRIMERO
-            const modalMembretes = bootstrap.Modal.getInstance(document.getElementById('gestionarMembretesModal'));
-            if (modalMembretes) {
-                modalMembretes.hide();
-            }
-
-            // Esperar a que el modal se cierre completamente
-            $('#gestionarMembretesModal').on('hidden.bs.modal', function () {
-                $(this).off('hidden.bs.modal');
-
-                // Obtener las imágenes ACTUALES del formulario
-                const headerImageData = document.getElementById('membrete_header_image_data').value;
-                const footerImageData = document.getElementById('membrete_footer_image_data').value;
-
-                // Mostrar indicador de carga
-                Swal.fire({
-                    title: 'Generando vista previa',
-                    text: 'Por favor espere...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                // Crear FormData para enviar las imágenes
-                const formData = new FormData();
-                formData.append('titulo', 'Vista Previa de Membretes');
-                formData.append('contenido', 'Contenido de ejemplo para mostrar los membretes configurados.');
-
-                // Solo agregar imágenes si existen
-                if (headerImageData && headerImageData.trim() !== '') {
-                    formData.append('header_image', headerImageData);
-                }
-                if (footerImageData && footerImageData.trim() !== '') {
-                    formData.append('footer_image', footerImageData);
-                }
-
+    function eliminarTipoArchivoInterno(id, nombre) {
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: `¿Desea eliminar el tipo "${nombre}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
                 $.ajax({
-                    url: _URL + "/ajs/otro-archivo/vista-previa",
+                    url: _URL + "/ajs/archivo-interno/eliminar-tipo-archivo",
                     method: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
+                    data: { id: id },
                     dataType: 'json',
                     success: function (data) {
-                        Swal.close();
-
-                        if (data.success && data.pdfBase64) {
-                            document.getElementById('preview-frame-archivo').src = "data:application/pdf;base64," + data.pdfBase64;
-                            const modal = new bootstrap.Modal(document.getElementById('previewOtroArchivoModal'));
-                            modal.show();
+                        if (data.success) {
+                            Swal.fire('Eliminado', data.msg, 'success');
+                            cargarTiposArchivosInternosModal();
+                            archivosInternosUtils.cargarTiposSelect();
                         } else {
-                            window.regresarAMembretes = false; // Cancelar regreso si hay error
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: data.msg || 'Error al generar la vista previa'
-                            });
+                            Swal.fire('Error', data.msg, 'error');
                         }
                     },
                     error: function (xhr, status, error) {
-                        Swal.close();
-                        window.regresarAMembretes = false; // Cancelar regreso si hay error
-                        console.error("Error en vista previa:", status, error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Error al generar la vista previa'
-                        });
+                        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
                     }
                 });
-            });
-        }
-        // Función para mostrar el formulario de nueva archivo
-        function mostrarFormularioNuevoOtroArchivo() {
-            console.log("Mostrando formulario de nueva archivo...");
-
-            // Actualizar estado de los botones
-            $("#btn-lista-archivos").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-nueva-archivo").removeClass("btn-outline-danger").addClass("btn-rojo");
-            $("#btn-editar-plantilla").addClass("btn-outline-danger").removeClass("btn-rojo");
-            // Mostrar la vista de edición
-            $(".vista").removeClass("active");
-            $("#vista-editar-archivo").addClass("active");
-
-            // Limpiar el formulario
-            $("#id_archivo").val("");
-            $("#titulo_archivo").val("");
-            $("#tipo_archivo").val("");
-            $("#cliente_id").val("");
-            $("#motivo_archivo").val("");
-            $("#header_image_data").val("");
-            $("#footer_image_data").val("");
-
-            // Ocultar las imágenes de vista previa
-            $("#header-preview-archivo").hide();
-            $("#footer-preview-archivo").hide();
-            $("#header-placeholder-archivo").show();
-            $("#footer-placeholder-archivo").show();
-
-            // Actualizar título
-            $("#titulo-pagina-archivo").text("Nueva OtroArchivo");
-
-            // Inicializar autocomplete para clientes
-            inicializarAutocompletarClientes();
-
-            // Esperar a que Quill esté cargado
-            esperarPorQuill(function () {
-                // Inicializar el editor
-                inicializarEditorOtroArchivo();
-
-                // Cargar plantilla actual
-                cargarPlantillaOtroArchivo();
-            });
-            cargarTiposOtrosArchivosSelect();
-        }
-
-        // Función para esperar a que Quill esté cargado
-        function esperarPorQuill(callback) {
-            if (typeof Quill !== 'undefined') {
-                quillLoaded = true;
-                callback();
-                return;
-            }
-
-            console.log("Esperando a que Quill se cargue...");
-            cargarQuillSiNoExiste();
-
-            // Usar una promesa en lugar de setInterval
-            const checkQuill = () => {
-                return new Promise((resolve, reject) => {
-                    if (typeof Quill !== 'undefined') {
-                        resolve();
-                        return;
-                    }
-
-                    const timeout = setTimeout(() => {
-                        reject(new Error('Tiempo de espera agotado para cargar Quill'));
-                    }, 5000);
-
-                    const interval = setInterval(() => {
-                        if (typeof Quill !== 'undefined') {
-                            clearInterval(interval);
-                            clearTimeout(timeout);
-                            resolve();
-                        }
-                    }, 100);
-                });
-            };
-
-            checkQuill()
-                .then(() => {
-                    quillLoaded = true;
-                    console.log("Quill ya está disponible, continuando...");
-                    callback();
-                })
-                .catch((error) => {
-                    console.error(error.message);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudo cargar el editor. Por favor, recargue la página e intente nuevamente.'
-                    });
-                });
-        }
-
-        // Función para editar una archivo existente
-        function editarOtroArchivo(id) {
-            console.log("Editando archivo ID:", id);
-
-            // Actualizar estado de los botones
-            $("#btn-lista-archivos").removeClass("btn-rojo").addClass("btn-outline-secondary");
-            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-secondary");
-            $("#btn-editar-plantilla").addClass("btn-outline-secondary").removeClass("btn-rojo");
-
-            // Mostrar la vista de edición
-            $(".vista").removeClass("active");
-            $("#vista-editar-archivo").addClass("active");
-
-            // Actualizar título
-            $("#titulo-pagina-archivo").text("Editar OtroArchivo");
-
-            // Inicializar autocomplete para clientes
-            inicializarAutocompletarClientes();
-            // Esperar a que Quill esté cargado
-            esperarPorQuill(function () {
-                // Inicializar el editor
-                inicializarEditorOtroArchivo();
-
-                // Cargar datos de la archivo
-                cargarDatosOtroArchivo(id);
-            });
-        }
-
-        // Función para editar la plantilla de archivo
-        function editarPlantillaOtroArchivo() {
-            console.log("Editando plantilla de archivo...");
-
-            // Destruir cualquier instancia existente del editor antes de continuar
-            destruirEditorPlantilla();
-
-            // Actualizar estado de los botones
-            $("#btn-lista-archivos").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla").removeClass("btn-outline-danger").addClass("btn-rojo");
-
-            // Mostrar el modal PRIMERO
-            const modal = new bootstrap.Modal(document.getElementById('editarPlantillaOtroArchivoModal'));
-            modal.show();
-
-            // Esperar a que el modal esté completamente visible
-            $('#editarPlantillaOtroArchivoModal').on('shown.bs.modal', function () {
-                // Remover el event listener para evitar múltiples ejecuciones
-                $(this).off('shown.bs.modal');
-
-                // Esperar a que Quill esté cargado
-                esperarPorQuill(function () {
-                    // Inicializar el editor PRIMERO
-                    inicializarEditorPlantilla();
-
-                    // Luego cargar los datos con un pequeño delay
-                    setTimeout(() => {
-                        cargarDatosPlantilla();
-                    }, 200);
-                });
-            });
-        }
-        // Función para inicializar el editor Quill
-        function inicializarEditorOtroArchivo() {
-            console.log("Inicializando editor Quill...");
-
-            // Verificar que el contenedor exista
-            if ($("#editor-container-archivo").length === 0) {
-                console.error("Error: No se encontró el contenedor del editor #editor-container-archivo");
-                return;
-            }
-
-            // Destruir el editor existente si hay uno
-            destruirEditor();
-
-            try {
-                // Asegurarse de que el contenedor esté vacío
-                $("#editor-container-archivo").html('');
-
-                // Inicializar Quill
-                archivoEditor = new Quill('#editor-container-archivo', {
-                    modules: {
-                        toolbar: [
-                            [{ 'font': [] }, { 'size': [] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'script': 'sub' }, { 'script': 'super' }],
-                            [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-                            [{ 'direction': 'rtl' }, { 'align': [] }],
-                            ['link', 'image', 'video'],
-                            ['clean']
-                        ]
-                    },
-                    placeholder: 'Escriba el contenido de la archivo...',
-                    theme: 'snow'
-                });
-
-                console.log("Editor Quill inicializado correctamente");
-
-                // Asignar el evento de cambio de texto solo si el editor se inicializó correctamente
-                if (archivoEditor && archivoEditor.on) {
-                    archivoEditor.on('text-change', function () {
-                        var contenidoInput = document.getElementById('contenido_archivo');
-                        if (contenidoInput) {
-                            contenidoInput.value = archivoEditor.root.innerHTML;
-                        }
-                    });
-                } else {
-                    console.error("Error: El editor Quill no se inicializó correctamente");
-                }
-            } catch (error) {
-                console.error("Error al inicializar Quill:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al inicializar el editor: ' + error.message
-                });
-            }
-        }
-        function destruirEditorPlantilla() {
-            if (templateEditor) {
-                try {
-                    // Remover todos los event listeners de manera segura
-                    if (templateEditor.off) {
-                        templateEditor.off();
-                    }
-
-                    // Limpiar el DOM de manera más segura
-                    const container = templateEditor.container;
-                    if (container && container.parentNode) {
-                        // Remover todas las toolbars relacionadas de manera segura
-                        const toolbars = container.parentNode.querySelectorAll('.ql-toolbar');
-                        toolbars.forEach(toolbar => {
-                            if (toolbar && toolbar.parentNode) {
-                                toolbar.parentNode.removeChild(toolbar);
-                            }
-                        });
-
-                        // Limpiar el contenedor
-                        if (container) {
-                            while (container.firstChild) {
-                                container.removeChild(container.firstChild);
-                            }
-                        }
-                    }
-
-                    // Limpiar el contenedor del editor con jQuery
-                    $('#editor-container-plantilla').empty();
-
-                    // Establecer la variable a null
-                    templateEditor = null;
-                } catch (error) {
-                    console.error("Error al destruir el editor de plantilla:", error);
-                    // Forzar limpieza en caso de error
-                    $('#editor-container-plantilla').empty();
-                    templateEditor = null;
-                }
-            }
-
-            // Asegúrate de que el dropdown de autocompletado esté oculto
-            if ($("#autocomplete-results").length) {
-                $("#autocomplete-results").hide();
-            }
-        }
-        function inicializarEditorPlantilla() {
-            console.log("Inicializando editor de plantilla Quill...");
-
-            // Verificar que el contenedor exista
-            if ($("#editor-container-plantilla").length === 0) {
-                console.error("Error: No se encontró el contenedor del editor #editor-container-plantilla");
-                return;
-            }
-
-            // Destruir el editor existente si hay uno
-            destruirEditorPlantilla();
-
-            try {
-                // Asegurarse de que el contenedor esté vacío de manera segura
-                $("#editor-container-plantilla").empty();
-
-                // Inicializar Quill
-                templateEditor = new Quill('#editor-container-plantilla', {
-                    modules: {
-                        toolbar: [
-                            [{ 'font': [] }, { 'size': [] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'script': 'sub' }, { 'script': 'super' }],
-                            [{ 'header': 1 }, { 'header': 2 }, 'blockquote', 'code-block'],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-                            [{ 'direction': 'rtl' }, { 'align': [] }],
-                            ['link', 'image', 'video'],
-                            ['clean']
-                        ]
-                    },
-                    placeholder: 'Escriba el contenido de la plantilla...',
-                    theme: 'snow'
-                });
-
-                console.log("Editor de plantilla Quill inicializado correctamente");
-
-                // Asignar el evento de cambio de texto usando el API moderno de Quill
-                if (templateEditor && templateEditor.on) {
-                    templateEditor.on('text-change', function () {
-                        var contenidoInput = elementoSeguro('contenido_plantilla');
-                        if (contenidoInput) {
-                            contenidoInput.value = templateEditor.root.innerHTML;
-                        }
-                    });
-
-                    // Evento cuando el editor está listo
-                    templateEditor.on('editor-change', function () {
-                        console.log("Editor de plantilla listo para recibir contenido");
-                    });
-                } else {
-                    console.error("Error: El editor de plantilla Quill no se inicializó correctamente");
-                }
-            } catch (error) {
-                console.error("Error al inicializar Quill para plantilla:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al inicializar el editor de plantilla: ' + error.message
-                });
-            }
-        }
-
-        // Reemplazar los eventos existentes del modal por estos:
-        $('#editarPlantillaOtroArchivoModal').on('hidden.bs.modal', function () {
-            console.log("Modal de plantilla cerrado, destruyendo editor");
-            destruirEditorPlantilla();
-            // Limpiar completamente el contenedor
-            $('#editor-container-plantilla').empty();
-        });
-
-        $('#editarPlantillaOtroArchivoModal').on('show.bs.modal', function () {
-            console.log("Modal de plantilla abriéndose");
-            // Asegurarse de que no haya instancias previas
-            destruirEditorPlantilla();
-        });
-        // Evento para regresar al modal de membretes después de cerrar vista previa
-        $('#previewOtroArchivoModal').on('hidden.bs.modal', function () {
-            // Verificar si venimos del modal de membretes
-            if (window.regresarAMembretes) {
-                window.regresarAMembretes = false;
-
-                // Reabrir el modal de membretes
-                setTimeout(() => {
-                    const modal = new bootstrap.Modal(document.getElementById('gestionarMembretesModal'));
-                    modal.show();
-                }, 300);
             }
         });
-        // Función para inicializar el autocomplete de clientes
-        function inicializarAutocompletarClientes() {
-            let timeoutId;
-            let currentRequest;
-
-            // Limpiar cualquier autocomplete previo
-            $("#cliente_search").off('input keyup');
-            $("#cliente_search").removeData('autocomplete-initialized');
-
-            // Crear contenedor para resultados si no existe
-            if (!$("#autocomplete-results").length) {
-                $("body").append('<div id="autocomplete-results" class="autocomplete-dropdown" style="display: none; position: absolute; z-index: 9999; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto;"></div>');
-            }
-
-            const $input = $("#cliente_search");
-            const $results = $("#autocomplete-results");
-
-            // Función para buscar clientes
-            function buscarClientes(query) {
-                // Cancelar petición anterior si existe
-                if (currentRequest) {
-                    currentRequest.abort();
-                }
-
-                if (query.length < 2) {
-                    $results.hide();
-                    return;
-                }
-
-                currentRequest = $.ajax({
-                    url: _URL + "/ajs/buscar/cliente/datos",
-                    method: "GET",
-                    data: { term: query },
-                    dataType: 'json',
-                    success: function (data) {
-                        mostrarResultados(data);
-                    },
-                    error: function (xhr) {
-                        if (xhr.statusText !== 'abort') {
-                            console.error("Error en búsqueda de clientes:", xhr);
-                        }
-                    },
-                    complete: function () {
-                        currentRequest = null;
-                    }
-                });
-            }
-
-            // Función para mostrar resultados
-            function mostrarResultados(items) {
-                $results.empty();
-
-                if (!items || items.length === 0) {
-                    $results.hide();
-                    return;
-                }
-
-                items.forEach(function (item) {
-                    const $item = $('<div class="autocomplete-item" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;">')
-                        .html('<strong>' + item.documento + '</strong> | ' + item.datos)
-                        .on('click', function () {
-                            seleccionarCliente(item);
-                        })
-                        .on('mouseenter', function () {
-                            $(this).css('background-color', '#f5f5f5');
-                        })
-                        .on('mouseleave', function () {
-                            $(this).css('background-color', 'white');
-                        });
-
-                    $results.append($item);
-                });
-
-                // Posicionar el dropdown
-                const inputOffset = $input.offset();
-                $results.css({
-                    top: inputOffset.top + $input.outerHeight(),
-                    left: inputOffset.left,
-                    width: $input.outerWidth(),
-                    display: 'block'
-                });
-            }
-
-            // Función para seleccionar cliente
-            function seleccionarCliente(item) {
-                $("#cliente_id").val(item.codigo);
-                $("#cliente_nombre").text(item.datos);
-                $("#cliente_documento").text("Documento: " + item.documento);
-                $("#cliente_direccion").text("Dirección: " + (item.direccion || "No especificada"));
-                $("#cliente_info").show();
-                $input.val(item.datos);
-                $results.hide();
-            }
-
-            // Event listeners
-            $input.on('input', function () {
-                const query = $(this).val().trim();
-
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(function () {
-                    buscarClientes(query);
-                }, 300);
-            });
-
-            $input.on('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    $results.hide();
-                }
-            });
-
-            $input.on('blur', function () {
-                // Delay para permitir clicks en resultados
-                setTimeout(function () {
-                    $results.hide();
-                }, 200);
-            });
-
-            // Botón de búsqueda
-            $("#btn-search-cliente").off('click').on("click", function () {
-                const query = $input.val().trim();
-                if (query === "") {
-                    $("#cliente_id").val("");
-                    $("#cliente_info").hide();
-                    $results.hide();
-                } else {
-                    buscarClientes(query);
-                }
-            });
-
-            // Marcar como inicializado
-            $input.data('autocomplete-initialized', true);
-        }
-        function elementoSeguro(id) {
-            const elemento = document.getElementById(id);
-            if (!elemento) {
-                console.warn(`Elemento con ID '${id}' no encontrado en el DOM`);
-                return null;
-            }
-            return elemento;
-        }
-        function cargarPlantillaOtroArchivo() {
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/obtener-template",
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.data) {
-                        plantillaActual = data.data;
-
-                        // Establecer contenido predeterminado basado en la plantilla
-                        if (archivoEditor) {
-                            archivoEditor.root.innerHTML = plantillaActual.contenido;
-                            const contenidoInput = elementoSeguro('contenido_archivo');
-                            if (contenidoInput) {
-                                contenidoInput.value = plantillaActual.contenido;
-                            }
-                        }
-
-                        // Usar la función segura para todos los elementos
-                        const headerPreview = elementoSeguro('header-preview-archivo');
-                        const footerPreview = elementoSeguro('footer-preview-archivo');
-                        const headerPlaceholder = elementoSeguro('header-placeholder-archivo');
-                        const footerPlaceholder = elementoSeguro('footer-placeholder-archivo');
-
-                        // Mostrar imágenes solo si los elementos existen
-                        if (plantillaActual.header_image_url && headerPreview && headerPlaceholder) {
-                            headerPreview.src = plantillaActual.header_image_url;
-                            headerPreview.style.display = 'block';
-                            headerPlaceholder.style.display = 'none';
-                        }
-
-                        if (plantillaActual.footer_image_url && footerPreview && footerPlaceholder) {
-                            footerPreview.src = plantillaActual.footer_image_url;
-                            footerPreview.style.display = 'block';
-                            footerPlaceholder.style.display = 'none';
-                        }
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al cargar la plantilla:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al cargar la plantilla de archivo'
-                    });
-                }
-            });
-        }
-        function cargarDatosPlantilla() {
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/obtener-template",
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.data) {
-                        plantillaActual = data.data;
-
-                        // Llenar formulario usando elementos seguros
-                        const idPlantilla = elementoSeguro('id_plantilla_archivo');
-                        const tituloPlantilla = elementoSeguro('titulo_plantilla');
-                        const headerImageData = elementoSeguro('plantilla_header_image_data');
-                        const footerImageData = elementoSeguro('plantilla_footer_image_data');
-
-                        if (idPlantilla) idPlantilla.value = plantillaActual.id;
-                        if (tituloPlantilla) tituloPlantilla.value = plantillaActual.titulo;
-                        if (headerImageData) headerImageData.value = plantillaActual.header_image || '';
-                        if (footerImageData) footerImageData.value = plantillaActual.footer_image || '';
-
-                        // Verificar elementos de vista previa
-                        const headerPreview = elementoSeguro('plantilla-header-preview');
-                        const footerPreview = elementoSeguro('plantilla-footer-preview');
-                        const headerPlaceholder = elementoSeguro('header-placeholder-plantilla');
-                        const footerPlaceholder = elementoSeguro('footer-placeholder-plantilla');
-
-                        // Mostrar imágenes si existen los elementos
-                        if (plantillaActual.header_image_url && headerPreview && headerPlaceholder) {
-                            headerPreview.src = plantillaActual.header_image_url;
-                            headerPreview.style.display = 'block';
-                            headerPlaceholder.style.display = 'none';
-                        }
-
-                        if (plantillaActual.footer_image_url && footerPreview && footerPlaceholder) {
-                            footerPreview.src = plantillaActual.footer_image_url;
-                            footerPreview.style.display = 'block';
-                            footerPlaceholder.style.display = 'none';
-                        }
-
-                        // CRÍTICO: Establecer contenido en el editor con verificación
-                        if (templateEditor && templateEditor.root) {
-                            // Verificar que el editor esté completamente inicializado
-                            const checkEditorReady = () => {
-                                if (templateEditor.root && templateEditor.root.innerHTML !== undefined) {
-                                    templateEditor.root.innerHTML = plantillaActual.contenido;
-                                    const contenidoInput = elementoSeguro('contenido_plantilla');
-                                    if (contenidoInput) {
-                                        contenidoInput.value = plantillaActual.contenido;
-                                    }
-                                    console.log("Contenido establecido en el editor:", plantillaActual.contenido.substring(0, 100) + "...");
-                                } else {
-                                    // Si el editor no está listo, esperar un poco más
-                                    setTimeout(checkEditorReady, 100);
-                                }
-                            };
-
-                            checkEditorReady();
-                        } else {
-                            console.warn("Editor de plantilla no está inicializado al cargar datos");
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.error || 'Error al cargar la plantilla'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al cargar la plantilla'
-                    });
-                }
-            });
-        }
-        function manejarCambioImagen(event, inputId, previewId, placeholderId) {
-            const file = event.target.files[0];
-
-            if (file) {
-                const reader = new FileReader();
-
-                reader.onload = function (e) {
-                    // Actualizar el campo oculto
-                    const hiddenInput = document.getElementById(inputId);
-                    if (hiddenInput) {
-                        hiddenInput.value = e.target.result;
-                    }
-
-                    // Actualizar la vista previa
-                    const previewImg = document.getElementById(previewId);
-                    const placeholder = document.getElementById(placeholderId);
-
-                    if (previewImg) {
-                        previewImg.src = e.target.result;
-                        previewImg.style.display = 'block';
-                    }
-
-                    if (placeholder) {
-                        placeholder.style.display = 'none';
-                    }
-
-                    console.log('Imagen cargada correctamente:', inputId);
-                };
-
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Función para restablecer imagen
-        function restablecerImagen(inputId, previewId, placeholderId) {
-            document.getElementById(inputId).value = '';
-            document.getElementById(previewId).style.display = 'none';
-
-            if (placeholderId) {
-                document.getElementById(placeholderId).style.display = 'block';
-            }
-        }
-
-        // Función para cargar datos de una archivo
-        function cargarDatosOtroArchivo(id) {
-            const formData = new FormData();
-            formData.append('id', id);
-
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/getOne",
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.data) {
-                        archivoActual = data.data;
-
-                        // Llenar formulario
-                        document.getElementById('id_archivo').value = archivoActual.id;
-                        document.getElementById('cliente_id').value = archivoActual.id_cliente || '';
-                        // Si hay un cliente seleccionado, mostrar su información
-                        if (archivoActual.id_cliente && archivoActual.cliente_nombre) {
-                            $("#cliente_search").val(archivoActual.cliente_nombre);
-                            $("#cliente_nombre").text(archivoActual.cliente_nombre);
-                            $("#cliente_documento").text("Documento: " + (archivoActual.cliente_documento || ""));
-                            $("#cliente_direccion").text("Dirección: " + (archivoActual.cliente_direccion || "No especificada"));
-                            $("#cliente_info").show();
-                        }
-                        cargarTiposOtrosArchivosSelect(archivoActual.tipo || '');
-                        document.getElementById('titulo_archivo').value = archivoActual.titulo;
-                        document.getElementById('motivo_archivo').value = archivoActual.motivo || '';
-                        document.getElementById('header_image_data').value = archivoActual.header_image || '';
-                        document.getElementById('footer_image_data').value = archivoActual.footer_image || '';
-
-                        // Mostrar imágenes si existen
-                        if (archivoActual.header_image_url) {
-                            document.getElementById('header-preview-archivo').src = archivoActual.header_image_url;
-                            document.getElementById('header-preview-archivo').style.display = 'block';
-                            document.getElementById('header-placeholder-archivo').style.display = 'none';
-                        }
-
-                        if (archivoActual.footer_image_url) {
-                            document.getElementById('footer-preview-archivo').src = archivoActual.footer_image_url;
-                            document.getElementById('footer-preview-archivo').style.display = 'block';
-                            document.getElementById('footer-placeholder-archivo').style.display = 'none';
-                        }
-
-                        // Establecer contenido en el editor
-                        if (archivoEditor) {
-                            archivoEditor.root.innerHTML = archivoActual.contenido;
-                            document.getElementById('contenido_archivo').value = archivoActual.contenido;
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.error || 'Error al cargar la archivo'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al cargar la archivo'
-                    });
-                }
-            });
-        }
-
-        // Función para guardar archivo
-        function guardarOtroArchivo() {
-            // Validar formulario
-            const titulo = document.getElementById('titulo_archivo').value.trim();
-            const contenido = document.getElementById('contenido_archivo').value.trim();
-            const tipo = document.getElementById('tipo_archivo').value.trim();
-
-            if (!titulo) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El título es obligatorio'
-                });
-                return;
-            }
-
-            if (!contenido) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El contenido es obligatorio'
-                });
-                return;
-            }
-
-            // Recopilar datos del formulario
-            const formData = new FormData(document.getElementById('formOtroArchivo'));
-
-            // Asegurarse de que el contenido esté incluido
-            formData.set('contenido', contenido);
-
-            // Determinar si es inserción o edición
-            const archivoId = document.getElementById('id_archivo').value;
-            let url = _URL + '/ajs/otro-archivo/insertar';
-
-            if (archivoId) {
-                url = _URL + '/ajs/otro-archivo/editar';
-            }
-
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Guardando',
-                text: 'Guardando archivo...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Enviar datos al servidor
-            $.ajax({
-                url: url,
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Éxito',
-                            text: data.msg
-                        }).then(() => {
-                            // Volver a la lista de archivos
-                            mostrarVistaListaOtrosArchivos();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.msg || 'Error al guardar la archivo'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al guardar la archivo'
-                    });
-                }
-            });
-        }
-
-        // Función para guardar plantilla
-        function guardarPlantilla() {
-            // Validar formulario
-            const titulo = document.getElementById('titulo_plantilla').value.trim();
-            const contenido = document.getElementById('contenido_plantilla').value.trim();
-
-            if (!titulo) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El título es obligatorio'
-                });
-                return;
-            }
-
-            if (!contenido) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El contenido es obligatorio'
-                });
-                return;
-            }
-
-            // Recopilar datos del formulario
-            const formData = new FormData(document.getElementById('formPlantillaOtroArchivo'));
-
-            // Asegurarse de que el contenido esté incluido
-            formData.set('contenido', contenido);
-
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Guardando',
-                text: 'Guardando plantilla...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Enviar datos al servidor
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/guardar-template",
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Éxito',
-                            text: data.mensaje || 'Plantilla guardada correctamente'
-                        }).then(() => {
-                            // Cerrar modal
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('editarPlantillaOtroArchivoModal'));
-                            modal.hide();
-
-                            // Actualizar estado de los botones
-                            $("#btn-lista-archivos").addClass("btn-rojo").removeClass("btn-outline-secondary");
-                            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-secondary");
-                            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-secondary");
-
-                            // Recargar archivos
-                            mostrarVistaListaOtrosArchivos();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.msg || 'Error al guardar la plantilla'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al guardar la plantilla'
-                    });
-                }
-            });
-        }
-
-        // Función para mostrar la vista previa de una archivo
-        function mostrarVistaPreviaOtroArchivo() {
-            // Validar que haya contenido
-            const contenido = document.getElementById('contenido_archivo').value.trim();
-
-            if (!contenido) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Debe ingresar contenido para la vista previa'
-                });
-                return;
-            }
-
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Generando vista previa',
-                text: 'Por favor espere...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Recopilar datos para la vista previa
-            const formData = new FormData();
-            formData.append('titulo', document.getElementById('titulo_archivo').value.trim());
-            formData.append('contenido', contenido);
-            formData.append('header_image', document.getElementById('header_image_data').value);
-            formData.append('footer_image', document.getElementById('footer_image_data').value);
-
-            // Enviar solicitud para generar vista previa
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/vista-previa",
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    Swal.close();
-
-                    if (data.success && data.pdfBase64) {
-                        // Mostrar la vista previa en el iframe
-                        document.getElementById('preview-frame-archivo').src = "data:application/pdf;base64," + data.pdfBase64;
-
-                        // Mostrar el modal
-                        const modal = new bootstrap.Modal(document.getElementById('previewOtroArchivoModal'));
-                        modal.show();
-
-                        // Configurar el botón de descarga
-                        document.getElementById('btn-download-pdf').onclick = function () {
-                            const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'archivo_' + new Date().getTime() + '.pdf';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                        };
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.msg || 'Error al generar la vista previa'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al generar la vista previa'
-                    });
-                }
-            });
-        }
-        function mostrarVistaPreviewPlantilla() {
-            // CERRAR el modal de edición de plantilla PRIMERO
-            const modalPlantilla = bootstrap.Modal.getInstance(document.getElementById('editarPlantillaOtroArchivoModal'));
-            if (modalPlantilla) {
-                modalPlantilla.hide();
-            }
-
-            // Esperar a que el modal se cierre completamente
-            $('#editarPlantillaOtroArchivoModal').on('hidden.bs.modal', function () {
-                $(this).off('hidden.bs.modal');
-
-                // Obtener contenido ACTUAL del editor
-                let contenidoActual = '';
-                let tituloActual = 'Vista Previa de Plantilla';
-
-                if (templateEditor && templateEditor.root) {
-                    contenidoActual = templateEditor.root.innerHTML;
-                }
-
-                const tituloInput = elementoSeguro('titulo_plantilla');
-                if (tituloInput && tituloInput.value.trim()) {
-                    tituloActual = tituloInput.value.trim();
-                }
-
-                // Mostrar indicador de carga
-                Swal.fire({
-                    title: 'Generando vista previa',
-                    text: 'Por favor espere...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                $.ajax({
-                    url: _URL + "/ajs/otro-archivo/vista-previa",
-                    method: "POST",
-                    data: {
-                        titulo: tituloActual,
-                        contenido: contenidoActual
-                    },
-                    dataType: 'json',
-                    success: function (data) {
-                        Swal.close();
-
-                        if (data.success && data.pdfBase64) {
-                            document.getElementById('preview-frame-archivo').src = "data:application/pdf;base64," + data.pdfBase64;
-                            const modal = new bootstrap.Modal(document.getElementById('previewOtroArchivoModal'));
-                            modal.show();
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: data.msg || 'Error al generar la vista previa'
-                            });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        Swal.close();
-                        console.error("Error en vista previa:", status, error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Error al generar la vista previa'
-                        });
-                    }
-                });
-            });
-        }
-
-        // Función para convertir base64 a Blob
-        function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
-            const byteCharacters = atob(b64Data);
-            const byteArrays = [];
-
-            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-                const slice = byteCharacters.slice(offset, offset + sliceSize);
-                const byteNumbers = new Array(slice.length);
-
-                for (let i = 0; i < slice.length; i++) {
-                    byteNumbers[i] = slice.charCodeAt(i);
-                }
-
-                const byteArray = new Uint8Array(byteNumbers);
-                byteArrays.push(byteArray);
-            }
-
-            const blob = new Blob(byteArrays, { type: contentType });
-            return blob;
-        }
-
-        // Función para eliminar una archivo
-        function eliminarOtroArchivo(id) {
-            // Mostrar indicador de carga
-            $("#btn-confirmar-eliminar-archivo").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...').prop('disabled', true);
-
-            const formData = new FormData();
-            formData.append('id', id);
-
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/borrar",
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    // Cerrar el modal
-                    $('#confirmarEliminarOtroArchivoModal').modal('hide');
-
-                    if (data.res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Éxito',
-                            text: data.msg
-                        }).then(() => {
-                            cargarOtrosArchivos();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.msg || 'Error al eliminar la archivo'
-                        });
-                    }
-
-                    // Restaurar el botón
-                    $("#btn-confirmar-eliminar-archivo").html('Eliminar').prop('disabled', false);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-
-                    // Cerrar el modal
-                    $('#confirmarEliminarOtroArchivoModal').modal('hide');
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al eliminar la archivo'
-                    });
-
-                    // Restaurar el botón
-                    $("#btn-confirmar-eliminar-archivo").html('Eliminar').prop('disabled', false);
-                }
-            });
-        }
-        // Función para gestionar membretes
-        function gestionarMembretes() {
-            console.log("Gestionando membretes...");
-
-            // Actualizar estado de los botones
-            $("#btn-lista-archivos").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-danger");
-            $("#btn-gestionar-membretes").removeClass("btn-outline-warning").addClass("btn-warning");
-
-            // Cargar datos actuales de membretes
-            cargarDatosMembretes();
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('gestionarMembretesModal'));
-            modal.show();
-        }
-
-        // Función para cargar datos de membretes
-        function cargarDatosMembretes() {
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/obtener-membretes",
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.data) {
-                        const membretes = data.data;
-
-                        // Llenar campos ocultos
-                        document.getElementById('membrete_header_image_data').value = membretes.header_image || '';
-                        document.getElementById('membrete_footer_image_data').value = membretes.footer_image || '';
-
-                        // Mostrar imágenes si existen
-                        if (membretes.header_image_url) {
-                            document.getElementById('membrete-header-preview').src = membretes.header_image_url;
-                            document.getElementById('membrete-header-preview').style.display = 'block';
-                            document.getElementById('header-placeholder-membrete').style.display = 'none';
-                        } else {
-                            document.getElementById('membrete-header-preview').style.display = 'none';
-                            document.getElementById('header-placeholder-membrete').style.display = 'block';
-                        }
-
-                        if (membretes.footer_image_url) {
-                            document.getElementById('membrete-footer-preview').src = membretes.footer_image_url;
-                            document.getElementById('membrete-footer-preview').style.display = 'block';
-                            document.getElementById('footer-placeholder-membrete').style.display = 'none';
-                        } else {
-                            document.getElementById('membrete-footer-preview').style.display = 'none';
-                            document.getElementById('footer-placeholder-membrete').style.display = 'block';
-                        }
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al cargar membretes:", status, error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al cargar los membretes'
-                    });
-                }
-            });
-        }
-
-        function guardarMembretes() {
-            // Recopilar datos del formulario
-            const formData = new FormData(document.getElementById('formMembretes'));
-
-            // Agregar archivos de imagen si existen
-            const headerFile = document.getElementById('membrete_header_image').files[0];
-            const footerFile = document.getElementById('membrete_footer_image').files[0];
-
-            if (headerFile) {
-                formData.append('header_image_file', headerFile);
-                console.log('Archivo de cabecera agregado:', headerFile.name);
-            }
-
-            if (footerFile) {
-                formData.append('footer_image_file', footerFile);
-                console.log('Archivo de pie agregado:', footerFile.name);
-            }
-
-            // Agregar datos base64 si existen
-            const headerData = document.getElementById('membrete_header_image_data').value;
-            const footerData = document.getElementById('membrete_footer_image_data').value;
-
-            if (headerData && headerData.trim() !== '') {
-                formData.append('header_image', headerData);
-                console.log('Datos base64 de cabecera agregados');
-            }
-
-            if (footerData && footerData.trim() !== '') {
-                formData.append('footer_image', footerData);
-                console.log('Datos base64 de pie agregados');
-            }
-
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Guardando',
-                text: 'Guardando membretes...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Enviar datos al servidor
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/guardar-membretes",
-                method: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (data) {
-                    console.log('Respuesta del servidor:', data);
-
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Éxito',
-                            text: data.mensaje || 'Membretes guardados correctamente'
-                        }).then(() => {
-                            // Cerrar modal
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('gestionarMembretesModal'));
-                            modal.hide();
-
-                            // Restaurar estado de botones
-                            $("#btn-lista-archivos").addClass("btn-rojo").removeClass("btn-outline-danger");
-                            $("#btn-nueva-archivo").removeClass("btn-rojo").addClass("btn-outline-danger");
-                            $("#btn-editar-plantilla").removeClass("btn-rojo").addClass("btn-outline-danger");
-                            $("#btn-gestionar-membretes").removeClass("bg-rojo text-white").addClass("btn-outline-warning");
-
-                            // Volver a la lista
-                            mostrarVistaListaOtrosArchivos();
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.msg || 'Error al guardar los membretes'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error en la solicitud:", status, error);
-                    console.error("Respuesta del servidor:", xhr.responseText);
-
-                    // Intentar parsear la respuesta para más detalles
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        console.error("Error detallado:", response);
-                    } catch (e) {
-                        console.error("No se pudo parsear la respuesta de error");
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error de conexión al guardar los membretes'
-                    });
-                }
-            });
-        }
-        // Función para abrir el modal de tipos
-        function abrirModalTiposOtrosArchivos() {
-            cargarTiposOtrosArchivosModal();
-            $('#gestionarTiposOtroArchivoModal').modal('show');
-        }
-
-        // Función para cargar tipos de archivo en el select
-        function cargarTiposOtrosArchivosSelect(tipoSeleccionado = '') {
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/obtener-tipos-archivos",
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.tipos) {
-                        let options = '<option value="">Seleccione un tipo</option>';
-                        data.tipos.forEach(function (tipo) {
-                            const selected = tipo.nombre === tipoSeleccionado ? 'selected' : '';
-                            options += `<option value="${tipo.nombre}" ${selected}>${tipo.nombre}</option>`;
-                        });
-                        $("#tipo_archivo").html(options);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al cargar tipos:", error);
-                }
-            });
-        }
-
-        // Función para cargar tipos en el modal
-        function cargarTiposOtrosArchivosModal() {
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/obtener-tipos-archivos",
-                method: "GET",
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success && data.tipos) {
-                        let html = '';
-                        data.tipos.forEach(function (tipo) {
-                            html += `
-                        <tr>
-                            <td>${tipo.nombre}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTipoOtroArchivo(${tipo.id}, '${tipo.nombre}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarTipoOtroArchivo(${tipo.id}, '${tipo.nombre}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                        });
-                        $("#lista-tipos-archivo").html(html);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error al cargar tipos:", error);
-                }
-            });
-        }
-
-        // Función para agregar nuevo tipo
-        function agregarTipoOtroArchivo() {
-            const nombre = $("#nuevo-tipo-archivo-nombre").val().trim();
-
-            if (!nombre) {
-                Swal.fire('Error', 'El nombre es obligatorio', 'error');
-                return;
-            }
-
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/insertar-tipo-archivo",
-                method: "POST",
-                data: {
-                    nombre: nombre
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success) {
-                        Swal.fire('Éxito', data.msg, 'success');
-                        $("#nuevo-tipo-archivo-nombre").val('');
-                        cargarTiposOtrosArchivosModal();
-                        cargarTiposOtrosArchivosSelect(); // Actualizar el select también
-                    } else {
-                        Swal.fire('Error', data.msg, 'error');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-                }
-            });
-        }
-
-        // Función para editar tipo
-        function editarTipoOtroArchivo(id, nombre) {
-            $("#editar-tipo-archivo-id").val(id);
-            $("#editar-tipo-archivo-nombre").val(nombre);
-            $("#editarTipoOtroArchivoModal").modal('show');
-        }
-
-        // Función para guardar tipo editado
-        function guardarTipoOtroArchivoEditado() {
-            const id = $("#editar-tipo-archivo-id").val();
-            const nombre = $("#editar-tipo-archivo-nombre").val().trim();
-
-            if (!nombre) {
-                Swal.fire('Error', 'El nombre es obligatorio', 'error');
-                return;
-            }
-
-            $.ajax({
-                url: _URL + "/ajs/otro-archivo/editar-tipo-archivo",
-                method: "POST",
-                data: {
-                    id: id,
-                    nombre: nombre
-                },
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success) {
-                        Swal.fire('Éxito', data.msg, 'success');
-                        $("#editarTipoOtroArchivoModal").modal('hide');
-                        cargarTiposOtrosArchivosModal();
-                        cargarTiposOtrosArchivosSelect(); // Actualizar el select también
-                    } else {
-                        Swal.fire('Error', data.msg, 'error');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-                }
-            });
-        }
-
-        // Función para eliminar tipo
-        function eliminarTipoOtroArchivo(id, nombre) {
-            Swal.fire({
-                title: '¿Está seguro?',
-                text: `¿Desea eliminar el tipo "${nombre}"?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: _URL + "/ajs/otro-archivo/eliminar-tipo-archivo",
-                        method: "POST",
-                        data: { id: id },
-                        dataType: 'json',
-                        success: function (data) {
-                            if (data.success) {
-                                Swal.fire('Eliminado', data.msg, 'success');
-                                cargarTiposOtrosArchivosModal();
-                                cargarTiposOtrosArchivosSelect(); // Actualizar el select también
-                            } else {
-                                Swal.fire('Error', data.msg, 'error');
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-                        }
-                    });
-                }
-            });
-        }
-        // Agregar a las funciones globales
-        window.gestionarMembretes = gestionarMembretes;
-
-        // Exponer algunas funciones al ámbito global para poder llamarlas desde HTML
-        window.recargarOtrosArchivos = cargarOtrosArchivos;
-        window.editarOtroArchivo = editarOtroArchivo;
-        window.eliminarOtroArchivo = eliminarOtroArchivo;
-        window.editarPlantillaOtroArchivo = editarPlantillaOtroArchivo;
-        window.mostrarFormularioNuevoOtroArchivo = mostrarFormularioNuevoOtroArchivo;
-        window.mostrarVistaListaOtrosArchivos = mostrarVistaListaOtrosArchivos;
-        window.mostrarVistaPreviewPlantilla = mostrarVistaPreviewPlantilla;
-        window.mostrarVistaPreviewMembretes = mostrarVistaPreviewMembretes;
-        window.abrirModalTiposOtrosArchivos = abrirModalTiposOtrosArchivos;
-        window.agregarTipoOtroArchivo = agregarTipoOtroArchivo;
-        window.editarTipoOtroArchivo = editarTipoOtroArchivo;
-        window.guardarTipoOtroArchivoEditado = guardarTipoOtroArchivoEditado;
-        window.eliminarTipoOtroArchivo = eliminarTipoOtroArchivo;
-    })();
+    }
 </script>

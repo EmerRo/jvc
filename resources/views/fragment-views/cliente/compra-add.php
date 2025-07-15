@@ -322,14 +322,14 @@
                                                                                 <label
                                                                                     class="form-label w-100">Serie</label>
                                                                                 <input v-model="venta.serie" type="text"
-                                                                                    class="form-control text-center">
+                                                                                    class="form-control text-center" readonly>
                                                                             </div>
                                                                             <div class="col-md-6 text-center">
                                                                                 <label
                                                                                     class="form-label w-100">Numero</label>
                                                                                 <input v-model="venta.numero"
                                                                                     type="text"
-                                                                                    class="form-control text-center">
+                                                                                    class="form-control text-center" readonly>
                                                                             </div>
                                                                         </div>
                                                                         <div class="row mt-2">
@@ -697,7 +697,7 @@
                 productoInfo: [],
                 venta: {
                     dir_pos: 1,
-                    tipo_doc: '2',
+                    tipo_doc: '12', // Cambiar por defecto a NOTA DE COMPRA
                     serie: '',
                     numero: '',
                     tipo_pago: '1',
@@ -722,9 +722,37 @@
             created() {
                 // Establecer la fecha actual y la fecha de vencimiento al cargar el componente
                 this.setDefaultDates();
+                // Cargar automáticamente serie y número
+                this.cargarSerieNumero();
             },
 
             methods: {
+                // NUEVO MÉTODO: Cargar serie y número automáticamente
+                cargarSerieNumero() {
+                    $.ajax({
+                        type: 'GET',
+                        url: _URL + '/ajs/compra/serie-numero',
+                        success: (response) => {
+                            const data = JSON.parse(response);
+                            if (data.success) {
+                                this.venta.serie = data.serie;
+                                this.venta.numero = data.numero;
+                                console.log(`Serie y número cargados: ${data.serie} - ${data.numero}`);
+                            } else {
+                                console.error('Error al cargar serie y número:', data.message);
+                                // Valores por defecto si hay error
+                                this.venta.serie = 'OC';
+                                this.venta.numero = '001';
+                            }
+                        },
+                        error: (xhr, status, error) => {
+                            console.error('Error AJAX al cargar serie y número:', error);
+                            // Valores por defecto si hay error
+                            this.venta.serie = 'OC';
+                            this.venta.numero = '001';
+                        }
+                    });
+                },
 
                 generarCuotas() {
                     const numCuotas = parseInt(this.numeroCuotas) || 1;
@@ -1302,7 +1330,8 @@
                     )*/
                 },
                 onChangeTiDoc(event) {
-                    this.buscarSNdoc();
+                    // Cuando cambie el tipo de documento, recargar serie y número
+                    this.cargarSerieNumero();
                 },
                 limpiasDatos() {
                     const tipo = this.producto.tipo;  // Guardar el tipo actual

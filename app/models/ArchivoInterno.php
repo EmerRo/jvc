@@ -20,6 +20,8 @@ class ArchivoInterno
     private $lastError = '';
     // Datos adicionales para mostrar
     private $cliente_nombre;
+    private $cliente_documento;
+    private $cliente_direccion;
 
     public function __construct()
     {
@@ -66,6 +68,36 @@ class ArchivoInterno
     {
         $this->id_cliente = $id_cliente;
     }
+    public function getClienteNombre()
+    {
+        return $this->cliente_nombre;
+    }
+
+    public function setClienteNombre($cliente_nombre)
+    {
+        $this->cliente_nombre = $cliente_nombre;
+    }
+
+    public function getClienteDocumento()
+    {
+        return $this->cliente_documento;
+    }
+
+    public function setClienteDocumento($cliente_documento)
+    {
+        $this->cliente_documento = $cliente_documento;
+    }
+
+    public function getClienteDireccion()
+    {
+        return $this->cliente_direccion;
+    }
+
+    public function setClienteDireccion($cliente_direccion)
+    {
+        $this->cliente_direccion = $cliente_direccion;
+    }
+
     public function getUsuarioId()
     {
         return $this->usuario_id;
@@ -236,7 +268,10 @@ class ArchivoInterno
             $this->id = $id;
         }
 
-        $sql = "SELECT a.*, cl.datos as cliente_nombre 
+        $sql = "SELECT a.*, 
+                cl.datos as cliente_nombre, 
+                cl.documento as cliente_documento,
+                cl.direccion as cliente_direccion
                 FROM archivos_internos a
                 LEFT JOIN clientes cl ON a.id_cliente = cl.id_cliente
                 WHERE a.id = ?";
@@ -259,7 +294,9 @@ class ArchivoInterno
             $this->estado = $fila['estado'];
             $this->fecha_creacion = $fila['fecha_creacion'];
             $this->fecha_modificacion = $fila['fecha_modificacion'];
-            $this->cliente_nombre = $fila['cliente_nombre'];
+            $this->cliente_nombre = $fila['cliente_nombre'] ?? null;
+            $this->cliente_documento = $fila['cliente_documento'] ?? null;
+            $this->cliente_direccion = $fila['cliente_direccion'] ?? null;
             return true;
         }
         return false;

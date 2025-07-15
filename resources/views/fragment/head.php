@@ -1,4 +1,4 @@
-<!-- head.php -->
+<!--resources\views\fragment\head.php -->
 <?php
 $id_role = 0;
 if (isset($_SESSION['rol'])) {
@@ -38,6 +38,8 @@ $device_app = Tools::getInfoDeviceConect();
     <link rel="stylesheet" href="<?= URL::to('public/plugin/sweetalert2/sweetalert2.min.css') ?>">
 
     <link href="<?= URL::to('public/plugin/jquery-ui/jquery-ui.css') ?>?v=<?= time() ?>" rel="stylesheet" type="text/css">
+<script src="<?=URL::to('public/assets/libs/jquery/jquery.min.js') ?>?v=<?= time() ?>"> </script>
+
     <link href="<?= URL::to('public/assets/libs/%40fullcalendar/core/main.min.css') ?>" rel="stylesheet"
         type="text/css" />
     <link href="<?= URL::to('public/assets/libs/%40fullcalendar/daygrid/main.min.css') ?>" rel="stylesheet"
@@ -53,130 +55,35 @@ $device_app = Tools::getInfoDeviceConect();
         const _URL = '<?= URL::base() ?>';
     </script>
     <style>
-        @keyframes ldio-407auvblvok {
-            0% {
-                transform: rotate(0)
+        .loader-dots-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ff0000; /* Rojo */
+            margin: 0 5px;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            to {
+                transform: translateY(-10px);
             }
-
-            100% {
-                transform: rotate(360deg)
-            }
         }
-
-        .ldio-407auvblvok div {
-            box-sizing: border-box !important
-        }
-
-        .ldio-407auvblvok>div {
-            position: absolute;
-            width: 79.92px;
-            height: 79.92px;
-            top: 15.540000000000001px;
-            left: 15.540000000000001px;
-            border-radius: 50%;
-            border: 8.88px solid #000;
-            border-color: #626ed4 transparent #626ed4 transparent;
-            animation: ldio-407auvblvok 1s linear infinite;
-        }
-
-        .ldio-407auvblvok>div:nth-child(2),
-        .ldio-407auvblvok>div:nth-child(4) {
-            width: 59.940000000000005px;
-            height: 59.940000000000005px;
-            top: 25.53px;
-            left: 25.53px;
-            animation: ldio-407auvblvok 1s linear infinite reverse;
-        }
-
-        .ldio-407auvblvok>div:nth-child(2) {
-            border-color: transparent #02a499 transparent #02a499
-        }
-
-        .ldio-407auvblvok>div:nth-child(3) {
-            border-color: transparent
-        }
-
-        .ldio-407auvblvok>div:nth-child(3) div {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform: rotate(45deg);
-        }
-
-        .ldio-407auvblvok>div:nth-child(3) div:before,
-        .ldio-407auvblvok>div:nth-child(3) div:after {
-            content: "";
-            display: block;
-            position: absolute;
-            width: 8.88px;
-            height: 8.88px;
-            top: -8.88px;
-            left: 26.64px;
-            background: #626ed4;
-            border-radius: 50%;
-            box-shadow: 0 71.04px 0 0 #626ed4;
-        }
-
-        .ldio-407auvblvok>div:nth-child(3) div:after {
-            left: -8.88px;
-            top: 26.64px;
-            box-shadow: 71.04px 0 0 0 #626ed4;
-        }
-
-        .ldio-407auvblvok>div:nth-child(4) {
-            border-color: transparent;
-        }
-
-        .ldio-407auvblvok>div:nth-child(4) div {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform: rotate(45deg);
-        }
-
-        .ldio-407auvblvok>div:nth-child(4) div:before,
-        .ldio-407auvblvok>div:nth-child(4) div:after {
-            content: "";
-            display: block;
-            position: absolute;
-            width: 8.88px;
-            height: 8.88px;
-            top: -8.88px;
-            left: 16.650000000000002px;
-            background: #02a499;
-            border-radius: 50%;
-            box-shadow: 0 51.06px 0 0 #02a499;
-        }
-
-        .ldio-407auvblvok>div:nth-child(4) div:after {
-            left: -8.88px;
-            top: 16.650000000000002px;
-            box-shadow: 51.06px 0 0 0 #02a499;
-        }
-
-        .loadingio-spinner-double-ring-8kmkrab6ncg {
-            width: 111px;
-            height: 111px;
-            display: inline-block;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0);
-        }
-
-        .ldio-407auvblvok {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transform: translateZ(0) scale(1);
-            backface-visibility: hidden;
-            transform-origin: 0 0;
-            /* see note above */
-        }
-
-        .ldio-407auvblvok div {
-            box-sizing: content-box;
-        }
-
-        /* generated by https://loading.io/ */
     </style>
     <style>
          /* body {

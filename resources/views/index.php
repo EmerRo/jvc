@@ -14,13 +14,10 @@
     </div>
 </div>
 <div style="display: none" id="loader-menor">
-    <div class="loadingio-spinner-double-ring-8kmkrab6ncg">
-        <div class="ldio-407auvblvok">
-            <div></div>
-            <div></div>
-            <div><div></div></div>
-            <div><div></div></div>
-        </div>
+    <div class="loader-dots-container">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
     </div>
 </div>
 <!-- Begin page -->

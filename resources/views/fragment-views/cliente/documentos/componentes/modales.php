@@ -1,7 +1,8 @@
 <!-- resources\views\fragment-views\cliente\documentos\componentes\modales.php -->
 <!-- Modal para ver ficha técnica -->
 <div class="modal fade" id="verArchivoModal" tabindex="-1" aria-labelledby="verArchivoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+<div class="modal-dialog modal-fullscreen-lg-down modal-xl">
+
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
                 <h5 class="modal-title" id="verArchivoModalLabel">Ficha Técnica</h5>

@@ -1,4 +1,5 @@
 <?php
+require_once   'app/models/ModulosHelper.php';
 
 class UsuariosController extends Controller
 {
@@ -119,6 +120,63 @@ class UsuariosController extends Controller
         }
     }
     
+    // Nuevos métodos para manejar submodulos
+    
+    public function getModulosYSubmodulos() {
+        // Obtener todos los módulos desde el helper
+        $modulos = ModulosHelper::obtenerTodosLosModulos();
+        return json_encode($modulos);
+    }
+    
+   public function getRolPermisos() {
+    $rol_id = isset($_POST['id']) ? $_POST['id'] : null;
+    
+    if (!$rol_id) {
+        return json_encode(['error' => 'ID de rol no proporcionado']);
+    }
+    
+    try {
+        // Obtener información del rol
+        $sql = "SELECT * FROM roles WHERE rol_id = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $rol_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rol = $result->fetch_assoc();
+        
+        if (!$rol) {
+            return json_encode(['error' => 'Rol no encontrado']);
+        }
+        
+        // Obtener permisos del rol
+        $sql = "SELECT modulo_id, submodulo_id FROM rol_permisos WHERE rol_id = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $rol_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $modulos = [];
+        $submodulos = [];
+        while ($row = $result->fetch_assoc()) {
+            if ($row['submodulo_id'] === null) {
+                $modulos[] = $row['modulo_id'];
+            } else {
+                // CAMBIO AQUÍ: Formatear submódulos como "modulo_id|submodulo_id"
+                $submodulos[] = $row['modulo_id'] . '|' . $row['submodulo_id'];
+            }
+        }
+        
+        return json_encode([
+            'rol' => $rol,
+            'modulos' => $modulos,
+            'submodulos' => $submodulos
+        ]);
+    } catch (Exception $e) {
+        error_log("Error en getRolPermisos: " . $e->getMessage());
+        return json_encode(['error' => $e->getMessage()]);
+    }
+}
+
     // Método para verificar si un usuario tiene permiso para acceder a un módulo
     public function verificarPermiso($usuario_id = null, $ruta_actual = null) {
         // Si se llama desde AJAX
@@ -127,154 +185,7 @@ class UsuariosController extends Controller
             $ruta_actual = $_POST['ruta'];
         }
         
-        try {
-            // Si es administrador, siempre tiene permiso
-            $sql = "SELECT id_rol FROM usuarios WHERE usuario_id = ?";
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $usuario_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $usuario = $result->fetch_assoc();
-
-            if ($usuario['id_rol'] == 1) {
-                return json_encode(['permiso' => true]);
-            }
-
-            // Verificar si la ruta está en los módulos permitidos
-            $sql = "SELECT m.ruta 
-                    FROM modulos m 
-                    INNER JOIN rol_modulo rm ON m.modulo_id = rm.modulo_id 
-                    INNER JOIN usuarios u ON rm.rol_id = u.id_rol 
-                    WHERE u.usuario_id = ?";
-                    
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $usuario_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            while ($row = $result->fetch_assoc()) {
-                if (strpos($ruta_actual, $row['ruta']) !== false) {
-                    return json_encode(['permiso' => true]);
-                }
-            }
-            
-            // Verificar si la ruta está en los submodulos permitidos
-            $sql = "SELECT s.ruta 
-                    FROM submodulos s 
-                    INNER JOIN rol_submodulo rs ON s.submodulo_id = rs.submodulo_id 
-                    INNER JOIN usuarios u ON rs.rol_id = u.id_rol 
-                    WHERE u.usuario_id = ?";
-                    
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $usuario_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            while ($row = $result->fetch_assoc()) {
-                if (strpos($ruta_actual, $row['ruta']) !== false) {
-                    return json_encode(['permiso' => true]);
-                }
-            }
-
-            return json_encode(['permiso' => false]);
-        } catch (Exception $e) {
-            error_log("Error en verificarPermiso: " . $e->getMessage());
-            // Si hay un error, permitir el acceso pero registrar el error
-            return json_encode(['permiso' => true, 'error' => $e->getMessage()]);
-        }
-    }
-    
-    // Nuevos métodos para manejar submodulos
-    
-    public function getModulosYSubmodulos() {
-        try {
-            $sql = "SELECT 
-                        m.*,
-                        (SELECT COUNT(*) FROM submodulos WHERE modulo_id = m.modulo_id) as tiene_submodulos
-                    FROM modulos m
-                    ORDER BY m.modulo_id";
-                    
-            $result = mysqli_query($this->conectar, $sql);
-            $modulos = [];
-            
-            while ($row = mysqli_fetch_assoc($result)) {
-                // Si el módulo tiene submodulos, obtenerlos
-                if ($row['tiene_submodulos'] > 0) {
-                    $sql_sub = "SELECT * FROM submodulos WHERE modulo_id = {$row['modulo_id']} ORDER BY nombre";
-                    $result_sub = mysqli_query($this->conectar, $sql_sub);
-                    $submodulos = [];
-                    
-                    while ($sub = mysqli_fetch_assoc($result_sub)) {
-                        $submodulos[] = $sub;
-                    }
-                    
-                    $row['submodulos'] = $submodulos;
-                } else {
-                    $row['submodulos'] = [];
-                }
-                
-                unset($row['tiene_submodulos']);
-                $modulos[] = $row;
-            }
-            
-            return json_encode($modulos);
-        } catch (Exception $e) {
-            return json_encode(['error' => $e->getMessage()]);
-        }
-    }
-    
-    public function getRolPermisos() {
-        $rol_id = isset($_POST['id']) ? $_POST['id'] : null;
-        
-        if (!$rol_id) {
-            return json_encode(['error' => 'ID de rol no proporcionado']);
-        }
-        
-        try {
-            // Obtener información del rol
-            $sql = "SELECT * FROM roles WHERE rol_id = ?";
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $rol_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $rol = $result->fetch_assoc();
-            
-            if (!$rol) {
-                return json_encode(['error' => 'Rol no encontrado']);
-            }
-            
-            // Obtener módulos permitidos
-            $sql = "SELECT modulo_id FROM rol_modulo WHERE rol_id = ?";
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $rol_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            $modulos = [];
-            while ($row = $result->fetch_assoc()) {
-                $modulos[] = $row['modulo_id'];
-            }
-            
-            // Obtener submodulos permitidos
-            $sql = "SELECT submodulo_id FROM rol_submodulo WHERE rol_id = ?";
-            $stmt = $this->conectar->prepare($sql);
-            $stmt->bind_param("i", $rol_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            $submodulos = [];
-            while ($row = $result->fetch_assoc()) {
-                $submodulos[] = $row['submodulo_id'];
-            }
-            
-            return json_encode([
-                'rol' => $rol,
-                'modulos' => $modulos,
-                'submodulos' => $submodulos
-            ]);
-        } catch (Exception $e) {
-            error_log("Error en getRolPermisos: " . $e->getMessage());
-            return json_encode(['error' => $e->getMessage()]);
-        }
+        $tienePermiso = ModulosHelper::verificarPermiso($usuario_id, $ruta_actual, $this->conectar);
+        return json_encode(['permiso' => $tienePermiso]);
     }
 }

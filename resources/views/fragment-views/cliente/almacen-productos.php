@@ -7,7 +7,6 @@ $c_producto->setIdEmpresa($_SESSION['id_empresa']);
 $almacenProducto = 1;
 
 ?>
-<link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
 
 <style>
     .dt-body-left {
@@ -175,19 +174,32 @@ $almacenProducto = 1;
 
     <div class="row">
         <div class="col-12">
-            <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
+            <div class="card"
+                style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
                 <div class="card-header" style="background: #fff; border-bottom: none; padding-bottom: 0;">
                     <div class="d-flex flex-wrap justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">Lista de Productos</h4>
+                        <!-- <h4 class="card-title mb-0">Lista de Productos</h4> -->
                         <div class="text-end mt-2 mt-md-0">
-                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Descargar Exel por busqueda</button>
-                            <button data-bs-toggle="modal" data-bs-target="#importarModal" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Importar</button>
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"> </i> Aumentar Stock de Productos</button>
-                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"> </i> Unidades</a>
-                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"> </i> Categorias</a>
-                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i> Agregar Producto</button>
+                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
+                                    class="fa fa-file-excel"></i> Descargar Exel por busqueda</button>
+                            <button data-bs-toggle="modal" data-bs-target="#importarModal"
+                                class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
+                                Importar</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
+                                data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"> </i> Aumentar Stock de
+                                Productos</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
+                                data-bs-target="#modal-historial-stock"><i class="fa fa-plus"> </i> Historial
+                                Stock</button>
+                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i
+                                    class="fa fa-plus"> </i> Unidades</a>
+                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i
+                                    class="fa fa-plus"> </i> Categorias</a>
+                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i>
+                                Agregar Producto</button>
                             <button class="btn btn-danger btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
+                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
+                                Seleccionar Todos</button>
                         </div>
                     </div>
                 </div>
@@ -195,7 +207,8 @@ $almacenProducto = 1;
                     <div class="row">
                         <div class="form-group col-md-2" style="margin:  1rem 0;">
                             <label for="">Almacen</label>
-                            <select name="almacenSelect" id="almacenSelect" class="form-control" @change="changeAlmacen($event)" v-model="almacen">
+                            <select name="almacenSelect" id="almacenSelect" class="form-control"
+                                @change="changeAlmacen($event)" v-model="almacen">
                                 <option value="1">Almacen 1</option>
                                 <option value="2">Almacen 2</option>
                                 <option value="3">Almacen 3</option>
@@ -203,33 +216,40 @@ $almacenProducto = 1;
                         </div>
                         <div class="d-flex gap-3 align-items-center">
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="maquinas" name="filter" value="maquinas">
+                                <input type="checkbox" class="form-check-input filter-option" id="maquinas"
+                                    name="filter" value="maquinas">
                                 <label class="form-check-label" for="maquinas">#JVC</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="implementos" name="filter" value="implementos">
+                                <input type="checkbox" class="form-check-input filter-option" id="implementos"
+                                    name="filter" value="implementos">
                                 <label class="form-check-label" for="implementos">#IMPLE</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="cep" name="filter" value="cep">
+                                <input type="checkbox" class="form-check-input filter-option" id="cep" name="filter"
+                                    value="cep">
                                 <label class="form-check-label" for="cep">#CEP</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="pad" name="filter" value="pad">
+                                <input type="checkbox" class="form-check-input filter-option" id="pad" name="filter"
+                                    value="pad">
                                 <label class="form-check-label" for="pad">#PAD</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="port" name="filter" value="port">
+                                <input type="checkbox" class="form-check-input filter-option" id="port" name="filter"
+                                    value="port">
                                 <label class="form-check-label" for="port">#PORT</label>
                             </div>
                             <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="acc" name="filter" value="acc">
+                                <input type="checkbox" class="form-check-input filter-option" id="acc" name="filter"
+                                    value="acc">
                                 <label class="form-check-label" for="acc">#ACC</label>
                             </div>
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                             <thead class="table-light">
                                 <tr>
                                     <th>Codigo</th>
@@ -773,6 +793,62 @@ $almacenProducto = 1;
             </div>
         </div>
     </div>
+
+    <!-- Modal Historial Stock -->
+    <div class="modal fade" id="modal-historial-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-rojo text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-history me-2"></i>Historial de Stock
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Movimiento</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in historialStock" :key="item.id">
+                                    <td>{{ item.codigo }}</td>
+                                    <td>{{ item.producto_nombre }}</td>
+                                    <td>
+                                        <span class="badge"
+                                            :class="item.tipo_movimiento === 'INGRESO' ? 'bg-success' : 'bg-danger'">
+                                            {{ item.tipo_movimiento }}
+                                        </span>
+                                    </td>
+                                    <td>{{ item.cantidad }}</td>
+                                    <td>{{ formatearFecha(item.fecha_movimiento) }}</td>
+                                    <td>{{ item.usuario }}</td>
+                                </tr>
+                                <tr v-if="historialStock.length === 0">
+                                    <td colspan="6" class="text-center text-muted">No hay movimientos registrados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa fa-times me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal Aumentar Stock de Productos -->
     <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
@@ -1347,6 +1423,8 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     cantidad_ingresar: '',
                     producto_nombre: ''
                 },
+
+                historialStock: [],
             },
             methods: {
                 agregarPrecio() {
@@ -1627,6 +1705,26 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         }
                     )
                 },
+                cargarHistorialStock() {
+                    _ajax("/ajs/data/producto/historial/stock", "POST", {}, function (resp) {
+                        if (resp.res) {
+                            app._data.historialStock = resp.data;
+                        } else {
+                            alertAdvertencia("Error al cargar el historial");
+                        }
+                    });
+                },
+
+                formatearFecha(fecha) {
+                    const date = new Date(fecha);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                },
+
+                formatearFecha(fecha) {
+                    const date = new Date(fecha);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                },
+
                 actualizarProd() {
                     let formData = new FormData();
 
@@ -2058,8 +2156,18 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 $('.ui-autocomplete').hide();
             }
         });
+
+
         // Agregar después de la configuración del autocomplete
         $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
+
+            $('#modal-historial-stock').on('hidden.bs.modal', function () {
+                $('#buscar-producto-historial').val('');
+                $('.ui-autocomplete').hide();
+                app._data.historialData.producto_id = '';
+                app._data.historialStock = [];
+            });
+
             // Limpiar el autocomplete cuando se cierre el modal
             $('#buscar-producto-stock').val('');
             $('.ui-autocomplete').hide();
@@ -2073,11 +2181,14 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             };
         });
 
-        // Limpiar autocomplete cuando se abra el modal
-        $('#modal-aumentar-stock').on('shown.bs.modal', function () {
-            $('.ui-autocomplete').hide();
-            $('#buscar-producto-stock').focus();
+        $('#modal-historial-stock').on('shown.bs.modal', function () {
+            app.cargarHistorialStock(); // Cargar historial al abrir
         });
+
+        $('#modal-historial-stock').on('hidden.bs.modal', function () {
+            app._data.historialStock = [];
+        });
+
 
 
 

@@ -213,7 +213,7 @@
         // Editar Unidad
         $("#tabla_clientes").on("click", ".btnEditar", function(event) {
             let id = $(this).data('id');
-            $.post(__URL + "/ajs/getOne/unidades/rep", {
+            $.post(_URL + "/ajs/getOne/unidades/rep", {
                 id: id
             }, function(data, textStatus, jqXHR) {
                 let resp = JSON.parse(data);
@@ -228,7 +228,7 @@
 
         // Actualizar Unidad
         $('#updateUnidadBtn').click(function() {
-            $.post(__URL + "/ajs/update/unidades/rep", {
+            $.post(_URL + "/ajs/update/unidades/rep", {
                 nombre: $('#nombreUnidadU').val(), // Corregido "nombreUnidadU"
                 id: $('#idUniU').val()
             }, function(data, textStatus, jqXHR) {
