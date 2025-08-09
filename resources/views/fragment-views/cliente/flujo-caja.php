@@ -111,19 +111,26 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                                             <th>Salida</th>
                                             <th>Metodo</th>
                                             <th>Documento</th>
+                                            <th>Acciones</th>
 
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr v-for="(item,index) in listaCajaChic">
-                                            <th>{{index+1}}</th>
-                                            <th>{{item.detalle}}</th>
-                                            <th>{{item.hora}}</th>
-                                            <th>{{item.entrada==0?'-':item.entrada}}</th>
-                                            <th>{{item.salida==0?'-':item.salida}}</th>
-                                            <th>{{item.metodo==1?'EFECTIVO':item.metodo==2?
-                                                'TARJETAS':item.metodo==3?'TRANSFERENCIAS' : ''}}</th>
-                                            <th>{{item.documento || '-'}}</th>
+                                            <td>{{index+1}}</td>
+                                            <td>{{item.detalle}}</td>
+                                            <td>{{item.hora}}</td>
+                                            <td>{{item.entrada==0?'-':item.entrada}}</td>
+                                            <td>{{item.salida==0?'-':item.salida}}</td>
+                                            <td>{{item.metodo==1?'EFECTIVO':item.metodo==2?
+                                                'TARJETAS':item.metodo==3?'TRANSFERENCIAS' : ''}}</td>
+                                            <td>{{item.documento || '-'}}</td>
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <button @click="editarMovimiento(item)" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button @click="eliminarMovimiento(item.caja_chica_id)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -216,6 +223,62 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                                 </div>
                             </div>
                         </div>
+                        <div class="modal fade" id="modal-edit-caja-chica" tabindex="-1" aria-labelledby="exampleModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-rojo text-white">
+                                        <h5 class="modal-title" id="exampleModalLabel">Editar Movimiento</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <form @submit.prevent="actualizarMovimiento">
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Detalle</label>
+                                                    <input required v-model="edicion.detalle" type="text"
+                                                        class="form-control">
+                                                </div>
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Tipo</label>
+                                                    <select required v-model="edicion.tipo" class="form-control">
+                                                        <option value="1">Egreso</option>
+                                                        <option value="2">Ingreso</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Monto S/</label>
+                                                    <input required @keypress="onlyNumber" v-model="edicion.monto"
+                                                        type="text" class="form-control">
+                                                </div>
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Metodo</label>
+                                                    <select required v-model="edicion.metodo" class="form-control">
+                                                        <option value="1">EFECTIVO</option>
+                                                        <option value="2">TARJETAS</option>
+                                                        <option value="3">TRANSFERENCIAS</option>
+                                                    </select>
+                                                </div>
+                                                <!-- Nuevo campo para documento -->
+                                                <div class="col-md-12 mb-3">
+                                                    <label class="form-label">Documento (Boleta/Factura/Comprobante)</label>
+                                                    <input v-model="edicion.documento" type="text" class="form-control"
+                                                        placeholder="Ej: Factura F001-123">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn bg-rojo text-white">Guardar</button>
+                                            <button type="button" class="btn border-rojo"
+                                                data-bs-dismiss="modal">Cerrar</button>
+
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <?php
@@ -247,6 +310,14 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                     metodo: "1",
                     documento: "",
                 },
+                edicion: {
+                    caja_chica_id: "",
+                    detalle: "",
+                    tipo: "1",
+                    monto: "",
+                    metodo: "1",
+                    documento: "",
+                },
                 listaCajaChic: [],
                 egreso: 0,
                 ingreso: 0,
@@ -270,6 +341,51 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                 },
             },
             methods: {
+                editarMovimiento(item) {
+                    this.edicion.caja_chica_id = item.caja_chica_id;
+                    this.edicion.detalle = item.detalle;
+                    this.edicion.tipo = item.salida > 0 ? "1" : "2";
+                    this.edicion.monto = item.salida > 0 ? item.salida : item.entrada;
+                    this.edicion.metodo = item.metodo;
+                    this.edicion.documento = item.documento;
+                    $("#modal-edit-caja-chica").modal("show");
+                },
+                actualizarMovimiento() {
+                    const data = { ...this.edicion };
+                    _post("/ajs/caja/chica/update", data,
+                        (resp) => {
+                            if (resp.res) {
+                                $("#modal-edit-caja-chica").modal("hide");
+                                this.listarCajaChica();
+                                alertExito("Movimiento actualizado");
+                            } else {
+                                alertAdvertencia("No se pudo actualizar");
+                            }
+                        }
+                    );
+                },
+                eliminarMovimiento(id) {
+                    Swal.fire({
+                        title: '¿Desea eliminar este movimiento?',
+                        showDenyButton: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Eliminar',
+                        denyButtonText: `cancelar`,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            _post("/ajs/caja/chica/delete", { id },
+                                (resp) => {
+                                    if (resp.res) {
+                                        this.listarCajaChica();
+                                        alertExito("Movimiento eliminado");
+                                    } else {
+                                        alertAdvertencia("No se pudo eliminar");
+                                    }
+                                }
+                            )
+                        }
+                    })
+                },
 
                 cerrarCajaChica() {
                     const data = {}

@@ -41,7 +41,10 @@ $c_ubigeo = new Ubigeo();
         <div>
             <input type="hidden" id="fecha-now-app" value="<?php echo date("Y-m-d"); ?>">
             <input type="hidden" id="cotizacion" name="cotizacion"
-                value="<?php echo isset($_GET['coti']) ? $_GET['coti'] : ''; ?>">
+                value="<?php echo isset($_GET['coti']) ? $_GET['coti'] : (isset($_GET['coti-taller']) ? $_GET['coti-taller'] : ''); ?>">
+            <input type="hidden" id="tipo_cotizacion" name="tipo_cotizacion"
+                value="<?php echo isset($_GET['coti']) ? 'normal' : (isset($_GET['coti-taller']) ? 'taller' : ''); ?>">
+
             <div class="row">
                 <!-- Columna Izquierda -->
                 <div class="col-md-4">
@@ -838,14 +841,21 @@ $c_ubigeo = new Ubigeo();
                 mounted() {
                     this.getDocumentoGuia();
                     obtenerProvincias();
-                    
+
                     // ✅ CRÍTICO: Establecer el estado inicial del campo Doc. de Referencia
                     this.mostrarDocReferencia = this.guia.tipo_doc === '3';
-                    
+
                     const cotiId = document.getElementById('cotizacion').value;
+                    const tipoCoti = document.getElementById('tipo_cotizacion').value;
+
                     if (cotiId) {
-                        this.loadCotizacionData(cotiId);
+                        if (tipoCoti === 'taller') {
+                            this.loadCotizacionTallerData(cotiId);
+                        } else {
+                            this.loadCotizacionData(cotiId);
+                        }
                     }
+
                 },
                 methods: {
                     editarProducto(index) {
@@ -1280,7 +1290,80 @@ $c_ubigeo = new Ubigeo();
                                 }
                             }
                         );
-                    }
+                    },
+                    loadCotizacionTallerData(cotiId) {
+                        $("#loader-menor").show();
+
+                        // Cargar productos de taller
+                        _ajax("/ajs/guia/remision/coti/taller/" + cotiId, "POST", { cod: cotiId },
+                            (resp) => {
+                                console.log('Productos taller:', resp);
+                                this.productos = resp;
+                                $("#loader-menor").hide();
+                            }
+                        );
+
+                        // Cargar datos del cliente de taller
+                        _ajax("/ajs/guia/remision/coti/taller/cliente/" + cotiId, "POST", { cod: cotiId },
+                            (resp) => {
+                                console.log('Cliente taller:', resp);
+
+                                if (resp.error) {
+                                    console.log(resp.error);
+                                    return;
+                                }
+
+                                this.guia.nom_cli = resp.datos;
+                                this.guia.dir_cli = resp.direccion;
+                                this.guia.doc_cli = resp.documento;
+
+                                // Autocompletar ubigeo si existe
+                                if (resp.ubigeo) {
+                                    // Misma lógica que el método normal
+                                    $("#select_departamento").val(resp.departamento.padStart(2, '0'));
+
+                                    $.ajax({
+                                        data: { "departamento": resp.departamento.padStart(2, '0') },
+                                        url: _URL + '/ajs/consulta/lista/provincias',
+                                        type: 'post',
+                                        success: (response) => {
+                                            const provincias = JSON.parse(response);
+                                            const select_provincia = $("#select_provincia");
+                                            select_provincia.empty();
+
+                                            provincias.forEach(v => {
+                                                select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
+                                            });
+
+                                            const provinciaCode = resp.ubigeo.substring(2, 4);
+                                            select_provincia.val(provinciaCode);
+
+                                            $.ajax({
+                                                data: {
+                                                    "departamento": resp.departamento.padStart(2, '0'),
+                                                    "provincia": provinciaCode
+                                                },
+                                                url: _URL + '/ajs/consulta/lista/distrito',
+                                                type: 'post',
+                                                success: (response) => {
+                                                    const distritos = JSON.parse(response);
+                                                    const select_distrito = $("#select_distrito");
+                                                    select_distrito.empty();
+
+                                                    distritos.forEach(v => {
+                                                        select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
+                                                    });
+
+                                                    select_distrito.val(resp.ubigeo);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        );
+                    },
+
 
                 }
             });

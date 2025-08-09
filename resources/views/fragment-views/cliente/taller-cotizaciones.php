@@ -1,5 +1,6 @@
 <!-- resources\views\fragment-views\cliente\taller-cotizaciones.php -->
 <?php
+require_once 'app/models/ModulosHelper.php';
 // Verificar la sesión del usuario
 if (!isset($_SESSION)) {
     session_start();
@@ -20,6 +21,9 @@ if (isset($_SESSION['id_rol'])) {
     // Verificar si es rol orden trabajo
     $sqlRol = "SELECT nombre FROM roles WHERE rol_id = ?";
     $stmtRol = $conexion->prepare($sqlRol);
+    if ($stmtRol === false) {
+        die('Error en prepare: ' . $conexion->error);
+    }
     $stmtRol->bind_param("i", $rolId);
     $stmtRol->execute();
     $resultRol = $stmtRol->get_result();
@@ -32,6 +36,9 @@ if (isset($_SESSION['id_rol'])) {
     // Verificar permisos generales
     $sql = "SELECT ver_precios, puede_eliminar FROM roles WHERE rol_id = ?";
     $stmt = $conexion->prepare($sql);
+    if ($stmt === false) {
+        die('Error en prepare: ' . $conexion->error);
+    }
     $stmt->bind_param("i", $rolId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -41,15 +48,33 @@ if (isset($_SESSION['id_rol'])) {
     }
 
     // Verificar si tiene permiso para editar órdenes
-    $sqlPermisos = "SELECT COUNT(*) as tiene_permiso FROM rol_submodulo rs 
-                    INNER JOIN submodulos s ON rs.submodulo_id = s.submodulo_id 
-                    WHERE rs.rol_id = ? AND s.nombre IN ('ORDEN DE SERVICIO', 'ORDEN DE TRABAJO')";
-    $stmtPermisos = $conexion->prepare($sqlPermisos);
-    $stmtPermisos->bind_param("i", $rolId);
-    $stmtPermisos->execute();
-    $resultPermisos = $stmtPermisos->get_result();
-    if ($rowPermisos = $resultPermisos->fetch_assoc()) {
-        $puedeEditar = $rowPermisos['tiene_permiso'] > 0;
+// Obtener módulos permitidos para el rol
+    $modulosPermitidos = ModulosHelper::obtenerModulosParaRol($rolId, $conexion);
+
+    // Verificar si tiene acceso a módulos de taller u órdenes
+    $puedeEditar = false;
+    foreach ($modulosPermitidos as $modulo) {
+        // Verificar si tiene acceso al módulo de taller o sus submódulos
+        if (
+            strtoupper($modulo['nombre']) === 'TALLER' ||
+            strpos(strtoupper($modulo['nombre']), 'ORDEN') !== false
+        ) {
+            $puedeEditar = true;
+            break;
+        }
+
+        // También verificar submódulos
+        if (!empty($modulo['submodulos'])) {
+            foreach ($modulo['submodulos'] as $submodulo) {
+                if (
+                    strpos(strtoupper($submodulo['nombre']), 'ORDEN') !== false ||
+                    strpos(strtoupper($submodulo['nombre']), 'TALLER') !== false
+                ) {
+                    $puedeEditar = true;
+                    break 2; // Salir de ambos loops
+                }
+            }
+        }
     }
 }
 
@@ -72,7 +97,9 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
-            <h6 class="page-title"><?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?></h6>
+            <h6 class="page-title">
+                <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
+            </h6>
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Taller</a></li>
                 <li class="breadcrumb-item"><a href="/ventas"
@@ -152,8 +179,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                         <div class="col-md-12">
                                             <!-- Formulario de búsqueda de productos -->
                                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
-                                            <canvas hidden="" id="qr-canvas" v-show="usar_scaner"
-                                            style="width: 300px; padding: 10px;"></canvas>
+                                                <canvas hidden="" id="qr-canvas" v-show="usar_scaner"
+                                                    style="width: 300px; padding: 10px;"></canvas>
                                                 <div class="form-group row mb-3">
                                                     <label class="col-lg-2 control-label">Buscar</label>
                                                     <div class="col-lg-10">
@@ -161,7 +188,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                             <input type="text" placeholder="Consultar Productos"
                                                                 class="form-control ui-autocomplete-input"
                                                                 id="input_buscar_productos" autocomplete="off">
-                                                                <div class="input-group-btn p-1">
+                                                            <div class="input-group-btn p-1">
                                                                 <label class=""> <input id="btn-scan-qr"
                                                                         v-model="usar_scaner" @click="toggleCamara"
                                                                         type="checkbox"> Usar Scanner</label><br />
@@ -323,7 +350,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                 <form v-on:submit.prevent role="form" class="form-horizontal">
                                                     <div class="row">
                                                         <!-- Tipo de documento -->
-                                                    <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+                                                        <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
 
                                                             <label class="control-label">Documento</label>
                                                             <div class="col-md-12">
@@ -336,7 +363,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         </div>
 
                                                         <!-- Tipo de pago -->
-                                                      <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+                                                        <div class="col-md-6 form-group" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
 
                                                             <label class="control-label">Tipo Pago</label>
                                                             <select v-model="venta.tipo_pago" @change="changeTipoPago"
@@ -373,7 +400,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     </div>
 
                                                     <!-- Fecha -->
-                                               <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+                                                    <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
 
                                                         <div class="col-lg-12">
                                                             <div class="row">
@@ -427,12 +454,12 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         <label class="col-lg-12 text-center">Cliente</label>
                                                     </div>
 
-                                                    <div class="form-group mb-3"  <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+                                                    <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
                                                         <div class="col-lg-12">
                                                             <div class="input-group">
                                                                 <input id="input_datos_cliente" v-model="venta.num_doc"
                                                                     type="text" placeholder="Ingrese Documento"
-                                                                    class="form-control" maxlength="11" readonly>
+                                                                    class="form-control" maxlength="11" >
                                                                 <div class="input-group-addon btn bg-rojo text-white"
                                                                     @click="buscarDocumentSS">
                                                                     <i class="fa fa-search"></i>
@@ -449,7 +476,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group mb-3"  <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
+                                                    <div class="form-group mb-3" <?php echo $esRolTaller ? 'style="display:none;"' : ''; ?>>
                                                         <div class="col-lg-12">
                                                             <div class="input-group">
                                                                 <input v-model="venta.dir_cli" type="text"
@@ -489,10 +516,10 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     Modificar Términos
                                                 </button>
 
-                                              <button class="btn border-rojo" id="add-diagnostico"
-    style="margin-bottom: 5px;">
-    Diagnóstico
-</button>
+                                                <button class="btn border-rojo" id="add-diagnostico"
+                                                    style="margin-bottom: 5px;">
+                                                    Diagnóstico
+                                                </button>
                                             <?php endif; ?>
 
                                             <button class="btn border-rojo btn-foto" style="margin-bottom: 5px;">
@@ -519,7 +546,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                     </h1>
                                                     <div class="text-uppercase">Suma Pedido</div>
                                                 </div>
-                                            
+
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -527,7 +554,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Modales y resto del contenido -->
                     <div class="modal fade" id="modal-cotizacion-success" tabindex="-1"
                         aria-labelledby="modalCotizacionLabel" aria-hidden="true">
@@ -541,7 +568,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             Actualizada!
                                         </h4>
                                         <p class="text-muted mb-0">La
-                                            <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?> N°
+                                            <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'Orden de Trabajo' : 'Cotización'; ?>
+                                            N°
                                             <span id="cotizacion-numero"></span>
                                             ha sido Actualizada correctamente.
                                         </p>
@@ -783,8 +811,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                         </div>
                     </div>
 
-               
-                    
+
+
 
                     <!-- Modal para subir fotos -->
                     <div class="modal fade" id="modalFotos" tabindex="-1">
@@ -802,8 +830,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             <label for="imageInput" class="form-label">
                                                 Seleccionar imágenes (máximo 12)
                                             </label>
-                                            <input type="file" class="form-control" name="images[]" id="imageInput" multiple
-                                                accept="image/*" required>
+                                            <input type="file" class="form-control" name="images[]" id="imageInput"
+                                                multiple accept="image/*" required>
                                             <small class="text-muted">
                                                 Formatos permitidos: JPG, PNG, GIF
                                             </small>
@@ -826,21 +854,25 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                     <!-- Modal de observaciones -->
                     <?php if ($esRolOrdenTrabajo || $origenEsOrdenTrabajo): ?>
-                        <div class="modal fade" id="modal-observaciones" tabindex="-1" aria-labelledby="observacionesModalLabel"
-                            aria-hidden="true">
+                        <div class="modal fade" id="modal-observaciones" tabindex="-1"
+                            aria-labelledby="observacionesModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="observacionesModalLabel">Observaciones de Orden de Trabajo</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <h5 class="modal-title" id="observacionesModalLabel">Observaciones de Orden de
+                                            Trabajo</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <textarea id="observaciones-textarea" class="form-control" rows="10"
                                             placeholder="Escriba las observaciones de la orden de trabajo..."></textarea>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
-                                        <button type="button" class="btn bg-rojo text-white" id="guardar-observaciones">Guardar</button>
+                                        <button type="button" class="btn border-rojo"
+                                            data-bs-dismiss="modal">Cerrar</button>
+                                        <button type="button" class="btn bg-rojo text-white"
+                                            id="guardar-observaciones">Guardar</button>
                                     </div>
                                 </div>
                             </div>
@@ -872,7 +904,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
         if (vueApp) {
             vueApp.$destroy();
         }
-        
+
         // Crear la instancia de Vue
         vueApp = new Vue({
             el: "#container-vue",
@@ -1322,7 +1354,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     if (!valor) return '0.00';
                     return parseFloat(valor).toFixed(2);
                 },
-
                 cargarDatosPreAlerta() {
                     const preAlertaId = new URLSearchParams(window.location.search).get("id");
                     const tipo = new URLSearchParams(window.location.search).get("tipo") || this.tipoOrigen;
@@ -1335,10 +1366,10 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                             tipo: tipo
                         }, (resp) => {
                             console.log("Respuesta de pre-alerta:", resp);
-                            
+
                             if (resp && resp.res && resp.data) {
                                 const data = resp.data;
-                                
+
                                 // Asignar datos del cliente
                                 this.venta.num_doc = data.cliente_doc || "";
                                 this.venta.nom_cli = data.cliente_nombre || "";
@@ -1348,29 +1379,80 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 // Procesar equipos CORRECTAMENTE
                                 if (data.marcas && data.marcas.length > 0) {
                                     this.equiposPreAlerta = [];
-                                    
+
                                     for (let i = 0; i < data.marcas.length; i++) {
                                         this.equiposPreAlerta.push({
                                             marca: data.marcas[i] ? data.marcas[i].trim() : '',
                                             equipo: data.equipos[i] ? data.equipos[i].trim() : '',
                                             modelo: data.modelos[i] ? data.modelos[i].trim() : '',
                                             numero_serie: data.numeros_serie[i] ? data.numeros_serie[i].trim() : '',
-                                            productos: []
+                                            productos: [] // Inicializar array de productos por equipo
                                         });
                                     }
 
-                                    // Activar el primer equipo
-                                    if (this.equiposPreAlerta.length > 0) {
-                                        this.equipoActivo = 0;
-                                        console.log("Equipos cargados:", this.equiposPreAlerta.length);
+                                    // NUEVO: Cargar productos existentes y asignarlos a sus equipos correspondientes
+                                    if (data.productos_existentes && data.productos_existentes.length > 0) {
+                                        console.log("Productos existentes encontrados:", data.productos_existentes);
+
+                                        // Crear un mapa de equipos por número de serie para facilitar la asignación
+                                        const equiposPorSerie = {};
+                                        this.equiposPreAlerta.forEach((equipo, index) => {
+                                            equiposPorSerie[equipo.numero_serie] = index;
+                                        });
+
+                                        // Asignar productos a sus equipos correspondientes
+                                        data.productos_existentes.forEach(producto => {
+                                            const equipoIndex = equiposPorSerie[producto.equipoInfo.numero_serie];
+                                            if (equipoIndex !== undefined) {
+                                                // Formatear el producto para que sea compatible con Vue
+                                                const productoFormateado = {
+                                                    productoid: producto.productoid,
+                                                    codigo_prod: producto.codigo_prod,
+                                                    descripcion: producto.descripcion,
+                                                    cantidad: producto.cantidad,
+                                                    precioVenta: producto.precioVenta,
+                                                    costo: producto.costo,
+                                                    equipoActivo: equipoIndex,
+                                                    editable: false,
+                                                    stock: '999', // Valor por defecto
+                                                    precio: producto.precioVenta,
+                                                    precio2: producto.precioVenta,
+                                                    precio_unidad: producto.precioVenta,
+                                                    almacen: '<?php echo $_SESSION["sucursal"] ?>',
+                                                    precio_usado: 5
+                                                };
+
+                                                // Agregar al equipo correspondiente
+                                                this.equiposPreAlerta[equipoIndex].productos.push(productoFormateado);
+                                            }
+                                        });
+
+                                        // Si hay productos, activar el primer equipo que tenga productos
+                                        for (let i = 0; i < this.equiposPreAlerta.length; i++) {
+                                            if (this.equiposPreAlerta[i].productos.length > 0) {
+                                                this.equipoActivo = i;
+                                                this.productos = [...this.equiposPreAlerta[i].productos];
+                                                break;
+                                            }
+                                        }
                                     }
+
+                                    // Activar el primer equipo si no se activó ninguno
+                                    if (this.equipoActivo === null && this.equiposPreAlerta.length > 0) {
+                                        this.equipoActivo = 0;
+                                        this.productos = [...this.equiposPreAlerta[0].productos];
+                                    }
+
+                                    console.log("Equipos cargados:", this.equiposPreAlerta.length);
+                                    console.log("Productos cargados:", this.productos.length);
                                 }
 
                                 this.determinarTipoDocumento(data.cliente_doc);
-                                
+
                                 // Forzar actualización del DOM
                                 this.$nextTick(() => {
                                     console.log("Vista actualizada, equipos:", this.equiposPreAlerta);
+                                    console.log("Productos en vista:", this.productos);
                                 });
                             } else {
                                 console.error("No se recibieron datos válidos:", resp);
@@ -1378,6 +1460,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                         });
                     }
                 },
+
 
                 guardarVenta() {
                     if (this.productos.length > 0) {
@@ -1543,16 +1626,21 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
                 cambiarEquipo(index) {
                     this.equipoActivo = index;
-                    // Ensure the equiposPreAlerta array exists and has items
+
+                    // Guardar los productos del equipo actual antes de cambiar
+                    if (this.equiposPreAlerta && this.equiposPreAlerta[this.equipoActivo]) {
+                        this.equiposPreAlerta[this.equipoActivo].productos = [...this.productos];
+                    }
+
+                    // Cargar los productos del nuevo equipo
                     if (this.equiposPreAlerta && this.equiposPreAlerta[index]) {
-                        // Make sure the productos array exists for this equipment
                         if (!this.equiposPreAlerta[index].productos) {
                             this.equiposPreAlerta[index].productos = [];
                         }
-                        // Update the productos array with the current equipment's products
-                        this.productos = this.equiposPreAlerta[index].productos;
+                        this.productos = [...this.equiposPreAlerta[index].productos];
                     }
                 },
+
 
                 addProduct() {
                     if (this.producto.descripcion.length > 0) {
@@ -1739,11 +1827,11 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 
         // Hacer la instancia accesible globalmente
         window.app = vueApp;
-        
+
         $('#modal-cotizacion-success').on('hidden.bs.modal', function () {
             window.location.href = '/taller';
         });
-        
+
         // Inicializar componentes de UI
         $("#input_datos_cliente").autocomplete({
             source: _URL + "/ajs/buscar/cliente/datos",

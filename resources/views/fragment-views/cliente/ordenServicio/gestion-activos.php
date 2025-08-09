@@ -547,8 +547,8 @@
 
 <script>
     // Variables globales para gestión de modales
-    let modoEdicion = false;
-    let activoEditandoId = null;
+    window.modoEdicion = false;
+    window.activoEditandoId = null;
 
     // Funciones para gestionar modales superpuestos
     function abrirModalRegistro() {

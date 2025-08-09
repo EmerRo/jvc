@@ -128,7 +128,7 @@
                                                             <div class="col-lg-3">
                                                                 <label for="precio-input"
                                                                     class="col-form-label">Precio</label>
-                                                              <div class="input-group" style="height: 38px;">
+                                                                <div class="input-group" style="height: 38px;">
                                                                     <input id="precio-input" type="text"
                                                                         class="form-control"
                                                                         :class="{'dropdown-toggle': producto.descripcion.length > 0}"
@@ -395,8 +395,8 @@
                                                                     <div class="form-group ">
                                                                         <label class="control-label">Próximo N°</label>
                                                                         <div class="col-lg-12">
-                                                                            <div class="form-control text-center" 
-                                                                                 style="background-color: #f8f9fa; color: #6c757d; font-weight: 500;">
+                                                                            <div class="form-control text-center"
+                                                                                style="background-color: #f8f9fa; color: #6c757d; font-weight: 500;">
                                                                                 {{proximoNumero}}
                                                                             </div>
                                                                         </div>
@@ -735,12 +735,11 @@
                                                         </li>
                                                     </ul>
 
-                                                 <button class="btn bg-rojo text-white dropdown-toggle" type="button"
-    data-bs-toggle="dropdown" aria-expanded="false"
-    data-bs-auto-close="outside"
-    style="height: 38px;">
-    <i class="fa fa-chevron-down"></i>
-</button>
+                                                    <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                                        data-bs-toggle="dropdown" aria-expanded="false"
+                                                        data-bs-auto-close="outside" style="height: 38px;">
+                                                        <i class="fa fa-chevron-down"></i>
+                                                    </button>
                                                     <!-- En el dropdown para precios adicionales (desde el botón) -->
                                                     <ul class="dropdown-menu dropdown-menu-end shadow">
                                                         <li class="dropdown-header bg-light py-2 px-3">Precios

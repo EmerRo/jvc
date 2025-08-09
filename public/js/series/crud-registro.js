@@ -66,13 +66,18 @@ $("#submitRegistro").click(function () {
       });
     }
 
+    // Preparar datos de cliente (pueden estar vacíos)
+    const tieneCliente = $("#tiene_cliente").is(":checked");
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "";
+
     // Enviar los datos al servidor
     $.ajax({
       url: _URL + "/ajs/save/numeroseries",
       method: "POST",
       data: {
-        cliente_ruc_dni: $("#cliente_ruc_dni").val(),
-        cliente_documento: $("#cliente_documento").val(),
+        cliente_ruc_dni: clienteRucDni,
+        cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion").val(),
         equipos: JSON.stringify(equiposData),
       },
@@ -186,19 +191,26 @@ $("#submitRegistro").click(function () {
           .val(),
       });
     });
+
+    // Preparar datos de cliente (pueden estar vacíos)
+    const tieneCliente = $("#tiene_cliente").is(":checked");
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "";
+
     console.log("Datos a enviar:", {
-      cliente_ruc_dni: $("#cliente_ruc_dni").val(),
-      cliente_documento: $("#cliente_documento").val(),
+      cliente_ruc_dni: clienteRucDni,
+      cliente_documento: clienteDocumento,
       fecha_creacion: $("#fecha_creacion").val(),
       equipos: JSON.stringify(equiposData),
     });
+
     // Enviar los datos al servidor
     $.ajax({
       url: _URL + "/ajs/save/numeroseries",
       method: "POST",
       data: {
-        cliente_ruc_dni: $("#cliente_ruc_dni").val(),
-        cliente_documento: $("#cliente_documento").val(),
+        cliente_ruc_dni: clienteRucDni,
+        cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion").val(),
         equipos: JSON.stringify(equiposData),
       },
@@ -256,8 +268,19 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
         const registro = response.data[0];
 
         $("#idRegistro").val(registro.id);
-        $("#cliente_ruc_dni_u").val(registro.cliente_ruc_dni);
+        $("#cliente_ruc_dni_u").val(registro.cliente_ruc_dni || "");
+        $("#cliente_documento_u").val(registro.cliente_documento || "");
         $("#fecha_creacion_u").val(registro.fecha_creacion);
+
+        // Configurar el checkbox de cliente según si tiene datos de cliente
+        const tieneCliente = registro.tiene_cliente || (registro.cliente_ruc_dni && registro.cliente_ruc_dni !== "Sin Cliente");
+        $("#tiene_cliente_u").prop("checked", tieneCliente);
+        
+        if (tieneCliente) {
+          $("#seccion_cliente_u").removeClass("oculta");
+        } else {
+          $("#seccion_cliente_u").addClass("oculta");
+        }
 
         // Cargar equipos existentes
         $("#equipos_existentes").empty();
@@ -316,18 +339,13 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                 <label class="form-label">Número de Serie</label>
                                 <input type="text" class="form-control" 
                                     name="equipos_existentes[${index}][numero_serie]" 
-                                    value="${
-                                      equipo.numero_serie || ""
-                                    }" required>
+                                    value="${equipo.numero_serie || ""}" required>
                                 <div class="feedback-container"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             `);
-            // Después de agregar el HTML, necesitas cargar los datos en los selects
-            // y seleccionar el valor correcto para cada equipo
-            // Agrega este código justo después del append
 
             // Cargar datos en los selects
             cargarSelectMarcas();
@@ -335,39 +353,15 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
             cargarSelectEquipos();
 
             // Seleccionar los valores correctos para este equipo
-            // Esto debe ejecutarse después de que los selects se hayan cargado
             setTimeout(function () {
-              console.log(
-                "Marca del equipo:",
-                equipo.marca,
-                "tipo:",
-                typeof equipo.marca
-              );
-              console.log(
-                "Modelo del equipo:",
-                equipo.modelo,
-                "tipo:",
-                typeof equipo.modelo
-              );
-              console.log(
-                "Opciones de marca disponibles:",
-                $(`select[name="equipos_existentes[${index}][marca]"] option`)
-                  .map(function () {
-                    return { value: $(this).val(), text: $(this).text() };
-                  })
-                  .get()
-              );
-              // Seleccionar la marca correcta por ID
               $(
                 `select[name="equipos_existentes[${index}][marca]"] option[value="${equipo.marca}"]`
               ).prop("selected", true);
 
-              // Seleccionar el modelo correcto por ID
               $(
                 `select[name="equipos_existentes[${index}][modelo]"] option[value="${equipo.modelo}"]`
               ).prop("selected", true);
 
-              // Seleccionar el equipo correcto por ID (si tienes el ID del equipo)
               if (equipo.equipo) {
                 $(
                   `select[name="equipos_existentes[${index}][equipo]"] option[value="${equipo.equipo}"]`
@@ -531,14 +525,19 @@ $("#updateRegistroBtn").click(function () {
       });
     }
 
+    // Preparar datos de cliente (pueden estar vacíos)
+    const tieneCliente = $("#tiene_cliente_u").is(":checked");
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "";
+
     // Enviar los datos al servidor
     $.ajax({
       url: _URL + "/ajs/update/numeroseries",
       method: "POST",
       data: {
         id: $("#idRegistro").val(),
-        cliente_ruc_dni: $("#cliente_ruc_dni_u").val(),
-        cliente_documento: $("#cliente_documento_u").val(),
+        cliente_ruc_dni: clienteRucDni,
+        cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion_u").val(),
         equipos: JSON.stringify(equiposData),
       },
@@ -643,14 +642,20 @@ $("#updateRegistroBtn").click(function () {
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
+
+    // Preparar datos de cliente (pueden estar vacíos)
+    const tieneCliente = $("#tiene_cliente_u").is(":checked");
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "";
+
     // Enviar los datos al servidor
     $.ajax({
       url: _URL + "/ajs/update/numeroseries",
       method: "POST",
       data: {
         id: $("#idRegistro").val(),
-        cliente_ruc_dni: $("#cliente_ruc_dni_u").val(),
-        cliente_documento: $("#cliente_documento_u").val(),
+        cliente_ruc_dni: clienteRucDni,
+        cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion_u").val(),
         equipos: JSON.stringify(equiposData),
       },

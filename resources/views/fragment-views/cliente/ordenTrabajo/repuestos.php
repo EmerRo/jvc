@@ -96,8 +96,8 @@ $almacenRepuesto = 1;
                             <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Unidades</a>
                             <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Categorias</a>
                             <button class="btn bg-rojo text-white bordes" id="add-rep"><i class="fa fa-plus"></i> Agregar Repuesto</button>
-                            <button class="btn btn-danger btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
+                            <button class="btn bg-rojo btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
+                            <button hidden class="btn bg-rojo" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
                         </div>
                     </div>
                 </div>
@@ -447,7 +447,7 @@ $almacenRepuesto = 1;
         aria-labelledby="exampleModalLabel">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
+                <div class="modal-header bg-rojo">
                     <h5 class="modal-title" id="exampleModalLabel"><i class="fa fa-edit me-2"></i>Editar Repuesto</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1063,7 +1063,7 @@ $almacenRepuesto = 1;
         var codeBarraTemps = ''
         var datatable
         var almacenCod = '<?php echo $_SESSION["sucursal"] ?>'
-        let app;
+        // let app;
         $(document).ready(function () {
             app = new Vue({
                 el: "#conte-vue-modals",

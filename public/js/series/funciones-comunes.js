@@ -1,4 +1,5 @@
 //public\js\series\funciones-comunes.js .  Función para procesar series masivas (separadas por coma o por línea)
+// Función para procesar series masivas (separadas por coma o por línea)
 function procesarSeriesMasivas(texto) {
   if (!texto) return [];
   // Reemplazar saltos de línea por comas
@@ -25,6 +26,7 @@ function verificarSeriesRepetidas(series) {
 
   return seriesRepetidas;
 }
+
 // Función para mostrar mensaje de series repetidas
 function mostrarMensajeSeriesRepetidas(
   seriesRepetidas,
@@ -101,8 +103,7 @@ function cargarUltimoNumeroSerie() {
     });
   }
   
-  // Nueva función para generar series masivas automáticamente
- // Modificar esta función en funciones-comunes.js
+// Nueva función para generar series masivas automáticamente
 function generarSeriesMasivas(ultimoNumero) {
     const cantidad = parseInt($("#cantidad_equipos").val() || 1);
     let series = [];
@@ -121,8 +122,9 @@ function generarSeriesMasivas(ultimoNumero) {
     
     // Validar cantidad de series
     validarCantidadSeries();
-  }
-  // Nueva función para asignar números de serie automáticamente
+}
+
+// Nueva función para asignar números de serie automáticamente
 function asignarNumeroSerieAutomatico() {
     const ultimoNumero = parseInt($("#ultimo_numero_serie").val());
     
@@ -140,12 +142,18 @@ function asignarNumeroSerieAutomatico() {
         numeroSerieInput.siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
       }
     });
-  }
+}
+
 // Función para limpiar el formulario de registro
 function limpiarFormularioRegistro() {
-  // Limpiar campos de texto
+  // Limpiar campos de cliente
   $("#cliente_ruc_dni").val("");
   $("#input_datos_cliente").val("");
+  $("#cliente_documento").val("");
+
+  // Restablecer el checkbox de cliente
+  $("#tiene_cliente").prop("checked", true);
+  $("#seccion_cliente").removeClass("oculta");
 
   // Establecer la fecha actual
   const fechaActual = new Date().toISOString().split("T")[0];
@@ -179,7 +187,8 @@ function limpiarFormularioRegistro() {
 
   // Limpiar campos del primer equipo
   primerEquipo.find("select").val("");
-  primerEquipo.find('input[type="text"]').val("");
+  primerEquipo.find('input[type="text"]').val("").removeClass('is-valid is-invalid numero-serie-generado');
+  primerEquipo.find('.feedback-container').empty();
 
   // Actualizar contador de equipos
   $("#contador_equipos").text("1");

@@ -93,19 +93,19 @@ class ProductosController extends Controller
     public function listaProducto()
     {
         $c_producto = new Producto();
-        
+
         // Si no encuentra id_empresa en la sesión, usar el ID 12 como predeterminado
         $id_empresa = isset($_SESSION['id_empresa']) ? $_SESSION['id_empresa'] : 12;
         $c_producto->setIdEmpresa($id_empresa);
-        
+
         // Verificar si almacenId existe en POST, si no, usar 1 como predeterminado
         $almacenId = isset($_POST['almacenId']) ? $_POST['almacenId'] : 1;
-        
+
         // Log para depuración
         error_log("Buscando productos para empresa: $id_empresa, almacén: $almacenId");
-        
+
         $a_productos = $c_producto->verFilas($almacenId);
-        
+
         // Verificar si $a_productos es un objeto mysqli_result
         $lista = [];
         if ($a_productos && is_object($a_productos) && method_exists($a_productos, 'fetch_assoc')) {
@@ -116,7 +116,7 @@ class ProductosController extends Controller
         } else {
             error_log("El resultado no es un objeto mysqli_result válido");
         }
-        
+
         return json_encode($lista);
     }
     public function agregarPorLista()
@@ -468,7 +468,12 @@ class ProductosController extends Controller
 
             // Manejo de imagen
             $nombreImagen = null;
-            if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
+            $eliminarImagen = isset($_POST['eliminar_imagen']) && $_POST['eliminar_imagen'] === '1';
+
+            if ($eliminarImagen) {
+                // Si se solicita eliminar la imagen, establecer como NULL
+                $nombreImagen = 'NULL';
+            } elseif (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
                 $imagen = $_FILES['imagen'];
                 $nombreImagen = time() . '_' . $imagen['name']; // Nombre único
                 $rutaDestino = 'public/img/productos/' . $nombreImagen;
@@ -477,44 +482,52 @@ class ProductosController extends Controller
                     throw new Exception("Error al subir la imagen");
                 }
             }
+
             $codigoBarras = null;
-            $codigoBarras = null;
+
             if ($_POST['usar_barra'] == 1) {
                 // Usar el código del producto como código de barras
                 $codigoBarras = $_POST['codigo'];
             }
 
 
-            // Actualizar producto principal
-            $sql = "UPDATE productos SET 
-                nombre = ?,
-                codigo = ?,
-                detalle = ?,
-                categoria = ?,
-                unidad = ?,
-                precio = ?,
-                costo = ?,
-                almacen = ?,
-                codsunat = ?,
-                iscbp = ?,
-                usar_barra = ?,
-                cod_barra =?,
-                precio_mayor = ?,
-                precio_menor = ?,
-                precio2 = ?,
-                precio3 = ?,
-                precio4 = ?,
-                precio_unidad = ?,
-                cantidad = ?,
-                razon_social = ?,
-                ruc = ?" .
-                ($nombreImagen ? ", imagen = ?" : "") .
-                " WHERE id_producto = ?";
+          // Construir la consulta SQL correctamente
+$sqlImagenPart = "";
+if ($eliminarImagen) {
+    $sqlImagenPart = ", imagen = NULL";
+} elseif ($nombreImagen && $nombreImagen !== 'NULL') {
+    $sqlImagenPart = ", imagen = ?";
+}
 
-            $stmt = $this->conexion->prepare($sql);
+$sql = "UPDATE productos SET 
+    nombre = ?,
+    codigo = ?,
+    detalle = ?,
+    categoria = ?,
+    unidad = ?,
+    precio = ?,
+    costo = ?,
+    almacen = ?,
+    codsunat = ?,
+    iscbp = ?,
+    usar_barra = ?,
+    cod_barra = ?,
+    precio_mayor = ?,
+    precio_menor = ?,
+    precio2 = ?,
+    precio3 = ?,
+    precio4 = ?,
+    precio_unidad = ?,
+    cantidad = ?,
+    razon_social = ?,
+    ruc = ?" . $sqlImagenPart . " WHERE id_producto = ?";
 
-            // Crear array de parámetros
-            $params = [
+
+$stmt = $this->conexion->prepare($sql);
+
+// Crear array de parámetros
+$params = [
+
                 $_POST['nombre'],
                 $_POST['codigo'],
                 $_POST['detalle'],
@@ -537,16 +550,25 @@ class ProductosController extends Controller
                 $_POST['razon'],
                 $_POST['ruc']
             ];
+// Agregar imagen solo si no es NULL y no está vacía
+if ($nombreImagen && $nombreImagen !== 'NULL') {
+    $params[] = $nombreImagen;
+}
+$params[] = $_POST['cod'];
 
-            if ($nombreImagen) {
-                $params[] = $nombreImagen;
-            }
-            $params[] = $_POST['cod'];
+// Crear string de tipos basado en el número real de parámetros
+$types = str_repeat('s', count($params));
 
-            // Crear string de tipos
-            $types = str_repeat('s', count($params));
+           // Crear string de tipos basado en el número real de parámetros
+$paramCount = count($params);
+$types = str_repeat('s', $paramCount);
 
-            $stmt->bind_param($types, ...$params);
+// Debug para verificar parámetros
+error_log("Número de parámetros: " . $paramCount);
+error_log("Tipos generados: " . $types);
+error_log("Parámetros: " . print_r($params, true));
+
+$stmt->bind_param($types, ...$params);
 
             if (!$stmt->execute()) {
                 throw new Exception("Error al actualizar producto: " . $stmt->error);
@@ -776,7 +798,7 @@ class ProductosController extends Controller
     {
         $respuesta = ["res" => false];
         $id_producto = $_POST['id_producto'];
-        $precios = $_POST['precios'];
+        $precios = isset($_POST['precios']) ? $_POST['precios'] : [];
 
         try {
             // Iniciar transacción
@@ -791,12 +813,13 @@ class ProductosController extends Controller
             // Insertar nuevos precios
             $sql = "INSERT INTO producto_precios (id_producto, nombre, precio) VALUES (?, ?, ?)";
             $stmt = $this->conexion->prepare($sql);
-
-            foreach ($precios as $precio) {
-                $nombre = $precio['nombre'];
-                $valor = $precio['precio'];
-                $stmt->bind_param('iss', $id_producto, $nombre, $valor);
-                $stmt->execute();
+            if (!empty($precios) && is_array($precios)) {
+                foreach ($precios as $precio) {
+                    $nombre = $precio['nombre'];
+                    $valor = $precio['precio'];
+                    $stmt->bind_param('iss', $id_producto, $nombre, $valor);
+                    $stmt->execute();
+                }
             }
 
             // Actualizar el campo usar_multiprecio en la tabla productos
@@ -847,94 +870,156 @@ class ProductosController extends Controller
         return json_encode($respuesta);
     }
     public function aumentarStock()
-{
-    $respuesta = ["res" => false];
-    
-    try {
-        $producto_id = $_POST['producto_id'];
-        $cantidad = intval($_POST['cantidad']);
-        $fecha_actual = date('Y-m-d H:i:s');
-        
-        // Actualizar stock del producto
-        $sql = "UPDATE productos SET 
+    {
+        $respuesta = ["res" => false];
+
+        try {
+            $producto_id = $_POST['producto_id'];
+            $cantidad = intval($_POST['cantidad']);
+            $fecha_actual = date('Y-m-d H:i:s');
+
+            // Actualizar stock del producto
+            $sql = "UPDATE productos SET 
                 cantidad = cantidad + ?, 
                 fecha_ultimo_ingreso = ?
                 WHERE id_producto = ?";
-        
-        $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('isi', $cantidad, $fecha_actual, $producto_id);
-        
-        if ($stmt->execute()) {
-            // Registrar el movimiento en historial (opcional)
-            $sql_historial = "INSERT INTO historial_stock 
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param('isi', $cantidad, $fecha_actual, $producto_id);
+
+            if ($stmt->execute()) {
+                // Registrar el movimiento en historial (opcional)
+                $sql_historial = "INSERT INTO historial_stock 
                              (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario) 
                              VALUES (?, 'INGRESO', ?, ?, ?)";
-            
-            $stmt_hist = $this->conexion->prepare($sql_historial);
-            $usuario = $_SESSION['usuario'] ?? 'Administrador'; // Asignar usuario por defecto si no está en sesión
-            $stmt_hist->bind_param('iiss', $producto_id, $cantidad, $fecha_actual, $usuario);
-            $stmt_hist->execute();
-            
-            $respuesta["res"] = true;
+
+                $stmt_hist = $this->conexion->prepare($sql_historial);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador'; // Asignar usuario por defecto si no está en sesión
+                $stmt_hist->bind_param('iiss', $producto_id, $cantidad, $fecha_actual, $usuario);
+                $stmt_hist->execute();
+
+                $respuesta["res"] = true;
+            }
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
         }
-        
-    } catch (Exception $e) {
-        $respuesta["error"] = $e->getMessage();
+
+        return json_encode($respuesta);
     }
-    
-    return json_encode($respuesta);
-}
-public function obtenerHistorialStock()
-{
-    $respuesta = ["res" => false, "data" => []];
-    
-    try {
-        $producto_id = isset($_POST['producto_id']) ? $_POST['producto_id'] : null;
-        
-        if ($producto_id) {
-            // Historial de un producto específico
-            $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+    public function obtenerHistorialStock()
+    {
+        $respuesta = ["res" => false, "data" => []];
+
+        try {
+            $producto_id = isset($_POST['producto_id']) ? $_POST['producto_id'] : null;
+
+            if ($producto_id) {
+                // Historial de un producto específico
+                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
                     FROM historial_stock h 
                     INNER JOIN productos p ON h.id_producto = p.id_producto 
                     WHERE h.id_producto = ? 
                     ORDER BY h.fecha_movimiento DESC";
-            
-            $stmt = $this->conexion->prepare($sql);
-            $stmt->bind_param('i', $producto_id);
-        } else {
-            // Historial general (últimos 100 movimientos)
-            $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bind_param('i', $producto_id);
+            } else {
+                // Historial general (últimos 100 movimientos)
+                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
                     FROM historial_stock h 
                     INNER JOIN productos p ON h.id_producto = p.id_producto 
                     ORDER BY h.fecha_movimiento DESC 
                     LIMIT 100";
-            
-            $stmt = $this->conexion->prepare($sql);
+
+                $stmt = $this->conexion->prepare($sql);
+            }
+
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+
+            while ($row = $resultado->fetch_assoc()) {
+                $respuesta["data"][] = [
+                    "id" => $row['id'],
+                    "producto_nombre" => $row['producto_nombre'],
+                    "codigo" => $row['codigo'],
+                    "tipo_movimiento" => $row['tipo_movimiento'],
+                    "cantidad" => $row['cantidad'],
+                    "fecha_movimiento" => $row['fecha_movimiento'],
+                    "usuario" => $row['usuario']
+                ];
+            }
+
+            $respuesta["res"] = true;
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
         }
-        
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-        
-        while ($row = $resultado->fetch_assoc()) {
-            $respuesta["data"][] = [
-                "id" => $row['id'],
-                "producto_nombre" => $row['producto_nombre'],
-                "codigo" => $row['codigo'],
-                "tipo_movimiento" => $row['tipo_movimiento'],
-                "cantidad" => $row['cantidad'],
-                "fecha_movimiento" => $row['fecha_movimiento'],
-                "usuario" => $row['usuario']
-            ];
-        }
-        
-        $respuesta["res"] = true;
-        
-    } catch (Exception $e) {
-        $respuesta["error"] = $e->getMessage();
+
+        return json_encode($respuesta);
     }
-    
-    return json_encode($respuesta);
-}
+    public function productosGrid()
+    {
+        $respuesta = ["res" => false, "data" => [], "total" => 0];
+
+        try {
+            $almacenId = isset($_POST['almacenId']) ? $_POST['almacenId'] : 1;
+            $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+            $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 12;
+            $search = isset($_POST['search']) ? $_POST['search'] : '';
+            $filter = isset($_POST['filter']) ? $_POST['filter'] : '';
+
+            $offset = ($page - 1) * $limit;
+
+            // Construir WHERE clause
+            $whereConditions = [];
+            $whereConditions[] = "id_empresa = '{$_SESSION['id_empresa']}'";
+            $whereConditions[] = "sucursal = '{$_SESSION['sucursal']}'";
+            $whereConditions[] = "estado = '1'";
+            $whereConditions[] = "almacen = '$almacenId'";
+
+            if (!empty($search)) {
+                $whereConditions[] = "(nombre LIKE '%$search%' OR codigo LIKE '%$search%')";
+            }
+
+            if (!empty($filter)) {
+                $whereConditions[] = "codigo LIKE '$filter%'";
+            }
+
+            $whereClause = "WHERE " . implode(" AND ", $whereConditions);
+
+            // Contar total de productos
+            $sqlCount = "SELECT COUNT(*) as total FROM productos $whereClause";
+            $resultCount = $this->conexion->query($sqlCount);
+            $totalRow = $resultCount->fetch_assoc();
+            $respuesta["total"] = intval($totalRow['total']);
+
+            // Obtener productos con paginación
+            $sql = "SELECT p.*, u.nombre as unidad_nombre 
+                FROM productos p 
+                LEFT JOIN unidades u ON p.unidad = u.id 
+                $whereClause 
+                ORDER BY CASE WHEN p.codigo LIKE 'JVC%' THEN 0 ELSE 1 END, p.codigo ASC 
+                LIMIT $limit OFFSET $offset";
+
+            $resultado = $this->conexion->query($sql);
+
+            if ($resultado && $resultado->num_rows > 0) {
+                while ($row = $resultado->fetch_assoc()) {
+                    $respuesta["data"][] = $row;
+                }
+                $respuesta["res"] = true;
+            } else if ($resultado) {
+                $respuesta["res"] = true; // Sin productos, pero consulta exitosa
+            }
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
+
 
 
 }

@@ -144,15 +144,21 @@ class OrdenTrabajo
             $stmt = $this->conectar->prepare($sql);
             $estado = $this->estado ?: 'PENDIENTE';
 
+            // Permitir valores NULL para cliente cuando es registro interno
+            $cliente_razon_social = $this->cliente_razon_social ?: 'REGISTRO INTERNO';
+            $cliente_ruc = $this->cliente_ruc ?: null;
+            $direccion = $this->direccion ?: null;
+
             $stmt->bind_param(
                 "sssssssss",
                 $numero,
-                $this->cliente_razon_social,
-                $this->cliente_ruc,
-                $this->direccion,
+                $cliente_razon_social,
+                $cliente_ruc,
+                $direccion,
                 $this->atencion_encargado,
                 $this->fecha_ingreso,
-                $this->fecha_salida,                $estado,
+                $this->fecha_salida,
+                $estado,
                 $this->observaciones
             );
 
@@ -437,5 +443,76 @@ class OrdenTrabajo
             return 'OT-01'; // Valor por defecto
         }
     }
+public function obtenerRepuestosPorOrden($id_orden_trabajo)
+{
+    try {
+        $sql = "SELECT otr.*, otd.marca, otd.equipo, otd.modelo, otd.numero_serie, otd.id_detalle
+            FROM orden_trabajo_repuestos otr
+            INNER JOIN orden_trabajo_detalles otd ON otr.id_detalle_maquina = otd.id_detalle
+            WHERE otr.id_orden_trabajo = ?
+            ORDER BY otd.id_detalle, otr.fecha_agregado";
+
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $id_orden_trabajo);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $repuestos = [];
+        while ($row = $result->fetch_assoc()) {
+            $repuestos[] = $row;
+        }
+
+        return $repuestos;
+    } catch (Exception $e) {
+        error_log("Error en obtenerRepuestosPorOrden: " . $e->getMessage());
+        return [];
+    }
+}
+
+
+   public function agregarRepuesto($datos)
+{
+    try {
+        $sql = "INSERT INTO orden_trabajo_repuestos 
+            (id_orden_trabajo, id_detalle_maquina, tipo_item, id_item, codigo_item, nombre_item, cantidad, precio_unitario, precio_total)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt = $this->conectar->prepare($sql);
+        $precio_total = $datos['cantidad'] * $datos['precio_unitario'];
+
+        $stmt->bind_param(
+            "iissssidd",
+            $datos['id_orden_trabajo'],
+            $datos['id_detalle_maquina'],
+            $datos['tipo_item'],
+            $datos['id_item'],
+            $datos['codigo_item'],
+            $datos['nombre_item'],
+            $datos['cantidad'],
+            $datos['precio_unitario'],
+            $precio_total
+        );
+
+        return $stmt->execute();
+    } catch (Exception $e) {
+        error_log("Error en agregarRepuesto: " . $e->getMessage());
+        return false;
+    }
+}
+
+
+    public function eliminarRepuesto($id_repuesto_orden)
+    {
+        try {
+            $sql = "DELETE FROM orden_trabajo_repuestos WHERE id_repuesto_orden = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("i", $id_repuesto_orden);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error en eliminarRepuesto: " . $e->getMessage());
+            return false;
+        }
+    }
+
 
 }

@@ -7,6 +7,29 @@ $datoEmpresa = $conexion->query("select * from empresas where id_empresa='{$_SES
 $igv_empresa = $datoEmpresa['igv'];
 ?>
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
+
+<style>
+    .nav-equipos {
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    .nav-equipos .nav-link {
+        border: 1px solid transparent;
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+        color: #495057;
+        background-color: #f8f9fa;
+        margin-right: 2px;
+    }
+
+    .nav-equipos .nav-link.active {
+        color: #CA3438;
+        background-color: #fff;
+        border-color: #dee2e6 #dee2e6 #fff;
+        border-bottom-color: transparent;
+    }
+</style>
 <div class="page-title-box">
     <div class="row align-items-center">
         <h6 class="page-title text-center">FACTURAR PRODUCTOS</h6>
@@ -26,11 +49,24 @@ $igv_empresa = $datoEmpresa['igv'];
     </div>
 </div>
 <input type="hidden" id="fecha-app" value="<?= date("Y-m-d") ?>">
-<?php
-if (isset($_GET["coti"])) {
-    echo "<input type='hidden' id='cotizacion' value='{$_GET["coti"]}'>";
-}
-?>
+
+<?php if (isset($coti) && $coti !== null) {
+    echo "<input type='hidden' id='cotizacion' value='{$coti}'>";
+    echo "<input type='hidden' id='tipo_cotizacion' value='normal'>";
+} elseif (isset($coti_taller) && $coti_taller !== null) {
+    echo "<input type='hidden' id='cotizacion' value='{$coti_taller}'>";
+    echo "<input type='hidden' id='tipo_cotizacion' value='taller'>";
+} ?>
+
+<!-- Debug: Mostrar qué parámetros llegaron -->
+<script>
+    console.log("Parámetros URL recibidos desde controlador:", {
+        coti: "<?php echo isset($coti) ? $coti : 'No definido'; ?>",
+        coti_taller: "<?php echo isset($coti_taller) ? $coti_taller : 'No definido'; ?>"
+    });
+</script>
+
+
 <?php
 if (isset($_GET["guia"])) {
     echo "<input type='hidden' id='guia' value='{$_GET["guia"]}'>";
@@ -65,9 +101,48 @@ if (isset($_GET["guia"])) {
                                 </div>
                                 <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
                                     style="width: 300px; padding: 10px;"></canvas>
-                                <div class="form-group row mb-3">
+                                <!-- Navegación por equipos - Solo visible cuando viene de taller -->
+                                <div class="col-md-12 mb-4" v-if="vieneDetallerCotizacion && equiposData.length > 0">
+                                    <nav class="nav nav-equipos">
+                                        <a v-for="(equipo, index) in equiposData" :key="index" class="nav-link"
+                                            :class="{ active: equipoActivo === index }"
+                                            @click.prevent="cambiarEquipoVenta(index)" href="#">
+                                            Equipo {{index + 1}}
+                                        </a>
+                                    </nav>
+                                </div>
 
+                                <!-- Detalles del equipo actual - Solo visible cuando viene de taller -->
+                                <div class="col-md-12 mb-4"
+                                    v-if="vieneDetallerCotizacion && equipoActivo !== null && equiposData.length > 0">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Marca</label>
+                                            <input type="text" class="form-control"
+                                                :value="equiposData[equipoActivo]?.marca" readonly>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Equipo</label>
+                                            <input type="text" class="form-control"
+                                                :value="equiposData[equipoActivo]?.equipo" readonly>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Modelo</label>
+                                            <input type="text" class="form-control"
+                                                :value="equiposData[equipoActivo]?.modelo" readonly>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Serie</label>
+                                            <input type="text" class="form-control"
+                                                :value="equiposData[equipoActivo]?.numero_serie" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group row mb-3">
                                     <label class="col-lg-2 control-label">Buscar</label>
+
 
                                     <div class="col-lg-10">
 
@@ -218,21 +293,7 @@ if (isset($_GET["guia"])) {
                         </div>
 
                         <div class="col-md-12 mt-5">
-                            <!-- <div class="row">
-                                <div class="text-left col-md-9">
-                                    <h4>Detalle Venta</h4>
-                                </div>
-                                <div class="col-md-3" v-if="productos.length > 0">
-                                    <label for="">Usar</label>
-                                    <select name="" id="" class="form-control text-right" v-model="usar_precio" @change="cambiarPrecio($event)">
-                                        <option value="1">Precio 1</option>
-                                        <option value="2">Precio 2</option>
-                                        <option value="3">Precio 3</option>
-                                        <option value="4">Precio Club</option>
-                                        <option value="5">Precio Unidad</option>
-                                    </select>
-                                </div>
-                            </div> -->
+
                             <table class="table">
                                 <thead>
                                     <tr>
@@ -271,101 +332,113 @@ if (isset($_GET["guia"])) {
                                 </tbody>
                             </table>
                         </div>
-                     <!-- Modal de Edición -->
-<div class="modal fade" id="modalEditarProducto" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title">Editar Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Descripción</label>
-                    <input type="text" class="form-control" v-model="productoEdit.descripcion">
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Cantidad</label>
-                        <input type="number" class="form-control"
-                            v-model="productoEdit.cantidad" @keypress="onlyNumber">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Precio</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control dropdown-toggle"
-                                data-bs-toggle="dropdown" aria-expanded="false"
-                                v-model="productoEdit.precio_mostrado"
-                                style="background-color: #f8f9fa; cursor: pointer;" readonly>
-                            <ul class="dropdown-menu w-100">
-                                <li>
-                                    <a class="dropdown-item" href="#"
-                                        @click.prevent="seleccionarPrecioEditConTipo('PV', productoEdit.precioVenta)"
-                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-weight: 400; font-size: 12px;">Precio Venta:</span>
-                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precioVenta }}</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#"
-                                        @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)"
-                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-weight: 400; font-size: 12px;">Costo:</span>
-                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.costo }}</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#"
-                                        @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)"
-                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-weight: 400; font-size: 12px;">Precio Mayor:</span>
-                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precio_mayor }}</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#"
-                                        @click.prevent="seleccionarPrecioEditConTipo('PMn', productoEdit.precio_menor)"
-                                        style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-weight: 400; font-size: 12px;">Precio Menor:</span>
-                                        <span style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/ {{ productoEdit.precio_menor }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary dropdown-toggle"
-                                    type="button" data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                    style="background-color: #CA3438; color: white;">
-                                    <i class="fa fa-chevron-down"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li v-for="(value, key) in precioProductos" :key="key">
-                                        <a class="dropdown-item" href="#"
-                                            @click.prevent="seleccionarPrecioEditConTipo(value.nombre, value.precio)"
-                                            style="color: #333; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
-                                            <span>{{ value.nombre }}:</span>
-                                            <span
-                                                style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px;">S/
-                                                {{ value.precio }}</span>
-                                        </a>
-                                    </li>
-                                </ul>
+                        <!-- Modal de Edición -->
+                        <div class="modal fade" id="modalEditarProducto" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-rojo text-white">
+                                        <h5 class="modal-title">Editar Producto</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Descripción</label>
+                                            <input type="text" class="form-control" v-model="productoEdit.descripcion">
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Cantidad</label>
+                                                <input type="number" class="form-control"
+                                                    v-model="productoEdit.cantidad" @keypress="onlyNumber">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Precio</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control dropdown-toggle"
+                                                        data-bs-toggle="dropdown" aria-expanded="false"
+                                                        v-model="productoEdit.precio_mostrado"
+                                                        style="background-color: #f8f9fa; cursor: pointer;" readonly>
+                                                    <ul class="dropdown-menu w-100">
+                                                        <li>
+                                                            <a class="dropdown-item" href="#"
+                                                                @click.prevent="seleccionarPrecioEditConTipo('PV', productoEdit.precioVenta)"
+                                                                style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                                <span style="font-weight: 400; font-size: 12px;">Precio
+                                                                    Venta:</span>
+                                                                <span
+                                                                    style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/
+                                                                    {{ productoEdit.precioVenta }}</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#"
+                                                                @click.prevent="seleccionarPrecioEditConTipo('C', productoEdit.costo)"
+                                                                style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                                <span
+                                                                    style="font-weight: 400; font-size: 12px;">Costo:</span>
+                                                                <span
+                                                                    style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/
+                                                                    {{ productoEdit.costo }}</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#"
+                                                                @click.prevent="seleccionarPrecioEditConTipo('PM', productoEdit.precio_mayor)"
+                                                                style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                                <span style="font-weight: 400; font-size: 12px;">Precio
+                                                                    Mayor:</span>
+                                                                <span
+                                                                    style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/
+                                                                    {{ productoEdit.precio_mayor }}</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#"
+                                                                @click.prevent="seleccionarPrecioEditConTipo('PMn', productoEdit.precio_menor)"
+                                                                style="color: #333; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                                                                <span style="font-weight: 400; font-size: 12px;">Precio
+                                                                    Menor:</span>
+                                                                <span
+                                                                    style="background-color: #0ab035; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">S/
+                                                                    {{ productoEdit.precio_menor }}</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-outline-secondary dropdown-toggle"
+                                                            type="button" data-bs-toggle="dropdown"
+                                                            aria-expanded="false"
+                                                            style="background-color: #CA3438; color: white;">
+                                                            <i class="fa fa-chevron-down"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-end">
+                                                            <li v-for="(value, key) in precioProductos" :key="key">
+                                                                <a class="dropdown-item" href="#"
+                                                                    @click.prevent="seleccionarPrecioEditConTipo(value.nombre, value.precio)"
+                                                                    style="color: #333; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
+                                                                    <span>{{ value.nombre }}:</span>
+                                                                    <span
+                                                                        style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px;">S/
+                                                                        {{ value.precio }}</span>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn border-rojo"
+                                            data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn bg-rojo text-white"
+                                            @click="actualizarProducto">
+                                            Guardar Cambios
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn border-rojo"
-                    data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn bg-rojo text-white"
-                    @click="actualizarProducto">
-                    Guardar Cambios
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
                     </div>
@@ -570,41 +643,10 @@ if (isset($_GET["guia"])) {
 
                                     <div class="form-group  mb-3">
 
-                                        <!-- <div class="col-lg-12">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group ">
-                                                        <label class="control-label">Paga con</label>
-                                                        <div class="col-lg-12">
-                                                            <input v-model="venta.pagacon" @keypress="onlyNumber"
-                                                                type="text" placeholder=""
-                                                                class="form-control text-center">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group ">
-                                                        <label class="control-label">Vuelto</label>
-                                                        <div class="col-lg-12">
-                                                            <input :value="vuelDelPago" disabled type="text"
-                                                                class="form-control text-center">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div> -->
+
                                     </div>
 
-                                    <!-- <div class="form-group  mb-3">
-                                        <label>Cantidad de Pagos</label>
-                                        <select class="form-control" v-model="venta.cantidadPagos">
-                                            <option value="1">1 Pago</option>
-                                            <option value="2">2 Pagos</option>
-                                            <option value="3">3 Pagos</option>
-                                            <option value="4">4 Pagos</option>
-                                            <option value="5">5 Pagos</option>
-                                        </select>
-                                    </div> -->
+
 
                                     <div v-for="(index, pagoIndex) in parseInt(venta.cantidadPagos)" :key="pagoIndex">
                                         <!-- <div class="col-md-12 form-group">
@@ -886,8 +928,8 @@ if (isset($_GET["guia"])) {
 
         if ($.ui && $.ui.autocomplete) {
             $.ui.autocomplete.prototype._resizeMenu = function () {
-              var ul = this.menu.element;
-              ul.outerWidth(this.element.outerWidth());
+                var ul = this.menu.element;
+                ul.outerWidth(this.element.outerWidth());
             }
         }
 
@@ -899,6 +941,9 @@ if (isset($_GET["guia"])) {
                 enProceso: true,
                 usar_scaner: false,
                 apli_igv_is: true,
+                vieneDetallerCotizacion: false,
+                equiposData: [],
+                equipoActivo: null,
                 mensajeProductoVisible: false,
                 producto: {
                     edicion: false,
@@ -1157,21 +1202,21 @@ if (isset($_GET["guia"])) {
                     this.mensajeProductoVisible = false;
                 },
 
-               seleccionarPrecioEditConTipo(tipo, precio) {
-    this.productoEdit.precio_mostrado = precio;
-    this.productoEdit.precio = precio;
-    this.productoEdit.tipo_precio = tipo;
+                seleccionarPrecioEditConTipo(tipo, precio) {
+                    this.productoEdit.precio_mostrado = precio;
+                    this.productoEdit.precio = precio;
+                    this.productoEdit.tipo_precio = tipo;
 
-    if (tipo === 'PV') {
-        this.productoEdit.precioVenta = precio;
-    }
-    
-    // Cerrar el dropdown después de seleccionar
-    const dropdowns = document.querySelectorAll('.dropdown-menu.show');
-    dropdowns.forEach(dropdown => {
-        dropdown.classList.remove('show');
-    });
-},
+                    if (tipo === 'PV') {
+                        this.productoEdit.precioVenta = precio;
+                    }
+
+                    // Cerrar el dropdown después de seleccionar
+                    const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('show');
+                    });
+                },
 
                 mounted() {
                     // Recuperar productos guardados si existen
@@ -1519,6 +1564,87 @@ if (isset($_GET["guia"])) {
                             }, 1000)
                         })
                 },
+              cargarCotizacionTaller() {
+    const vue = this;
+    const cotiId = $("#cotizacion").val();
+
+    console.log("=== INICIO cargarCotizacionTaller ===");
+    console.log("Cotización ID:", cotiId);
+
+    if (!cotiId || cotiId === '') {
+        console.error("No hay ID de cotización disponible");
+        alertAdvertencia("No se pudo obtener el ID de la cotización de taller");
+        return;
+    }
+
+    _post("/ajs/taller/cotizaciones/info", { coti: cotiId }, function (resp) {
+        console.log("=== RESPUESTA cargarCotizacionTaller ===");
+        console.log("Respuesta completa:", resp);
+
+        if (resp.res) {
+            // Marcar que viene de taller
+            vue.vieneDetallerCotizacion = true;
+
+            // Mapear productos
+            vue.productos = resp.productos.map(ert => {
+                ert.descripcion = ert.codigo.toString().trim() + ' | ' + ert.descripcion;
+                ert.edicion = false;
+                return ert;
+            });
+
+            // CARGAR EQUIPOS - ESTA ES LA PARTE CLAVE
+            if (resp.equipos && resp.equipos.length > 0) {
+                vue.equiposData = resp.equipos;
+                vue.equipoActivo = 0; // Activar el primer equipo
+                console.log("Equipos cargados:", vue.equiposData);
+            } else {
+                vue.equiposData = [];
+                vue.equipoActivo = null;
+                console.log("No se encontraron equipos");
+            }
+
+            // Datos del cliente
+            if (resp.cliente_doc) {
+                if (resp.cliente_doc.length === 11) {
+                    vue.venta.tipo_doc = '2';
+                } else if (resp.cliente_doc.length === 8) {
+                    vue.venta.tipo_doc = '1';
+                } else {
+                    vue.venta.tipo_doc = resp.id_tido;
+                }
+            }
+
+            vue.venta.moneda = resp.moneda || 1;
+            vue.venta.tc = resp.cm_tc || '1';
+            vue.venta.tipo_pago = resp.id_tipo_pago || '1';
+            vue.venta.dias_pago = resp.dias_pagos || '';
+            vue.venta.dir_pos = parseInt(resp.direccion + "") || 1;
+            vue.venta.num_doc = resp.cliente_doc || '';
+            vue.venta.nom_cli = resp.cliente_nom || '';
+            vue.venta.dir_cli = resp.cliente_dir1 || '';
+            vue.venta.dir2_cli = resp.cliente_dir2 || '';
+
+            vue.buscarSNdoc();
+
+            setTimeout(function () {
+                vue.venta.dias_lista = resp.cuotas || [];
+            }, 1000);
+        } else {
+            console.error("Error en respuesta:", resp);
+            alertAdvertencia("Error al cargar datos de la cotización de taller");
+        }
+    });
+},
+
+
+
+                cambiarEquipoVenta(index) {
+                    this.equipoActivo = index;
+                    // Aquí puedes agregar lógica adicional si necesitas filtrar productos por equipo
+                    console.log("Equipo activo cambiado a:", index);
+                },
+
+
 
                 // Modifica la función cargarDatosGuia() así:
                 cargarDatosGuia() {
@@ -1619,6 +1745,13 @@ if (isset($_GET["guia"])) {
 
                         source: _URL + `/ajs/cargar/productos/${self.producto.almacen}`,
                         minLength: 1,
+                        open: function () {
+                            $('.ui-autocomplete').css({
+                                'max-height': '200px',
+                                'overflow-y': 'auto',
+                                'overflow-x': 'hidden'
+                            });
+                        },
                         select: function (event, ui) {
                             event.preventDefault();
                             /*    console.log(item);
@@ -1782,7 +1915,8 @@ if (isset($_GET["guia"])) {
                                         datosTransporteGuiaRemosion: localStorage.getItem('datosTransporteGuiaRemosion'),
                                         productosGuiaRemosion: localStorage.getItem('productosGuiaRemosion'),
                                         datosUbigeoGuiaRemosion: localStorage.getItem('datosUbigeoGuiaRemosion'),
-                                        idCoti: idCoti
+                                        idCoti: idCoti,
+                                        tipoCotizacion: $("#tipo_cotizacion").val()
                                     }
                                     data.dias_lista = JSON.stringify(data.dias_lista)
 
@@ -1972,45 +2106,45 @@ if (isset($_GET["guia"])) {
                     new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
                 },
                 cargarPreciosAdicionales(idProducto, tipo = 'producto') {
-    console.log("Cargando precios para ID:", idProducto, "Tipo:", tipo);
-    
-    const url = tipo === 'repuesto' 
-        ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
-        : _URL + '/ajs/cargar/producto_precios/' + idProducto;
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            console.log("Precios adicionales recibidos:", data);
-            
-            let array = [];
-            
-            if (data && data.length > 0) {
-                data.forEach(item => {
-                    array.push({
-                        nombre: item.nombre,
-                        precio: parseFloat(item.precio).toFixed(2)
-                    });
-                });
-                app.precioProductos = array;
-            } else {
-                app.precioProductos = [
-                    {nombre: 'No hay precios adicionales', precio: app.producto.precio}
-                ];
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error cargando precios:", error);
-            app.precioProductos = [
-                {nombre: 'Error al cargar precios', precio: app.producto.precio}
-            ];
-        }
-    });
-},
+                    console.log("Cargando precios para ID:", idProducto, "Tipo:", tipo);
 
-                
+                    const url = tipo === 'repuesto'
+                        ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
+                        : _URL + '/ajs/cargar/producto_precios/' + idProducto;
+
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log("Precios adicionales recibidos:", data);
+
+                            let array = [];
+
+                            if (data && data.length > 0) {
+                                data.forEach(item => {
+                                    array.push({
+                                        nombre: item.nombre,
+                                        precio: parseFloat(item.precio).toFixed(2)
+                                    });
+                                });
+                                app.precioProductos = array;
+                            } else {
+                                app.precioProductos = [
+                                    { nombre: 'No hay precios adicionales', precio: app.producto.precio }
+                                ];
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Error cargando precios:", error);
+                            app.precioProductos = [
+                                { nombre: 'Error al cargar precios', precio: app.producto.precio }
+                            ];
+                        }
+                    });
+                },
+
+
 
 
                 actualizarProducto() {
@@ -2086,22 +2220,28 @@ if (isset($_GET["guia"])) {
             },
             created() {
                 console.log("Component created");
-
-                // Verificar si viene de cotización
+                // Verificar si viene de cotización (normal o taller)
                 const cotiId = $("#cotizacion").val();
-                if (cotiId) {
-                    console.log("Quote ID found:", cotiId);
-                    this.vieneDesCotizacion = true; // Mostrar el campo
-                    this.cargarCotizacion();
-                }
+                const tipoCoti = $("#tipo_cotizacion").val();
 
-                // Check for guide ID
-                const guiaId = $("#guia").val();
-                if (guiaId) {
-                    console.log("Guide ID found:", guiaId);
-                    this.cargarDatosGuia();
+                console.log("Debug created - cotiId:", cotiId, "tipoCoti:", tipoCoti);
+
+                if (cotiId && cotiId !== '') {
+                    console.log("Quote ID found:", cotiId, "Tipo:", tipoCoti);
+                    this.vieneDesCotizacion = true;
+
+                    if (tipoCoti === 'taller') {
+                        console.log("Llamando cargarCotizacionTaller...");
+                        this.cargarCotizacionTaller();
+                    } else {
+                        console.log("Llamando cargarCotizacion...");
+                        this.cargarCotizacion();
+                    }
+                } else {
+                    console.log("No hay cotización ID disponible");
                 }
             },
+
 
 
             computed: {
@@ -2243,6 +2383,13 @@ if (isset($_GET["guia"])) {
 
             source: _URL + `/ajs/cargar/productos/${app.producto.almacen}`,
             minLength: 1,
+            open: function () {
+                $('.ui-autocomplete').css({
+                    'max-height': '200px',
+                    'overflow-y': 'auto',
+                    'overflow-x': 'hidden'
+                });
+            },
             select: function (event, ui) {
                 event.preventDefault();
                 /*    console.log(item);
@@ -2296,11 +2443,12 @@ if (isset($_GET["guia"])) {
             }
         });
 
-        <?php
-        if (isset($_GET["coti"])) {
-            echo "app.cargarCotizacion();";
-        }
-        ?>
+        <?php if (isset($coti) && $coti !== null) {
+    echo "app.cargarCotizacion();";
+} elseif (isset($coti_taller) && $coti_taller !== null) {
+    echo "app.cargarCotizacionTaller();";
+} ?>
+
         $("#example-text-input").on('keypress', function (e) {
             if (e.which == 13) {
                 $("#submit-a-product").click()
@@ -2349,6 +2497,6 @@ if (isset($_GET["guia"])) {
             event.preventDefault();
         }
     }
-    
-    
+
+
 </script>

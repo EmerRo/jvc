@@ -1,4 +1,3 @@
-<!-- resources\views\fragment-views\cliente\almacen-productos.php -->
 <?php
 
 require_once "app/models/Producto.php";
@@ -7,135 +6,9 @@ $c_producto->setIdEmpresa($_SESSION['id_empresa']);
 $almacenProducto = 1;
 
 ?>
+<link rel="stylesheet" href="<?= URL::to('/public/css/almacen-productos.css')  ?>?v=<?= time() ?>">
 
-<style>
-    .dt-body-left {
-        text-align: left !important;
-    }
 
-    /* Estilos para hacer las tablas de precios más compactas */
-    .table-bordered.table-hover {
-        width: 100%;
-        margin-bottom: 0;
-        border-collapse: collapse;
-    }
-
-    /* Eliminar espacios en las celdas de la tabla */
-    .table-bordered.table-hover th,
-    .table-bordered.table-hover td {
-        padding: 0.4rem !important;
-        vertical-align: middle !important;
-    }
-
-    /* Ajustar el ancho de las columnas */
-    .table-bordered.table-hover th:first-child,
-    .table-bordered.table-hover td:first-child {
-        width: 50%;
-    }
-
-    .table-bordered.table-hover th:nth-child(2),
-    .table-bordered.table-hover td:nth-child(2) {
-        width: 35%;
-    }
-
-    .table-bordered.table-hover th:last-child,
-    .table-bordered.table-hover td:last-child {
-        width: 15%;
-        text-align: center;
-    }
-
-    /* Eliminar espacios en los input-group dentro de las tablas */
-    .table-bordered.table-hover .input-group {
-        margin: 0 !important;
-    }
-
-    /* Ajustar el padding de los input dentro de las tablas */
-    .table-bordered.table-hover .input-group .form-control,
-    .table-bordered.table-hover .input-group .input-group-text {
-        padding: 0.25rem 0.5rem !important;
-        height: auto !important;
-    }
-
-    /* Hacer los botones más compactos */
-    .table-bordered.table-hover .btn-sm {
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.875rem !important;
-    }
-
-    /* Ajustar el card-body que contiene la tabla */
-    .card-body .table-responsive {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Eliminar espacios en el encabezado de la tabla */
-    .table-light th {
-        padding: 0.5rem !important;
-    }
-
-    /* Estilos personalizados para el autocomplete */
-    .ui-autocomplete {
-        max-height: 200px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        border: 1px solid #e9ecef !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        background: white !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-        z-index: 9999 !important;
-        padding: 4px 0 !important;
-    }
-
-    .ui-autocomplete .ui-menu-item {
-        border: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
-        padding: 8px 12px !important;
-        font-size: 13px !important;
-        line-height: 1.4 !important;
-        border: none !important;
-        color: #495057 !important;
-        background: transparent !important;
-        margin: 0 2px !important;
-        border-radius: 4px !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-    }
-
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
-        background: #f8f9fa !important;
-        border: 1px solid #CA3438 !important;
-        color: #CA3438 !important;
-        font-weight: 500 !important;
-    }
-
-    /* Asegurar que el autocomplete esté dentro del modal */
-    #modal-aumentar-stock .ui-autocomplete {
-        position: absolute !important;
-        max-width: calc(100% - 24px) !important;
-    }
-
-    /* Mejorar el estilo del input de búsqueda */
-    #buscar-producto-stock {
-        border: 2px solid #e9ecef !important;
-        border-radius: 6px !important;
-        padding: 10px 12px !important;
-        font-size: 14px !important;
-        transition: border-color 0.3s ease !important;
-    }
-
-    #buscar-producto-stock:focus {
-        border-color: #CA3438 !important;
-        box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.25) !important;
-        outline: none !important;
-    }
-</style>
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -168,7 +41,6 @@ $almacenProducto = 1;
     </div>
 </div>
 
-
 <div id="conte-vue-modals">
     <input type="hidden" name="almacenId" id="almacenId" value="<?php echo $almacenProducto ?>">
 
@@ -178,10 +50,9 @@ $almacenProducto = 1;
                 style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
                 <div class="card-header" style="background: #fff; border-bottom: none; padding-bottom: 0;">
                     <div class="d-flex flex-wrap justify-content-between align-items-center">
-                        <!-- <h4 class="card-title mb-0">Lista de Productos</h4> -->
                         <div class="text-end mt-2 mt-md-0">
                             <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
-                                    class="fa fa-file-excel"></i> Descargar Exel por busqueda</button>
+                                    class="fa fa-file-excel"></i> Descargar Excel por búsqueda</button>
                             <button data-bs-toggle="modal" data-bs-target="#importarModal"
                                 class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
                                 Importar</button>
@@ -197,21 +68,31 @@ $almacenProducto = 1;
                                     class="fa fa-plus"> </i> Categorias</a>
                             <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i>
                                 Agregar Producto</button>
-                            <button class="btn btn-danger btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-danger" @click="agregarIds"><i class="fa fa-times"></i>
+                            <button class="btn bg-rojo btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
+                            <button hidden class="btn btn-rojo" @click="agregarIds"><i class="fa fa-times"></i>
                                 Seleccionar Todos</button>
                         </div>
                     </div>
                 </div>
                 <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
+                    <!-- Botones para cambiar vista -->
+                    <div class="view-toggle-buttons">
+                        <button id="btn-table-view" class="btn active">
+                            <i class="fa fa-table me-1"></i> Vista Tabla
+                        </button>
+                        <button id="btn-grid-view" class="btn">
+                            <i class="fa fa-th-large me-1"></i> Vista Grid
+                        </button>
+                    </div>
+
                     <div class="row">
-                        <div class="form-group col-md-2" style="margin:  1rem 0;">
-                            <label for="">Almacen</label>
+                        <div class="form-group col-md-2" style="margin: 1rem 0;">
+                            <label for="">Almacén</label>
                             <select name="almacenSelect" id="almacenSelect" class="form-control"
                                 @change="changeAlmacen($event)" v-model="almacen">
-                                <option value="1">Almacen 1</option>
-                                <option value="2">Almacen 2</option>
-                                <option value="3">Almacen 3</option>
+                                <option value="1">Almacén 1</option>
+                                <option value="2">Almacén 2</option>
+                                <option value="3">Almacén 3</option>
                             </select>
                         </div>
                         <div class="d-flex gap-3 align-items-center">
@@ -247,29 +128,70 @@ $almacenProducto = 1;
                             </div>
                         </div>
                     </div>
-                    <div class="table-responsive">
-                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
-                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Codigo</th>
-                                    <th>Nombre</th>
-                                    <th>Unidades</th>
-                                    <th>Precios </th>
-                                    <th>stock</th>
-                                    <th>Editar</th>
-                                    <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'> </th>
-                                </tr>
-                            </thead>
-                            <tbody id='tbodyProductos'>
-                            </tbody>
-                        </table>
+
+                    <!-- Vista de Tabla (existente) -->
+                    <div id="table-view" class="table-view">
+                        <div class="table-responsive">
+                            <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                                style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Unidades</th>
+                                        <th>Precios</th>
+                                        <th>Stock</th>
+                                        <th>Editar</th>
+                                        <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'></th>
+                                    </tr>
+                                </thead>
+                                <tbody id='tbodyProductos'>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Vista de Grid (nueva) -->
+                    <div id="grid-view" class="products-grid">
+                        <!-- Filtros para vista grid -->
+                        <div class="grid-filters">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="grid-search">
+                                        <input type="text" id="grid-search-input" class="form-control"
+                                            placeholder="Buscar productos...">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button class="btn border-rojo bg-white btnSeleccionarTodosGrid">
+                                        <i class="fa fa-check-square me-1"></i> Seleccionar Todos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading -->
+                        <div class="loading-grid" id="loading-grid">
+                            <i class="fa fa-spinner"></i>
+                            <p>Cargando productos...</p>
+                        </div>
+
+                        <!-- Grid de productos -->
+                        <div class="product-grid-container" id="products-container">
+                            <!-- Los productos se cargarán aquí dinámicamente -->
+                        </div>
+
+                        <!-- Paginación -->
+                        <div class="grid-pagination" id="grid-pagination">
+                            <!-- La paginación se generará dinámicamente -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Todos los modales existentes se mantienen igual -->
     <div class="modal fade" id="modal-precios" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -375,9 +297,9 @@ $almacenProducto = 1;
                             <div class="form-group col-md-4 mb-3">
                                 <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
                                 <select v-model="reg.almacen" class="form-control" required>
-                                    <option value="1">Almacen 1</option>
-                                    <option value="2">Almacen 2</option>
-                                    <option value="3">Almacen 3</option>
+                                    <option value="1">Almacén 1</option>
+                                    <option value="2">Almacén 2</option>
+                                    <option value="3">Almacén 3</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-4 mb-3">
@@ -593,9 +515,9 @@ $almacenProducto = 1;
                             <div class="form-group col-md-4 mt-2">
                                 <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
                                 <select v-model="edt.almacen" required class="form-control">
-                                    <option value="1">Almacen 1</option>
-                                    <option value="2">Almacen 2</option>
-                                    <option value="3">Almacen 3</option>
+                                    <option value="1">Almacén 1</option>
+                                    <option value="2">Almacén 2</option>
+                                    <option value="3">Almacén 3</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-4 mt-2">
@@ -648,44 +570,35 @@ $almacenProducto = 1;
                                     <i class="fa fa-image me-2"></i>
                                     <span class="fw-bold">Imagen del Producto</span>
                                 </label>
-                                <div class="image-container position-relative"
-                                    style="border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden;">
-                                    <!-- Contenedor de imagen -->
-                                    <div class="image-wrapper" style="position: relative;">
-                                        <img id="img-preview" alt="Vista previa"
-                                            style="max-height: 150px; width: auto; display: none; margin: 0;" />
 
-                                        <!-- Botón de edición con texto -->
-                                        <div id="image-edit-button"
-                                            style="display: none; position: absolute; top: 10px; right: 10px;">
-                                            <button type="button" class="btn btn-light" onclick="toggleImageMenu()"
-                                                style="background-color: rgba(255, 255, 255, 0.9); border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                <i class="fa fa-pencil-alt me-1"></i>
-                                                Editar imagen
-                                            </button>
-
-                                            <!-- Menú desplegable -->
-                                            <div id="image-menu" class="position-absolute shadow-sm"
-                                                style="display: none; top: 100%; right: 0; margin-top: 5px; background-color: white; border-radius: 4px; border: 1px solid #dee2e6; min-width: 160px; z-index: 1000;">
-                                                <div class="p-2 hover-bg-light" style="cursor: pointer;"
-                                                    onclick="changeImage()">
-                                                    <i class="fa fa-upload me-2"></i> Subir una foto...
-                                                </div>
-                                                <div class="p-2 text-danger hover-bg-light" style="cursor: pointer;"
-                                                    onclick="removeImage()">
-                                                    <i class="fa fa-trash me-2"></i> Eliminar foto
-                                                </div>
+                                <!-- Contenedor de la imagen existente -->
+                                <div class="image-container position-relative" style="display: none; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden; background-color: #f8f9fa; text-align: center; min-height: 200px; align-items: center; justify-content: center; display: flex;">
+                                    <img id="img-preview" alt="Vista previa" style="max-height: 180px; width: auto; margin: 10px;" />
+                                    
+                                    <!-- Botón de edición -->
+                                    <div id="image-edit-button" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                                        <button type="button" class="btn btn-light" onclick="toggleImageMenu()" style="background-color: rgba(255, 255, 255, 0.9); border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                            <i class="fa fa-pencil-alt me-1"></i>
+                                            Editar
+                                        </button>
+                                        
+                                        <!-- Menú desplegable -->
+                                        <div id="image-menu" class="position-absolute shadow-sm" style="display: none; top: 100%; right: 0; margin-top: 5px; background-color: white; border-radius: 4px; border: 1px solid #dee2e6; min-width: 160px; z-index: 1000;">
+                                            <div class="p-2 hover-bg-light" style="cursor: pointer;" onclick="changeImage()">
+                                                <i class="fa fa-upload me-2"></i> Cambiar foto...
+                                            </div>
+                                            <div class="p-2 text-danger hover-bg-light" style="cursor: pointer;" onclick="removeImage()">
+                                                <i class="fa fa-trash me-2"></i> Eliminar foto
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Input oculto para subir imagen -->
-                                <input type="file" id="upload-input" name="imagen" class="d-none" accept="image/*"
-                                    onchange="previewImage(this)" />
+                                <input type="file" id="upload-input" name="imagen" class="d-none" accept="image/*" onchange="previewImage(this)" />
 
-                                <!-- Mensaje cuando no hay imagen -->
-                                <div id="no-image-message" class="text-center p-3 border rounded bg-light mt-2">
+                                <!-- Mensaje y botón para cuando NO hay imagen -->
+                                <div id="no-image-message" class="text-center p-3 border rounded bg-light mt-2" style="display: none;">
                                     <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
                                     <p class="mb-2">No hay imagen para este producto</p>
                                     <button type="button" class="btn btn-primary btn-sm" onclick="changeImage()">
@@ -693,6 +606,7 @@ $almacenProducto = 1;
                                     </button>
                                 </div>
                             </div>
+
 
 
                             <div class="form-group col-md-4 mt-2">
@@ -914,7 +828,7 @@ $almacenProducto = 1;
                         <div class="form-group">
                             <label>Cantidad</label>
                             <input v-model="restock.cantidad" required type="text" class="form-control">
-                            <small class="form-text text-muted">La cantidad ingresada se sumara a la cantidad
+                            <small class="form-text text-muted">La cantidad ingresada se sumará a la cantidad
                                 actual</small>
                         </div>
                     </div>
@@ -1004,16 +918,16 @@ $almacenProducto = 1;
                         <thead>
                             <tr>
                                 <th>Producto</th>
-                                <th>Descripcion</th>
+                                <th>Descripción</th>
                                 <th>Cantidad</th>
                                 <th>Costo</th>
                                 <th>Precio Venta</th>
                                 <th>Precio 1</th>
                                 <th>Precio 2</th>
-                                <th>Almacen</th>
-                                <th>Codigo</th>
+                                <th>Almacén</th>
+                                <th>Código</th>
                                 <th>Unidades</th>
-                                <th>Categorias</th>
+                                <th>Categorías</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -1049,7 +963,7 @@ $almacenProducto = 1;
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Codigo de Barras</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Código de Barras</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1114,7 +1028,7 @@ $almacenProducto = 1;
                     </select>
                 </div>
                 <div class="col-md-12 mb-3">
-                    <label class="form-label">Dia</label>
+                    <label class="form-label">Día</label>
                     <input id='diareporEfghg' class="form-control">
                 </div>
 
@@ -1132,7 +1046,7 @@ $almacenProducto = 1;
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte De Producto</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Imagen del Producto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1151,7 +1065,7 @@ $almacenProducto = 1;
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Agregar Categoria</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Agregar Categoría</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addCategoria">
@@ -1174,7 +1088,7 @@ $almacenProducto = 1;
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Agregar Categoria</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Lista de Categorías</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addCategoria">
@@ -1184,7 +1098,7 @@ $almacenProducto = 1;
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
-                                    <th scope="col">Categoria</th>
+                                    <th scope="col">Categoría</th>
                                     <th scope="col">Acciones</th>
                                 </tr>
                             </thead>
@@ -1206,7 +1120,7 @@ $almacenProducto = 1;
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Actualizar Categoria</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Actualizar Categoría</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="addCategoria">
@@ -1226,15 +1140,18 @@ $almacenProducto = 1;
     </div>
 </div>
 
-<!-- <style>
-    input[type=file].hidden {
-        color: transparent;
-    }
-</style> -->
-<script src="
-https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
-"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js"></script>
+
 <script>
+    // Variables globales para el control de vistas
+    let currentView = 'table'; // 'table' o 'grid'
+    let gridProducts = [];
+    let currentPage = 1;
+    let productsPerPage = 12;
+    let totalProducts = 0;
+    let searchTerm = '';
+    let arrayIdsOkUsar = [];
+
     function descarFunccc() {
         window.open(_URL +
             `/reporte/producto/excel?texto=${$("#datatable_filter input").val()}`)
@@ -1279,44 +1196,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
 
     function imprimir() {
         window.open(_URL + "/ge/bar/code?code=" + codeBarraTemps + "&nombre=" + nombreBarraTemps + "&scal=" + $("#scalimg").val(), "_blank");
-
-        /*   let printA4 = $(this).attr('href') */
-        //printBarcode()
-        /*let imgCodigo = $('#idCodigoBarras').attr('src');
-        var myWindow = window.open("", "Image", "_blank");
-        myWindow.document.write("<html><head><title></title></head><body style='width: 5cm; height: 2.5cm; padding: 0; margin: 0;'>");
-        myWindow.document.write("<h3 style='font-size: 12px;text-align: center; margin: 0; padding: 0;'>"+nombreBarraTemps+"</h3>");
-        myWindow.document.write("<img src='" + imgCodigo + "' style='width: 100%; height:   display: block; margin: 0 auto;'>");
-        myWindow.document.write("</body></html>");
-        myWindow.document.close();
-        myWindow.focus();
-        myWindow.print();
-        myWindow.close();*/
-
-        /* let imgCodigo = $('#idCodigoBarras').attr('src');
-        let ticketContent = `
-        <html>
-        <head><title>Ticket de impresión</title></head>
-        <body style="width: 5cm; height: 2.5cm; padding: 0; margin: 0;">
-          <h3 style="font-size: 12px;text-align: center; margin: 0; padding: 0;">"+nombreBarraTemps+"</h3>
-          <img src="${imgCodigo}" style="width: 100%; height: calc(100% - 1em); display: block; margin: 0 auto;">
-        </body>
-        </html>
-      `;
-
-        qz.websocket.connect().then(function() {
-            return qz.printers.find("XP-350B"); // Nombre de la impresora XPRINTER XP-350B
-        }).then(function(printer) {
-            let config = qz.configs.create(printer);
-            return qz.print(config, [{ type: 'html', format: 'plain', data: ticketContent }]);
-        }).then(function() {
-            qz.websocket.disconnect();
-        }).catch(function(err) {
-            console.error(err);
-        });*/
-
     }
-
 
     function abrirModalBarras(e, n = '') {
         e = e.trim();
@@ -1338,6 +1218,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             }, 100);
         });
     }
+
     function clearSelection() {
         // Limpiar array de IDs seleccionados
         arrayIdsOkUsar = [];
@@ -1345,21 +1226,193 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
         // Desmarcar todos los checkboxes
         $('.btnCheckEliminar').prop('checked', false);
         $('.btnSeleccionarTodos').prop('checked', false);
+        $('.btnSeleccionarTodosGrid').text('Seleccionar Todos').removeClass('btn-warning').addClass('border-rojo bg-white');
 
         // Eliminar datos guardados en localStorage
         localStorage.removeItem('idChecks');
+    }
+
+    // Función para cargar productos en vista grid
+    function loadGridProducts(page = 1, search = '') {
+        $('#loading-grid').addClass('active');
+        $('#products-container').empty();
+
+        const filter = $('#maquinas').prop('checked') ? 'JVC' :
+            $('#implementos').prop('checked') ? 'IMPLE' :
+                $('#cep').prop('checked') ? 'CEP' :
+                    $('#pad').prop('checked') ? 'PAD' :
+                        $('#port').prop('checked') ? 'PORT' :
+                            $('#acc').prop('checked') ? 'ACC' : '';
+
+        _ajax("/ajs/data/productos/grid", "POST", {
+            almacenId: almacenCod,
+            page: page,
+            limit: productsPerPage,
+            search: search,
+            filter: filter
+        }, function (resp) {
+            $('#loading-grid').removeClass('active');
+
+            if (resp.res) {
+                gridProducts = resp.data;
+                totalProducts = resp.total;
+                currentPage = page;
+
+                renderGridProducts();
+                renderGridPagination();
+            } else {
+                alertAdvertencia("Error al cargar productos");
+            }
+        });
+    }
+
+    // Función para renderizar productos en grid
+    function renderGridProducts() {
+        const container = $('#products-container');
+        container.empty();
+
+        if (gridProducts.length === 0) {
+            container.html(`
+                <div class="col-12 text-center" style="grid-column: 1 / -1;">
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle me-2"></i>
+                        No se encontraron productos.
+                    </div>
+                </div>
+            `);
+            return;
+        }
+
+        gridProducts.forEach(product => {
+            const stockClass = getStockClass(product.cantidad);
+            const imageUrl = product.imagen ?
+                `${_URL}/public/img/productos/${product.imagen}` :
+                null;
+
+            const isChecked = arrayIdsOkUsar.some(item => item.id === product.id_producto);
+
+            const productCard = `
+                <div class="product-card" data-product-id="${product.id_producto}">
+                    <div class="product-checkbox">
+                        <input type="checkbox" class="btnCheckEliminar" data-id="${product.id_producto}" ${isChecked ? 'checked' : ''}>
+                    </div>
+                    <div class="product-image-container">
+                        ${imageUrl ?
+                    `<img src="${imageUrl}" alt="${product.nombre}" class="product-image">` :
+                    `<div class="no-image-placeholder">
+                                <i class="fa fa-image"></i>
+                                <span>Sin imagen</span>
+                            </div>`
+                }
+                    </div>
+                    <div class="product-info">
+                        <a href="javascript:abrirModalBarras('${product.codigo}','${product.nombre}')" class="product-code">
+                            ${product.codigo}
+                        </a>
+                        <h6 class="product-name" title="${product.nombre}">
+                            ${product.nombre}
+                        </h6>
+                        <div class="product-details">
+                            <span class="product-unit">${product.unidad_nombre || 'N/A'}</span>
+                            <span class="product-stock ${stockClass}">
+                                <i class="fa fa-cubes me-1"></i>${product.cantidad}
+                            </span>
+                        </div>
+                        <div class="product-price">
+                            S/ ${parseFloat(product.precio || 0).toFixed(2)}
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-edit-product bg-rojo btn-edt" data-item="${product.id_producto}">
+                                <i class="fa fa-edit me-1"></i> Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.append(productCard);
+        });
+    }
+
+    // Función para obtener la clase de color según el stock
+    function getStockClass(cantidad) {
+        const stock = parseInt(cantidad);
+        if (stock <= 5) return 'low-stock';
+        if (stock <= 20) return 'medium-stock';
+        return '';
+    }
+
+    // Función para renderizar paginación
+    function renderGridPagination() {
+        const totalPages = Math.ceil(totalProducts / productsPerPage);
+        const pagination = $('#grid-pagination');
+        pagination.empty();
+
+        if (totalPages <= 1) return;
+
+        // Botón anterior
+        if (currentPage > 1) {
+            pagination.append(`
+                <button class="btn border-rojo bg-white" onclick="loadGridProducts(${currentPage - 1}, '${searchTerm}')">
+                    <i class="fa fa-chevron-left"></i> Anterior
+                </button>
+            `);
+        }
+
+        // Páginas
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagination.append(`<button class="btn border-rojo bg-white" onclick="loadGridProducts(1, '${searchTerm}')">1</button>`);
+            if (startPage > 2) {
+                pagination.append(`<span class="mx-2">...</span>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === currentPage ? 'bg-rojo text-white' : 'border-rojo bg-white';
+            pagination.append(`
+                <button class="btn ${activeClass}" onclick="loadGridProducts(${i}, '${searchTerm}')">${i}</button>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<span class="mx-2">...</span>`);
+            }
+            pagination.append(`<button class="btn border-rojo bg-white" onclick="loadGridProducts(${totalPages}, '${searchTerm}')">${totalPages}</button>`);
+        }
+
+        // Botón siguiente
+        if (currentPage < totalPages) {
+            pagination.append(`
+                <button class="btn border-rojo bg-white" onclick="loadGridProducts(${currentPage + 1}, '${searchTerm}')">
+                    Siguiente <i class="fa fa-chevron-right"></i>
+                </button>
+            `);
+        }
+
+        // Info de resultados
+        const startItem = (currentPage - 1) * productsPerPage + 1;
+        const endItem = Math.min(currentPage * productsPerPage, totalProducts);
+        pagination.append(`
+            <div class="ms-3 text-muted">
+                Mostrando ${startItem} - ${endItem} de ${totalProducts} productos
+            </div>
+        `);
     }
 
     var nombreBarraTemps = ''
     var codeBarraTemps = ''
     var datatable
     var almacenCod = '<?php echo $_SESSION["sucursal"] ?>'
+
     $(document).ready(function () {
         const app = new Vue({
             el: "#conte-vue-modals",
             data: {
-
-                almacen: <?php echo $_SESSION["sucursal"] ?>,
+               almacen: <?php echo json_encode($_SESSION["sucursal"]); ?>,
                 t: 0,
                 listaProd: [],
                 restock: {
@@ -1423,7 +1476,6 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     cantidad_ingresar: '',
                     producto_nombre: ''
                 },
-
                 historialStock: [],
             },
             methods: {
@@ -1450,7 +1502,6 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     this.preciosNuevos.splice(index, 1);
                 },
                 agregarIds() {
-                    /*  console.log('nice'); */
                     this.t = 5
                     console.log(this.listaIdsss);
                     this.listaIdsss.push({
@@ -1484,108 +1535,18 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     // Actualizar el almacén seleccionado
                     almacenCod = event.target.value;
 
-                    // Destruir la tabla actual
-                    if ($.fn.DataTable.isDataTable('#datatable')) {
-                        datatable.destroy();
-                    }
-
-
-                    // Reinicializar DataTable con la nueva configuración
-                    datatable = $("#datatable").DataTable({
-                        order: [[0, 'ASC']],
-                        "processing": true,
-                        "serverSide": true,
-                        "sAjaxSource": _URL + "/ajs/server/sider/productos",
-                        "language": {
-                            "sProcessing": "Procesando...",
-                            "sLengthMenu": "Mostrar _MENU_ registros",
-                            "sZeroRecords": "No se encontraron resultados",
-                            "sEmptyTable": "Ningún dato disponible en esta tabla",
-                            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                            "sInfoPostFix": "",
-                            "sSearch": "Buscar:",
-                            "sUrl": "",
-                            "sInfoThousands": ",",
-                            "sLoadingRecords": "Cargando...",
-                            "oPaginate": {
-                                "sFirst": "Primero",
-                                "sLast": "Último",
-                                "sNext": "Siguiente",
-                                "sPrevious": "Anterior"
-                            },
-                            "oAria": {
-                                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                            },
-                            "buttons": {
-                                "copy": "Copiar",
-                                "colvis": "Visibilidad"
-                            }
-                        },
-                        "fnServerParams": function (aoData) {
-                            aoData.push(
-                                { "name": "almacenId", "value": almacenCod },
-                                {
-                                    "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
-                                        $('#implementos').prop('checked') ? 'IMPLE' :
-                                            $('#cep').prop('checked') ? 'CEP' :
-                                                $('#pad').prop('checked') ? 'PAD' :
-                                                    $('#port').prop('checked') ? 'PORT' :
-                                                        $('#acc').prop('checked') ? 'ACC' : ''
-                                }
-                            );
-                        },
-                        columnDefs: [
-                            {
-                                "targets": [0],
-                                "className": "text-center",
-                                "width": "auto", // Cambiado a auto para que se ajuste al contenido
-                                "render": function (data, type, row, meta) {
-                                    return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
-                                }
-                            },
-                            {
-                                "targets": [1],
-                                "className": "dt-body-left",
-                                "width": "auto", // La columna nombre se ajustará automáticamente
-                                "render": function (data, type, row, meta) {
-                                    return '<div style="white-space: normal;">' + data + '</div>'; // Permite que el texto largo se ajuste
-                                }
-                            },
-                            {
-                                "targets": 5,
-
-                                "render": function (data, type, row, meta) {
-                                    return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
-                                }
-                            },
-                            {
-                                "targets": 6,
-
-                                "render": function (data, type, row, meta) {
-                                    return `<input type="checkbox" class="btnCheckEliminar" data-id="${row[6]}" data-row-index="${meta.row}">`;
-                                }
-                            }
-                        ],
-                        "drawCallback": function (settings) {
-                            // Callback después de que la tabla se ha redibujado
-                            $("#datatable_processing").hide();
-
-                            // Esperar un momento antes de restaurar estados
-                            setTimeout(() => {
-                                if (localStorage.getItem('idChecks')) {
-                                    restoreCheckboxStates();
-                                }
-
-                            }, 100);
-                        },
-                        "error": function (xhr, error, thrown) {
-                            console.log('Error en DataTables:', error);
-                            $("#datatable_processing").hide();
+                    if (currentView === 'table') {
+                        // Destruir la tabla actual
+                        if ($.fn.DataTable.isDataTable('#datatable')) {
+                            datatable.destroy();
                         }
-                    });
+
+                        // Reinicializar DataTable con la nueva configuración
+                        initializeDataTable();
+                    } else {
+                        // Recargar vista grid
+                        loadGridProducts(1, searchTerm);
+                    }
                 },
                 edtGenerarCodeBarra() {
                     // Usar $nextTick para asegurar que el DOM se ha actualizado
@@ -1615,7 +1576,11 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                                     alertExito("Productos agregados exitosamente")
                                         .then(function () {
                                             $("#modal-lista-productos").modal("hide");
-                                            datatable.ajax.reload(null, false);
+                                            if (currentView === 'table') {
+                                                datatable.ajax.reload(null, false);
+                                            } else {
+                                                loadGridProducts(currentPage, searchTerm);
+                                            }
                                         });
                                 } else {
                                     let errorMsg = resp.error ? resp.error : "No se pudo agregar la lista de productos";
@@ -1636,7 +1601,6 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 },
                 consultarDocRUC() {
                     if (this.reg.ruc.length == 11) {
-
                         this.getInfoDoc2();
                     } else if (this.edt.ruc.length == 11) {
                         this.getInfoDoc3();
@@ -1756,6 +1720,13 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         formData.append('imagen', imagen);
                     }
 
+                    // Verificar si se debe eliminar la imagen
+                    let eliminarImagen = document.querySelector('#eliminar-imagen-flag');
+                    if (eliminarImagen && eliminarImagen.value === '1') {
+                        formData.append('eliminar_imagen', '1');
+                    }
+
+
                     // Hacer la solicitud AJAX
                     $.ajax({
                         url: _URL + '/ajs/data/producto/edt',
@@ -1773,7 +1744,11 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                                     if (resp.res) {
                                         alertExito("Producto actualizado exitosamente").then(() => {
                                             $("#modal-edt-prod").modal("hide");
-                                            datatable.ajax.reload(null, false);
+                                            if (currentView === 'table') {
+                                                datatable.ajax.reload(null, false);
+                                            } else {
+                                                loadGridProducts(currentPage, searchTerm);
+                                            }
                                         });
                                     } else {
                                         alertAdvertencia("Error al guardar los precios");
@@ -1782,7 +1757,11 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                             } else {
                                 alertExito("Producto actualizado exitosamente").then(() => {
                                     $("#modal-edt-prod").modal("hide");
-                                    datatable.ajax.reload(null, false);
+                                    if (currentView === 'table') {
+                                        datatable.ajax.reload(null, false);
+                                    } else {
+                                        loadGridProducts(currentPage, searchTerm);
+                                    }
                                 });
                             }
                         },
@@ -1838,12 +1817,14 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         .then(resp => {
                             if (resp.res) {
                                 alertExito("Agregado").then(() => {
-                                    $("#modal-add-prod").modal("hide")
-                                    datatable.ajax.reload(null, false) //false evita que la pag recarge
+                                    $("#modal-add-prod").modal("hide");
+                                    if (currentView === 'table') {
+                                        datatable.ajax.reload(null, false);
+                                    } else {
+                                        loadGridProducts(currentPage, searchTerm);
+                                    }
                                     this.preciosNuevos = [];
-                                }
-
-                                );
+                                });
                             } else {
                                 alertAdvertencia("No se pudo agregar");
                             }
@@ -1940,16 +1921,20 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                             $('#categoria-edt').val(this.edt.categoria);
                             $('#unidades-edt').val(this.edt.unidad);
                         });
-                        // Manejar la imagen
+
+                        // Manejo de la imagen
                         if (data.imagen) {
-                            $('#img-preview').attr('src', _URL + '/public/img/productos/' + data.imagen).show();
-                            $('#image-edit-button').show();
+                            $('#img-preview').attr('src', _URL + '/public/img/productos/' + data.imagen);
+                            $('.image-container').show();
                             $('#no-image-message').hide();
                         } else {
-                            $('#img-preview').hide();
-                            $('#image-edit-button').hide();
+                            $('.image-container').hide();
                             $('#no-image-message').show();
                         }
+
+                        // Limpiar flag de eliminar imagen al abrir modal
+                        $('#eliminar-imagen-flag').remove();
+
                     }).catch(error => {
                         console.error('Error cargando datos:', error);
                         alert('Error al cargar las categorías y unidades');
@@ -1997,7 +1982,11 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                         if (resp.res) {
                             alertExito("Stock aumentado exitosamente").then(() => {
                                 $("#modal-aumentar-stock").modal("hide");
-                                datatable.ajax.reload(null, false);
+                                if (currentView === 'table') {
+                                    datatable.ajax.reload(null, false);
+                                } else {
+                                    loadGridProducts(currentPage, searchTerm);
+                                }
                                 // Limpiar formulario
                                 app._data.stockData = {
                                     producto_id: '',
@@ -2014,99 +2003,192 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 }
             },
 
-        })
-
-        datatable = $("#datatable").DataTable({
-            order: [[0, 'ASC']],
-            "processing": true,
-            "serverSide": true,
-            "sAjaxSource": _URL + "/ajs/server/sider/productos",
-            "language": {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
-                }
-            },
-            "fnServerParams": function (aoData) {
-                aoData.push(
-                    { "name": "almacenId", "value": almacenCod },
-                    {
-                        "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
-                            $('#implementos').prop('checked') ? 'IMPLE' :
-                                $('#cep').prop('checked') ? 'CEP' :
-                                    $('#pad').prop('checked') ? 'PAD' :
-                                        $('#port').prop('checked') ? 'PORT' :
-                                            $('#acc').prop('checked') ? 'ACC' : ''
-                    }
-                );
-            },
-            "drawCallback": function (settings) {
-                // Callback después de que la tabla se ha redibujado
-                $("#datatable_processing").hide();
-
-                // Esperar un momento antes de restaurar estados
-                setTimeout(() => {
-                    if (localStorage.getItem('idChecks')) {
-                        restoreCheckboxStates();
-                    }
-
-                }, 100);
-            },
-            columnDefs: [
-                {
-                    "targets": [0],
-                    "className": "text-center",
-                    "width": "auto", // Cambiado a auto para que se ajuste al contenido
-                    "render": function (data, type, row, meta) {
-                        return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
-                    }
-                },
-                {
-                    "targets": [1],
-                    "className": "dt-body-left",
-                    "width": "auto", // La columna nombre se ajustará automáticamente
-                    "render": function (data, type, row, meta) {
-                        return '<div style="white-space: normal;">' + data + '</div>'; // Permite que el texto largo se ajuste
-                    }
-                },
-                {
-                    "targets": 5,
-
-                    "render": function (data, type, row, meta) {
-                        return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
-                    }
-                },
-                {
-                    "targets": 6,
-
-                    "render": function (data, type, row, meta) {
-                        return `<input type="checkbox" class="btnCheckEliminar" data-id="${row[6]}" data-row-index="${meta.row}">`;
-                    }
-                }
-            ],
         });
+
+        // Función para inicializar DataTable
+        function initializeDataTable() {
+            datatable = $("#datatable").DataTable({
+                order: [[0, 'ASC']],
+                "processing": true,
+                "serverSide": true,
+                "sAjaxSource": _URL + "/ajs/server/sider/productos",
+                "language": {
+                    "sProcessing": "Procesando...",
+                    "sLengthMenu": "Mostrar _MENU_ registros",
+                    "sZeroRecords": "No se encontraron resultados",
+                    "sEmptyTable": "Ningún dato disponible en esta tabla",
+                    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix": "",
+                    "sSearch": "Buscar:",
+                    "sUrl": "",
+                    "sInfoThousands": ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst": "Primero",
+                        "sLast": "Último",
+                        "sNext": "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
+                    }
+                },
+                "fnServerParams": function (aoData) {
+                    aoData.push(
+                        { "name": "almacenId", "value": almacenCod },
+                        {
+                            "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
+                                $('#implementos').prop('checked') ? 'IMPLE' :
+                                    $('#cep').prop('checked') ? 'CEP' :
+                                        $('#pad').prop('checked') ? 'PAD' :
+                                            $('#port').prop('checked') ? 'PORT' :
+                                                $('#acc').prop('checked') ? 'ACC' : ''
+                        }
+                    );
+                },
+                "drawCallback": function (settings) {
+                    // Callback después de que la tabla se ha redibujado
+                    $("#datatable_processing").hide();
+
+                    // Esperar un momento antes de restaurar estados
+                    setTimeout(() => {
+                        if (localStorage.getItem('idChecks')) {
+                            restoreCheckboxStates();
+                        }
+                    }, 100);
+                },
+                columnDefs: [
+                    {
+                        "targets": [0],
+                        "className": "text-center",
+                        "width": "auto",
+                        "render": function (data, type, row, meta) {
+                            return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
+                        }
+                    },
+                    {
+                        "targets": [1],
+                        "className": "dt-body-left",
+                        "width": "auto",
+                        "render": function (data, type, row, meta) {
+                            return '<div style="white-space: normal;">' + data + '</div>';
+                        }
+                    },
+                    {
+                        "targets": 5,
+                        "render": function (data, type, row, meta) {
+                            return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
+                        }
+                    },
+                    {
+                        "targets": 6,
+                        "render": function (data, type, row, meta) {
+                            return `<input type="checkbox" class="btnCheckEliminar" data-id="${row[6]}" data-row-index="${meta.row}">`;
+                        }
+                    }
+                ],
+            });
+        }
+
+        // Inicializar DataTable
+        initializeDataTable();
+
+        // Event listeners para cambio de vista
+        $('#btn-table-view').click(function () {
+            if (currentView !== 'table') {
+                currentView = 'table';
+
+                // Cambiar clases de botones
+                $('#btn-table-view').addClass('active');
+                $('#btn-grid-view').removeClass('active');
+
+                // Mostrar/ocultar vistas
+                $('#table-view').removeClass('hidden');
+                $('#grid-view').removeClass('active');
+                $('.grid-filters').removeClass('active');
+
+                // Recargar tabla si es necesario
+                if ($.fn.DataTable.isDataTable('#datatable')) {
+                    datatable.ajax.reload();
+                }
+            }
+        });
+
+        $('#btn-grid-view').click(function () {
+            if (currentView !== 'grid') {
+                currentView = 'grid';
+
+                // Cambiar clases de botones
+                $('#btn-grid-view').addClass('active');
+                $('#btn-table-view').removeClass('active');
+
+                // Mostrar/ocultar vistas
+                $('#table-view').addClass('hidden');
+                $('#grid-view').addClass('active');
+                $('.grid-filters').addClass('active');
+
+                // Cargar productos en grid
+                loadGridProducts(1, searchTerm);
+            }
+        });
+
+        // Search en vista grid
+        let searchTimeout;
+        $('#grid-search-input').on('input', function () {
+            clearTimeout(searchTimeout);
+            searchTerm = $(this).val();
+
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadGridProducts(currentPage, searchTerm);
+            }, 500);
+        });
+
+        // Seleccionar todos en vista grid
+        $('.btnSeleccionarTodosGrid').click(function () {
+            const $button = $(this);
+            const isSelectingAll = $button.text().includes('Seleccionar Todos');
+
+            if (isSelectingAll) {
+                // Seleccionar todos los checkboxes visibles en el grid
+                $('.product-card .btnCheckEliminar').each(function () {
+                    if (!$(this).prop('checked')) {
+                        $(this).prop('checked', true);
+                        const id = $(this).attr('data-id');
+                        if (!arrayIdsOkUsar.some(item => item.id === id)) {
+                            arrayIdsOkUsar.push({ id: id });
+                        }
+                    }
+                });
+
+                $button.html('<i class="fa fa-times me-1"></i> Deseleccionar Todos')
+                    .removeClass('border-rojo bg-white')
+                    .addClass('btn-warning');
+            } else {
+                // Deseleccionar todos
+                $('.product-card .btnCheckEliminar').prop('checked', false);
+                arrayIdsOkUsar = [];
+
+                $button.html('<i class="fa fa-check-square me-1"></i> Seleccionar Todos')
+                    .removeClass('btn-warning')
+                    .addClass('border-rojo bg-white');
+            }
+
+            // Actualizar localStorage
+            if (arrayIdsOkUsar.length > 0) {
+                localStorage.setItem("idChecks", JSON.stringify(arrayIdsOkUsar));
+            } else {
+                localStorage.removeItem("idChecks");
+            }
+        });
+
         // Reemplazar el autocomplete existente con esta versión mejorada
         $("#buscar-producto-stock").autocomplete({
             source: function (request, response) {
@@ -2189,13 +2271,16 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             app._data.historialStock = [];
         });
 
-
-
-
         // Update filter handling
         $('.filter-option').on('change', function () {
             $('.filter-option').not(this).prop('checked', false);
-            datatable.ajax.reload();
+
+            if (currentView === 'table') {
+                datatable.ajax.reload();
+            } else {
+                currentPage = 1;
+                loadGridProducts(currentPage, searchTerm);
+            }
         });
 
         $("#file-import-exel").change(function () {
@@ -2293,7 +2378,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             }
         });
 
-        var arrayIdsOkUsar = []
+
 
         $("#datatable").on("click", ".btn-re-stock", function (evt) {
             const cod = $(evt.currentTarget).attr("data-item");
@@ -2317,13 +2402,6 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
 
             codProdT = cod
             $("#modal-prodEreport").modal("show");
-            //console.log(cod);
-
-            //window.open(_URL + `/reporte/productos/pdf/${cod}`)
-            /*  app._data.restock.cod = cod
-             app._data.restock.cantidad = ''
-             $("#modal-restock").modal("show"); */
-
         })
 
         $("#datatable").on("click", ".btn-ver-precios", function (evt) {
@@ -2336,14 +2414,9 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                 function (resp) {
                     console.log(resp);
                     $("#modal-precios").modal("show");
-                    /*  $('#precio1').val(resp.precio)
-                     $('#precio2').val(resp.precio2)
-                     $('#precio3').val(resp.precio3)
-                     isNaN(resp.precio4) ? $('#precio4').val('') : parseFloat(resp.precio4 + "").toFixed(2) */
 
                     app._data.edt.precio = resp.precio == null ? parseFloat(0 + "").toFixed(2) : resp.precio
                     app._data.edt.precio2 = resp.precio2 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio2 + "").toFixed(2)
-                    /*    .toFixed(2) */
                     app._data.edt.precio3 = resp.precio3 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio3 + "").toFixed(2)
                     app._data.edt.precio4 = resp.precio4 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio4 + "").toFixed(2)
                     app._data.edt.precio_unidad = resp.precio_unidad == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio_unidad + "").toFixed(2)
@@ -2354,18 +2427,14 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     $('#precio3').val(resp.precio4 == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio4 + "").toFixed(2))
                     $('#precio_unidad').val(resp.precio_unidad == null ? parseFloat(0 + "").toFixed(2) : parseFloat(resp.precio_unidad + "").toFixed(2))
                     app._data.edt.cod_prod = cod
-                    /* if (resp.res) {
-
-
-                    } */
                 }
             )
 
         })
 
-        $("#datatable").on("click", ".btn-edt", function (evt) {
+        // Event delegation para botones de editar (funciona tanto en tabla como en grid)
+        $(document).on("click", ".btn-edt", function (evt) {
             const cod = $(evt.currentTarget).attr("data-item");
-            /*   console.log(cod); */
             _ajax("/ajs/data/producto/info", "POST", {
                 cod
             },
@@ -2374,11 +2443,11 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                     if (resp.res) {
                         app.setInfo(resp.data)
                     } else {
-                        alertAdvertencia("Informacion no encontrada")
+                        alertAdvertencia("Información no encontrada")
                     }
                 }
             )
-        })
+        });
 
         $("#datatable").on("click", ".btn-re-foto", function (evt) {
             const cod = $(evt.currentTarget).attr("data-foto");
@@ -2387,30 +2456,51 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             $('#imagen').html(img);
         })
 
+        // Función para restaurar estados de checkboxes
+        function restoreCheckboxStates() {
+            const savedIds = JSON.parse(localStorage.getItem('idChecks') || '[]');
 
-        // Manejador para los checkboxes individuales con prevención de propagación
+            savedIds.forEach(item => {
+                $(`.btnCheckEliminar[data-id="${item.id}"]`).prop('checked', true);
+            });
+
+            // Actualizar el array global
+            arrayIdsOkUsar = savedIds;
+        }
+
+        // Manejador para los checkboxes individuales con delegación de eventos
         $(document).on("click", ".btnCheckEliminar", function (e) {
-            // Prevenir la propagación del evento
             e.stopPropagation();
 
             const id = $(this).attr("data-id");
             const isChecked = $(this).prop("checked");
 
             if (isChecked) {
-                // Agregar al array si no existe
                 if (!arrayIdsOkUsar.some(item => item.id === id)) {
                     arrayIdsOkUsar.push({ id: id });
                 }
             } else {
-                // Eliminar del array
                 arrayIdsOkUsar = arrayIdsOkUsar.filter(item => item.id !== id);
                 $('.btnSeleccionarTodos').prop('checked', false);
+                $('.btnSeleccionarTodosGrid').html('<i class="fa fa-check-square me-1"></i> Seleccionar Todos')
+                    .removeClass('btn-warning')
+                    .addClass('border-rojo bg-white');
             }
 
             // Verificar si todos los checkboxes visibles están marcados
-            const allChecked = $(".btnCheckEliminar:visible").length === $(".btnCheckEliminar:visible:checked").length;
-            if (allChecked && $(".btnCheckEliminar:visible").length > 0) {
-                $(".btnSeleccionarTodos").prop("checked", true);
+            if (currentView === 'table') {
+                const allChecked = $(".btnCheckEliminar:visible").length === $(".btnCheckEliminar:visible:checked").length;
+                if (allChecked && $(".btnCheckEliminar:visible").length > 0) {
+                    $(".btnSeleccionarTodos").prop("checked", true);
+                }
+            } else {
+                // Vista grid
+                const allChecked = $(".product-card .btnCheckEliminar:visible").length === $(".product-card .btnCheckEliminar:visible:checked").length;
+                if (allChecked && $(".product-card .btnCheckEliminar:visible").length > 0) {
+                    $('.btnSeleccionarTodosGrid').html('<i class="fa fa-times me-1"></i> Deseleccionar Todos')
+                        .removeClass('border-rojo bg-white')
+                        .addClass('btn-warning');
+                }
             }
 
             // Guardar en localStorage
@@ -2423,32 +2513,23 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
 
         // Manejador para el checkbox "Seleccionar Todos" con prevención de propagación
         $(".btnSeleccionarTodos").on("click", function (e) {
-            // Prevenir la propagación del evento
             e.stopPropagation();
 
             const isChecked = $(this).prop("checked");
-
-            // Limpiar array antes de agregar nuevos elementos
             arrayIdsOkUsar = [];
 
             if (isChecked) {
-                // Si está marcado, seleccionar todos los checkboxes visibles
                 $(".btnCheckEliminar:visible").each(function () {
-                    // Marcar el checkbox
                     $(this).prop("checked", true);
-
-                    // Obtener el ID y agregarlo al array
                     const id = $(this).attr("data-id");
                     if (id && !arrayIdsOkUsar.some(item => item.id === id)) {
                         arrayIdsOkUsar.push({ id: id });
                     }
                 });
             } else {
-                // Si está desmarcado, desmarcar todos los checkboxes
                 $(".btnCheckEliminar:visible").prop("checked", false);
             }
 
-            // Guardar en localStorage solo si hay elementos seleccionados
             if (arrayIdsOkUsar.length > 0) {
                 localStorage.setItem("idChecks", JSON.stringify(arrayIdsOkUsar));
             } else {
@@ -2486,16 +2567,22 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
                                             // Limpiar checkboxes
                                             $('.btnCheckEliminar').prop('checked', false);
                                             $('.btnSeleccionarTodos').prop('checked', false);
+                                            $('.btnSeleccionarTodosGrid').html('<i class="fa fa-check-square me-1"></i> Seleccionar Todos')
+                                                .removeClass('btn-warning')
+                                                .addClass('border-rojo bg-white');
                                             arrayIdsOkUsar = [];
 
-                                            // Actualizar solo la tabla
-                                            datatable.ajax.reload(function () {
-                                                // Este callback se ejecuta después de recargar los datos
-                                                console.log("Tabla actualizada después de borrar");
-                                            }, false);
+                                            // Actualizar vista actual
+                                            if (currentView === 'table') {
+                                                datatable.ajax.reload(function () {
+                                                    console.log("Tabla actualizada después de borrar");
+                                                }, false);
+                                            } else {
+                                                loadGridProducts(currentPage, searchTerm);
+                                            }
                                         });
                                 } else {
-                                    alertAdvertencia("Ocurrio un error")
+                                    alertAdvertencia("Ocurrió un error")
                                 }
                             })
                     } else {
@@ -2509,7 +2596,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
     $(document).ready(function () {
         $('#add-prod').click(function () {
             $.get(_URL + "/ajs/get/categorias", function (data, textStatus, jqXHR) {
-                let option = '<option value="">Seleccione una categoría</option>'; // Opción por defecto
+                let option = '<option value="">Seleccione una categoría</option>';
                 let resp = JSON.parse(data);
                 $.each(resp, function (i, v) {
                     option += `<option value="${v.id}">${v.nombre}</option>`;
@@ -2522,7 +2609,7 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
             });
 
             $.get(_URL + "/ajs/get/unidades", function (data, textStatus, jqXHR) {
-                let option = '<option value="">Seleccione una unidad</option>'; // Opción por defecto
+                let option = '<option value="">Seleccione una unidad</option>';
                 let resp = JSON.parse(data);
                 $.each(resp, function (i, v) {
                     option += `<option value="${v.id}">${v.nombre}</option>`;
@@ -2536,13 +2623,14 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
 
             $('#modal-add-prod').modal('show');
         });
+
         $('#submitCategoria').click(function () {
             $.post("/ajs/save/categorias", {
                 nombre: $('#nombreCategoria').val()
             }, function (data, textStatus, jqXHR) {
                 Swal.fire({
-                    title: "Exito",
-                    text: "Se guardo correctamente",
+                    title: "Éxito",
+                    text: "Se guardó correctamente",
                     icon: "success"
                 });
                 $('#modalCategoria').modal('hide');
@@ -2553,64 +2641,84 @@ https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js
         })
     });
 
-
-
     function truncateText(text, maxLength) {
         if (text == null) {
-            return null; // Devuelve null si el texto es null o undefined
+            return null;
         }
         if (text.length > maxLength) {
             return text.substring(0, maxLength) + '...';
         }
         return text;
     }
-    let imageMenuOpen = false;
 
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
+    // Encapsulamiento de la funcionalidad de imagen usando IIFE
+    (function () {
+        let imageMenuOpen = false;
 
-            reader.onload = function (e) {
-                $('#img-preview')
-                    .attr('src', e.target.result)
-                    .show();
-                $('#image-edit-button').show();
-                $('#no-image-message').hide();
-                $('#image-menu').hide();
-                imageMenuOpen = false;
+        window.previewImage = function (input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    // Asignar la imagen a la vista previa
+                    $('#img-preview').attr('src', e.target.result);
+                    
+                    // Mostrar el contenedor de la imagen y ocultar el mensaje
+                    $('.image-container').show();
+                    $('#no-image-message').hide();
+                    
+                    // Ocultar el menú desplegable
+                    $('#image-menu').hide();
+                    imageMenuOpen = false;
+
+                    // IMPORTANTE: Si se sube una nueva imagen, se anula la eliminación
+                    $('#eliminar-imagen-flag').remove();
+                }
+                reader.readAsDataURL(input.files[0]);
             }
+        };
 
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+        window.toggleImageMenu = function () {
+            imageMenuOpen = !imageMenuOpen;
+            $('#image-menu').fadeToggle(200);
+        };
 
-    function toggleImageMenu() {
-        imageMenuOpen = !imageMenuOpen;
-        $('#image-menu').fadeToggle(200);
-    }
-
-    function changeImage() {
-        $('#upload-input').click();
-        $('#image-menu').hide();
-        imageMenuOpen = false;
-    }
-
-    function removeImage() {
-        $('#upload-input').val('');
-        $('#img-preview').hide();
-        $('#image-edit-button').hide();
-        $('#no-image-message').show();
-        $('#image-menu').hide();
-        imageMenuOpen = false;
-    }
-
-    // Cerrar el menú al hacer clic fuera
-    $(document).click(function (e) {
-        if (!$(e.target).closest('#image-edit-button').length) {
+        window.changeImage = function () {
+            $('#upload-input').click();
             $('#image-menu').hide();
             imageMenuOpen = false;
-        }
-    });
+        };
 
+        window.removeImage = function () {
+            // Limpiar el input y la vista previa
+            $('#upload-input').val('');
+            $('#img-preview').attr('src', '');
 
+            // Ocultar el contenedor de la imagen y mostrar el mensaje
+            $('.image-container').hide();
+            $('#no-image-message').show();
+
+            // Ocultar el menú desplegable
+            $('#image-menu').hide();
+            imageMenuOpen = false;
+
+            // Añadir un campo oculto para indicar al backend que se debe eliminar la imagen
+            $('#eliminar-imagen-flag').remove(); // Limpiar flag anterior
+            $('<input>').attr({
+                type: 'hidden',
+                id: 'eliminar-imagen-flag',
+                name: 'eliminar_imagen',
+                value: '1'
+            }).appendTo('#modal-edt-prod form');
+        };
+
+        // Cerrar el menú desplegable si se hace clic fuera de él
+        $(document).click(function (e) {
+            if (!$(e.target).closest('#image-edit-button').length) {
+                if ($('#image-menu').is(':visible')) {
+                    $('#image-menu').fadeOut(200);
+                    imageMenuOpen = false;
+                }
+            }
+        });
+    })();
 </script>

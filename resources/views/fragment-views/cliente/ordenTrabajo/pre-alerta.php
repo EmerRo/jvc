@@ -59,6 +59,30 @@
                     </div>
                 </div>
             </div>
+            <!-- Modal para Agregar Repuestos -->
+            <div class="modal fade" id="modalAgregarRepuestos" tabindex="-1"
+                aria-labelledby="modalAgregarRepuestosLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="modalAgregarRepuestosLabel">
+                                <i class="fa fa-cogs me-2"></i> Agregar Productos por Máquina
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Pestañas por máquina -->
+                            <ul class="nav nav-pills nav-justified mb-3" id="maquinasRepuestosTabs" role="tablist">
+                                <!-- Se llenarán dinámicamente -->
+                            </ul>
+
+                            <div class="tab-content" id="maquinasRepuestosTabContent">
+                                <!-- Se llenarán dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal para mostrar detalles -->
             <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"
@@ -73,8 +97,52 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-2">
-                            <!-- Aquí se cargarán los detalles dinámicamente -->
+                            <!-- Información básica (mantén el HTML existente) -->
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-3">Información de Orden de Trabajo</h6>
+                                <!-- Aquí va la información básica que ya tienes -->
+                            </div>
+
+                            <!-- Pestañas para Equipos y Repuestos -->
+                            <ul class="nav nav-tabs" id="detallesTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="equipos-tab" data-bs-toggle="tab"
+                                        data-bs-target="#equipos" type="button" role="tab">
+                                        <i class="fa fa-laptop me-1"></i> Equipos Registrados
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="repuestos-tab" data-bs-toggle="tab"
+                                        data-bs-target="#repuestos" type="button" role="tab">
+                                        <i class="fa fa-cogs me-1"></i> Productos
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content mt-3" id="detallesTabContent">
+                                <!-- Tab de Equipos -->
+                                <div class="tab-pane fade show active" id="equipos" role="tabpanel">
+                                    <div id="equipos-content">
+                                        <!-- Aquí se cargará la tabla de equipos dinámicamente -->
+                                    </div>
+                                </div>
+
+                                <!-- Tab de Repuestos -->
+                                <div class="tab-pane fade" id="repuestos" role="tabpanel">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Productos por Máquina</h6>
+                                        <button type="button" class="btn btn-sm bg-rojo text-white"
+                                            onclick="abrirModalAgregarRepuesto()">
+                                            <i class="fa fa-plus me-1"></i> Agregar Productos
+                                        </button>
+                                    </div>
+                                    <div id="repuestos-content">
+                                        <!-- Aquí se cargarán los productos dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -101,9 +169,9 @@
                                             <div class="form-group mb-3">
                                                 <div class="col-lg-12">
                                                     <label for="input_datos_cliente" class="form-label">
-                                                        <i class="fa fa-id-card me-1"></i> DNI o RUC
-                                                        <span class="text-danger">(*)</span>
+                                                        <i class="fa fa-id-card me-1"></i> DNI o RUC (Opcional)
                                                     </label>
+
                                                     <div class="input-group">
                                                         <input id="input_datos_cliente" v-model="prealerta.num_doc"
                                                             name="num_doc" type="text" placeholder="Ingrese Documento"
@@ -125,7 +193,7 @@
                                             <div class="form-group mb-3">
                                                 <div class="col-lg-12">
                                                     <label for="cliente_Rsocial" class="form-label">
-                                                        <i class="fa fa-user me-1"></i> Cliente
+                                                        <i class="fa fa-user me-1"></i> Cliente (opcional)
                                                     </label>
                                                     <input v-model="prealerta.cliente_Rsocial" type="text"
                                                         placeholder="Nombre del cliente" class="form-control"
@@ -215,16 +283,16 @@
                                                 </p>
                                             </div>
                                             <div class="mb-3">
-    <label for="fecha_salida" class="form-label">
-        <i class="fa fa-calendar-check me-1"></i> Fecha De Salida (Plazo)
-    </label>
-    <input type="date" class="form-control" id="fecha_salida"
-        name="fecha_salida" required
-        :class="{ 'is-invalid': validationErrors.fecha_salida }">
-    <p class="validation-message" v-if="validationErrors.fecha_salida">
-        {{ validationErrors.fecha_salida }}
-    </p>
-</div>
+                                                <label for="fecha_salida" class="form-label">
+                                                    <i class="fa fa-calendar-check me-1"></i> Fecha De Salida (Plazo)
+                                                </label>
+                                                <input type="date" class="form-control" id="fecha_salida"
+                                                    name="fecha_salida" required
+                                                    :class="{ 'is-invalid': validationErrors.fecha_salida }">
+                                                <p class="validation-message" v-if="validationErrors.fecha_salida">
+                                                    {{ validationErrors.fecha_salida }}
+                                                </p>
+                                            </div>
 
                                         </div>
                                     </div>
@@ -422,16 +490,16 @@
                                         </p>
                                     </div>
                                     <div class="mb-3">
-    <label for="edit_fecha_salida" class="form-label">
-        <i class="fa fa-calendar-check me-1"></i> Fecha De Salida (Plazo)
-    </label>
-    <input type="date" class="form-control" id="edit_fecha_salida"
-        name="fecha_salida" v-model="editando.fecha_salida"
-        :class="{ 'is-invalid': validationErrors.edit_fecha_salida }" required>
-    <p class="validation-message" v-if="validationErrors.edit_fecha_salida">
-        {{ validationErrors.edit_fecha_salida }}
-    </p>
-</div>
+                                        <label for="edit_fecha_salida" class="form-label">
+                                            <i class="fa fa-calendar-check me-1"></i> Fecha De Salida (Plazo)
+                                        </label>
+                                        <input type="date" class="form-control" id="edit_fecha_salida"
+                                            name="fecha_salida" v-model="editando.fecha_salida"
+                                            :class="{ 'is-invalid': validationErrors.edit_fecha_salida }" required>
+                                        <p class="validation-message" v-if="validationErrors.edit_fecha_salida">
+                                            {{ validationErrors.edit_fecha_salida }}
+                                        </p>
+                                    </div>
 
                                     <div class="form-group mb-3">
                                         <label for="edit_observaciones">Observaciones</label>
@@ -494,4 +562,8 @@
     </div>
 </div>
 
+<script>
+    // Make the current sucursal (warehouse/store ID) available globally for JavaScript
+    window.currentSucursal = "<?php echo $_SESSION["sucursal"]; ?>";
+</script>
 <script src="<?= URL::to('public/js/orden-trabajo.js') ?>?v=<?= time() ?>"></script>

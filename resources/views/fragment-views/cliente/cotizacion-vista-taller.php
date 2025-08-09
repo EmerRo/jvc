@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\cotizacion-vista-taller.php -->
 <style>
 .page-title {
     font-size: 24px;
@@ -170,14 +171,14 @@
                 {
                     targets: 6,
                     render: function (data, type, row, meta) {
-                        return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
+                        return `<a href="/ventas/productos?coti-taller=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
                     }
                 },
                 // Columna guía - índice 7 (data[6] - segundo cotizacion_id)
                 {
                     targets: 7,
                     render: function (data, type, row, meta) {
-                        return `<a href="/guia/remision/registrar?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
+                        return `<a href="/guia/remision/registrar?coti-taller=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
                     }
                 },
                 // Columna de acciones - índice 8 (usar data[5] o data[6] ya que ambos son cotizacion_id)

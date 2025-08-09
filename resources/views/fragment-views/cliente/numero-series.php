@@ -2,9 +2,40 @@
 <link rel="stylesheet" href="<?= URL::to('/public/css/numero-series.css') ?>?v=<?= time() ?>">
 
 <style>
-.sin-borde-inferior {
-    border-bottom: none !important;
-}
+    .sin-borde-inferior {
+        border-bottom: none !important;
+    }
+
+    .btn-generar-serie {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-generar-serie:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+        color: white;
+    }
+
+    .numero-serie-generado {
+        background-color: #d4edda !important;
+        border-color: #c3e6cb !important;
+    }
+
+    .seccion-cliente.oculta {
+        display: none !important;
+    }
+
+    .custom-checkbox {
+        margin-bottom: 1rem;
+    }
+
+    .custom-checkbox input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
 </style>
 
 <div class="page-title-box" style="padding: 12px 0;">
@@ -17,7 +48,8 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card" style="border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);">
+        <div class="card"
+            style="border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);">
             <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
                 <button onclick="descarFunccc()" class="btn border-rojo me-2">
                     <i class="fa fa-file-excel"></i> Descargar Registros Excel
@@ -35,7 +67,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Item</th>
-                                    <th>Cliente</th>
+                                        <th>Cliente</th>
                                         <th>Cantidad de Equipos</th>
                                         <th>Fecha De Creación</th>
                                         <th>Acciones</th>
@@ -109,26 +141,36 @@
                         </div>
                         <form id="frmClientesAgregar">
                             <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-    <label for="cliente_documento" class="form-label">(RUC o DNI)</label>
-    <div class="input-group">
-        <input id="input_datos_cliente" type="text" placeholder="Ingrese Documento"
-            class="form-control" maxlength="11">
-        <div class="input-group-prepend">
-            <button id="btn_buscar_cliente" class="btn bg-rojo text-white"
-                type="button"><i class="fa fa-search"></i></button>
-        </div>
-    </div>
-</div>
-<div class="col-md-6 mb-3">
-    <label for="cliente_ruc_dni" class="form-label">Cliente</label>
-    <input type="text" placeholder="Nombre del cliente" class="form-control"
-        autocomplete="off" id="cliente_ruc_dni" name="cliente_ruc_dni" required>
-    <input type="hidden" id="cliente_documento" name="cliente_documento">
-</div>
+                                <!-- Checkbox para registrar con cliente -->
+                                <div class="custom-checkbox">
+                                    <input type="checkbox" id="tiene_cliente" name="tiene_cliente" checked>
+                                    <label for="tiene_cliente"><i class="fa fa-user"></i> Registro con cliente</label>
                                 </div>
-                                <!-- Añadir el nuevo campo para el último número de serie -->
+
+                                <!-- Sección de cliente -->
+                                <div id="seccion_cliente" class="seccion-cliente">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cliente_documento" class="form-label">(RUC o DNI)</label>
+                                            <div class="input-group">
+                                                <input id="input_datos_cliente" type="text"
+                                                    placeholder="Ingrese Documento" class="form-control" maxlength="11">
+                                                <div class="input-group-prepend">
+                                                    <button id="btn_buscar_cliente" class="btn bg-rojo text-white"
+                                                        type="button"><i class="fa fa-search"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cliente_ruc_dni" class="form-label">Cliente</label>
+                                            <input type="text" placeholder="Nombre del cliente" class="form-control"
+                                                autocomplete="off" id="cliente_ruc_dni" name="cliente_ruc_dni">
+                                            <input type="hidden" id="cliente_documento" name="cliente_documento">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Añadir el campo para el último número de serie -->
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="ultimo_numero_serie" class="form-label">Último número de serie
@@ -141,7 +183,6 @@
                                             name="fecha_creacion" required>
                                     </div>
                                 </div>
-
 
                                 <!-- Checkbox para máquinas idénticas -->
                                 <div class="custom-checkbox">
@@ -235,7 +276,6 @@
                                     <div class="card-body">
                                         <div id="equipos_container" class="equipos-container">
                                             <!-- Por defecto, ya tenemos un equipo -->
-                                            <!-- Modificar esta parte en numero-series.php -->
                                             <div class="equipo-item card">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -289,11 +329,18 @@
                                                         </div>
                                                         <div class="col-md-3 mb-2">
                                                             <label class="form-label">Número de Serie</label>
-                                                            <input type="text" class="form-control"
-                                                                name="equipos[0][numero_serie]"
-                                                                placeholder="Número de Serie" required>
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control"
+                                                                    name="equipos[0][numero_serie]"
+                                                                    placeholder="Número de Serie" required>
+                                                                <button type="button" class="btn btn-generar-serie"
+                                                                    title="Generar número de serie">
+                                                                    <i class="fa fa-magic"></i>
+                                                                </button>
+                                                            </div>
                                                             <div class="feedback-container"></div>
                                                         </div>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -341,26 +388,42 @@
                         <form id="updateRegistroForm">
                             <div class="modal-body">
                                 <input type="hidden" id="idRegistro" name="id">
-                                <div class="row">
-                                  <div class="col-md-6 mb-3">
-    <label for="cliente_documento_u" class="form-label">(RUC o DNI)</label>
-    <div class="input-group">
-        <input id="input_datos_cliente_u" type="text"
-            placeholder="Ingrese Documento" class="form-control" maxlength="11">
-        <div class="input-group-prepend">
-            <button id="btn_buscar_cliente_u" class="btn bg-rojo"
-                type="button"><i class="fa fa-search"></i></button>
-        </div>
-    </div>
-</div>
-<div class="col-md-6 mb-3">
-    <label for="cliente_ruc_dni_u" class="form-label">Cliente</label>
-    <input type="text" class="form-control" id="cliente_ruc_dni_u"
-        name="cliente_ruc_dni" required>
-    <input type="hidden" id="cliente_documento_u" name="cliente_documento">
-</div>
+
+                                <!-- Checkbox para registrar con cliente (edición) -->
+                                <div class="custom-checkbox">
+                                    <input type="checkbox" id="tiene_cliente_u" name="tiene_cliente_u" checked>
+                                    <label for="tiene_cliente_u"><i class="fa fa-user"></i> Registro con cliente</label>
                                 </div>
+
+                                <!-- Sección de cliente (edición) -->
+                                <div id="seccion_cliente_u" class="seccion-cliente">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cliente_documento_u" class="form-label">(RUC o DNI)</label>
+                                            <div class="input-group">
+                                                <input id="input_datos_cliente_u" type="text"
+                                                    placeholder="Ingrese Documento" class="form-control" maxlength="11">
+                                                <div class="input-group-prepend">
+                                                    <button id="btn_buscar_cliente_u" class="btn bg-rojo"
+                                                        type="button"><i class="fa fa-search"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="cliente_ruc_dni_u" class="form-label">Cliente</label>
+                                            <input type="text" class="form-control" id="cliente_ruc_dni_u"
+                                                name="cliente_ruc_dni">
+                                            <input type="hidden" id="cliente_documento_u" name="cliente_documento">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ultimo_numero_serie_u" class="form-label">Último número de serie
+                                            registrado</label>
+                                        <input type="text" class="form-control" id="ultimo_numero_serie_u" readonly>
+                                    </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="fecha_creacion_u" class="form-label">Fecha De Creación</label>
                                         <input type="date" class="form-control" id="fecha_creacion_u"
@@ -636,6 +699,32 @@
         // Cargar el último número de serie al iniciar
         cargarUltimoNumeroSerie();
 
+        // Manejar el checkbox de cliente
+        $('#tiene_cliente').change(function () {
+            if ($(this).is(':checked')) {
+                $('#seccion_cliente').removeClass('oculta');
+            } else {
+                $('#seccion_cliente').addClass('oculta');
+                // Limpiar campos de cliente cuando se deshabilita
+                $('#cliente_ruc_dni').val('');
+                $('#cliente_documento').val('');
+                $('#input_datos_cliente').val('');
+            }
+        });
+
+        // Manejar el checkbox de cliente (edición)
+        $('#tiene_cliente_u').change(function () {
+            if ($(this).is(':checked')) {
+                $('#seccion_cliente_u').removeClass('oculta');
+            } else {
+                $('#seccion_cliente_u').addClass('oculta');
+                // Limpiar campos de cliente cuando se deshabilita
+                $('#cliente_ruc_dni_u').val('');
+                $('#cliente_documento_u').val('');
+                $('#input_datos_cliente_u').val('');
+            }
+        });
+
         // Evento para cargar el último número de serie al abrir el modal de agregar
         $('[data-bs-target="#modalAgregar"]').on('click', function () {
             cargarUltimoNumeroSerie();
@@ -650,9 +739,9 @@
         var tabla_clientes = $("#tabla_clientes").DataTable({
             "processing": true,
             "serverSide": false,
-            "responsive": true, // Habilitar responsividad
-            "scrollX": false,   // Deshabilitar scroll horizontal
-            "autoWidth": false, // Deshabilitar auto-ancho
+            "responsive": true,
+            "scrollX": false,
+            "autoWidth": false,
             "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
             "ajax": {
                 "url": _URL + "/ajs/get/numeroseries",
@@ -660,7 +749,6 @@
                 "error": function (xhr, error, thrown) {
                     console.error("Error en la respuesta del servidor:", error, thrown);
                     console.log("Respuesta completa:", xhr.responseText);
-                    // Mostrar mensaje de error amigable
                     $("#tabla_clientes tbody").html('<tr><td colspan="5" class="text-center">Error al cargar los datos. Por favor, intente nuevamente.</td></tr>');
                 }
             },
@@ -671,30 +759,39 @@
                         return meta.row + 1;
                     }
                 },
-                { "data": "cliente_ruc_dni" },
+                {
+                    "data": "cliente_ruc_dni",
+                    "render": function (data, type, row) {
+                        // Si no tiene cliente, mostrar "Sin Cliente"
+                        if (!data || data === '' || data === null) {
+                            return '<span class="text-muted"><i class="fa fa-user-slash"></i> Sin Cliente</span>';
+                        }
+                        return data;
+                    }
+                },
                 { "data": "cantidad_equipos" },
                 { "data": "fecha_creacion" },
                 {
                     "data": null,
                     "render": function (data, type, row) {
                         return `
-         <div class="text-center">
-    <div class="btn-group btn-sm" >
-        <button data-id="${Number(row.id)}" class="btn btn-sm btn-info btnVerDetalles" title="Ver detalles" >
-            <i class="fa fa-eye " ></i>
-        </button>
-        <button data-id="${Number(row.id)}" class="btn btn-sm btn-warning btnEditar" title="Editar" >
-            <i class="fa fa-edit " ></i>
-        </button>
-        <button data-id="${Number(row.id)}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar" >
-            <i class="fa fa-trash " ></i>
-        </button>
-        <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia" title="Crear Garantía" style="margin: 0; padding: 0; background-color: #DBE8F0;">
-            <i class="ri-shield-check-line text-danger" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;font-size: 18px; "></i>
-        </a>
-    </div>
-</div>
-            `;
+                            <div class="text-center">
+                                <div class="btn-group btn-sm">
+                                    <button data-id="${Number(row.id)}" class="btn btn-sm btn-info btnVerDetalles" title="Ver detalles">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button data-id="${Number(row.id)}" class="btn btn-sm btn-warning btnEditar" title="Editar">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button data-id="${Number(row.id)}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                    <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia" title="Crear Garantía" style="margin: 0; padding: 0; background-color: #DBE8F0;">
+                                        <i class="ri-shield-check-line text-danger" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;font-size: 18px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
             ],
@@ -702,8 +799,6 @@
                 "url": "ServerSide/Spanish.json"
             }
         });
-
-
 
         // Función para verificar si un número de serie existe
         function verificarNumeroSerie(numeroSerie, callback) {
@@ -733,16 +828,14 @@
         // Función para mostrar feedback visual
         function mostrarFeedbackSerie(input, existe) {
             const feedbackContainer = input.siblings('.feedback-container');
-            input.removeClass('is-valid is-invalid');
+            input.removeClass('is-valid is-invalid numero-serie-generado');
             feedbackContainer.empty();
 
             if (existe) {
-                // El número de serie ya existe
                 input.addClass('is-invalid');
                 feedbackContainer.html('<div class="invalid-feedback d-block">Este número de serie ya existe en la base de datos.</div>');
                 return false;
             } else if (input.val().trim() !== '') {
-                // El número de serie es válido
                 input.addClass('is-valid');
                 feedbackContainer.html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
                 return true;
@@ -750,6 +843,41 @@
             return true;
         }
 
+       // Función para generar número de serie único
+function generarNumeroSerie(inputElement) {
+    $.ajax({
+        url: _URL + "/ajs/generar/numeroserie",
+        method: "GET",
+        dataType: "json",
+        success: function(response) {
+            if (response.success) {
+                // Asignar el número generado al input
+                inputElement.val(response.numero_serie);
+                inputElement.addClass('is-valid numero-serie-generado');
+                inputElement.siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie generado automáticamente.</div>');
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: response.error || "No se pudo generar el número de serie",
+                    icon: "error"
+                });
+            }
+        },
+        error: function() {
+            Swal.fire({
+                title: "Error",
+                text: "Error al conectar con el servidor",
+                icon: "error"
+            });
+        }
+    });
+}
+
+// Event listener para los botones de generar serie
+$(document).on('click', '.btn-generar-serie', function() {
+    const inputElement = $(this).siblings('input[name$="[numero_serie]"]');
+    generarNumeroSerie(inputElement);
+});
 
 
         // Validación para equipos individuales
@@ -785,7 +913,7 @@
                         $('#series_repetidas_equipos_lista')
                     );
                 }
-            }, 500); // Esperar 500ms después de que el usuario deje de escribir
+            }, 500);
         });
 
         // También validar al perder el foco
@@ -821,7 +949,6 @@
             const input = $(this);
             clearTimeout(typingTimer);
 
-            // Eliminar clases y feedback previos mientras se escribe
             input.removeClass('is-valid is-invalid');
             input.siblings('.invalid-feedback, .valid-feedback').remove();
 
@@ -832,7 +959,6 @@
                         mostrarFeedbackSerie(input, existe);
                     });
 
-                    // Verificar series repetidas en equipos individuales
                     let todasLasSeries = [];
                     $('#equipos_existentes input[name$="[numero_serie]"], #equipos_container_u input[name$="[numero_serie]"]').each(function () {
                         const valor = $(this).val().trim();
@@ -861,7 +987,6 @@
                     mostrarFeedbackSerie(input, existe);
                 });
 
-                // Verificar series repetidas en equipos individuales
                 let todasLasSeries = [];
                 $('#equipos_existentes input[name$="[numero_serie]"], #equipos_container_u input[name$="[numero_serie]"]').each(function () {
                     const valor = $(this).val().trim();
@@ -884,14 +1009,12 @@
             const textarea = $(this);
             clearTimeout(typingTimer);
 
-            // Limpiar mensajes anteriores
             $('#series_duplicadas_mensaje').remove();
 
             typingTimer = setTimeout(function () {
                 const series = procesarSeriesMasivas(textarea.val());
 
                 if (series.length > 0) {
-                    // Verificar series repetidas
                     const seriesRepetidas = verificarSeriesRepetidas(series);
                     mostrarMensajeSeriesRepetidas(
                         seriesRepetidas,
@@ -900,7 +1023,6 @@
                         textarea
                     );
 
-                    // Verificar cada serie en la base de datos
                     let seriesVerificadas = 0;
                     let seriesDuplicadas = [];
 
@@ -912,10 +1034,8 @@
                                 seriesDuplicadas.push(serie);
                             }
 
-                            // Cuando se han verificado todas las series
                             if (seriesVerificadas === series.length) {
                                 if (seriesDuplicadas.length > 0) {
-                                    // Mostrar mensaje de error con las series duplicadas
                                     $('#series_duplicadas_mensaje').remove();
                                     textarea.after(`
                                         <div id="series_duplicadas_mensaje" class="series-duplicadas">
@@ -931,7 +1051,7 @@
                     $('#series_repetidas_mensaje').hide();
                     textarea.removeClass('has-duplicates');
                 }
-            }, 800); // Esperar un poco más para el textarea
+            }, 800);
         });
 
         // También para el formulario de edición
@@ -939,14 +1059,12 @@
             const textarea = $(this);
             clearTimeout(typingTimer);
 
-            // Limpiar mensajes anteriores
             $('#series_duplicadas_mensaje_u').remove();
 
             typingTimer = setTimeout(function () {
                 const series = procesarSeriesMasivas(textarea.val());
 
                 if (series.length > 0) {
-                    // Verificar series repetidas
                     const seriesRepetidas = verificarSeriesRepetidas(series);
                     mostrarMensajeSeriesRepetidas(
                         seriesRepetidas,
@@ -955,7 +1073,6 @@
                         textarea
                     );
 
-                    // Verificar cada serie en la base de datos
                     let seriesVerificadas = 0;
                     let seriesDuplicadas = [];
 
@@ -967,10 +1084,8 @@
                                 seriesDuplicadas.push(serie);
                             }
 
-                            // Cuando se han verificado todas las series
                             if (seriesVerificadas === series.length) {
                                 if (seriesDuplicadas.length > 0) {
-                                    // Mostrar mensaje de error con las series duplicadas
                                     $('#series_duplicadas_mensaje_u').remove();
                                     textarea.after(`
                                         <div id="series_duplicadas_mensaje_u" class="series-duplicadas">
@@ -989,10 +1104,6 @@
             }, 800);
         });
 
-
-
-
-
         // Actualizar contador de series en tiempo real
         $('#series_masivas').on('input', function () {
             const series = procesarSeriesMasivas($(this).val());
@@ -1002,11 +1113,9 @@
 
         // Actualizar validación cuando cambia la cantidad de equipos
         $('#cantidad_equipos').on('change', function () {
-            // Obtener el último número de serie registrado
             const ultimoNumero = parseInt($("#ultimo_numero_serie").val());
 
             if (!isNaN(ultimoNumero)) {
-                // Generar series masivas basadas en el último número
                 generarSeriesMasivas(ultimoNumero);
             }
         });
@@ -1019,7 +1128,6 @@
                 $('#seccion_agregar_equipo').hide();
                 $('#series_repetidas_equipos_mensaje').hide();
 
-                // Generar series masivas automáticamente
                 const ultimoNumero = parseInt($("#ultimo_numero_serie").val());
                 if (!isNaN(ultimoNumero)) {
                     generarSeriesMasivas(ultimoNumero);
@@ -1047,13 +1155,10 @@
             }
         });
 
-
-
         // Eliminar equipo
         $(document).on('click', '.btn-eliminar-equipo', function () {
             $(this).closest('.equipo-item').remove();
 
-            // Renumerar los equipos
             $('#equipos_container .equipo-item').each(function (index) {
                 $(this).find('.card-title').text(`Equipo ${index + 1}`);
                 $(this).find('input').each(function () {
@@ -1064,10 +1169,8 @@
                 });
             });
 
-            // Actualizar contador
             $('#contador_equipos').text($('#equipos_container .equipo-item').length);
 
-            // Verificar series repetidas después de eliminar un equipo
             setTimeout(function () {
                 let todasLasSeries = [];
                 $('input[name$="[numero_serie]"]').each(function () {
@@ -1101,27 +1204,31 @@
                 success: function (response) {
                     if (response.success && response.data && response.data.length > 0) {
                         const registro = response.data[0];
-                        $('#detalle_cliente').text(registro.cliente_ruc_dni);
+
+                        // Mostrar cliente o "Sin Cliente"
+                        const clienteTexto = registro.cliente_ruc_dni && registro.cliente_ruc_dni !== ''
+                            ? registro.cliente_ruc_dni
+                            : 'Sin Cliente';
+                        $('#detalle_cliente').text(clienteTexto);
                         $('#detalle_fecha').text(registro.fecha_creacion);
 
                         $('#detalle_equipos').empty();
                         if (registro.equipos && registro.equipos.length > 0) {
                             registro.equipos.forEach((equipo, index) => {
-                                // Determinar el estado y aplicar estilo
                                 const estado = equipo.estado || 'disponible';
                                 const estadoTexto = estado === 'en_garantia' ? 'En Garantía' : 'Disponible';
                                 const estadoClase = estado === 'en_garantia' ? 'bg-danger text-white' : 'bg-success text-white';
 
                                 $('#detalle_equipos').append(`
-            <tr>
-                <td>${index + 1}</td>
-                <td>${equipo.marca_nombre || equipo.marca || ''}</td>
-                <td>${equipo.modelo_nombre || equipo.modelo || ''}</td>
-                <td>${equipo.equipo_nombre || equipo.equipo || ''}</td>
-                <td>${equipo.numero_serie || ''}</td>
-                <td><span class="badge ${estadoClase} px-2 py-1">${estadoTexto}</span></td>
-            </tr>
-        `);
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${equipo.marca_nombre || equipo.marca || ''}</td>
+                                        <td>${equipo.modelo_nombre || equipo.modelo || ''}</td>
+                                        <td>${equipo.equipo_nombre || equipo.equipo || ''}</td>
+                                        <td>${equipo.numero_serie || ''}</td>
+                                        <td><span class="badge ${estadoClase} px-2 py-1">${estadoTexto}</span></td>
+                                    </tr>
+                                `);
                             });
                         } else {
                             $('#detalle_equipos').append('<tr><td colspan="6" class="text-center">No hay equipos registrados</td></tr>');
@@ -1146,12 +1253,10 @@
             });
         });
 
-
         // Eliminar equipo nuevo
         $(document).on('click', '.btn-eliminar-equipo-nuevo', function () {
             $(this).closest('.equipo-item').remove();
 
-            // Renumerar los equipos
             $('#equipos_container_u .equipo-item').each(function (index) {
                 $(this).find('.card-title').text(`Equipo nuevo ${index + 1}`);
                 $(this).find('input').each(function () {
@@ -1162,16 +1267,13 @@
                 });
             });
 
-            // Actualizar contador
             const numEquiposNuevos = $('#equipos_container_u .equipo-item').length;
             $('#contador_equipos_nuevos').text(numEquiposNuevos);
 
-            // Mostrar mensaje si no hay equipos nuevos
             if (numEquiposNuevos === 0) {
                 $('#no_equipos_nuevos_message').show();
             }
 
-            // Verificar series repetidas después de eliminar un equipo
             setTimeout(function () {
                 let todasLasSeries = [];
                 $('#equipos_existentes input[name$="[numero_serie]"], #equipos_container_u input[name$="[numero_serie]"]').each(function () {
@@ -1199,7 +1301,6 @@
             const series = procesarSeriesMasivas($(this).val());
             $('#contador_series_u').text(series.length);
 
-            // Validar cantidad de series
             const cantidadEquipos = parseInt($('#cantidad_equipos_nuevos').val());
             if (series.length !== cantidadEquipos) {
                 $(this).closest('.row').find('.series-counter').addClass('error');
@@ -1225,6 +1326,7 @@
         });
 
     });
+
     // Agregar este código al final del script en numero-series.php
     $(document).on('click', '.btnGarantia', function () {
         const id = $(this).data('id');

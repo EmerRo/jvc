@@ -1,6 +1,6 @@
 <?php include('fragment/head.php') ?>
 </head>
-
+<!-- resources\views\index.php -->
 <body data-sidebar="dark">
 <!-- <input value="<?=$device_app?>" id="device-app"> -->
 <div  id="loader-init">

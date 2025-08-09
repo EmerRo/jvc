@@ -1,30 +1,14 @@
+
 // Configuración global de PDF.js
 if (window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 }
-
-// Prevenir múltiples inicializaciones
-if (window.DocumentosUtils) {
-    console.log('DocumentosUtils ya existe, evitando redeclaración');
-} else {
 
 /**
  * Clase principal para gestionar documentos
  */
 class DocumentosUtils {
     constructor(config) {
-        // Verificar si ya existe una instancia para este tipo
-        const instanceKey = `${config.tipo}ModuleInstance`;
-        if (window[instanceKey]) {
-            console.log(`Ya existe una instancia de ${config.tipo}, limpiando la anterior...`);
-            if (window[instanceKey].cleanup) {
-                window[instanceKey].cleanup();
-            }
-        }
-        
-        // Registrar esta instancia
-        window[instanceKey] = this;
-        
         this.config = {
             tipo: config.tipo, // 'carta', 'constancia', 'informe', 'archivo-interno', 'otro-archivo'
             urls: config.urls,
@@ -42,75 +26,20 @@ class DocumentosUtils {
         this.documentoActual = null;
         this.pdfsRenderizados = new Set(); // Cache de PDFs ya renderizados
         this.timeoutBusqueda = null; // Para debounce de búsqueda
-        this.eventosRegistrados = []; // Para limpiar eventos
-        this.moduloInicializado = false;
 
         this.init();
-    }
-
-    /**
-     * Función de limpieza para prevenir memory leaks
-     */
-    cleanup() {
-        console.log(`Limpiando módulo de ${this.config.tipo}...`);
-        
-        // Limpiar editores
-        this.destruirEditor();
-        this.destruirEditorPlantilla();
-        
-        // Limpiar timeouts
-        if (this.timeoutBusqueda) {
-            clearTimeout(this.timeoutBusqueda);
-        }
-        
-        // Limpiar eventos registrados
-        this.eventosRegistrados.forEach(evento => {
-            $(evento.selector).off(evento.event);
-        });
-        this.eventosRegistrados = [];
-        
-        // Limpiar autocomplete
-        if ($("#autocomplete-results").length) {
-            $("#autocomplete-results").remove();
-        }
-        
-        // Limpiar modales
-        $('.modal').modal('hide');
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open');
-        
-        // Resetear variables
-        this.documentos = [];
-        this.pdfsRenderizados.clear();
-        this.moduloInicializado = false;
-        
-        // Limpiar instancia global
-        const instanceKey = `${this.config.tipo}ModuleInstance`;
-        if (window[instanceKey] === this) {
-            delete window[instanceKey];
-        }
-        
-        console.log(`Módulo de ${this.config.tipo} limpiado correctamente`);
-    }
-
-    /**
-     * Registrar evento para limpieza posterior
-     */
-    registrarEvento(selector, event, handler) {
-        $(selector).off(event).on(event, handler);
-        this.eventosRegistrados.push({ selector, event });
     }
 
     /**
      * Inicialización del módulo
      */
     init() {
-        if (this.moduloInicializado) {
+        if (window[`${this.config.tipo}ModuleInitialized`]) {
             console.log(`El módulo de ${this.config.tipo} ya ha sido inicializado. Evitando reinicialización.`);
             return;
         }
 
-        this.moduloInicializado = true;
+        window[`${this.config.tipo}ModuleInitialized`] = true;
         console.log(`Inicializando módulo de ${this.config.tipo}...`);
 
         this.verificarCompatibilidad();
@@ -140,53 +69,54 @@ class DocumentosUtils {
         const self = this;
 
         // Botones de navegación
-        this.registrarEvento(this.config.elementos.btnLista, "click", () => this.mostrarVistaLista());
-        this.registrarEvento(this.config.elementos.btnNuevo, "click", () => this.mostrarFormularioNuevo());
-        this.registrarEvento(this.config.elementos.btnEditarPlantilla, "click", () => this.editarPlantilla());
-        this.registrarEvento(this.config.elementos.btnGestionarMembretes, "click", () => this.gestionarMembretes());
+        $(this.config.elementos.btnLista).on("click", () => this.mostrarVistaLista());
+        $(this.config.elementos.btnNuevo).on("click", () => this.mostrarFormularioNuevo());
+        $(this.config.elementos.btnEditarPlantilla).on("click", () => this.editarPlantilla());
+        $(this.config.elementos.btnGestionarMembretes).on("click", () => this.gestionarMembretes());
 
         // Modal de confirmación para eliminar
-        this.registrarEvento(this.config.elementos.modalEliminar, 'show.bs.modal', function(event) {
+        $(this.config.elementos.modalEliminar).on('show.bs.modal', function(event) {
             const button = $(event.relatedTarget);
             const id = button.data('id');
             $(self.config.elementos.btnConfirmarEliminar).off('click').on('click', () => self.eliminarDocumento(id));
         });
 
         // Búsqueda con Debounce
-        this.registrarEvento(this.config.elementos.inputBuscar, "keyup", () => {
+        $(this.config.elementos.inputBuscar).on("keyup", () => {
             clearTimeout(this.timeoutBusqueda);
             this.timeoutBusqueda = setTimeout(() => {
                 this.buscarDocumentos();
             }, 300); // Espera 300ms después de que el usuario deja de escribir
         });
 
+
         // Formulario
-        this.registrarEvento(this.config.elementos.btnCancelar, "click", () => this.mostrarVistaLista());
-        this.registrarEvento(this.config.elementos.btnGuardar, "click", () => this.guardarDocumento());
-        this.registrarEvento(this.config.elementos.btnPreview, "click", () => this.mostrarVistaPrevia());
+        $(this.config.elementos.btnCancelar).on("click", () => this.mostrarVistaLista());
+        $(this.config.elementos.btnGuardar).on("click", () => this.guardarDocumento());
+        $(this.config.elementos.btnPreview).on("click", () => this.mostrarVistaPrevia());
 
         // Plantilla
-        this.registrarEvento(this.config.elementos.btnGuardarPlantilla, "click", () => this.guardarPlantilla());
-        this.registrarEvento(this.config.elementos.btnPreviewPlantilla, "click", () => this.mostrarVistaPreviewPlantilla());
+        $(this.config.elementos.btnGuardarPlantilla).on("click", () => this.guardarPlantilla());
+        $(this.config.elementos.btnPreviewPlantilla).on("click", () => this.mostrarVistaPreviewPlantilla());
 
         // Membretes
-        this.registrarEvento(this.config.elementos.btnGuardarMembretes, "click", () => this.guardarMembretes());
-        this.registrarEvento(this.config.elementos.btnPreviewMembretes, "click", () => this.mostrarVistaPreviewMembretes());
+        $(this.config.elementos.btnGuardarMembretes).on("click", () => this.guardarMembretes());
+        $(this.config.elementos.btnPreviewMembretes).on("click", () => this.mostrarVistaPreviewMembretes());
 
         // Imágenes de membretes
-        this.registrarEvento(this.config.elementos.headerImageInput, "change", (e) => {
+        $(this.config.elementos.headerImageInput).on("change", (e) => {
             this.manejarCambioImagen(e, 'membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
         });
 
-        this.registrarEvento(this.config.elementos.footerImageInput, "change", (e) => {
+        $(this.config.elementos.footerImageInput).on("change", (e) => {
             this.manejarCambioImagen(e, 'membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
         });
 
-        this.registrarEvento(this.config.elementos.resetHeaderBtn, "click", () => {
+        $(this.config.elementos.resetHeaderBtn).on("click", () => {
             this.restablecerImagen('membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
         });
 
-        this.registrarEvento(this.config.elementos.resetFooterBtn, "click", () => {
+        $(this.config.elementos.resetFooterBtn).on("click", () => {
             this.restablecerImagen('membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
         });
 
@@ -201,19 +131,19 @@ class DocumentosUtils {
         const self = this;
 
         // Modal de plantilla
-        this.registrarEvento(this.config.elementos.modalPlantilla, 'hidden.bs.modal', function() {
+        $(this.config.elementos.modalPlantilla).on('hidden.bs.modal', function() {
             console.log("Modal de plantilla cerrado, destruyendo editor");
             self.destruirEditorPlantilla();
             $(self.config.elementos.editorPlantilla).empty();
         });
 
-        this.registrarEvento(this.config.elementos.modalPlantilla, 'show.bs.modal', function() {
+        $(this.config.elementos.modalPlantilla).on('show.bs.modal', function() {
             console.log("Modal de plantilla abriéndose");
             self.destruirEditorPlantilla();
         });
 
         // Modal de vista previa - regresar a membretes
-        this.registrarEvento(this.config.elementos.modalPreview, 'hidden.bs.modal', function() {
+        $(this.config.elementos.modalPreview).on('hidden.bs.modal', function() {
             if (window.regresarAMembretes) {
                 window.regresarAMembretes = false;
                 setTimeout(() => {
@@ -353,6 +283,7 @@ class DocumentosUtils {
             </button>
         `);
     }
+
 
     /**
      * Renderizar documentos
@@ -1915,6 +1846,7 @@ class DocumentosUtils {
         });
     }
 
+
     /**
      * Convertir base64 a Blob
      */
@@ -1941,5 +1873,4 @@ class DocumentosUtils {
 
 // Exportar la clase para uso global
 window.DocumentosUtils = DocumentosUtils;
-
-} // Fin del if que previene múltiples declaraciones
+''

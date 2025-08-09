@@ -126,4 +126,48 @@ class CajaController extends Controller
 
         return json_encode($respuesta);
     }
+
+    public function updateMovimiento()
+    {
+        $respuesta = ["res" => false];
+        $documento = $_POST['documento'] ?? '';
+        $id = $_POST['caja_chica_id'];
+
+        $entrada = 0;
+        $salida = 0;
+
+        if ($_POST['tipo'] == '1') { // Egreso
+            $salida = $_POST['monto'];
+        } else { // Ingreso
+            $entrada = $_POST['monto'];
+        }
+
+        $sql = "UPDATE caja_chica SET 
+                detalle = '{$_POST['detalle']}',
+                entrada = '{$entrada}',
+                salida = '{$salida}',
+                metodo = '{$_POST['metodo']}',
+                documento = '{$documento}'
+                WHERE caja_chica_id = '{$id}'";
+
+        if ($this->conexion->query($sql)) {
+            $respuesta["res"] = true;
+        }
+
+        return json_encode($respuesta);
+    }
+
+    public function deleteMovimiento()
+    {
+        $respuesta = ["res" => false];
+        $id = $_POST['id'];
+
+        $sql = "DELETE FROM caja_chica WHERE caja_chica_id = '{$id}'";
+
+        if ($this->conexion->query($sql)) {
+            $respuesta["res"] = true;
+        }
+
+        return json_encode($respuesta);
+    }
 }

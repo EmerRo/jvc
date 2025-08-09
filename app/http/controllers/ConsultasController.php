@@ -296,13 +296,13 @@ WHERE id_venta='{$_POST['idVenta']}'";
     {
         try {
             $c_tido = new DocumentoEmpresa();
-    
+
             $c_tido->setIdEmpresa($_SESSION['id_empresa']);
             $c_tido->setIdTido($_POST['tipo_docNE']);
             $c_tido->obtenerDatos();
             $serieE = $c_tido->getSerie();
             $numeroE = $c_tido->getNumero();
-    
+
             $sql = "insert into notas_electronicas set id_venta='{$_POST['ventacod']}',
       tido='{$_POST['tipo_docNE']}',
       fecha='{$_POST['fecha']}',
@@ -317,11 +317,11 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $stmt = $this->consulta->getConectar()->prepare($sql);
             $stmt->bind_param("s", $productos);
             $respuesta = ["res" => false, "error" => ""];
-            
+
             if ($stmt->execute()) {
                 $idNotaElectronica = $stmt->insert_id;
                 $respuesta["res"] = true;
-    
+
                 $empresa = $this->consulta->exeSQL("select * from empresas where id_empresa='{$_SESSION['id_empresa']}'")->fetch_assoc();
                 $dataSend = [];
                 if ($_POST['tipo_doc'] == '1') {
@@ -329,22 +329,22 @@ WHERE id_venta='{$_POST['idVenta']}'";
                 } elseif ($_POST['tipo_doc'] == '2') {
                     $dataSend['tip_doc_afectado'] = '01';
                 }
-    
+
                 if ($_POST['tipo_docNE'] == '3') {
                     $dataSend['cod_notaE'] = '07';
                 } else {
                     $dataSend['cod_notaE'] = '08';
                 }
-    
+
                 $sql = "SELECT * FROM motivo_documento where id_motivo = {$_POST['motivoNE']}";
                 $motivoNEData = $this->consulta->exeSQL($sql)->fetch_assoc();
-    
+
                 $dataSend['productos'] = [];
                 $dataSend["certGlobal"] = false;
                 $dataSend["endpoints"] = $empresa['modo'];
-    
+
                 $listaProd = json_decode($productos, true);
-    
+
                 foreach ($listaProd as $prodd) {
                     $dataSend['productos'][] = [
                         "precio" => $prodd['precio'],
@@ -354,16 +354,16 @@ WHERE id_venta='{$_POST['idVenta']}'";
                         "descripcion" => $prodd['descripcion']
                     ];
                 }
-    
+
                 $dataSend['cliente'] = json_encode([
                     'doc_num' => $_POST['num_doc'],
                     'nom_RS' => $_POST['nom_cli'],
                     'direccion' => $_POST['dir_cli'],
                 ]);
-    
+
                 $dataSend['total'] = $_POST['total_NE'];
                 $dataSend['serie'] = $serieE;
-    
+
                 $dataSend['sn_afectado'] = $_POST['serie'] . '-' . $_POST['numero'];
                 $dataSend['cod_motivo'] = $motivoNEData['codigo'];
                 $dataSend['des_motivo'] = $motivoNEData['nombre'];
@@ -381,10 +381,10 @@ WHERE id_venta='{$_POST['idVenta']}'";
                     'clave_sol' => $empresa['clave_sol'],
                     'usuario_sol' => $empresa['user_sol']
                 ]);
-    
+
                 $dataSend['productos'] = json_encode($dataSend['productos']);
                 $dataResp = $this->sunatApi->genNotaElectronicaXML($dataSend);
-                
+
                 if ($dataResp["res"]) {
                     $sql = "insert into notas_electronicas_sunat set 
     id_notas_electronicas='$idNotaElectronica',
@@ -406,10 +406,10 @@ WHERE id_venta='{$_POST['idVenta']}'";
             // Capturar cualquier excepción
             $respuesta = ["res" => false, "error" => "Excepción: " . $e->getMessage()];
         }
-        
+
         return json_encode($respuesta);
     }
-    
+
 
     public function functionbuscarDocumentoVentasSN()
     {
@@ -448,26 +448,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
         return json_encode($array_resultado);
     }
 
-    public function buscarDataCliente()
-    {
 
-        $searchTerm = filter_input(INPUT_GET, 'term');
-
-        $resultados = $this->consulta->buscarClientes($searchTerm, $_SESSION['id_empresa']);
-
-        $array_resultado = array();
-        foreach ($resultados as $value) {
-            $fila = array();
-            $fila['value'] = $value['documento'] . " | " . $value['datos'];
-            $fila['codigo'] = $value['id_cliente'];
-            $fila['documento'] = $value['documento'];
-            $fila['direccion'] = $value['direccion'];
-            $fila['datos'] = $value['datos'];
-            array_push($array_resultado, $fila);
-        }
-
-        return json_encode($array_resultado);
-    }
     public function buscarDocInfo()
     {
         //var_dump($_POST);
@@ -618,10 +599,10 @@ WHERE id_venta='{$_POST['idVenta']}'";
     {
         // Obtener el término de búsqueda y asegurarse de que esté correctamente formateado
         $searchTerm = filter_input(INPUT_GET, 'term');
-        
+
         // Llamar a la función del modelo con los parámetros correctos
         $resultados = $this->consulta->buscarProducto($_SESSION['id_empresa'], $searchTerm, $almacen);
-        
+
         $array_resultado = array();
         foreach ($resultados as $value) {
             $fila = array();
@@ -637,21 +618,21 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $fila['precio_menor'] = $value['precio_menor'];
             // $fila['precio2'] = $value['precio2'];
             // $fila['precio3'] = $value['precio3'];
-                // $fila['precio4'] = $value['precio4'];
+            // $fila['precio4'] = $value['precio4'];
             // $fila['precio_unidad'] = $value['precio_unidad'];
             $fila['usar_multiprecio'] = $value['usar_multiprecio'];
             $fila['unidad_id'] = $value['unidad'];
             array_push($array_resultado, $fila);
         }
-    
+
         return json_encode($array_resultado);
     }
-    
+
     function buscarRepuesto($almacen)
     {
         // Verificar si el usuario tiene permiso para ver precios
         $puedeVerPrecios = true; // Por defecto, puede ver precios
-        
+
         // Consultar permisos específicos del rol
         if (isset($_SESSION['id_rol'])) {
             $rolId = $_SESSION['id_rol'];
@@ -662,9 +643,9 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $stmt->execute();
             $result = $stmt->get_result();
             if ($row = $result->fetch_assoc()) {
-                $puedeVerPrecios = (bool)$row['ver_precios'];
+                $puedeVerPrecios = (bool) $row['ver_precios'];
             }
-            
+
             // Verificar si es rol orden trabajo
             $sqlRol = "SELECT nombre FROM roles WHERE rol_id = ?";
             $stmtRol = $conexion->prepare($sqlRol);
@@ -677,26 +658,26 @@ WHERE id_venta='{$_POST['idVenta']}'";
                 }
             }
         }
-        
+
         $searchTerm = filter_input(INPUT_GET, 'term');
         $resultados = $this->consulta->buscarRepuesto($_SESSION['id_empresa'], $searchTerm, $almacen);
-        
+
         $array_resultado = array();
         foreach ($resultados as $value) {
             $fila = array();
-            
+
             // Modificar el texto mostrado en el dropdown según los permisos
             if ($puedeVerPrecios) {
                 $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | P.Venta S/ : " . $value['precio'] . " | Stock: " . $value['cantidad'];
             } else {
                 $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | Stock: " . $value['cantidad'];
             }
-            
+
             $fila['codigo'] = $value['id_repuesto'];
             $fila['codigo_pp'] = $value['codigo'];
             $fila['descripcion'] = $value['detalle'];
             $fila['nombre'] = $value['nombre'];
-            
+
             // Incluir o no los precios según los permisos
             if ($puedeVerPrecios) {
                 $fila['precio'] = $value['precio'];
@@ -710,14 +691,14 @@ WHERE id_venta='{$_POST['idVenta']}'";
                 $fila['precio_menor'] = '0';
                 $fila['usar_multiprecio'] = '0';
             }
-            
+
             $fila['cnt'] = $value['cantidad'];
             $fila['costo'] = $puedeVerPrecios ? $value['costo'] : '0';
             $fila['unidad_id'] = $value['unidad'];
-            
+
             array_push($array_resultado, $fila);
         }
-    
+
         return json_encode($array_resultado);
     }
 
@@ -768,7 +749,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
         echo json_encode($result);
     }
 
-    
+
     function getRoles()
     {
         $sql = "SELECT * FROM roles";
@@ -782,13 +763,13 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function saveUser()
     {
-      
-    $clave = sha1($_POST["clave"]);
-    
-    // Verificar si rotativo existe en $_POST, si no, asignar 0 por defecto
-    $rotativo = isset($_POST["rotativo"]) ? $_POST["rotativo"] : 0;
-    
-    $sql = "INSERT INTO usuarios SET 
+
+        $clave = sha1($_POST["clave"]);
+
+        // Verificar si rotativo existe en $_POST, si no, asignar 0 por defecto
+        $rotativo = isset($_POST["rotativo"]) ? $_POST["rotativo"] : 0;
+
+        $sql = "INSERT INTO usuarios SET 
             id_empresa='{$_SESSION["id_empresa"]}',
             id_rol='{$_POST["rol"]}',
             num_doc='{$_POST["ndoc"]}',
@@ -807,192 +788,212 @@ WHERE id_venta='{$_POST['idVenta']}'";
             echo json_encode(['success' => false, 'error' => mysqli_error($this->consulta->getConectar())]);
         }
     }
+    public function buscarDataCliente()
+    {
 
-  public function buscarClienteSerie()
-{
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
-    $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
-    
-    // Si se proporciona un cliente_id, devolver las series de ese cliente
-    if ($cliente_id) {
+        $searchTerm = filter_input(INPUT_GET, 'term');
+
+        $resultados = $this->consulta->buscarClientes($searchTerm, $_SESSION['id_empresa']);
+
+        $array_resultado = array();
+        foreach ($resultados as $value) {
+            $fila = array();
+            $fila['value'] = $value['documento'] . " | " . $value['datos'];
+            $fila['codigo'] = $value['id_cliente'];
+            $fila['documento'] = $value['documento'];
+            $fila['direccion'] = $value['direccion'];
+            $fila['datos'] = $value['datos'];
+            array_push($array_resultado, $fila);
+        }
+
+        return json_encode($array_resultado);
+    }
+
+    public function buscarClienteSerie()
+    {
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
+
+        // Si se proporciona un cliente_id, devolver las series de ese cliente
+        if ($cliente_id) {
+            $resultados = $this->consulta->obtenerSeriesPorCliente($cliente_id);
+
+            $array_resultado = array();
+            while ($value = $resultados->fetch_assoc()) {
+                array_push($array_resultado, $value);
+            }
+
+            return json_encode($array_resultado);
+        }
+
+        // Si no hay cliente_id, buscar clientes por nombre (comportamiento original)
+        $resultados = $this->consulta->buscarClientePorNombre($searchTerm);
+
+        $array_resultado = array();
+        while ($value = $resultados->fetch_assoc()) {
+            $fila = array();
+            $fila['label'] = $value['cliente_ruc_dni'];
+            $fila['value'] = $value['cliente_ruc_dni'];
+            $fila['id'] = $value['id'];
+            $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
+            array_push($array_resultado, $fila);
+        }
+
+        return json_encode($array_resultado);
+    }
+
+    public function buscarSeriesPorCliente()
+    {
+        $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
+
         $resultados = $this->consulta->obtenerSeriesPorCliente($cliente_id);
-        
+
+        if (!$resultados) {
+            return json_encode([]);
+        }
+
         $array_resultado = array();
         while ($value = $resultados->fetch_assoc()) {
             array_push($array_resultado, $value);
         }
-        
+
         return json_encode($array_resultado);
     }
-    
-    // Si no hay cliente_id, buscar clientes por nombre (comportamiento original)
-    $resultados = $this->consulta->buscarClientePorNombre($searchTerm);
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        $fila = array();
-        $fila['label'] = $value['cliente_ruc_dni'];
-        $fila['value'] = $value['cliente_ruc_dni'];
-        $fila['id'] = $value['id'];
-        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
-        array_push($array_resultado, $fila);
-    }
-    
-    return json_encode($array_resultado);
-}
 
-public function buscarSeriesPorCliente()
-{
-    $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
-    
-    $resultados = $this->consulta->obtenerSeriesPorCliente($cliente_id);
-    
-    if (!$resultados) {
-        return json_encode([]);
-    }
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        array_push($array_resultado, $value);
-    }
-    
-    return json_encode($array_resultado);
-}
+    public function buscarDataSerie()
+    {
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
 
-   public function buscarDataSerie()
-{
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
-    
-    // Si no hay término de búsqueda o está vacío, devolver series disponibles (limitado a 100)
-    if (empty($searchTerm)) {
-        $resultados = $this->consulta->obtenerSeriesDisponibles();
-    } else {
-        $resultados = $this->consulta->buscarSerieDisponible($searchTerm);
-    }
-    
-    // Si resultados es un array vacío (error) devolver array vacío
-    if (empty($resultados) || !is_object($resultados)) {
-        return json_encode([]);
-    }
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        $fila = array();
-        $fila['label'] = $value['numero_serie']; // Cambiado de 'value' a 'label' para autocomplete
-        $fila['value'] = $value['numero_serie'];
-        $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
-        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
-        $fila['modelo'] = $value['modelo'];
-        $fila['modelo_nombre'] = $value['modelo_nombre'];
-        $fila['marca'] = $value['marca'];
-        $fila['marca_nombre'] = $value['marca_nombre'];
-        $fila['equipo'] = $value['equipo'];
-        $fila['equipo_nombre'] = $value['equipo_nombre'];
-        array_push($array_resultado, $fila);
-    }
-    
-    return json_encode($array_resultado);
-}
-    
-// ✅ CORRECCIÓN CRÍTICA: Agregar el echo que falta
-public function buscarDataSeriePreAlerta()
-{
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
-    
-    // 🔍 DEBUGGING
-    error_log("=== DEBUGGING BUSCAR SERIE ===");
-    error_log("Search term: " . ($searchTerm ?? 'NULL'));
-    
-    // Si no hay término de búsqueda, devolver series disponibles para pre-alerta
-    if (empty($searchTerm)) {
-        error_log("Buscando series disponibles (sin término)");
-        $resultados = $this->consulta->obtenerSeriesDisponiblesPreAlerta();
-    } else {
-        error_log("Buscando serie específica: " . $searchTerm);
-        $resultados = $this->consulta->buscarSerieDisponiblePreAlerta($searchTerm);
-    }
-    
-    // 🔍 DEBUGGING
-    error_log("Tipo de resultado: " . gettype($resultados));
-    if (is_object($resultados)) {
-        error_log("Número de filas: " . $resultados->num_rows);
-    }
-    
-    // Si resultados es un array vacío (error) devolver array vacío
-    if (empty($resultados) || !is_object($resultados)) {
-        error_log("Resultados vacíos o no es objeto");
-        echo json_encode([]);
-        return;
-    }
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        error_log("Fila encontrada: " . print_r($value, true));
-        $fila = array();
-        $fila['label'] = $value['numero_serie'];
-        $fila['value'] = $value['numero_serie'];
-        $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
-        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
-        $fila['modelo'] = $value['modelo'];
-        $fila['modelo_nombre'] = $value['modelo_nombre'];
-        $fila['marca'] = $value['marca'];
-        $fila['marca_nombre'] = $value['marca_nombre'];
-        $fila['equipo'] = $value['equipo'];
-        $fila['equipo_nombre'] = $value['equipo_nombre'];
-        array_push($array_resultado, $fila);
-    }
-    
-    error_log("Array resultado final: " . print_r($array_resultado, true));
-    echo json_encode($array_resultado); // ✅ ESTE ECHO ESTABA FALTANDO
-}
+        // Si no hay término de búsqueda o está vacío, devolver series disponibles (limitado a 100)
+        if (empty($searchTerm)) {
+            $resultados = $this->consulta->obtenerSeriesDisponibles();
+        } else {
+            $resultados = $this->consulta->buscarSerieDisponible($searchTerm);
+        }
 
-public function buscarClienteSeriePreAlerta()
-{
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
-    $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
-    
-    if ($cliente_id) {
+        // Si resultados es un array vacío (error) devolver array vacío
+        if (empty($resultados) || !is_object($resultados)) {
+            return json_encode([]);
+        }
+
+        $array_resultado = array();
+        while ($value = $resultados->fetch_assoc()) {
+            $fila = array();
+            $fila['label'] = $value['numero_serie']; // Cambiado de 'value' a 'label' para autocomplete
+            $fila['value'] = $value['numero_serie'];
+            $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
+            $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
+            $fila['modelo'] = $value['modelo'];
+            $fila['modelo_nombre'] = $value['modelo_nombre'];
+            $fila['marca'] = $value['marca'];
+            $fila['marca_nombre'] = $value['marca_nombre'];
+            $fila['equipo'] = $value['equipo'];
+            $fila['equipo_nombre'] = $value['equipo_nombre'];
+            array_push($array_resultado, $fila);
+        }
+
+        return json_encode($array_resultado);
+    }
+
+    // ✅ CORRECCIÓN CRÍTICA: Agregar el echo que falta
+    public function buscarDataSeriePreAlerta()
+    {
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+
+        // 🔍 DEBUGGING
+        error_log("=== DEBUGGING BUSCAR SERIE ===");
+        error_log("Search term: " . ($searchTerm ?? 'NULL'));
+
+        // Si no hay término de búsqueda, devolver series disponibles para pre-alerta
+        if (empty($searchTerm)) {
+            error_log("Buscando series disponibles (sin término)");
+            $resultados = $this->consulta->obtenerSeriesDisponiblesPreAlerta();
+        } else {
+            error_log("Buscando serie específica: " . $searchTerm);
+            $resultados = $this->consulta->buscarSerieDisponiblePreAlerta($searchTerm);
+        }
+
+        // 🔍 DEBUGGING
+        error_log("Tipo de resultado: " . gettype($resultados));
+        if (is_object($resultados)) {
+            error_log("Número de filas: " . $resultados->num_rows);
+        }
+
+        // Si resultados es un array vacío (error) devolver array vacío
+        if (empty($resultados) || !is_object($resultados)) {
+            error_log("Resultados vacíos o no es objeto");
+            echo json_encode([]);
+            return;
+        }
+
+        $array_resultado = array();
+        while ($value = $resultados->fetch_assoc()) {
+            error_log("Fila encontrada: " . print_r($value, true));
+            $fila = array();
+            $fila['label'] = $value['numero_serie'];
+            $fila['value'] = $value['numero_serie'];
+            $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
+            $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
+            $fila['modelo'] = $value['modelo'];
+            $fila['modelo_nombre'] = $value['modelo_nombre'];
+            $fila['marca'] = $value['marca'];
+            $fila['marca_nombre'] = $value['marca_nombre'];
+            $fila['equipo'] = $value['equipo'];
+            $fila['equipo_nombre'] = $value['equipo_nombre'];
+            array_push($array_resultado, $fila);
+        }
+
+        error_log("Array resultado final: " . print_r($array_resultado, true));
+        echo json_encode($array_resultado); // ✅ ESTE ECHO ESTABA FALTANDO
+    }
+
+    public function buscarClienteSeriePreAlerta()
+    {
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
+
+        if ($cliente_id) {
+            $resultados = $this->consulta->obtenerSeriesPorClientePreAlerta($cliente_id);
+
+            $array_resultado = array();
+            while ($value = $resultados->fetch_assoc()) {
+                array_push($array_resultado, $value);
+            }
+
+            return json_encode($array_resultado);
+        }
+
+        $resultados = $this->consulta->buscarClientePorNombre($searchTerm);
+
+        $array_resultado = array();
+        while ($value = $resultados->fetch_assoc()) {
+            $fila = array();
+            $fila['label'] = $value['cliente_ruc_dni'];
+            $fila['value'] = $value['cliente_ruc_dni'];
+            $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
+            $fila['id'] = $value['id'];
+            array_push($array_resultado, $fila);
+        }
+
+        return json_encode($array_resultado);
+    }
+
+    public function buscarSeriesPorClientePreAlerta()
+    {
+        $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
+
         $resultados = $this->consulta->obtenerSeriesPorClientePreAlerta($cliente_id);
-        
+
+        if (!$resultados) {
+            return json_encode([]);
+        }
+
         $array_resultado = array();
         while ($value = $resultados->fetch_assoc()) {
             array_push($array_resultado, $value);
         }
-        
+
         return json_encode($array_resultado);
     }
-    
-    $resultados = $this->consulta->buscarClientePorNombre($searchTerm);
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        $fila = array();
-        $fila['label'] = $value['cliente_ruc_dni'];
-        $fila['value'] = $value['cliente_ruc_dni'];
-        $fila['cliente_documento'] = $value['cliente_documento'] ?? ''; // ✅ AGREGAR ESTE CAMPO
-        $fila['id'] = $value['id'];
-        array_push($array_resultado, $fila);
-    }
-    
-    return json_encode($array_resultado);
-}
-
-public function buscarSeriesPorClientePreAlerta()
-{
-    $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
-    
-    $resultados = $this->consulta->obtenerSeriesPorClientePreAlerta($cliente_id);
-    
-    if (!$resultados) {
-        return json_encode([]);
-    }
-    
-    $array_resultado = array();
-    while ($value = $resultados->fetch_assoc()) {
-        array_push($array_resultado, $value);
-    }
-    
-    return json_encode($array_resultado);
-}
 
 }

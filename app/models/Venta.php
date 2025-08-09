@@ -474,6 +474,7 @@ public function setDocReferencia($doc_referencia): void
                 $totalVenta += $depro['cantidad'] * $depro['precio'];
                 $row["detalles"][] = $depro;
             }
+
             $sql = "SELECT *,'' as codigo FROM ventas_servicios WHERE id_venta=" . $this->id_venta;
             $result = $this->conectar->query($sql);
             foreach ($result as $depro) {
@@ -795,4 +796,5 @@ public function setDocReferencia($doc_referencia): void
         order by concat(year(fecha), LPAD(month(fecha), 2, 0)) desc";
         return $this->conectar->get_Cursor($sql);
     }
+  
 }

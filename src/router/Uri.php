@@ -113,6 +113,7 @@ class Uri {
         $this->matches[] = $this->request;
     }
 
+
     private function printResponse() {
         if (is_string($this->response)) {
             echo $this->response;

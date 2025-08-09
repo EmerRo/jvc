@@ -86,6 +86,8 @@ Route::post('/ajs/caja/apertura', "CajaController@aperturarCaja");
 Route::post('/ajs/caja/apertura/listar', "CajaController@listar");
 Route::post('/ajs/caja/chica/add', "CajaController@agregarMovimiento");
 Route::post('/ajs/caja/chica/cerrar', "CajaController@cerrarCajaChica");
+Route::post('/ajs/caja/chica/update', "CajaController@updateMovimiento");
+Route::post('/ajs/caja/chica/delete', "CajaController@deleteMovimiento");
 
 // ================  ComprasController ===================================
 Route::post('/ajs/prodcutos/compras/render', "ComprasController@getAll");
@@ -114,15 +116,6 @@ Route::get("/ajs/dashboard/datos-productos", "DashboardController@getDatosProduc
 Route::get("/ajs/dashboard/datos-ingresos-egresos", "DashboardController@getDatosIngresosEgresos");
 
 
-/* ============================ INICIO Ventas controller rutas ajaxs======================================*/
-
-Route::post("/ajas/ventas/porempresa", "VentasController@listaVentasPorEmpresa");
-Route::post("/ajas/ventas/porempresa/regenxml", "VentasController@regenerarXML");
-Route::post("/ajas/ventas/porempresa/sendsunat", "VentasController@enviarDocumentoSunatPorEmpresa");
-Route::post("/ajas/ventas/porempresa/sendsunatresumen", "VentasController@envioResumenDiarioPorEmpresa");
-Route::post("/ajas/ventas/porempresa/sendsunatcomubaja", "VentasController@envioComunicacionBajaPorEmpresa");
-Route::post("/ajs/send/sunat/venta", "VentasController@enviarDocumentoSunat")->Middleware([ValidarTokenMiddleware::class]);
-/* ============================ FIN Ventas controller rutas ======================================*/
 
 Route::post("/ajs/getroles", "ConsultasController@getRoles");
 Route::post("/ajs/add/users", "ConsultasController@saveUser");
@@ -199,6 +192,7 @@ Route::post("/ajs/getSerieByNumero", "SeriesController@getSerieByNumero");
 Route::post("/ajs/verificar/numeroserie", "SeriesController@verificarNumeroSerie");
 Route::get("/ajs/getOne/numeroseries/:id", "SeriesController@getOneSerieById");
 Route::get("/ajs/get/ultimonumeroserie", "SeriesController@getUltimoNumeroSerie");
+Route::get("/ajs/generar/numeroserie", "SeriesController@generarNumeroSerie");
 
 // maquinas gestion activos
 Route::get("/ajs/get/maquinas", "RegistroMaquinaController@getMaquinas");
@@ -295,6 +289,7 @@ Route::get("/ajs/get/terminos/repuestos", "TallerCotizacionesController@getTermi
 Route::get("/ajas/get/diagnostico/repuestos", "TallerCotizacionesController@getDiagnosticoRepuestos");
 Route::post("/jvc/ajs/save/taller/condiciones/global", "TallerCotizacionesController@saveCondicionGlobalTaller");
 Route::post("/jvc/ajas/save/taller/diagnosticos/global", "TallerCotizacionesController@saveDiagnosticoGlobalTaller");
+Route::post("/ajs/taller/cotizaciones/info", "TallerCotizacionesController@obtenerInfo")->middleware([ValidarTokenMiddleware::class]);
 
 
 

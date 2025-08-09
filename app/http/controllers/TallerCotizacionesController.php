@@ -766,4 +766,98 @@ class TallerCotizacionesController extends Controller
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    public function obtenerInfo()
+{
+    try {
+        if (!isset($_POST['coti'])) {
+            throw new Exception("ID de cotización no proporcionado");
+        }
+
+        $id_cotizacion = intval($_POST['coti']);
+        error_log("Obteniendo info de cotización taller ID: " . $id_cotizacion);
+
+        // Obtener datos principales de la cotización
+        $cotizacion = $this->tallerCotizacion->obtenerDetalle($id_cotizacion);
+        
+        // Obtener repuestos/productos
+        $repuestos = $this->tallerRepuesto->obtenerPorCotizacion($id_cotizacion);
+        // Obtener equipos de la cotización
+$sqlEquipos = "SELECT * FROM taller_cotizaciones_equipos WHERE id_cotizacion = ?";
+$stmtEquipos = $this->conectar->prepare($sqlEquipos);
+$stmtEquipos->bind_param("i", $id_cotizacion);
+$stmtEquipos->execute();
+$resultEquipos = $stmtEquipos->get_result();
+
+$equipos = [];
+while ($equipo = $resultEquipos->fetch_assoc()) {
+    $equipos[] = [
+        'marca' => $equipo['marca'],
+        'equipo' => $equipo['equipo'], 
+        'modelo' => $equipo['modelo'],
+        'numero_serie' => $equipo['numero_serie']
+    ];
+}
+
+        
+        // Obtener cuotas si existen
+        $sqlCuotas = "SELECT * FROM cuotas_cotizacion WHERE id_coti = ? ORDER BY fecha";
+        $stmtCuotas = $this->conectar->prepare($sqlCuotas);
+        $stmtCuotas->bind_param("i", $id_cotizacion);
+        $stmtCuotas->execute();
+        $resultCuotas = $stmtCuotas->get_result();
+        
+        $cuotas = [];
+        while ($cuota = $resultCuotas->fetch_assoc()) {
+            $cuotas[] = [
+                'fecha' => $cuota['fecha'],
+                'monto' => $cuota['monto']
+            ];
+        }
+
+        // Formatear productos para que sean compatibles con ventas-productos.php
+        $productos = array_map(function ($repuesto) {
+            return [
+                'codigo' => $repuesto['codigo_prod'],
+                'descripcion' => $repuesto['descripcion'],
+                'cantidad' => $repuesto['cantidad'],
+                'precioVenta' => $repuesto['precio'],
+                'costo' => $repuesto['costo'],
+                'productoid' => $repuesto['id_repuesto'],
+                'precio' => $repuesto['precio'],
+                'precio2' => $repuesto['precio'],
+                'precio_unidad' => $repuesto['precio'],
+                'edicion' => false
+            ];
+        }, $repuestos);
+
+        $response = [
+            'res' => true,
+            'productos' => $productos,
+             'equipos' => $equipos, 
+            'cliente_doc' => $cotizacion['num_doc'],
+            'cliente_nom' => $cotizacion['nom_cli'],
+            'cliente_dir1' => $cotizacion['dir_cli'],
+            'cliente_dir2' => $cotizacion['dir2_cli'],
+            'id_tido' => $cotizacion['id_tido'],
+            'moneda' => $cotizacion['moneda'],
+            'cm_tc' => $cotizacion['cm_tc'],
+            'id_tipo_pago' => $cotizacion['id_tipo_pago'],
+            'dias_pagos' => $cotizacion['dias_pagos'],
+            'direccion' => $cotizacion['direccion'],
+            'usar_precio' => $cotizacion['usar_precio'],
+            'cuotas' => $cuotas
+        ];
+
+        error_log("Respuesta cotización taller: " . json_encode($response));
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        error_log("Error en obtenerInfo taller: " . $e->getMessage());
+        echo json_encode([
+            'res' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
 }

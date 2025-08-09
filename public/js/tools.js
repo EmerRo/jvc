@@ -44,10 +44,10 @@ function isJson(str) {
 }
 
 function getPathURL() {
-    return location.pathname;
+    return location.pathname + location.search;
 }
 
-function _ajaxDOM(url, contenedor_id) {
+function _ajaxDOM(url, contenedor_id, callback) {
     $.ajax({
         headers: {
             'token-app': localStorage.getItem("_token"),
@@ -57,12 +57,17 @@ function _ajaxDOM(url, contenedor_id) {
         success: function (resp) {
             $("#loader-menor").hide();
             $("#" + contenedor_id).html(resp);
-            
+
+            // Ejecuta el callback si se pasa
+            if (typeof callback === 'function') {
+                callback();
+            }
+
             // CALLBACK PARA DESPUÉS DE CARGAR CONTENIDO
             if (typeof window.onContentLoaded === 'function') {
                 window.onContentLoaded();
             }
-            
+
             // INICIALIZAR MÓDULOS ESPECÍFICOS DESPUÉS DE CARGAR CONTENIDO
             setTimeout(function() {
                 inicializarModuloSegunURL(url);
@@ -79,10 +84,10 @@ function _ajaxDOM(url, contenedor_id) {
 // FUNCIÓN PARA INICIALIZAR MÓDULOS SEGÚN LA URL
 function inicializarModuloSegunURL(url) {
     console.log('Inicializando módulo para URL:', url);
-    
+
     // Limpiar módulos de documentos antes de inicializar uno nuevo
     limpiarModulosDocumentos();
-    
+
     // Detectar si es el módulo de informes
     if (url.includes('/documentos/informe') || url.includes('informe')) {
         console.log('Detectado módulo de informes, inicializando...');
@@ -91,7 +96,7 @@ function inicializarModuloSegunURL(url) {
             window.InformesModule.reiniciar();
         }
     }
-    
+
     // Detectar si es el módulo de cartas
     else if (url.includes('/documentos/cartas') || url.includes('cartas')) {
         console.log('Detectado módulo de cartas, inicializando...');
@@ -99,7 +104,7 @@ function inicializarModuloSegunURL(url) {
         if (window.cartasModuleConfig) {
             delete window.cartasModuleConfig;
         }
-        
+
         // Esperar a que el DOM esté completamente cargado
         setTimeout(() => {
             if (typeof window.inicializarModuloCartas === 'function') {
@@ -107,7 +112,7 @@ function inicializarModuloSegunURL(url) {
             }
         }, 300);
     }
-    
+
     // Detectar si es el módulo de constancias
     else if (url.includes('/documentos/constancias') || url.includes('constancias')) {
         console.log('Detectado módulo de constancias, inicializando...');
@@ -115,7 +120,7 @@ function inicializarModuloSegunURL(url) {
         if (window.constanciasModuleConfig) {
             delete window.constanciasModuleConfig;
         }
-        
+
         // Esperar a que el DOM esté completamente cargado
         setTimeout(() => {
             if (typeof window.inicializarModuloConstancias === 'function') {
@@ -128,7 +133,7 @@ function inicializarModuloSegunURL(url) {
 // FUNCIÓN PARA LIMPIAR MÓDULOS DE DOCUMENTOS
 function limpiarModulosDocumentos() {
     console.log('Limpiando módulos de documentos...');
-    
+
     // Limpiar módulo de cartas
     if (window.cartaModuleInstance) {
         if (typeof window.cartaModuleInstance.cleanup === 'function') {
@@ -136,7 +141,7 @@ function limpiarModulosDocumentos() {
         }
         window.cartaModuleInstance = null;
     }
-    
+
     // Limpiar módulo de constancias
     if (window.constanciaModuleInstance) {
         if (typeof window.constanciaModuleInstance.cleanup === 'function') {
@@ -144,10 +149,15 @@ function limpiarModulosDocumentos() {
         }
         window.constanciaModuleInstance = null;
     }
-    
+
     // Limpiar módulo de informes
     if (window.InformesModule && typeof window.InformesModule.cleanup === 'function') {
         window.InformesModule.cleanup();
+    }
+
+    // CORRECCIÓN: Limpiar filtro de taller cuando se cambia de módulo
+    if (typeof window.limpiarFiltroTaller === 'function') {
+        window.limpiarFiltroTaller();
     }
 }
 
@@ -245,15 +255,15 @@ function limpiarTodosLosModulos() {
             console.error('Error al limpiar módulo de informes:', e);
         }
     }
-    
+
     // Limpiar módulos de documentos
     limpiarModulosDocumentos();
-    
+
     // Limpiar eventos jQuery
     $(document).off('.informes');
     $(document).off('.documentos');
     $(document).off('.cartas');
     $(document).off('.constancias');
-    
+
     console.log('Todos los módulos limpiados');
 }

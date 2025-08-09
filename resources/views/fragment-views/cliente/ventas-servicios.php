@@ -90,7 +90,7 @@ if (isset($_GET["guia"])) {
                                     <label class="col-lg-2 control-label">Descripción</label>
                                     <div class="col-lg-10">
                                         <input required v-model="producto.descripcion" type="text"
-                                            placeholder="Descripción" class="form-control" readonly="true">
+                                            placeholder="Descripción" class="form-control">
                                     </div>
                                 </div>
 
@@ -520,43 +520,9 @@ if (isset($_GET["guia"])) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group  mb-3">
+                                 
 
-                                        <div class="col-lg-12">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group ">
-                                                        <label class="control-label">Paga con</label>
-                                                        <div class="col-lg-12">
-                                                            <input v-model="venta.pagacon" @keypress="onlyNumber"
-                                                                type="text" placeholder=""
-                                                                class="form-control text-center">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group ">
-                                                        <label class="control-label">Vuelto</label>
-                                                        <div class="col-lg-12">
-                                                            <input :value="vuelDelPago" disabled type="text"
-                                                                class="form-control text-center">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group  mb-3">
-                                        <label>Cantidad de Pagos</label>
-                                        <select class="form-control" v-model="venta.cantidadPagos">
-                                            <option value="1">1 Pago</option>
-                                            <option value="2">2 Pagos</option>
-                                            <option value="3">3 Pagos</option>
-                                            <option value="4">4 Pagos</option>
-                                            <option value="5">5 Pagos</option>
-                                        </select>
-                                    </div>
+                                
 
                                     <div v-for="(index, pagoIndex) in parseInt(venta.cantidadPagos)" :key="pagoIndex">
                                         <div class="form-group mb-3">
@@ -1943,7 +1909,7 @@ if (isset($_GET["guia"])) {
         })
 
         $('#modalImprimirComprobante').on('hidden.bs.modal', function (e) {
-            location.reload();
+             window.location.href = _URL + '/ventas';
         })
     })
 </script>

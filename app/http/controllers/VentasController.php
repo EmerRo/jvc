@@ -28,9 +28,9 @@ class VentasController extends Controller
     }
 
 
-public function ingresosEgresosRender()
-{
-    $sql = "SELECT
+    public function ingresosEgresosRender()
+    {
+        $sql = "SELECT
             ie.*,
             p.nombre,
             p.codigo,
@@ -56,31 +56,31 @@ public function ingresosEgresosRender()
             INNER JOIN usuarios u on u.usuario_id = ie.id_usuario
         ORDER BY
             ie.fecha_creacion DESC";
-    
-    $result = $this->conexion->query($sql);
-    
-    // Verificar si la consulta fue exitosa
-    if (!$result) {
-        // Log del error para debugging
-        error_log("Error en consulta SQL: " . $this->conexion->error);
-        return []; // Retornar array vacío en caso de error
-    }
-    
-    $data = [];
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-    
-    return $data;
-}
 
-// Mantén los otros métodos como los tienes:
-public function ingresoAlmacen()
-{
-    $respuesta['res'] = false;
-    $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
-    
-    $sql = "INSERT INTO ingreso_egreso 
+        $result = $this->conexion->query($sql);
+
+        // Verificar si la consulta fue exitosa
+        if (!$result) {
+            // Log del error para debugging
+            error_log("Error en consulta SQL: " . $this->conexion->error);
+            return []; // Retornar array vacío en caso de error
+        }
+
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
+        }
+
+        return $data;
+    }
+
+    // Mantén los otros métodos como los tienes:
+    public function ingresoAlmacen()
+    {
+        $respuesta['res'] = false;
+        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+
+        $sql = "INSERT INTO ingreso_egreso 
             SET id_producto = '{$_POST['productoid']}', 
                 tipo = '{$_POST['tipo']}',
                 cantidad = '{$_POST['cantidad']}', 
@@ -90,33 +90,33 @@ public function ingresoAlmacen()
                 fecha_creacion = NOW(),
                 fecha_actualizacion = NOW()";
 
-    if ($this->conexion->query($sql)) {
-        // Actualizar el stock del producto
-        $sql = "UPDATE productos 
+        if ($this->conexion->query($sql)) {
+            // Actualizar el stock del producto
+            $sql = "UPDATE productos 
                SET cantidad = cantidad + '{$_POST['cantidad']}' 
                WHERE id_producto = '{$_POST['productoid']}'";
-        $this->conexion->query($sql);
-        $respuesta['res'] = true;
+            $this->conexion->query($sql);
+            $respuesta['res'] = true;
+        }
+
+        echo json_encode($respuesta);
     }
 
-    echo json_encode($respuesta);
-}
+    public function egresoAlmacen()
+    {
+        $respuesta['res'] = false;
+        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
 
-public function egresoAlmacen()
-{
-    $respuesta['res'] = false;
-    $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+        // Verificar stock disponible antes de realizar el egreso
+        $sql = "SELECT cantidad FROM productos WHERE id_producto = '{$_POST['productoid']}' AND almacen = '{$_POST['almacen']}'";
+        $result = $this->conexion->query($sql);
 
-    // Verificar stock disponible antes de realizar el egreso
-    $sql = "SELECT cantidad FROM productos WHERE id_producto = '{$_POST['productoid']}' AND almacen = '{$_POST['almacen']}'";
-    $result = $this->conexion->query($sql);
-    
-    if ($result && $result->num_rows > 0) {
-        $stock_actual = $result->fetch_assoc()['cantidad'];
+        if ($result && $result->num_rows > 0) {
+            $stock_actual = $result->fetch_assoc()['cantidad'];
 
-        if ($stock_actual >= $_POST['cantidad']) {
-            // Insertar el registro de egreso
-            $sql = "INSERT INTO ingreso_egreso 
+            if ($stock_actual >= $_POST['cantidad']) {
+                // Insertar el registro de egreso
+                $sql = "INSERT INTO ingreso_egreso 
                     SET id_producto = '{$_POST['productoid']}', 
                         tipo = '{$_POST['tipo']}',
                         cantidad = '{$_POST['cantidad']}', 
@@ -128,61 +128,61 @@ public function egresoAlmacen()
                         fecha_creacion = NOW(),
                         fecha_actualizacion = NOW()";
 
-            if ($this->conexion->query($sql)) {
-                // Actualizar el stock inmediatamente en el almacén de origen
-                $sql = "UPDATE productos 
+                if ($this->conexion->query($sql)) {
+                    // Actualizar el stock inmediatamente en el almacén de origen
+                    $sql = "UPDATE productos 
                        SET cantidad = cantidad - {$_POST['cantidad']} 
                        WHERE id_producto = '{$_POST['productoid']}' 
                        AND almacen = '{$_POST['almacen']}'";
-                $this->conexion->query($sql);
+                    $this->conexion->query($sql);
 
-                $respuesta['res'] = true;
+                    $respuesta['res'] = true;
+                }
+            } else {
+                $respuesta['res'] = false;
+                $respuesta['msg'] = "Stock insuficiente";
             }
         } else {
             $respuesta['res'] = false;
-            $respuesta['msg'] = "Stock insuficiente";
+            $respuesta['msg'] = "Producto no encontrado";
         }
-    } else {
-        $respuesta['res'] = false;
-        $respuesta['msg'] = "Producto no encontrado";
+
+        echo json_encode($respuesta);
     }
 
-    echo json_encode($respuesta);
-}
+    public function confirmarTraslado()
+    {
+        if (isset($_POST['cod'])) {
+            $id = $_POST['cod'];
 
-public function confirmarTraslado()
-{
-    if (isset($_POST['cod'])) {
-        $id = $_POST['cod'];
+            // Obtener información del traslado
+            $sql = "SELECT * FROM ingreso_egreso WHERE intercambio_id = '$id'";
+            $result = $this->conexion->query($sql);
 
-        // Obtener información del traslado
-        $sql = "SELECT * FROM ingreso_egreso WHERE intercambio_id = '$id'";
-        $result = $this->conexion->query($sql);
-        
-        if ($result && $result->num_rows > 0) {
-            $traslado = $result->fetch_assoc();
+            if ($result && $result->num_rows > 0) {
+                $traslado = $result->fetch_assoc();
 
-            // Actualizar stock en almacén de destino (sumar)
-            $sql = "UPDATE productos 
+                // Actualizar stock en almacén de destino (sumar)
+                $sql = "UPDATE productos 
                    SET cantidad = cantidad + '{$traslado['cantidad']}' 
                    WHERE id_producto = '{$traslado['id_producto']}' 
                    AND almacen = '{$traslado['almacen_ingreso']}'";
-            $this->conexion->query($sql);
+                $this->conexion->query($sql);
 
-            // Marcar el traslado como confirmado y actualizar fecha
-            $sql = "UPDATE ingreso_egreso 
+                // Marcar el traslado como confirmado y actualizar fecha
+                $sql = "UPDATE ingreso_egreso 
                    SET estado = 1, 
                        fecha_actualizacion = NOW()
                    WHERE intercambio_id = '$id'";
-            $this->conexion->query($sql);
+                $this->conexion->query($sql);
 
-            echo json_encode(['res' => true]);
-            return;
+                echo json_encode(['res' => true]);
+                return;
+            }
         }
-    }
 
-    echo json_encode(['res' => false]);
-}
+        echo json_encode(['res' => false]);
+    }
 
     public function envioComunicacionBajaPorEmpresa()
     {
@@ -433,20 +433,67 @@ public function confirmarTraslado()
             require_once "app/clases/serverside.php";
             header('Pragma: no-cache');
             header('Cache-Control: no-store, no-cache, must-revalidate');
-    
-            // Modificar la vista para incluir la condición de sucursal
-            if ($_SESSION['rol'] != 1) {
-                $view_name = "(SELECT * FROM view_ventas WHERE sucursal = {$_SESSION["sucursal"]}) AS filtered_view";
-            } else {
-                $view_name = "view_ventas";
+
+            // Obtener el filtro de tipo si existe
+            $tipoFiltro = isset($_GET['tipo_filtro']) ? $_GET['tipo_filtro'] : '';
+
+            // Construir la consulta base
+            $baseQuery = "SELECT 
+            v.id_venta as cod_v,
+            CONCAT(ds.abreviatura, ' | ', v.serie, ' - ', v.numero) as sn_v,
+            CONCAT(c.documento, ' | ', c.datos) as datos_cl,
+            CONCAT(IF(v.moneda = 1, 'S/ ', '$ '), ROUND(IF(v.apli_igv = '1', v.total / (v.igv + 1), v.total), 2)) as subtotal,
+            CONCAT(IF(v.moneda = 1, 'S/ ', '$ '), ROUND(IF(v.apli_igv = '1', v.total / (v.igv + 1) * v.igv, 0), 2)) as igv_v,
+            CONCAT(v.enviado_sunat, '-', v.id_tido, '-', v.id_venta) as doc_ventae,
+            CONCAT(v.id_venta, '--', vs.nombre_xml) as id_venta,
+            v.fecha_emision,
+            ds.abreviatura,
+            v.apli_igv,
+            v.igv,
+            v.id_tido,
+            v.serie,
+            v.numero,
+            c.documento,
+            c.datos,
+            CONCAT(IF(v.moneda = 1, 'S/ ', '$ '), v.total) as total,
+            v.estado,
+            v.enviado_sunat,
+            vs.nombre_xml
+        FROM ventas v
+        LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+        LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+        LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+        WHERE v.id_empresa = '12'";
+
+            // Agregar filtro según el tipo seleccionado
+            if ($tipoFiltro === 'productos') {
+                $baseQuery .= " AND EXISTS (SELECT 1 FROM productos_ventas pv WHERE pv.id_venta = v.id_venta)
+                           AND NOT EXISTS (SELECT 1 FROM ventas_servicios vserv WHERE vserv.id_venta = v.id_venta)";
+            } elseif ($tipoFiltro === 'servicios') {
+                $baseQuery .= " AND EXISTS (SELECT 1 FROM ventas_servicios vserv WHERE vserv.id_venta = v.id_venta)
+                           AND NOT EXISTS (SELECT 1 FROM productos_ventas pv WHERE pv.id_venta = v.id_venta)";
+            } elseif ($tipoFiltro === 'mixto') {
+                $baseQuery .= " AND EXISTS (SELECT 1 FROM productos_ventas pv WHERE pv.id_venta = v.id_venta)
+                           AND EXISTS (SELECT 1 FROM ventas_servicios vserv WHERE vserv.id_venta = v.id_venta)";
             }
-    
+
+            // Filtro de sucursal si no es admin
+            if ($_SESSION['rol'] != 1) {
+                $baseQuery .= " AND v.sucursal = {$_SESSION["sucursal"]}";
+            }
+
+            $baseQuery .= " ORDER BY v.fecha_emision ASC, v.numero ASC";
+
+            // Crear una vista temporal para ServerSide
+            $tempViewName = "temp_filtered_ventas";
+            $this->conexion->query("DROP VIEW IF EXISTS $tempViewName");
+            $this->conexion->query("CREATE VIEW $tempViewName AS $baseQuery");
+
             $table_data = new TableData();
             $table_data->get(
-                $view_name,
+                $tempViewName,
                 "id_venta",
                 [
-                    // "cod_v",
                     "sn_v",
                     "fecha_emision",
                     "datos_cl",
@@ -459,9 +506,9 @@ public function confirmarTraslado()
                 ],
                 false,
                 "",
-                false  // No usamos $where
+                false
             );
-    
+
         } catch (Exception $e) {
             error_log("Error en listarVentas: " . $e->getMessage());
             echo json_encode([
@@ -473,8 +520,9 @@ public function confirmarTraslado()
             ]);
             exit;
         }
-    } 
-       public function detalleVenta()
+    }
+
+    public function detalleVenta()
     {
         //echo $_POST['iventa'];
         $this->venta->setIdVenta($_POST['iventa']);
@@ -712,13 +760,13 @@ public function confirmarTraslado()
                 } else {
                 } */
             /* } */ /* else {
-  $c_sunat->setIdVenta($c_venta->getIdVenta());
-  $c_sunat->setHash("-");
-  $c_sunat->setNombreXml("-");
-  $c_sunat->setQrData('-');
-  $c_sunat->insertar();
+$c_sunat->setIdVenta($c_venta->getIdVenta());
+$c_sunat->setHash("-");
+$c_sunat->setNombreXml("-");
+$c_sunat->setQrData('-');
+$c_sunat->insertar();
 
-  $resultado["valor"] = $c_venta->getIdVenta();
+$resultado["valor"] = $c_venta->getIdVenta();
 } */
             /*    $resultado["nomFact"] = $c_sunat->getNombreXml() . ".pdf";
             $resultado["urlFact"] = URL::to('/venta/comprobante/pdf/' . $c_sunat->getIdVenta() . '/' . $c_sunat->getNombreXml());
@@ -959,7 +1007,7 @@ public function confirmarTraslado()
                 $_POST['moneda'] = '1'; // Establecer Soles como valor predeterminado
                 error_log("Moneda no válida o no especificada, estableciendo a Soles (1)");
             }
-            
+
             // Validar tipo de cambio según la moneda
             if ($_POST['moneda'] == '1') {
                 // Si es Soles, establecer tc a 1
@@ -1090,10 +1138,17 @@ public function confirmarTraslado()
                     }
                 }
 
-              if (isset($_POST['idCoti']) && $_POST['idCoti']) {
-    $sql = "UPDATE cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
-    $this->conexion->query($sql);
-}
+                if (isset($_POST['idCoti']) && $_POST['idCoti']) {
+                    $tipoCoti = isset($_POST['tipoCotizacion']) ? $_POST['tipoCotizacion'] : 'normal';
+
+                    if ($tipoCoti === 'taller') {
+                        $sql = "UPDATE taller_cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
+                    } else {
+                        $sql = "UPDATE cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
+                    }
+                    $this->conexion->query($sql);
+                }
+
 
 
                 $resultado["res"] = true;
@@ -1269,4 +1324,130 @@ public function confirmarTraslado()
             ]);
         }
     }
+    public function obtenerInfoCotizacionTaller()
+{
+    try {
+        if (!isset($_POST['coti'])) {
+            throw new Exception("ID de cotización no proporcionado");
+        }
+
+        $id_cotizacion = intval($_POST['coti']);
+        error_log("Obteniendo info cotización taller ID: " . $id_cotizacion);
+
+        // Obtener datos principales de la cotización
+        $sql = "SELECT 
+            tc.*,
+            ct.documento as num_doc,
+            ct.datos as nom_cli,
+            ct.direccion as dir_cli,
+            ct.atencion as dir2_cli
+            FROM taller_cotizaciones tc
+            INNER JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+            WHERE tc.id_cotizacion = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("i", $id_cotizacion);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $cotizacion = $result->fetch_assoc();
+
+        if (!$cotizacion) {
+            throw new Exception("Cotización no encontrada");
+        }
+
+        // Obtener repuestos/productos
+        $sqlRepuestos = "SELECT 
+            trc.*,
+            r.codigo as codigo_prod,
+            r.nombre as descripcion,
+            r.precio,
+            r.precio2,
+            r.precio_unidad
+            FROM taller_repuestos_cotis trc
+            JOIN repuestos r ON trc.id_repuesto = r.id_repuesto
+            WHERE trc.id_coti = ?";
+
+        $stmtRepuestos = $this->conexion->prepare($sqlRepuestos);
+        $stmtRepuestos->bind_param("i", $id_cotizacion);
+        $stmtRepuestos->execute();
+        $resultRepuestos = $stmtRepuestos->get_result();
+        
+        $repuestos = [];
+        while ($repuesto = $resultRepuestos->fetch_assoc()) {
+            $repuestos[] = [
+                'productoid' => $repuesto['id_repuesto'],
+                'codigo' => $repuesto['codigo_prod'],
+                'descripcion' => $repuesto['descripcion'],
+                'cantidad' => $repuesto['cantidad'],
+                'precioVenta' => $repuesto['precio'],
+                'costo' => $repuesto['costo'],
+                'precio' => $repuesto['precio'],
+                'precio2' => $repuesto['precio2'],
+                'precio_unidad' => $repuesto['precio_unidad'],
+                'edicion' => false
+            ];
+        }
+
+        // NUEVO: Obtener equipos
+        $sqlEquipos = "SELECT * FROM taller_cotizaciones_equipos WHERE id_cotizacion = ? ORDER BY id_cotizacion_equipo";
+        $stmtEquipos = $this->conexion->prepare($sqlEquipos);
+        $stmtEquipos->bind_param("i", $id_cotizacion);
+        $stmtEquipos->execute();
+        $resultEquipos = $stmtEquipos->get_result();
+
+        $equipos = [];
+        while ($equipo = $resultEquipos->fetch_assoc()) {
+            $equipos[] = [
+                'marca' => $equipo['marca'],
+                'equipo' => $equipo['equipo'],
+                'modelo' => $equipo['modelo'],
+                'numero_serie' => $equipo['numero_serie']
+            ];
+        }
+
+        // Obtener cuotas si existen
+        $sqlCuotas = "SELECT * FROM cuotas_cotizacion WHERE id_coti = ? ORDER BY fecha";
+        $stmtCuotas = $this->conexion->prepare($sqlCuotas);
+        $stmtCuotas->bind_param("i", $id_cotizacion);
+        $stmtCuotas->execute();
+        $resultCuotas = $stmtCuotas->get_result();
+        
+        $cuotas = [];
+        while ($cuota = $resultCuotas->fetch_assoc()) {
+            $cuotas[] = [
+                'fecha' => $cuota['fecha'],
+                'monto' => $cuota['monto']
+            ];
+        }
+
+        $response = [
+            'res' => true,
+            'productos' => $repuestos,
+            'equipos' => $equipos, // NUEVO CAMPO
+            'cliente_doc' => $cotizacion['num_doc'],
+            'cliente_nom' => $cotizacion['nom_cli'],
+            'cliente_dir1' => $cotizacion['dir_cli'],
+            'cliente_dir2' => $cotizacion['dir2_cli'],
+            'id_tido' => $cotizacion['id_tido'],
+            'moneda' => $cotizacion['moneda'],
+            'cm_tc' => $cotizacion['cm_tc'],
+            'id_tipo_pago' => $cotizacion['id_tipo_pago'],
+            'dias_pagos' => $cotizacion['dias_pagos'],
+            'direccion' => $cotizacion['direccion'],
+            'usar_precio' => $cotizacion['usar_precio'],
+            'cuotas' => $cuotas
+        ];
+
+        error_log("Respuesta cotización taller: " . json_encode($response));
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        error_log("Error en obtenerInfoCotizacionTaller: " . $e->getMessage());
+        echo json_encode([
+            'res' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
 }

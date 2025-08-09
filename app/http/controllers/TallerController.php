@@ -19,30 +19,110 @@ class TallerController extends Controller
     /**
      * Renderizar vista unificada de órdenes de trabajo y servicio
      */
-    public function renderUnificado()
-    {
-        header('Content-Type: application/json');
+public function renderUnificado()
+{
+    header('Content-Type: application/json');
 
-        try {
-            $sql = "SELECT 
-                        id_registro,
-                        id_original,
-                        origen,
-                        cliente_razon_social,
-                        cliente_ruc,
-                        direccion,
-                        atencion_encargado,
-                        fecha_ingreso,
-                        tiene_cotizacion,
-                        estado,
-                        observaciones,
-                        created_at,
-                        updated_at
-                    FROM vista_ordenes_unificada
-                    ORDER BY fecha_ingreso DESC, created_at DESC";
+    try {
+        // Obtener el filtro de manera segura
+        $filtroOrigen = isset($_POST['filtro_origen']) ? trim($_POST['filtro_origen']) : '';
 
+        // DEBUG: Verificar el valor del filtro recibido
+        error_log("Filtro recibido en el backend: " . $filtroOrigen);
+
+        $sql = "SELECT 
+                    id_registro,
+                    id_original,
+                    origen,
+                    cliente_razon_social,
+                    cliente_ruc,
+                    direccion,
+                    atencion_encargado,
+                    fecha_ingreso,
+                    tiene_cotizacion,
+                    estado,
+                    observaciones,
+                    created_at,
+                    updated_at
+                FROM vista_ordenes_unificada";
+
+        // Agregar filtro si se especifica
+        if (!empty($filtroOrigen)) {
+            $sql .= " WHERE origen = ?";
+        }
+
+        $sql .= " ORDER BY fecha_ingreso DESC, created_at DESC";
+
+        $stmt = $this->conectar->prepare($sql);
+
+        if (!empty($filtroOrigen)) {
+            $stmt->bind_param("s", $filtroOrigen);
+        }
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if (!$result) {
+            throw new Exception("Error en la consulta: " . $this->conectar->error);
+        }
+
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
+        }
+
+        echo json_encode(['data' => $data]);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'error' => true,
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+/**
+ * Renderizar vista unificada de órdenes de trabajo y servicio (método original para referencia)
+ */
+public function renderUnificado2()
+{
+    header('Content-Type: application/json');
+    try {
+        $filtroOrigen = isset($_POST['filtro_origen']) ? trim($_POST['filtro_origen']) : '';
+        
+        $sql = "SELECT 
+                    id_registro,
+                    id_original,
+                    origen,
+                    cliente_razon_social,
+                    cliente_ruc,
+                    direccion,
+                    atencion_encargado,
+                    fecha_ingreso,
+                    tiene_cotizacion,
+                    estado,
+                    observaciones,
+                    created_at,
+                    updated_at
+                FROM vista_ordenes_unificada";
+        
+        if (!empty($filtroOrigen)) {
+            $sql .= " WHERE origen = ?";
+        }
+        
+        $sql .= " ORDER BY fecha_ingreso DESC, created_at DESC";
+
+        if (!empty($filtroOrigen)) {
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("s", $filtroOrigen);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
             $result = $this->conectar->query($sql);
-            
+        }
+
             if (!$result) {
                 throw new Exception("Error en la consulta: " . $this->conectar->error);
             }

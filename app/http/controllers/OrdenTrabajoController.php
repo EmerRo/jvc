@@ -6,7 +6,7 @@ class OrdenTrabajoController extends Controller
 {
     private $ordenTrabajo;
     private $conectar;
-  
+
 
     public function __construct()
     {
@@ -28,7 +28,7 @@ class OrdenTrabajoController extends Controller
             try {
                 error_log("=== DEBUGGING ORDEN TRABAJO ===");
                 error_log("POST recibido: " . print_r($_POST, true));
-                
+
                 $cliente_Rsocial = isset($_POST['cliente_Rsocial']) ?
                     trim(filter_var($_POST['cliente_Rsocial'], FILTER_SANITIZE_STRING)) : null;
                 $cliente_Ruc = isset($_POST['num_doc']) ?
@@ -36,7 +36,7 @@ class OrdenTrabajoController extends Controller
 
                 $cliente_documento = isset($_POST['cliente_documento']) ?
                     trim(filter_var($_POST['cliente_documento'], FILTER_SANITIZE_STRING)) : $cliente_Ruc;
-                
+
                 $direccion = '';
                 if (!empty($cliente_Ruc) && strlen($cliente_Ruc) === 11 && substr($cliente_Ruc, 0, 2) === '20') {
                     $direccion = isset($_POST['direccion']) ?
@@ -48,8 +48,8 @@ class OrdenTrabajoController extends Controller
                 $fecha_ingreso = isset($_POST['fecha_ingreso']) ?
                     trim(filter_var($_POST['fecha_ingreso'], FILTER_SANITIZE_STRING)) : null;
 
-                    $fecha_salida = isset($_POST['fecha_salida']) ?
-    trim(filter_var($_POST['fecha_salida'], FILTER_SANITIZE_STRING)) : null;
+                $fecha_salida = isset($_POST['fecha_salida']) ?
+                    trim(filter_var($_POST['fecha_salida'], FILTER_SANITIZE_STRING)) : null;
 
 
                 $observaciones = isset($_POST['observaciones']) ?
@@ -58,7 +58,7 @@ class OrdenTrabajoController extends Controller
                 // Procesar equipos
                 $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];
                 error_log("Equipos recibidos: " . print_r($equipos, true));
-                
+
                 $equiposCorregidos = [];
                 foreach ($equipos as $equipo) {
                     $equiposCorregidos[] = [
@@ -68,10 +68,16 @@ class OrdenTrabajoController extends Controller
                         'numero_serie' => isset($equipo['serie']) ? $equipo['serie'] : $equipo['numero_serie']
                     ];
                 }
-                
+
                 error_log("Equipos corregidos: " . print_r($equiposCorregidos, true));
 
-                if ($cliente_Rsocial && $atencion_Encargado && $fecha_ingreso && $fecha_salida && !empty($equiposCorregidos)) {
+                // Validar campos obligatorios - cliente ya no es obligatorio
+                if ($atencion_Encargado && $fecha_ingreso && $fecha_salida && !empty($equiposCorregidos)) {
+                    // Si no hay cliente, marcar como registro interno
+                    if (empty($cliente_Rsocial)) {
+                        $cliente_Rsocial = 'REGISTRO INTERNO';
+                    }
+
                     $this->ordenTrabajo->setCliente_Razon_Social($cliente_Rsocial);
                     $this->ordenTrabajo->setCliente_Ruc($cliente_documento);
                     $this->ordenTrabajo->setDireccion($direccion);
@@ -89,17 +95,18 @@ class OrdenTrabajoController extends Controller
                                 $this->actualizarEstadoSeriePreAlerta($equipo['numero_serie'], 'en_trabajo');
                             }
                         }
-                        
+
                         // Devolver solo el ID para Orden de Trabajo
                         echo $this->ordenTrabajo->idLast();
-                        
+
                     } else {
                         error_log("Error al insertar en la base de datos");
                         echo json_encode("Ocurrió un error al guardar los datos");
                     }
                 } else {
                     error_log("Validación fallida - datos faltantes");
-                    echo json_encode('Llene el formulario correctamente');
+                    echo json_encode('Llene el formulario correctamente. Campos obligatorios: Técnico, Fecha de Ingreso, Fecha de Salida y al menos un equipo.');
+
                 }
             } catch (Exception $e) {
                 error_log("Excepción en insertar: " . $e->getMessage());
@@ -205,9 +212,9 @@ class OrdenTrabajoController extends Controller
             }
 
             $id = filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT);
-            
+
             $result = $this->ordenTrabajo->culminarTrabajo($id);
-            
+
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Trabajo culminado exitosamente']);
             } else {
@@ -240,5 +247,62 @@ class OrdenTrabajoController extends Controller
             echo json_encode(['error' => 'Error al obtener los detalles de la orden de trabajo']);
         }
     }
+    public function obtenerRepuestos()
+    {
+        if (!isset($_POST['id_orden_trabajo'])) {
+            echo json_encode(['error' => 'ID no proporcionado']);
+            return;
+        }
+
+        $id = filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT);
+        $repuestos = $this->ordenTrabajo->obtenerRepuestosPorOrden($id);
+
+        echo json_encode($repuestos);
+    }
+
+public function agregarRepuesto()
+{
+    if (!isset($_POST['id_orden_trabajo']) || !isset($_POST['id_detalle_maquina'])) {
+        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+        return;
+    }
+
+    $datos = [
+        'id_orden_trabajo' => filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT),
+        'id_detalle_maquina' => filter_var($_POST['id_detalle_maquina'], FILTER_SANITIZE_NUMBER_INT),
+        'id_item' => filter_var($_POST['id_repuesto'], FILTER_SANITIZE_NUMBER_INT),
+        'tipo_item' => isset($_POST['tipo_item']) ? $_POST['tipo_item'] : 'repuesto',
+        'codigo_item' => filter_var($_POST['codigo_repuesto'], FILTER_SANITIZE_STRING),
+        'nombre_item' => filter_var($_POST['nombre_repuesto'], FILTER_SANITIZE_STRING),
+        'cantidad' => filter_var($_POST['cantidad'], FILTER_SANITIZE_NUMBER_INT),
+        'precio_unitario' => filter_var($_POST['precio_unitario'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION)
+    ];
+
+    $result = $this->ordenTrabajo->agregarRepuesto($datos);
+
+    if ($result) {
+        echo json_encode(['success' => true, 'message' => 'Item agregado correctamente']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al agregar item']);
+    }
+}
+
+    public function eliminarRepuesto()
+    {
+        if (!isset($_POST['id_repuesto_orden'])) {
+            echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
+            return;
+        }
+
+        $id = filter_var($_POST['id_repuesto_orden'], FILTER_SANITIZE_NUMBER_INT);
+        $result = $this->ordenTrabajo->eliminarRepuesto($id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Repuesto eliminado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al eliminar repuesto']);
+        }
+    }
+
 
 }

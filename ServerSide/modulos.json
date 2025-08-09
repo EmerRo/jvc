@@ -93,7 +93,6 @@
       "nombre": "ALMACÉN",
       "descripcion": "Gestión de almacén",
       "icono": "ri-archive-line",
-      "ruta": "/almacen/productos",
       "submodulos": [
         {
           "id": "kardex",
@@ -105,7 +104,7 @@
           "id": "repuestos",
           "nombre": "Repuestos",
           "descripcion": "Gestión de repuestos",
-          "ruta": "/almacen/orden/repuestos"
+          "ruta": "/orden/repuestos"
         },
         {
           "id": "intercambio_productos",

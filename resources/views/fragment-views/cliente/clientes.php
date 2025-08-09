@@ -39,7 +39,9 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <table  class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;" id="tablaImportarCliente">
+                                    <table class="table table-bordered dt-responsive nowrap text-center table-sm"
+                                        style="border-collapse: collapse; border-spacing: 0; width: 100%;"
+                                        id="tablaImportarCliente">
                                         <thead>
                                             <tr>
                                                 <th>Documento</th>
@@ -107,7 +109,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn border-danger" data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="button" class="btn border-danger"
+                                        data-bs-dismiss="modal">Cerrar</button>
                                 </div>
                             </div>
                         </div>
@@ -196,8 +199,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
-                                    <button id="nuevoCliente" type="button" class="btn bg-rojo text-white">Guardar</button>
+                                    <button type="button" class="btn border-rojo"
+                                        data-bs-dismiss="modal">Cerrar</button>
+                                    <button id="nuevoCliente" type="button"
+                                        class="btn bg-rojo text-white">Guardar</button>
                                 </div>
                             </div>
                         </div>
@@ -289,8 +294,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
-                                    <button id="updateCliente" type="button" class="btn bg-rojo text-white">Guardar</button>
+                                    <button type="button" class="btn border-rojo"
+                                        data-bs-dismiss="modal">Cerrar</button>
+                                    <button id="updateCliente" type="button"
+                                        class="btn bg-rojo text-white">Guardar</button>
                                 </div>
                             </div>
                         </div>
@@ -333,7 +340,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     <div class="card-title-desc">
                         <div class="table-responsive">
                             <table id="tabla_clientes"
-                                class="table table-bordered dt-responsive nowrap text-center table-sm" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                class="table table-bordered dt-responsive nowrap text-center table-sm"
+                                style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Item</th>
@@ -395,75 +403,72 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
             }
         })
+        function inicializarTablaClientes() {
+            // Destruye la instancia anterior si existe
+            if (window.tabla_clientes && $.fn.DataTable.isDataTable("#tabla_clientes")) {
+                window.tabla_clientes.destroy();
+                $("#tabla_clientes tbody").empty();
+            }
 
-        tabla_clientes = $("#tabla_clientes").DataTable({
-            paging: true,
-            bFilter: true,
-            ordering: true,
-            searching: true,
-            destroy: true,
-            ajax: {
-                url: _URL + "/ajs/clientes/render",
-                method: "POST",
-                dataSrc: "",
-            },
-            language: {
-                url: "ServerSide/Spanish.json",
-            },
-            columns: [{
-                data: null,
-        class: "text-center",
-        render: function (data, type, row, meta) {
-            // meta.row contiene el índice de la fila actual
-            return meta.row + 1;
-        }
-    },
-            {
-                data: "documento",
-                class: "text-center",
-            },
-            {
-                data: "datos",
-                class: "text-center",
-            },
-            {
-                data: "email",
-                class: "text-center",
-            },
-            {
-                data: "telefono",
-                class: "text-center",
-            },
-            {
-                data: "rubro_nombre", // Nueva columna para mostrar el nombre del rubro
-                class: "text-center",
-                render: function (data, type, row) {
-                    return data ? data : '<span class="text-muted">Sin rubro</span>';
-                }
-            },
-            {
-                data: "ultima_venta",
-                class: "text-center",
-            },
-            {
-                data: "total_venta",
-                class: "text-center",
-            },
-            {
-                data: null,
-                class: "text-center",
-                render: function (data, type, row) {
-                    return `<div class="text-center">
-            <div class="btn-group btn-sm"><button data-id="${Number(row.id_cliente)}" class="btn btn-sm btn-warning btnEditar"
-            ><i class="fa fa-edit"></i> </button>
-            <button btn-sm data-id="${Number(row.id_cliente)}" class="btn btn-sm btn-danger btnBorrar"><i class="fa fa-trash"></i> </button>
-            <a href="${_URL}/reporte/cliente/${Number(row.id_cliente)}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
-            </div></div>`;
+            window.tabla_clientes = $("#tabla_clientes").DataTable({
+                paging: true,
+                bFilter: true,
+                ordering: true,
+                searching: true,
+                destroy: true,
+                ajax: {
+                    url: _URL + "/ajs/clientes/render",
+                    method: "POST",
+                    dataSrc: "",
+                    error: function(xhr, error, thrown) {
+                        console.error("Error en DataTable AJAX:", xhr.responseText);
+                    }
                 },
-            },
-            ],
-            // Configurar el orden inicial para que muestre los más recientes primero
-            order: [[0, 'asc']]
+                language: {
+                    url: "ServerSide/Spanish.json",
+                },
+                columns: [
+                    {
+                        data: null,
+                        class: "text-center",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: "documento", class: "text-center" },
+                    { data: "datos", class: "text-center" },
+                    { data: "email", class: "text-center" },
+                    { data: "telefono", class: "text-center" },
+                    {
+                        data: "rubro_nombre",
+                        class: "text-center",
+                        render: function (data) {
+                            return data ? data : '<span class="text-muted">Sin rubro</span>';
+                        }
+                    },
+                    { data: "ultima_venta", class: "text-center" },
+                    { data: "total_venta", class: "text-center" },
+                    {
+                        data: null,
+                        class: "text-center",
+                        render: function (data, type, row) {
+                            return `<div class="text-center">
+                        <div class="btn-group btn-sm">
+                            <button data-id="${Number(row.id_cliente)}" class="btn btn-sm btn-warning btnEditar"><i class="fa fa-edit"></i></button>
+                            <button btn-sm data-id="${Number(row.id_cliente)}" class="btn btn-sm btn-danger btnBorrar"><i class="fa fa-trash"></i></button>
+                            <a href="${_URL}/reporte/cliente/${Number(row.id_cliente)}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
+                        </div>
+                    </div>`;
+                        }
+                    }
+                ],
+                order: [[0, 'asc']]
+            });
+        }
+
+        // Llama a la función cuando el DOM esté listo
+        $(document).ready(function () {
+            inicializarTablaClientes();
         });
         function validarFormularioAgregar() {
             // Limpiar mensajes de error previos
@@ -926,53 +931,53 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             }
         })
         // Nueva función para cargar rubros específicamente para editar
-function cargarRubrosEditar(rubroId) {
-    $.ajax({
-        url: _URL + "/ajs/rubros/render",
-        type: "POST",
-        success: function (resp) {
-            try {
-                let rubros = JSON.parse(resp);
-                let options = '<option value="">Seleccione un rubro</option>';
+        function cargarRubrosEditar(rubroId) {
+            $.ajax({
+                url: _URL + "/ajs/rubros/render",
+                type: "POST",
+                success: function (resp) {
+                    try {
+                        let rubros = JSON.parse(resp);
+                        let options = '<option value="">Seleccione un rubro</option>';
 
-                rubros.forEach(function (rubro) {
-                    // Marcar como seleccionado si coincide con el ID del rubro del cliente
-                    const selected = (rubro.id_rubro == rubroId) ? 'selected' : '';
-                    options += `<option value="${rubro.id_rubro}" ${selected}>${rubro.nombre}</option>`;
-                });
+                        rubros.forEach(function (rubro) {
+                            // Marcar como seleccionado si coincide con el ID del rubro del cliente
+                            const selected = (rubro.id_rubro == rubroId) ? 'selected' : '';
+                            options += `<option value="${rubro.id_rubro}" ${selected}>${rubro.nombre}</option>`;
+                        });
 
-                // Actualizar solo el select de edición
-                $("#rubroClienteEditar").html(options);
-                
-                // Forzar la selección del rubro correcto
-                if (rubroId) {
-                    $("#rubroClienteEditar").val(rubroId);
+                        // Actualizar solo el select de edición
+                        $("#rubroClienteEditar").html(options);
+
+                        // Forzar la selección del rubro correcto
+                        if (rubroId) {
+                            $("#rubroClienteEditar").val(rubroId);
+                        }
+
+                        console.log("Rubro seleccionado:", rubroId);
+                    } catch (e) {
+                        console.error("Error al procesar los rubros:", e);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error al cargar rubros:", error);
                 }
-                
-                console.log("Rubro seleccionado:", rubroId);
-            } catch (e) {
-                console.error("Error al procesar los rubros:", e);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("Error al cargar rubros:", error);
+            });
         }
-    });
-}
         // Funciones para gestionar rubros
         function cargarRubros() {
-    return new Promise(function(resolve, reject) {
-        $.ajax({
-            url: _URL + "/ajs/rubros/render",
-            type: "POST",
-            success: function (resp) {
-                try {
-                    let rubros = JSON.parse(resp);
-                    let html = '';
-                    let options = '<option value="">Seleccione un rubro</option>';
+            return new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: _URL + "/ajs/rubros/render",
+                    type: "POST",
+                    success: function (resp) {
+                        try {
+                            let rubros = JSON.parse(resp);
+                            let html = '';
+                            let options = '<option value="">Seleccione un rubro</option>';
 
-                    rubros.forEach(function (rubro) {
-                        html += `<tr>
+                            rubros.forEach(function (rubro) {
+                                html += `<tr>
                             <td>${rubro.nombre}</td>
                             <td>
                                 <button class="btn btn-sm btn-warning btnEditarRubro" data-id="${rubro.id_rubro}" data-nombre="${rubro.nombre}">
@@ -983,24 +988,24 @@ function cargarRubrosEditar(rubroId) {
                                 </button>
                             </td>
                         </tr>`;
-                        options += `<option value="${rubro.id_rubro}">${rubro.nombre}</option>`;
-                    });
+                                options += `<option value="${rubro.id_rubro}">${rubro.nombre}</option>`;
+                            });
 
-                    $("#tablaRubros").html(html);
-                    $("#rubroCliente").html(options);
-                    resolve();
-                } catch (e) {
-                    console.error("Error al procesar los rubros:", e);
-                    reject(e);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error al cargar rubros:", error);
-                reject(error);
-            }
-        });
-    });
-}
+                            $("#tablaRubros").html(html);
+                            $("#rubroCliente").html(options);
+                            resolve();
+                        } catch (e) {
+                            console.error("Error al procesar los rubros:", e);
+                            reject(e);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error al cargar rubros:", error);
+                        reject(error);
+                    }
+                });
+            });
+        }
         $("#btnAgregarRubro").click(function () {
             let nombre = $("#nombreRubro").val();
             if (!nombre) return;

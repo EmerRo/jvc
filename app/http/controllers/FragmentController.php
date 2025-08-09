@@ -62,10 +62,20 @@ class FragmentController extends Controller
     {
         return $this->view("fragment-views/cliente/nota-electronica");
     }
-    public function ventasProductos()
-    {
-        return $this->view("fragment-views/cliente/ventas-productos");
-    }
+public function ventasProductos()
+{
+    $request = $this->getRequest();
+    
+    $coti = $request->coti;
+    $coti_taller = $request->{"coti-taller"};
+    
+    return $this->view("fragment-views/cliente/ventas-productos", [
+        'coti' => $coti,
+        'coti_taller' => $coti_taller
+    ]);
+}
+
+
     public function ventasServicios()
     {
         return $this->view("fragment-views/cliente/ventas-servicios");

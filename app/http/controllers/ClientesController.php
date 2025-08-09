@@ -141,6 +141,8 @@ public function render()
             FROM clientes c 
             LEFT JOIN rubros r ON c.id_rubro = r.id_rubro 
             WHERE c.id_empresa = '{$_SESSION['id_empresa']}'
+            -- WHERE c.id_empresa = 12
+
             ORDER BY c.id_cliente DESC"; // Ordenar por ID descendente para mostrar los más recientes primero
     
     $result = $this->conectar->query($sql);

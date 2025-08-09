@@ -1018,4 +1018,78 @@ class GuiaRemisionController extends Controller
             ]);
         }
     }
+    function consultarGuiaXCotiTaller()
+{
+    $sql = "SELECT * FROM taller_repuestos_cotis WHERE id_coti = '{$_POST['cod']}'";
+    $lista = [];
+    
+    foreach ($this->conexion->query($sql) as $row) {
+        // Convertir la cantidad a entero si no tiene decimales
+        $cantidad = floatval($row['cantidad']);
+        $cantidadFormateada = $cantidad == floor($cantidad) ? number_format($cantidad, 0) : $cantidad;
+
+        $lista[] = [
+            'cantidad' => $cantidadFormateada,
+            'costo' => $row['costo'],
+            'id_producto' => $row['id_repuesto'], // Nota: usar id_repuesto para taller
+            'precio' => $row['precio'],
+            'nombre' => $row['descripcion'], // En taller viene directo
+            'codigo' => $row['codigo_prod'],
+            'detalle' => $row['descripcion']
+        ];
+    }
+    echo json_encode($lista);
+}
+
+function consultarGuiaXCotiTallerCliente()
+{
+    if (!isset($_POST['cod']) || empty($_POST['cod'])) {
+        return json_encode([
+            'error' => true,
+            'mensaje' => 'No se proporcionó un código de cotización válido'
+        ]);
+    }
+
+    // Consulta para cotizaciones de taller
+    $sql = "SELECT 
+                ct.datos, 
+                ct.direccion, 
+                ct.documento, 
+                COALESCE(SUBSTRING(ct.ubigeo, 1, 2), '') as departamento,
+                COALESCE(SUBSTRING(ct.ubigeo, 3, 2), '') as provincia,
+                COALESCE(SUBSTRING(ct.ubigeo, 5, 2), '') as distrito,
+                COALESCE(ct.ubigeo, '') as ubigeo 
+            FROM taller_cotizaciones tc 
+            JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller 
+            WHERE tc.id_cotizacion = ?";
+
+    $stmt = $this->conexion->prepare($sql);
+    if (!$stmt) {
+        return json_encode([
+            'error' => true,
+            'mensaje' => 'Error al preparar la consulta: ' . $this->conexion->error
+        ]);
+    }
+
+    $stmt->bind_param('s', $_POST['cod']);
+    if (!$stmt->execute()) {
+        return json_encode([
+            'error' => true,
+            'mensaje' => 'Error al ejecutar la consulta: ' . $stmt->error
+        ]);
+    }
+
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $data = $result->fetch_assoc();
+        return json_encode($data);
+    } else {
+        return json_encode([
+            'error' => true,
+            'mensaje' => 'No se encontraron datos para esta cotización de taller'
+        ]);
+    }
+}
+
 }

@@ -54,6 +54,9 @@ class Route {
     public static function submit() {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = isset($_GET['uri']) ? $_GET['uri'] : '';
+        if (isset($_GET['uri'])) {
+            unset($_GET['uri']);
+        }
         $uri = self::parseUri($uri);
 
         //Verifica si la uri que está pidiendo el usuario se encuentra registrada...

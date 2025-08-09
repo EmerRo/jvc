@@ -2,38 +2,37 @@ var temp;
 
 $(document).ready(function () {
     $(".jvc-sidebar").on("click", ".jvc-sidebar-link", function (evt) {
-        if ($(this).attr('href') === '#') {
+        const href = $(this).attr('href');
+
+        // Si el enlace es solo un ancla '#' (para desplegables), no hagas nada.
+        if (href === '#') {
+            // El comportamiento del desplegable es manejado por otro script en nav-bar.php
             return;
         }
-        evt.preventDefault();
-        
-        // LIMPIAR MÓDULOS ACTIVOS ANTES DE NAVEGAR
-        limpiarModulosActivos();
-        
+
+        // Muestra el loader para dar feedback visual antes de la recarga
         $("#loader-menor").show();
-        const url_ter = $(evt.currentTarget).attr('href');
-        const titulo = $(evt.currentTarget).attr('title');
-        console.log(url_ter, titulo);
-        renombrarURL(url_ter, titulo);
-        _ajaxDOM(url_ter, 'contenedor-app');
+
+        // No se usa evt.preventDefault(), por lo que el enlace seguirá su curso
+        // y recargará la página a la nueva URL.
     });
 
     $("#contenedor-app").on("click", ".button-link", function (evt) {
-        evt.preventDefault();
-        
-        // LIMPIAR MÓDULOS ACTIVOS ANTES DE NAVEGAR
-        limpiarModulosActivos();
-        
-        const url_ter = $(evt.currentTarget).attr('href');
-        const titulo = $(evt.currentTarget).attr('title');
-        renombrarURL(url_ter, titulo);
-        _ajaxDOM(url_ter, 'contenedor-app');
+        // Muestra el loader para dar feedback visual antes de la recarga
+        $("#loader-menor").show();
+
+        // No se usa evt.preventDefault(), el enlace seguirá su curso normal.
     });
 });
 
 // FUNCIÓN PARA LIMPIAR MÓDULOS ACTIVOS
 function limpiarModulosActivos() {
     console.log('Limpiando módulos activos antes de navegación...');
+    
+    // CORRECCIÓN: Limpiar filtro de taller antes de navegar
+    if (typeof window.limpiarFiltroTaller === 'function') {
+        window.limpiarFiltroTaller();
+    }
     
     // Limpiar módulos de documentos
     if (typeof limpiarTodosLosModulos === 'function') {

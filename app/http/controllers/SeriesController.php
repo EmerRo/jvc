@@ -19,12 +19,17 @@ class SeriesController extends Controller
                     ELSE 0 
                 END as cantidad_equipos 
                 FROM numero_series ns 
-                LEFT JOIN detalle_serie ds ON ns.id = ds.numero_serie_id";
+                LEFT JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
+                ORDER BY ns.id DESC";
 
         $resultado = $this->conectar->query($sql);
 
         if ($resultado && $resultado->num_rows > 0) {
             while ($row = $resultado->fetch_assoc()) {
+                // Si no tiene cliente, mostrar "Sin Cliente"
+                if (empty($row['cliente_ruc_dni']) && empty($row['cliente_documento'])) {
+                    $row['cliente_ruc_dni'] = 'Sin Cliente';
+                }
                 $respuesta[] = $row;
             }
         }
@@ -76,9 +81,11 @@ class SeriesController extends Controller
             if ($row = $resultado->fetch_assoc()) {
                 $serie = [
                     'id' => $row['id'],
-                    'cliente_ruc_dni' => $row['cliente_ruc_dni'],
+                    'cliente_ruc_dni' => $row['cliente_ruc_dni'] ?: '',
+                    'cliente_documento' => $row['cliente_documento'] ?: '',
                     'fecha_creacion' => $row['fecha_creacion'],
-                    'cantidad_equipos' => $row['cantidad_equipos']
+                    'cantidad_equipos' => $row['cantidad_equipos'],
+                    'tiene_cliente' => !empty($row['cliente_ruc_dni']) || !empty($row['cliente_documento'])
                 ];
 
                 if ($row['numero_serie_json']) {
@@ -162,7 +169,8 @@ class SeriesController extends Controller
     {
         error_log("Datos recibidos: " . print_r($_POST, true));
 
-        if (!isset($_POST['cliente_ruc_dni']) || !isset($_POST['cliente_documento']) || !isset($_POST['fecha_creacion']) || !isset($_POST['equipos'])) {
+        // Modificar validación para permitir registros sin cliente
+        if (!isset($_POST['fecha_creacion']) || !isset($_POST['equipos'])) {
             error_log("Faltan datos requeridos");
             return json_encode(['success' => false, 'error' => 'Faltan datos requeridos']);
         }
@@ -230,16 +238,21 @@ class SeriesController extends Controller
             // Contar la cantidad real de equipos
             $cantidad_equipos = count($equipos);
 
-            error_log("Insertando en numero_series - Cliente: {$_POST['cliente_ruc_dni']}, Fecha: {$_POST['fecha_creacion']}, Cantidad: {$cantidad_equipos}");
+            // Permitir valores nulos para cliente
+            $cliente_ruc_dni = !empty($_POST['cliente_ruc_dni']) ? $_POST['cliente_ruc_dni'] : null;
+            $cliente_documento = !empty($_POST['cliente_documento']) ? $_POST['cliente_documento'] : null;
+            $tiene_cliente = !empty($cliente_ruc_dni) || !empty($cliente_documento) ? 1 : 0;
 
-            // Insertar en numero_series
-            $stmt = $this->conectar->prepare("INSERT INTO numero_series (cliente_ruc_dni, cliente_documento, fecha_creacion, cantidad_equipos) VALUES (?, ?, ?, ?)");
+            error_log("Insertando en numero_series - Cliente: {$cliente_ruc_dni}, Fecha: {$_POST['fecha_creacion']}, Cantidad: {$cantidad_equipos}");
+
+            // Insertar en numero_series (modificado para incluir tiene_cliente)
+            $stmt = $this->conectar->prepare("INSERT INTO numero_series (cliente_ruc_dni, cliente_documento, fecha_creacion, cantidad_equipos, tiene_cliente) VALUES (?, ?, ?, ?, ?)");
 
             if (!$stmt) {
                 throw new Exception("Error preparando consulta: " . $this->conectar->error);
             }
 
-            $stmt->bind_param("sssi", $_POST['cliente_ruc_dni'], $_POST['cliente_documento'], $_POST['fecha_creacion'], $cantidad_equipos);
+            $stmt->bind_param("sssii", $cliente_ruc_dni, $cliente_documento, $_POST['fecha_creacion'], $cantidad_equipos, $tiene_cliente);
 
             if (!$stmt->execute()) {
                 throw new Exception("Error al insertar en numero_series: " . $stmt->error);
@@ -292,7 +305,7 @@ class SeriesController extends Controller
 
     public function updateSerie()
     {
-        if (isset($_POST['id'], $_POST['cliente_ruc_dni'], $_POST['cliente_documento'], $_POST['fecha_creacion'], $_POST['equipos'])) {
+        if (isset($_POST['id'], $_POST['fecha_creacion'], $_POST['equipos'])) {
             $this->conectar->begin_transaction();
 
             try {
@@ -372,9 +385,14 @@ class SeriesController extends Controller
                 // Contar la cantidad real de equipos
                 $cantidad_equipos = count($equipos);
 
+                // Permitir valores nulos para cliente
+                $cliente_ruc_dni = !empty($_POST['cliente_ruc_dni']) ? $_POST['cliente_ruc_dni'] : null;
+                $cliente_documento = !empty($_POST['cliente_documento']) ? $_POST['cliente_documento'] : null;
+                $tiene_cliente = !empty($cliente_ruc_dni) || !empty($cliente_documento) ? 1 : 0;
+
                 // Actualizar la tabla numero_series
-                $stmt = $this->conectar->prepare("UPDATE numero_series SET cliente_ruc_dni = ?, cliente_documento = ?, fecha_creacion = ?, cantidad_equipos = ? WHERE id = ?");
-                $stmt->bind_param("sssii", $_POST['cliente_ruc_dni'], $_POST['cliente_documento'], $_POST['fecha_creacion'], $cantidad_equipos, $_POST['id']);
+                $stmt = $this->conectar->prepare("UPDATE numero_series SET cliente_ruc_dni = ?, cliente_documento = ?, fecha_creacion = ?, cantidad_equipos = ?, tiene_cliente = ? WHERE id = ?");
+                $stmt->bind_param("sssiii", $cliente_ruc_dni, $cliente_documento, $_POST['fecha_creacion'], $cantidad_equipos, $tiene_cliente, $_POST['id']);
                 
                 if (!$stmt->execute()) {
                     throw new Exception("Error al actualizar numero_series: " . $stmt->error);
@@ -480,4 +498,39 @@ class SeriesController extends Controller
             echo json_encode(['success' => false, 'mensaje' => 'No hay números de serie registrados']);
         }
     }
+
+
+  // NUEVO: Método para generar un número de serie único de 5 dígitos
+public function generarNumeroSerie()
+{
+    $intentos = 0;
+    $maxIntentos = 100;
+    
+    do {
+        // Generar número aleatorio de 5 dígitos (10000-99999)
+        $numeroGenerado = rand(10000, 99999);
+        
+        // Verificar que no exista
+        $stmt = $this->conectar->prepare("
+            SELECT COUNT(*) as total 
+            FROM detalle_serie 
+            WHERE JSON_CONTAINS(numero_serie, JSON_QUOTE(?))
+        ");
+        $stmt->bind_param("s", $numeroGenerado);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $row = $resultado->fetch_assoc();
+        
+        $existe = $row['total'] > 0;
+        $intentos++;
+        
+    } while ($existe && $intentos < $maxIntentos);
+    
+    if ($existe) {
+        echo json_encode(['success' => false, 'error' => 'No se pudo generar un número único después de ' . $maxIntentos . ' intentos']);
+    } else {
+        echo json_encode(['success' => true, 'numero_serie' => $numeroGenerado]);
+    }
+}
+
 }

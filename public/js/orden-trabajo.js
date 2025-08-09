@@ -1,4 +1,766 @@
 // public/js/orden-trabajo.js
+
+// Variables globales para manejo de repuestos (movidas fuera del document.ready)
+// let ordenTrabajoActual = null;
+// let maquinasActuales = [];
+// let repuestosActuales = [];
+
+// ===== FUNCIONES GLOBALES PARA MANEJO DE REPUESTOS =====
+function abrirModalAgregarRepuesto() {
+  if (!ordenTrabajoActual) {
+    Swal.fire("Error", "No hay orden de trabajo seleccionada", "error");
+    return;
+  }
+
+  // Cerrar el modal de detalles antes de abrir el modal de repuestos
+  $("#modalDetalles").modal("hide");
+
+  // Esperar a que se cierre completamente el modal de detalles
+  $("#modalDetalles").on("hidden.bs.modal", function () {
+    // Cargar las máquinas en pestañas
+    cargarMaquinasEnModal();
+    $("#modalAgregarRepuestos").modal("show");
+
+    // Remover el event listener para evitar múltiples ejecuciones
+    $(this).off("hidden.bs.modal");
+  });
+}
+function cargarMaquinasEnModal() {
+  const tabsContainer = document.getElementById("maquinasRepuestosTabs");
+  const contentContainer = document.getElementById(
+    "maquinasRepuestosTabContent"
+  );
+
+  if (!tabsContainer || !contentContainer) {
+    console.error("Contenedores del modal no encontrados");
+    return;
+  }
+
+  tabsContainer.innerHTML = "";
+  contentContainer.innerHTML = "";
+
+  // Si solo hay una máquina, no mostrar pestañas
+  if (maquinasActuales.length === 1) {
+    tabsContainer.style.display = "none";
+
+    const maquina = maquinasActuales[0];
+    const tabId = `maquina-${maquina.id_detalle}`;
+
+    // Crear contenido directo sin pestañas
+    const content = document.createElement("div");
+    content.className = "tab-pane fade show active";
+    content.id = tabId;
+    content.innerHTML = crearContenidoMaquina(maquina);
+    contentContainer.appendChild(content);
+  } else {
+    // Múltiples máquinas: mostrar pestañas con navegación
+    tabsContainer.style.display = "flex";
+    tabsContainer.style.alignItems = "center";
+    tabsContainer.style.justifyContent = "space-between";
+
+    // Crear estructura de navegación
+    const navContainer = document.createElement("div");
+    navContainer.style.display = "flex";
+    navContainer.style.alignItems = "center";
+    navContainer.style.width = "100%";
+
+    // Botón anterior
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "btn bg-rojo btn-sm me-2";
+    prevBtn.innerHTML = '<i class="fa fa-chevron-left"></i>';
+    prevBtn.id = "prevTabsBtn";
+    prevBtn.style.display = maquinasActuales.length > 6 ? "block" : "none";
+
+    // Contenedor de pestañas visibles
+    const tabsWrapper = document.createElement("div");
+    tabsWrapper.style.display = "flex";
+    tabsWrapper.style.flex = "1";
+    tabsWrapper.style.overflow = "hidden";
+    tabsWrapper.id = "tabsWrapper";
+
+    const tabsList = document.createElement("ul");
+    tabsList.className = "nav nav-pills";
+    tabsList.style.display = "flex";
+    tabsList.style.flexWrap = "nowrap";
+    tabsList.style.transition = "transform 0.3s ease";
+    tabsList.id = "tabsList";
+
+    // Botón siguiente
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "btn bg-rojo btn-sm ms-2";
+    nextBtn.innerHTML = '<i class="fa fa-chevron-right"></i>';
+    nextBtn.id = "nextTabsBtn";
+    nextBtn.style.display = maquinasActuales.length > 6 ? "block" : "none";
+
+    // Crear todas las pestañas
+    maquinasActuales.forEach((maquina, index) => {
+      const tabId = `maquina-${maquina.id_detalle}`;
+      const tab = document.createElement("li");
+      tab.className = "nav-item";
+      tab.style.minWidth = "120px"; // Mantener ancho mínimo para consistencia
+      tab.style.textAlign = "center";
+      tab.style.marginRight = "10px"; // Añadir espaciado entre las pestañas
+
+      tab.innerHTML = `
+        <button class="nav-link ${index === 0 ? "active" : ""}" 
+                id="${tabId}-tab" 
+                data-bs-toggle="pill" 
+                data-bs-target="#${tabId}" 
+                type="button" 
+                role="tab"
+                style="
+                  white-space: nowrap; 
+                  font-size: 0.9rem;
+                  padding: 8px 12px; /* Ajustar padding para un look más de enlace */
+                  transition: all 0.3s ease;
+                  cursor: pointer;
+                  /* Estilos condicionales para activo/inactivo */
+                  background-color: ${index === 0 ? "#dc3545" : "transparent"};
+                  color: ${
+                    index === 0 ? "white" : "#6c757d"
+                  }; /* Color gris oscuro para inactivo */
+                  border: none; /* Sin borde para un look más de enlace */
+                  border-radius: 4px; /* Pequeño border-radius para el efecto "pill" en activo */
+                "
+                onmouseover="
+                  if(!this.classList.contains('active')) { 
+                    this.style.color='#dc3545'; /* Rojo en hover para inactivo */
+                    this.style.textDecoration='underline'; /* Subrayado en hover para inactivo */
+                  }
+                "
+                onmouseout="
+                  if(!this.classList.contains('active')) { 
+                    this.style.color='#6c757d'; /* Volver a gris oscuro */
+                    this.style.textDecoration='none'; /* Quitar subrayado */
+                  }
+                "
+                onclick="
+                  // Remover 'active' y resetear estilos de todas las pestañas
+                  document.querySelectorAll('#tabsList .nav-link').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.backgroundColor = 'transparent';
+                    btn.style.color = '#6c757d';
+                    btn.style.textDecoration = 'none';
+                  });
+                  // Activar esta pestaña y aplicar sus estilos
+                  this.classList.add('active');
+                  this.style.backgroundColor = '#dc3545'; /* Fondo rojo para activo */
+                  this.style.color = 'white'; /* Texto blanco para activo */
+                  this.style.textDecoration = 'none'; /* Sin subrayado para activo */
+                ">
+          Equipo ${index + 1}
+        </button>
+      `;
+      tabsList.appendChild(tab);
+
+      // Crear contenido de la pestaña
+      const content = document.createElement("div");
+      content.className = `tab-pane fade ${index === 0 ? "show active" : ""}`;
+      content.id = tabId;
+      content.innerHTML = crearContenidoMaquina(maquina);
+      contentContainer.appendChild(content);
+    });
+
+    // Ensamblar la estructura
+    tabsWrapper.appendChild(tabsList);
+    navContainer.appendChild(prevBtn);
+    navContainer.appendChild(tabsWrapper);
+    navContainer.appendChild(nextBtn);
+    tabsContainer.appendChild(navContainer);
+
+    // Configurar navegación
+    let currentPage = 0;
+    const tabsPerPage = 6;
+    const totalPages = Math.ceil(maquinasActuales.length / tabsPerPage);
+
+    function updateTabsVisibility() {
+      const translateX = -(currentPage * (100 / totalPages));
+      tabsList.style.transform = `translateX(${translateX}%)`;
+
+      prevBtn.disabled = currentPage === 0;
+      nextBtn.disabled = currentPage === totalPages - 1;
+
+      // Actualizar estilos de los botones de navegación
+      if (currentPage === 0) {
+        prevBtn.style.opacity = "0.5";
+        prevBtn.style.cursor = "not-allowed";
+      } else {
+        prevBtn.style.opacity = "1";
+        prevBtn.style.cursor = "pointer";
+      }
+
+      if (currentPage === totalPages - 1) {
+        nextBtn.style.opacity = "0.5";
+        nextBtn.style.cursor = "not-allowed";
+      } else {
+        nextBtn.style.opacity = "1";
+        nextBtn.style.cursor = "pointer";
+      }
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 0) {
+        currentPage--;
+        updateTabsVisibility();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        updateTabsVisibility();
+      }
+    });
+
+    // Configurar ancho de las pestañas
+    const tabWidth = 100 / Math.min(maquinasActuales.length, tabsPerPage);
+    tabsList.style.width = `${(maquinasActuales.length / tabsPerPage) * 100}%`;
+
+    Array.from(tabsList.children).forEach((tab) => {
+      tab.style.width = `${100 / maquinasActuales.length}%`;
+    });
+
+    updateTabsVisibility();
+  }
+
+  // Inicializar autocomplete para búsqueda de repuestos
+  setTimeout(() => {
+    inicializarBusquedaRepuestos();
+    cargarRepuestosExistentes();
+  }, 100);
+}
+
+// Función auxiliar para crear el contenido de cada máquina
+function crearContenidoMaquina(maquina) {
+  return `
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card border-0 bg-light mb-3">
+          <div class="card-body">
+            <h6><i class="fa fa-laptop me-1"></i> ${maquina.marca} - ${maquina.modelo}</h6>
+            <p class="text-muted mb-0">Equipo: ${maquina.equipo} | Serie: ${maquina.numero_serie}</p>
+          </div>
+        </div>
+        
+        <!-- Formulario para agregar repuesto -->
+        <div class="card">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="fa fa-plus me-1"></i> Agregar Producto</h6>
+          </div>
+          <div class="card-body">
+            <form id="formRepuesto-${maquina.id_detalle}">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Buscar Producto</label>
+                  <input type="text" 
+                         class="form-control repuesto-search" 
+                         placeholder="Buscar repuesto..."
+                         data-maquina-id="${maquina.id_detalle}"
+                         id="repuestoSearch-${maquina.id_detalle}">
+                  <input type="hidden" id="repuestoId-${maquina.id_detalle}" name="id_repuesto">
+                  <input type="hidden" id="repuestoNombre-${maquina.id_detalle}" name="nombre_repuesto">
+                  <input type="hidden" id="repuestoCodigo-${maquina.id_detalle}" name="codigo_repuesto">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Cantidad</label>
+                  <input type="number" 
+                         class="form-control" 
+                         id="cantidad-${maquina.id_detalle}" 
+                         name="cantidad" 
+                         min="1" 
+                         value="1">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Precio Unit.</label>
+                  <input type="number" 
+                         class="form-control" 
+                         id="precio-${maquina.id_detalle}" 
+                         name="precio_unitario" 
+                         step="0.01" 
+                         readonly>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">&nbsp;</label>
+                  <button type="button" 
+                          class="btn bg-rojo text-white d-block w-100" 
+                          onclick="agregarRepuestoAMaquina(${maquina.id_detalle})">
+                    <i class="fa fa-plus"></i> Agregar
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <!-- Tabla de repuestos de esta máquina -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <h6 class="mb-0"><i class="fa fa-list me-1"></i> Productos Agregados</h6>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm" id="tablaRepuestos-${maquina.id_detalle}">
+               <thead class="table-light">
+  <tr>
+    <th>Código</th>
+    <th>Producto</th>
+    <th>Cantidad</th>
+    <th>Precio Unit.</th>
+    <th>Total</th>
+    <th>Acciones</th>
+  </tr>
+</thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function inicializarBusquedaRepuestos() {
+  $(".repuesto-search").each(function () {
+    const maquinaId = $(this).data("maquina-id");
+
+    // Destruir autocomplete existente si existe
+    if ($(this).hasClass("ui-autocomplete-input")) {
+      $(this).autocomplete("destroy");
+    }
+
+    $(this).autocomplete({
+      source: function (request, response) {
+        // Buscar en repuestos Y productos
+        const buscarRepuestos = $.ajax({
+          url:
+            _URL +
+            "/ajs/cargar/repuestos/" +
+            window.currentSucursal +
+            "?term=" +
+            request.term,
+          type: "GET",
+        });
+
+        const buscarProductos = $.ajax({
+          url:
+            _URL +
+            "/ajs/cargar/productos/" +
+            window.currentSucursal +
+            "?term=" +
+            request.term,
+          type: "GET",
+        });
+
+        // Combinar ambas búsquedas
+        $.when(buscarRepuestos, buscarProductos)
+          .done(function (repuestosData, productosData) {
+            try {
+              const repuestos = JSON.parse(repuestosData[0]) || [];
+              const productos = JSON.parse(productosData[0]) || [];
+
+              // Marcar el tipo para diferenciar
+              const repuestosConTipo = repuestos.map((item) => ({
+                ...item,
+                tipo: "Repuesto",
+              }));
+              const productosConTipo = productos.map((item) => ({
+                ...item,
+                tipo: "Producto",
+              }));
+
+              // Combinar ambos arrays
+              const todosCombinados = [
+                ...repuestosConTipo,
+                ...productosConTipo,
+              ];
+              response(todosCombinados);
+            } catch (e) {
+              console.error("Error al parsear datos:", e);
+              response([]);
+            }
+          })
+          .fail(function () {
+            response([]);
+          });
+      },
+      minLength: 1, // <--- Changed from 2 to 1
+      delay: 300,
+      select: function (event, ui) {
+        event.preventDefault();
+
+        // Llenar los campos ocultos
+        $(`#repuestoId-${maquinaId}`).val(ui.item.codigo);
+        $(`#repuestoCodigo-${maquinaId}`).val(ui.item.codigo_pp);
+        $(`#repuestoNombre-${maquinaId}`).val(ui.item.nombre);
+        $(`#precio-${maquinaId}`).val(ui.item.precio);
+
+        // Mostrar el nombre en el campo de búsqueda
+        $(this).val(ui.item.nombre);
+      },
+      open: function () {
+        $(this).autocomplete("widget").css({
+          "max-height": "200px",
+          "overflow-y": "auto",
+          "z-index": "9999",
+        });
+      },
+    });
+  });
+}
+function agregarRepuestoAMaquina(maquinaId) {
+    const repuestoId = $(`#repuestoId-${maquinaId}`).val();
+    const repuestoNombre = $(`#repuestoNombre-${maquinaId}`).val();
+    const repuestoCodigo = $(`#repuestoCodigo-${maquinaId}`).val();
+    const cantidad = parseInt($(`#cantidad-${maquinaId}`).val());
+    const precioUnitario = parseFloat($(`#precio-${maquinaId}`).val());
+    
+    // Determinar el tipo basado en el código o una marca específica
+    const tipoItem = repuestoCodigo && repuestoCodigo.startsWith('REP-') ? 'repuesto' : 'producto';
+
+    // Validaciones existentes...
+    if (!repuestoId || !repuestoNombre) {
+        Swal.fire("Error", "Debe seleccionar un producto", "error");
+        return;
+    }
+
+    if (!cantidad || cantidad <= 0) {
+        Swal.fire("Error", "La cantidad debe ser mayor a 0", "error");
+        return;
+    }
+
+    if (!precioUnitario || precioUnitario <= 0) {
+        Swal.fire("Error", "El precio debe ser mayor a 0", "error");
+        return;
+    }
+
+    // Enviar al servidor
+    $.ajax({
+        url: _URL + "/ajs/orden-trabajo/repuestos/agregar",
+        type: "POST",
+        data: {
+            id_orden_trabajo: ordenTrabajoActual,
+            id_detalle_maquina: maquinaId,
+            id_repuesto: repuestoId,
+            tipo_item: tipoItem, // NUEVO CAMPO
+            codigo_repuesto: repuestoCodigo,
+            nombre_repuesto: repuestoNombre,
+            cantidad: cantidad,
+            precio_unitario: precioUnitario,
+        },
+        success: function (response) {
+            try {
+                const result = JSON.parse(response);
+                if (result.success) {
+                    Swal.fire("Éxito", "Producto agregado correctamente", "success");
+                    
+                    // Limpiar formulario
+                    $(`#repuestoSearch-${maquinaId}`).val("");
+                    $(`#repuestoId-${maquinaId}`).val("");
+                    $(`#repuestoCodigo-${maquinaId}`).val("");
+                    $(`#repuestoNombre-${maquinaId}`).val("");
+                    $(`#cantidad-${maquinaId}`).val("1");
+                    $(`#precio-${maquinaId}`).val("");
+
+                    // Recargar tabla de repuestos
+                    cargarRepuestosParaMaquina(maquinaId);
+                } else {
+                    Swal.fire("Error", result.message || "Error al agregar producto", "error");
+                }
+            } catch (e) {
+                Swal.fire("Error", "Error al procesar la respuesta", "error");
+            }
+        },
+        error: function () {
+            Swal.fire("Error", "Error al comunicarse con el servidor", "error");
+        },
+    });
+}
+
+
+function cargarRepuestosExistentes() {
+  if (!ordenTrabajoActual) return;
+
+  $.ajax({
+    url: _URL + "/ajs/orden-trabajo/repuestos/obtener",
+    type: "POST",
+    data: { id_orden_trabajo: ordenTrabajoActual },
+    success: function (response) {
+      try {
+        const repuestos = JSON.parse(response);
+
+        // Agrupar repuestos por máquina
+        const repuestosPorMaquina = {};
+        repuestos.forEach((repuesto) => {
+          if (!repuestosPorMaquina[repuesto.id_detalle_maquina]) {
+            repuestosPorMaquina[repuesto.id_detalle_maquina] = [];
+          }
+          repuestosPorMaquina[repuesto.id_detalle_maquina].push(repuesto);
+        });
+
+        // Llenar tablas
+        Object.keys(repuestosPorMaquina).forEach((maquinaId) => {
+          cargarRepuestosEnTabla(maquinaId, repuestosPorMaquina[maquinaId]);
+        });
+      } catch (e) {
+        console.error("Error al cargar repuestos existentes:", e);
+      }
+    },
+    error: function () {
+      console.error("Error al obtener repuestos existentes");
+    },
+  });
+}
+
+function cargarRepuestosParaMaquina(maquinaId) {
+  $.ajax({
+    url: _URL + "/ajs/orden-trabajo/repuestos/obtener",
+    type: "POST",
+    data: { id_orden_trabajo: ordenTrabajoActual },
+    success: function (response) {
+      try {
+        const repuestos = JSON.parse(response);
+        const repuestosMaquina = repuestos.filter(
+          (r) => r.id_detalle_maquina == maquinaId
+        );
+        cargarRepuestosEnTabla(maquinaId, repuestosMaquina);
+      } catch (e) {
+        console.error("Error al cargar repuestos de máquina:", e);
+      }
+    },
+  });
+}
+function cargarRepuestosEnTabla(maquinaId, repuestos) {
+  const tbody = $(`#tablaRepuestos-${maquinaId} tbody`);
+  tbody.empty();
+
+  if (repuestos.length === 0) {
+    tbody.append(`
+      <tr>
+        <td colspan="6" class="text-center text-muted">
+          <i class="fa fa-info-circle me-1"></i>
+          No hay productos agregados para esta máquina
+        </td>
+      </tr>
+    `);
+    return;
+  }
+
+  repuestos.forEach((repuesto) => {
+    const total = (repuesto.cantidad * repuesto.precio_unitario).toFixed(2);
+    tbody.append(`
+      <tr>
+        <td>${repuesto.codigo_item || "N/A"}</td>
+        <td>${repuesto.nombre_item}</td>
+        <td>${repuesto.cantidad}</td>
+        <td>S/ ${parseFloat(repuesto.precio_unitario).toFixed(2)}</td>
+        <td>S/ ${total}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-danger" 
+                  onclick="eliminarRepuesto(${repuesto.id_repuesto_orden})">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+
+function eliminarRepuesto(idRepuestoOrden) {
+  Swal.fire({
+    title: "¿Está seguro?",
+    text: "Esta acción eliminará el repuesto de la orden de trabajo",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: _URL + "/ajs/orden-trabajo/repuestos/eliminar",
+        type: "POST",
+        data: { id_repuesto_orden: idRepuestoOrden },
+        success: function (response) {
+          try {
+            const result = JSON.parse(response);
+            if (result.success) {
+              Swal.fire(
+                "Eliminado",
+                "Repuesto eliminado correctamente",
+                "success"
+              );
+              cargarRepuestosExistentes();
+              cargarRepuestosEnTab(); // Actualizar también la pestaña de repuestos
+            } else {
+              Swal.fire(
+                "Error",
+                result.message || "Error al eliminar repuesto",
+                "error"
+              );
+            }
+          } catch (e) {
+            Swal.fire("Error", "Error al procesar la respuesta", "error");
+          }
+        },
+        error: function () {
+          Swal.fire("Error", "Error al comunicarse con el servidor", "error");
+        },
+      });
+    }
+  });
+}
+
+function cargarRepuestosEnTab() {
+  if (!ordenTrabajoActual) return;
+
+  const repuestosContent = document.getElementById("repuestos-content");
+  if (!repuestosContent) return;
+
+  repuestosContent.innerHTML = `
+    <div class="text-center text-muted">
+      <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+      <p>Cargando repuestos...</p>
+    </div>
+  `;
+
+  $.ajax({
+    url: _URL + "/ajs/orden-trabajo/repuestos/obtener",
+    type: "POST",
+    data: { id_orden_trabajo: ordenTrabajoActual },
+    success: function (response) {
+      try {
+        const repuestos = JSON.parse(response);
+
+        if (repuestos.length === 0) {
+          repuestosContent.innerHTML = `
+            <div class="text-center text-muted">
+              <i class="fa fa-cogs fa-3x mb-3"></i>
+              <p>No hay productos agregados a esta orden de trabajo</p>
+              <button type="button" class="btn bg-rojo text-white" onclick="abrirModalAgregarRepuesto()">
+                <i class="fa fa-plus me-1"></i> Agregar Primer Producto
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // Agrupar repuestos por máquina
+        const repuestosPorMaquina = {};
+        repuestos.forEach((repuesto) => {
+          const key = `${repuesto.marca}-${repuesto.equipo}-${repuesto.numero_serie}`;
+          if (!repuestosPorMaquina[key]) {
+            repuestosPorMaquina[key] = {
+              maquina: repuesto,
+              repuestos: [],
+            };
+          }
+          repuestosPorMaquina[key].repuestos.push(repuesto);
+        });
+
+        let html = "";
+        Object.keys(repuestosPorMaquina).forEach((key) => {
+          const grupo = repuestosPorMaquina[key];
+          const totalMaquina = grupo.repuestos.reduce(
+            (sum, r) => sum + r.cantidad * r.precio_unitario,
+            0
+          );
+
+          html += `
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <i class="fa fa-laptop me-2"></i>
+                  ${grupo.maquina.marca} - ${grupo.maquina.equipo}
+                  <small class="text-muted">(Serie: ${grupo.maquina.numero_serie})</small>
+                  <span class="badge bg-success float-end">Total: S/ ${totalMaquina.toFixed(2)}</span>
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          `;
+
+          grupo.repuestos.forEach((repuesto) => {
+            const total = (repuesto.cantidad * repuesto.precio_unitario).toFixed(2);
+            html += `
+              <tr>
+                <td>${repuesto.codigo_item || "N/A"}</td>
+                <td>${repuesto.nombre_item}</td>
+                <td>${repuesto.cantidad}</td>
+                <td>S/ ${parseFloat(repuesto.precio_unitario).toFixed(2)}</td>
+                <td>S/ ${total}</td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-danger" 
+                          onclick="eliminarRepuesto(${repuesto.id_repuesto_orden})"
+                          title="Eliminar repuesto">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+
+          html += `
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        // Calcular total general
+        const totalGeneral = repuestos.reduce(
+          (sum, r) => sum + r.cantidad * r.precio_unitario,
+          0
+        );
+        html += `
+          <div class="card border-success">
+            <div class="card-body text-center">
+              <h5 class="text-success mb-0">
+                <i class="fa fa-calculator me-2"></i>
+                Total General: S/ ${totalGeneral.toFixed(2)}
+              </h5>
+            </div>
+          </div>
+        `;
+
+        repuestosContent.innerHTML = html;
+      } catch (e) {
+        console.error("Error al cargar repuestos en tab:", e);
+        repuestosContent.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            Error al cargar los repuestos
+          </div>
+        `;
+      }
+    },
+    error: function () {
+      repuestosContent.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fa fa-exclamation-triangle me-2"></i>
+          Error al comunicarse con el servidor
+        </div>
+      `;
+    },
+  });
+}
+
+
 $(document).ready(() => {
   const app = new Vue({
     el: "#client",
@@ -446,8 +1208,11 @@ $(document).ready(() => {
   };
 
   function mostrarDetalles(id) {
+    // Guardar el ID de la orden actual
+    ordenTrabajoActual = id;
+
     $.ajax({
-      url: _URL + "/ajs/orden-trabajo/detalles", // Cambio aquí
+      url: _URL + "/ajs/orden-trabajo/detalles",
       type: "POST",
       data: { id: id },
       success: (response) => {
@@ -469,76 +1234,124 @@ $(document).ready(() => {
           var detalles =
             typeof response === "object" ? response : JSON.parse(response);
 
-          var contenidoModal = `
-                <div class="card border-danger mb-2">
-                    <div class="card-header bg-secondary p-2">Información de Orden de Trabajo</div>
-                    <div class="card-body p-2">
-                        <div class="row g-0">
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Cliente:</strong> ${detalles.cliente_razon_social}</p>
-                                <p class="mb-1"><strong>Técnico:</strong> ${detalles.atencion_encargado}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-1"><strong>Documento:</strong> ${detalles.cliente_ruc}</p>
-                                <p class="mb-1"><strong>Fecha de Ingreso:</strong> ${detalles.fecha_ingreso}</p>
+          // Guardar las máquinas actuales para el modal de repuestos
+          maquinasActuales = detalles.equipos.map((equipo, index) => ({
+            id_detalle: index + 1, // Temporal, necesitarás el ID real de la base de datos
+            marca: equipo.marca,
+            modelo: equipo.modelo,
+            equipo: equipo.equipo,
+            numero_serie: equipo.numero_serie,
+          }));
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-  
+          var contenidoModal = `
+          <div class="mb-4">
+            <h6 class="text-muted mb-3">Información de Orden de Trabajo</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Cliente:</strong> ${detalles.cliente_razon_social}</p>
+                <p class="mb-1"><strong>Técnico:</strong> ${detalles.atencion_encargado}</p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Documento:</strong> ${detalles.cliente_ruc}</p>
+                <p class="mb-1"><strong>Fecha de Ingreso:</strong> ${detalles.fecha_ingreso}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Pestañas para Equipos y Repuestos -->
+          <ul class="nav nav-tabs" id="detallesTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos" type="button" role="tab">
+                <i class="fa fa-laptop me-1"></i> Equipos Registrados
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="repuestos-tab" data-bs-toggle="tab" data-bs-target="#repuestos" type="button" role="tab">
+                <i class="fa fa-cogs me-1"></i> Productos y Repuestos
+              </button>
+            </li>
+          </ul>
+          
+          <div class="tab-content mt-3" id="detallesTabContent">
+            <!-- Tab de Equipos -->
+            <div class="tab-pane fade show active" id="equipos" role="tabpanel">
+              <div id="equipos-content">
                 <div class="card border-danger mb-2">
-                    <div class="card-header bg-secondary p-2">
-                        Equipos Registrados: ${detalles.equipos.length}
-                    </div>
-                    <div class="card-body p-2">
-                     <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-    <table class="table table-bordered table-striped mb-0">
-        <thead class="table-danger sticky-top bg-danger">
-            <tr>
-                <th>#</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Equipo</th>
-                <th>Número de Serie</th>
-            </tr>
-        </thead>
-                                <tbody>
-            `;
+                  <div class="card-header bg-secondary p-2">
+                    Equipos Registrados: ${detalles.equipos.length}
+                  </div>
+                  <div class="card-body p-2">
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                      <table class="table table-bordered table-striped mb-0">
+                        <thead class="table-danger sticky-top bg-danger">
+                          <tr>
+                            <th>#</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Equipo</th>
+                            <th>Número de Serie</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+        `;
 
           detalles.equipos.forEach((equipo, index) => {
             contenidoModal += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${equipo.marca}</td>
-                        <td>${equipo.modelo}</td>
-                        <td>${equipo.equipo}</td>
-                        <td>${equipo.numero_serie}</td>
-                    </tr>
-                `;
+            <tr>
+              <td>${index + 1}</td>
+              <td>${equipo.marca}</td>
+              <td>${equipo.modelo}</td>
+              <td>${equipo.equipo}</td>
+              <td>${equipo.numero_serie}</td>
+            </tr>
+          `;
           });
 
           contenidoModal += `
-                                </tbody>
-                            </table>
-                        </div>
+                        </tbody>
+                      </table>
                     </div>
+                  </div>
                 </div>
                 
                 <div class="card border-danger">
-                    <div class="card-header bg-secondary p-2">
-                        Observaciones
-                    </div>
-                    <div class="card-body p-2">
-                        <p class="mb-0">${
-                          detalles.observaciones || "Sin observaciones"
-                        }</p>
-                    </div>
+                  <div class="card-header bg-secondary p-2">
+                    Observaciones
+                  </div>
+                  <div class="card-body p-2">
+                    <p class="mb-0">${
+                      detalles.observaciones || "Sin observaciones"
+                    }</p>
+                  </div>
                 </div>
-            `;
+              </div>
+            </div>
+            
+            <!-- Tab de Repuestos -->
+            <div class="tab-pane fade" id="repuestos" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Repuestos por Máquina</h6>
+                <button type="button" class="btn btn-sm bg-rojo text-white" onclick="abrirModalAgregarRepuesto()">
+                  <i class="fa fa-plus me-1"></i> Agregar Productos
+                </button>
+              </div>
+              <div id="repuestos-content">
+                <div class="text-center text-muted">
+                  <i class="fa fa-cogs fa-3x mb-3"></i>
+                  <p>Cargando repuestos...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
 
           $("#modalDetalles .modal-body").html(contenidoModal);
           $("#modalDetalles").modal("show");
+
+          // Cargar repuestos cuando se abra la pestaña
+          $("#repuestos-tab").on("shown.bs.tab", function () {
+            cargarRepuestosEnTab();
+          });
         } catch (error) {
           console.error("Error al procesar la respuesta:", error);
           Swal.fire({
@@ -709,15 +1522,32 @@ $(document).ready(() => {
         event.preventDefault();
         console.log("Serie seleccionada:", ui.item);
 
-        // Llenar los campos del formulario
-        app.prealerta.cliente_Rsocial = ui.item.cliente_ruc_dni || "";
-        app.prealerta.num_doc =
-          ui.item.cliente_documento || ui.item.cliente_ruc_dni || "";
+        // Llenar datos del cliente si existen
+        if (ui.item.cliente_ruc_dni && ui.item.cliente_ruc_dni !== null) {
+          // Serie con cliente
+          app.prealerta.cliente_Rsocial = ui.item.cliente_ruc_dni || "";
+          app.prealerta.num_doc = ui.item.cliente_documento || "";
+          $("#cliente_nombre_right").val(ui.item.cliente_ruc_dni || "");
+        } else {
+          // Serie sin cliente - limpiar campos del cliente
+          app.prealerta.cliente_Rsocial = "";
+          app.prealerta.num_doc = "";
+          $("#cliente_nombre_right").val("");
 
-        // También llenar el campo del lado derecho
-        $("#cliente_nombre_right").val(ui.item.cliente_ruc_dni || "");
+          // Mostrar mensaje informativo
+          if (typeof Swal !== "undefined") {
+            Swal.fire({
+              icon: "info",
+              title: "Serie sin cliente",
+              text: "Esta serie no tiene cliente asociado. Se creará un registro interno.",
+              timer: 3000,
+              showConfirmButton: false,
+            });
+          }
+        }
 
-        // Crear equipo con los datos de la serie
+        // SIEMPRE crear equipo con los datos de la serie (independientemente del cliente)
+        // SIEMPRE crear equipo con los datos de la serie (independientemente del cliente)
         const equipo = {
           marca: ui.item.marca_nombre || "",
           modelo: ui.item.modelo_nombre || "",
@@ -725,15 +1555,19 @@ $(document).ready(() => {
           serie: ui.item.value || "",
         };
 
-        // Actualizar equipos
+        // USAR Vue.set para asegurar reactividad
         if (app.equipos.length > 0) {
-          app.equipos[0] = equipo;
+          // Usar Vue.set para actualizar el primer equipo
+          Vue.set(app.equipos, 0, equipo);
         } else {
           app.equipos.push(equipo);
         }
 
-        app.cantidadEquipos = 1;
+        // También forzar actualización de la cantidad
+        Vue.set(app, "cantidadEquipos", 1);
 
+        // Forzar actualización de Vue
+        app.$forceUpdate();
         // Limpiar campo
         $(this).val("");
 
@@ -1221,16 +2055,16 @@ $(document).ready(() => {
   $(document).on("click", "#submitRegistro", function () {
     console.log("Botón guardar clickeado");
 
-    // Validar campos requeridos
-    if (!app.prealerta.num_doc) {
-      Swal.fire("Error", "El documento es requerido", "error");
-      return;
-    }
+    // // Validar campos requeridos no requerido opcional
+    // if (!app.prealerta.num_doc) {
+    //   Swal.fire("Error", "El documento es requerido", "error");
+    //   return;
+    // }
 
-    if (!app.prealerta.cliente_Rsocial) {
-      Swal.fire("Error", "El nombre del cliente es requerido", "error");
-      return;
-    }
+    // if (!app.prealerta.cliente_Rsocial) {
+    //   Swal.fire("Error", "El nombre del cliente es requerido", "error");
+    //   return;
+    // }
 
     if (!$("#atencion_Encargado").val()) {
       Swal.fire("Error", "Debe seleccionar un técnico", "error");
