@@ -69,6 +69,7 @@ class CotizacionesController extends Controller
             }
 
             // Actualizar cotización
+            // Campo aplicar_igv: '1' = Con IGV (18%), '0' = Sin IGV (exonerado)
             $sql = "UPDATE cotizaciones SET 
                 id_tipo_pago = '{$_POST['tipo_pago']}',
                 fecha = '{$_POST['fecha']}',
@@ -78,6 +79,7 @@ class CotizacionesController extends Controller
                 usar_precio = '{$_POST['usar_precio']}',
                 total = '{$_POST['total']}',
                 descuento = '" . (isset($_POST['descuentoGeneral']) ? $_POST['descuentoGeneral'] : 0) . "',
+                aplicar_igv = '" . ($_POST['aplicar_igv'] ?? '1') . "',
                 id_asunto = " . ($idAsunto ? "'$idAsunto'" : "NULL") . "
                 WHERE cotizacion_id = '{$_POST['cotiId']}'";
 
@@ -446,8 +448,13 @@ class CotizacionesController extends Controller
             $dir_pos = $this->conexion->real_escape_string($_POST['dir_pos']);
             $total = $this->conexion->real_escape_string($_POST['total']);
             $usar_precio = $this->conexion->real_escape_string($_POST['usar_precio']);
+            // CAMPO aplicar_igv: Determina si se aplica IGV a la cotización
+            // Valores posibles: '1' = Aplica IGV (incluye el 18% de impuesto), '0' = No aplica IGV (exonerado)
+            // Por defecto se aplica IGV ('1') si no se especifica
+            $aplicar_igv = $this->conexion->real_escape_string($_POST['aplicar_igv'] ?? '1');
 
             // Insertar la nueva cotización
+            // Campo aplicar_igv: '1' = Aplica IGV (18%), '0' = No aplica IGV (exonerado)
             $sql = "INSERT INTO cotizaciones SET 
                 id_tido = '$tipo_doc',
                 moneda = '$moneda',
@@ -462,6 +469,7 @@ class CotizacionesController extends Controller
                 numero = '$numCoti',
                 estado = '0',
                 usar_precio = '$usar_precio',
+                aplicar_igv = '$aplicar_igv',
                 sucursal = '{$_SESSION['sucursal']}',
                 id_empresa = '{$_SESSION['id_empresa']}',
                 id_usuario = '{$_SESSION['usuario_fac']}',
@@ -731,10 +739,63 @@ public function ultimoNumero()
     $sql = "SELECT MAX(numero) as ultimo_numero FROM cotizaciones WHERE id_empresa = '{$_SESSION['id_empresa']}'";
     $result = $this->conexion->query($sql);
     $row = $result->fetch_assoc();
-    
+
     return json_encode([
         'ultimo_numero' => (int)($row['ultimo_numero'] ?? 0)  // ← AGREGAR (int) aquí
     ]);
 }
-    
+
+public function obtenerTasaCambio()
+{
+    try {
+        $url = 'https://api.apis.net.pe/v1/tipo-cambio-sunat';
+
+        // Verificar si cURL está disponible
+        if (!function_exists('curl_init')) {
+            throw new Exception('cURL no está disponible');
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            throw new Exception('Error cURL: ' . $curlError);
+        }
+
+        if ($httpCode !== 200) {
+            throw new Exception('Error HTTP: ' . $httpCode);
+        }
+
+        $data = json_decode($response, true);
+
+        if (!$data || !isset($data['venta'])) {
+            throw new Exception('Datos de API inválidos');
+        }
+
+        // Retornar los datos exitosamente
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'data' => $data
+        ]);
+
+    } catch (Exception $e) {
+        // Retornar error
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
 }

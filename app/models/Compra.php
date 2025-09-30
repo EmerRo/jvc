@@ -459,9 +459,9 @@ class Compra
             //echo $this->conectar->error;
         }
     }
-    public function updateStock($cantidad, $idProducto)
+    public function updateStock($cantidad, $idProducto, $costo)
     {
-        $sql = "update productos set cantidad = cantidad+$cantidad where id_producto=$idProducto";
+        $sql = "update productos set cantidad = cantidad + $cantidad, costo = '$costo' where id_producto=$idProducto";
         $result = $this->conectar->query($sql);
         if ($result) {
             return $result;
@@ -500,9 +500,9 @@ class Compra
         return null;
     }
 // Método para actualizar stock de repuestos
-public function updateStockRepuesto($cantidad, $idRepuesto)
+public function updateStockRepuesto($cantidad, $idRepuesto, $costo)
 {
-    $sql = "UPDATE repuestos SET cantidad = cantidad + $cantidad WHERE id_repuesto = $idRepuesto";
+    $sql = "UPDATE repuestos SET cantidad = cantidad + $cantidad, costo = '$costo' WHERE id_repuesto = $idRepuesto";
     $result = $this->conectar->query($sql);
     return $result ? $result : false;
 }

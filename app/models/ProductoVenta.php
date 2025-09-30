@@ -9,6 +9,8 @@ class ProductoVenta
     private $costo;
     private $conectar;
     private $precio_usado;
+    private $id_venta_equipo;
+    private $id_cotizacion_equipo;
 
 
     private $sql;
@@ -129,7 +131,28 @@ class ProductoVenta
      */
     public function setPrecioUsado($precio_usado)
     {
-        $this->precio_usado = $precio_usado;
+        // Guardar solo 1 caracter (flag), compatible con schema char(1)
+        $this->precio_usado = substr((string)$precio_usado, 0, 1);
+    }
+
+    public function getIdVentaEquipo()
+    {
+        return $this->id_venta_equipo;
+    }
+
+    public function setIdVentaEquipo($id_venta_equipo)
+    {
+        $this->id_venta_equipo = $id_venta_equipo;
+    }
+
+    public function getIdCotizacionEquipo()
+    {
+        return $this->id_cotizacion_equipo;
+    }
+
+    public function setIdCotizacionEquipo($id_cotizacion_equipo)
+    {
+        $this->id_cotizacion_equipo = $id_cotizacion_equipo;
     }
 
     /**
@@ -150,8 +173,11 @@ class ProductoVenta
 
     public function insertar()
     {
+        $idVentaEquipo = $this->id_venta_equipo ? "'{$this->id_venta_equipo}'" : "NULL";
+        $idCotiEquipo = $this->id_cotizacion_equipo ? "'{$this->id_cotizacion_equipo}'" : "NULL";
         $sql = "insert into productos_ventas 
-        values ('$this->id_producto', '$this->id_venta', '$this->cantidad', '$this->precio', '$this->costo', '$this->precio_usado')";
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('$this->id_producto', '$this->id_venta', '$this->cantidad', '$this->precio', '$this->costo', $idVentaEquipo, $idCotiEquipo, '$this->precio_usado')";
         //echo $sql;
         $this->sql=$sql;
         $result = $this->conectar->query($sql);

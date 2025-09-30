@@ -410,8 +410,8 @@
   transform: scale(1.1);
 }
 
-/* Estilos para móvil */
-@media (max-width: 768px) {
+/* Estilos para móvil y tablet */
+@media (max-width: 1024px) {
   .jvc-sidebar {
     transform: translateX(-100%);
     width: 260px !important;
@@ -527,7 +527,7 @@
 }
 
 /* Ajustes para PC */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .jvc-sidebar.collapsed {
     width: var(--sidebar-collapsed-width);
   }

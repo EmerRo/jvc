@@ -7,7 +7,6 @@ class GestionArchivo
     private $tipo;
     private $id_producto;
     private $version;
-    private $estado;
     private $id_empresa;
     private $sucursal;
     private $conectar;
@@ -103,22 +102,6 @@ class GestionArchivo
     /**
      * @return mixed
      */
-    public function getEstado()
-    {
-        return $this->estado;
-    }
-
-    /**
-     * @param mixed $estado
-     */
-    public function setEstado($estado)
-    {
-        $this->estado = $estado;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getIdEmpresa()
     {
         return $this->id_empresa;
@@ -150,46 +133,146 @@ class GestionArchivo
 
     public function insertar()
     {
-        $sql = "INSERT INTO gestion_archivos (titulo, tipo, id_producto, version, estado, id_empresa, sucursal) 
-                VALUES ('$this->titulo', '$this->tipo', " . ($this->id_producto ? "'$this->id_producto'" : "NULL") . ", 
-                '$this->version', '$this->estado', '$this->id_empresa', '$this->sucursal')";
-        
-        if ($this->conectar->query($sql)) {
-            return $this->conectar->insert_id;
+        if ($this->id_producto) {
+            $sql = "INSERT INTO gestion_archivos (titulo, tipo, id_producto, version, id_empresa, sucursal, fecha_creacion) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $this->conectar->prepare($sql);
+            if (!$stmt) {
+                error_log("Error al preparar consulta: " . $this->conectar->error);
+                return false;
+            }
+            
+            $titulo = $this->titulo ?: '';
+            $tipo = $this->tipo ?: '';
+            $id_producto = $this->id_producto;
+            $version = $this->version ?: '1.0';
+            $id_empresa = $this->id_empresa ?: 12;
+            $sucursal = $this->sucursal ?: '1';
+            $fecha_creacion = date('Y-m-d H:i:s');
+            
+            // CORREGIDO: 7 tipos para 7 parámetros (sin estado)
+            $stmt->bind_param("ssissss", 
+                $titulo,
+                $tipo,
+                $id_producto,
+                $version,
+                $id_empresa,
+                $sucursal,
+                $fecha_creacion
+            );
+        } else {
+            $sql = "INSERT INTO gestion_archivos (titulo, tipo, version, id_empresa, sucursal, fecha_creacion) 
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $this->conectar->prepare($sql);
+            if (!$stmt) {
+                error_log("Error al preparar consulta: " . $this->conectar->error);
+                return false;
+            }
+            
+            $titulo = $this->titulo ?: '';
+            $tipo = $this->tipo ?: '';
+            $version = $this->version ?: '1.0';
+            $id_empresa = $this->id_empresa ?: 12;
+            $sucursal = $this->sucursal ?: '1';
+            $fecha_creacion = date('Y-m-d H:i:s');
+            
+            $stmt->bind_param("ssssss", 
+                $titulo,
+                $tipo,
+                $version,
+                $id_empresa,
+                $sucursal,
+                $fecha_creacion
+            );
         }
+        
+        if ($stmt->execute()) {
+            $this->id_archivo = $this->conectar->insert_id;
+            $stmt->close();
+            error_log("Archivo insertado exitosamente con ID: " . $this->id_archivo);
+            return $this->id_archivo;
+        }
+        
+        $error = $stmt->error;
+        $stmt->close();
+        error_log("Error al ejecutar consulta: " . $error);
         return false;
     }
 
     public function modificar()
     {
         $sql = "UPDATE gestion_archivos 
-                SET titulo = '$this->titulo', 
-                    tipo = '$this->tipo', 
-                    id_producto = " . ($this->id_producto ? "'$this->id_producto'" : "NULL") . ", 
-                    version = '$this->version', 
-                    estado = '$this->estado' 
-                WHERE id_archivo = '$this->id_archivo'";
+                SET titulo = ?, 
+                    tipo = ?, 
+                    id_producto = ?, 
+                    version = ? 
+                WHERE id_archivo = ?";
         
-        return $this->conectar->query($sql);
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) {
+            error_log("Error al preparar consulta modificar: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("ssssi", 
+            $this->titulo,
+            $this->tipo,
+            $this->id_producto,
+            $this->version,
+            $this->id_archivo
+        );
+        
+        $resultado = $stmt->execute();
+        $stmt->close();
+        return $resultado;
     }
 
     public function eliminar()
     {
-        $sql = "UPDATE gestion_archivos SET estado = '0' WHERE id_archivo = '$this->id_archivo'";
-        return $this->conectar->query($sql);
+        // NUEVO: Eliminar completamente el registro en lugar de solo cambiar estado
+        $sql = "DELETE FROM gestion_archivos WHERE id_archivo = ?";
+        $stmt = $this->conectar->prepare($sql);
+        
+        if (!$stmt) {
+            error_log("Error al preparar consulta de eliminación: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("i", $this->id_archivo);
+        $resultado = $stmt->execute();
+        $stmt->close();
+        
+        if ($resultado) {
+            error_log("Archivo eliminado completamente con ID: " . $this->id_archivo);
+            return true;
+        } else {
+            error_log("Error al eliminar archivo con ID: " . $this->id_archivo);
+            return false;
+        }
     }
 
     public function obtenerDatos()
     {
-        $sql = "SELECT * FROM gestion_archivos WHERE id_archivo = '$this->id_archivo'";
-        $fila = $this->conectar->query($sql)->fetch_assoc();
+        $sql = "SELECT * FROM gestion_archivos WHERE id_archivo = ?";
+        $stmt = $this->conectar->prepare($sql);
+        
+        if (!$stmt) {
+            error_log("Error al preparar consulta obtenerDatos: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("i", $this->id_archivo);
+        $stmt->execute();
+        $fila = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
         
         if ($fila) {
             $this->titulo = $fila['titulo'];
             $this->tipo = $fila['tipo'];
             $this->id_producto = $fila['id_producto'];
             $this->version = $fila['version'];
-            $this->estado = $fila['estado'];
             $this->id_empresa = $fila['id_empresa'];
             $this->sucursal = $fila['sucursal'];
             return true;
@@ -197,49 +280,118 @@ class GestionArchivo
         return false;
     }
 
+    // NUEVO: Método para obtener archivo por ID (usado en el controlador)
+    public function obtenerPorId()
+    {
+        $sql = "SELECT * FROM gestion_archivos WHERE id_archivo = ?";
+        $stmt = $this->conectar->prepare($sql);
+        
+        if (!$stmt) {
+            error_log("Error al preparar consulta obtenerPorId: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("i", $this->id_archivo);
+        $stmt->execute();
+        
+        $resultado = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($resultado) {
+            $this->titulo = $resultado['titulo'];
+            $this->tipo = $resultado['tipo'];
+            $this->id_producto = $resultado['id_producto'];
+            $this->version = $resultado['version'];
+            $this->id_empresa = $resultado['id_empresa'];
+            $this->sucursal = $resultado['sucursal'];
+            return $resultado;
+        }
+        
+        return false;
+    }
+
     public function listarPorTipo($tipo)
     {
+        // NUEVO: Quitar filtro de estado ya que eliminamos completamente
         $sql = "SELECT a.*, 
-                (SELECT nombre_adjunto FROM gestion_adjuntos WHERE id_archivo = a.id_archivo AND es_principal = 1 LIMIT 1) as adjunto_principal 
+                (SELECT COUNT(*) FROM gestion_adjuntos WHERE id_archivo = a.id_archivo) as total_adjuntos 
                 FROM gestion_archivos a 
-                WHERE a.id_empresa = '$this->id_empresa' 
-                AND a.sucursal = '$this->sucursal' 
-                AND a.estado = '1' 
-                AND a.tipo = '$tipo' 
-                ORDER BY a.fecha_actualizacion DESC";
+                WHERE a.id_empresa = ? 
+                AND a.sucursal = ? 
+                AND a.tipo = ? 
+                ORDER BY a.fecha_creacion DESC";
         
-        return $this->conectar->query($sql);
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) {
+            error_log("Error al preparar consulta listarPorTipo: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("sss", $this->id_empresa, $this->sucursal, $tipo);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $stmt->close();
+        
+        return $resultado;
     }
 
     public function listarPorProducto($id_producto)
     {
+        // NUEVO: Quitar filtro de estado ya que eliminamos completamente
         $sql = "SELECT a.*, 
-                (SELECT nombre_adjunto FROM gestion_adjuntos WHERE id_archivo = a.id_archivo AND es_principal = 1 LIMIT 1) as adjunto_principal 
+                (SELECT COUNT(*) FROM gestion_adjuntos WHERE id_archivo = a.id_archivo) as total_adjuntos 
                 FROM gestion_archivos a 
-                WHERE a.id_empresa = '$this->id_empresa' 
-                AND a.sucursal = '$this->sucursal' 
-                AND a.estado = '1' 
-                AND a.id_producto = '$id_producto' 
-                ORDER BY a.tipo, a.fecha_actualizacion DESC";
+                WHERE a.id_empresa = ? 
+                AND a.sucursal = ? 
+                AND a.id_producto = ? 
+                ORDER BY a.tipo, a.fecha_creacion DESC";
         
-        return $this->conectar->query($sql);
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) {
+            error_log("Error al preparar consulta listarPorProducto: " . $this->conectar->error);
+            return false;
+        }
+        
+        $stmt->bind_param("ssi", $this->id_empresa, $this->sucursal, $id_producto);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $stmt->close();
+        
+        return $resultado;
     }
 
     public function buscarArchivos($termino, $tipo = null)
     {
-        $condicionTipo = $tipo ? "AND a.tipo = '$tipo'" : "";
+        $condicionTipo = $tipo ? "AND a.tipo = ?" : "";
         
         $sql = "SELECT a.*, 
-                (SELECT nombre_adjunto FROM gestion_adjuntos WHERE id_archivo = a.id_archivo AND es_principal = 1 LIMIT 1) as adjunto_principal 
+                (SELECT COUNT(*) FROM gestion_adjuntos WHERE id_archivo = a.id_archivo) as total_adjuntos 
                 FROM gestion_archivos a 
                 LEFT JOIN productos p ON a.id_producto = p.id_producto
-                WHERE a.id_empresa = '$this->id_empresa' 
-                AND a.sucursal = '$this->sucursal' 
-                AND a.estado = '1' 
+                WHERE a.id_empresa = ? 
+                AND a.sucursal = ? 
                 $condicionTipo
-                AND (a.titulo LIKE '%$termino%' OR p.nombre LIKE '%$termino%') 
-                ORDER BY a.fecha_actualizacion DESC";
+                AND (a.titulo LIKE ? OR p.nombre LIKE ?) 
+                ORDER BY a.fecha_creacion DESC";
         
-        return $this->conectar->query($sql);
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) {
+            error_log("Error al preparar consulta buscarArchivos: " . $this->conectar->error);
+            return false;
+        }
+        
+        $terminoLike = "%$termino%";
+        
+        if ($tipo) {
+            $stmt->bind_param("sssss", $this->id_empresa, $this->sucursal, $tipo, $terminoLike, $terminoLike);
+        } else {
+            $stmt->bind_param("ssss", $this->id_empresa, $this->sucursal, $terminoLike, $terminoLike);
+        }
+        
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $stmt->close();
+        
+        return $resultado;
     }
 }

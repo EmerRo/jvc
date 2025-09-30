@@ -201,9 +201,9 @@ class Usuario
     {
         $respuesta = ["res" => false];
         try {
-            $sql = "select u.*, r.rol_id, r.nombre as rol_nombre, r.puede_eliminar, r.ver_precios 
-                from usuarios u 
-                inner join roles r on u.id_rol = r.rol_id 
+            $sql = "select u.*, r.rol_id, r.nombre as rol_nombre, r.puede_eliminar, r.ver_precios
+                from usuarios u
+                inner join roles r on u.id_rol = r.rol_id
                 where u.email=? or u.usuario=?";
 
             $stmt = $this->conectar->prepare($sql);
@@ -233,6 +233,7 @@ class Usuario
                         // Crear token de sesión - Mantener nombres originales
                         $token_u = [
                             "usuario_fac" => $row['usuario_id'],
+                            "usuario_id" => $row['usuario_id'], // Agregar también usuario_id para compatibilidad
                             'rol' => $row['rol_id'], // Mantener 'rol' en lugar de 'id_rol'
                             'id_rol' => $row['rol_id'], // Agregar también 'id_rol' para compatibilidad
                             'nombres' => $row['nombres'],
@@ -240,6 +241,7 @@ class Usuario
                             'rol_nombre' => $row['rol_nombre'],
                             'puede_eliminar' => (bool) $row['puede_eliminar'],
                             'ver_precios' => (bool) $row['ver_precios'],
+                            'foto_perfil' => $row['foto_perfil'], // Agregar foto de perfil a la sesión
                             'id_empresa' => $empr['id_empresa'],
                             'nombre_empresa' => $empr['razon_social'],
                             'logo_empresa' => $empr['logo'],

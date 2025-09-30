@@ -700,34 +700,44 @@ class SunatApi
             $array_items = array();
 
             foreach ($data['productos'] as $value) {
-                $subtotal_producto = $value['precio'] * $value['cantidad'] / ($igv_venta_sel+1);
-                $igv_producto = $value['precio'] * $value['cantidad'] / ($igv_venta_sel+1) * $igv_venta_sel;
-                $total_producto = $value['precio'] * $value['cantidad'];
+                // Validar que el producto tenga datos válidos (filtro de seguridad)
+                if (empty($value['cantidad']) || empty($value['precio']) || empty($value['cod_pro']) || 
+                    !is_numeric($value['cantidad']) || !is_numeric($value['precio'])) {
+                    continue; // Saltar este producto si no tiene datos válidos
+                }
+                
+                // Convertir a números para asegurar tipos correctos
+                $cantidad = (float)$value['cantidad'];
+                $precio = (float)$value['precio'];
+                
+                $subtotal_producto = $precio * $cantidad / ($igv_venta_sel+1);
+                $igv_producto = $precio * $cantidad / ($igv_venta_sel+1) * $igv_venta_sel;
+                $total_producto = $precio * $cantidad;
                 $item = new SaleDetail();
                 $item->setCodProducto($value['cod_pro'])
                     ->setCodProdSunat($value['cod_sunat'])
                     ->setUnidad('NIU')
                     ->setDescripcion(utf8_encode($value['descripcion']))
-                    ->setCantidad($value['cantidad']);
+                    ->setCantidad($cantidad);
 
                 if ($data['apli_igv']){
-                    $item->setMtoValorUnitario(number_format($value['precio'] / ($igv_venta_sel+1), 2, '.', ''))
+                    $item->setMtoValorUnitario(number_format($precio / ($igv_venta_sel+1), 2, '.', ''))
                         ->setMtoValorVenta(number_format($subtotal_producto, 2, '.', ''))
                         ->setMtoBaseIgv(number_format($subtotal_producto, 2, '.', ''))
                         ->setPorcentajeIgv($igv_venta_sel*100)
                         ->setIgv(number_format($igv_producto, 2, '.', ''))
                         ->setTipAfeIgv('10')
                         ->setTotalImpuestos(number_format($igv_producto, 2, '.', ''))
-                        ->setMtoPrecioUnitario(number_format($value['precio'], 2, '.', ''));
+                        ->setMtoPrecioUnitario(number_format($precio, 2, '.', ''));
                 }else{
-                    $item->setMtoValorUnitario(number_format($value['precio'], 2, '.', ''))
-                        ->setMtoValorVenta(number_format($value['precio']*$value['cantidad'], 2, '.', ''))
-                        ->setMtoBaseIgv(number_format($value['precio']*$value['cantidad'], 2, '.', ''))
+                    $item->setMtoValorUnitario(number_format($precio, 2, '.', ''))
+                        ->setMtoValorVenta(number_format($precio*$cantidad, 2, '.', ''))
+                        ->setMtoBaseIgv(number_format($precio*$cantidad, 2, '.', ''))
                         ->setPorcentajeIgv(0)
                         ->setIgv(0)
                         ->setTipAfeIgv('20')
                         ->setTotalImpuestos(0)
-                        ->setMtoPrecioUnitario(number_format($value['precio'], 2, '.', ''));
+                        ->setMtoPrecioUnitario(number_format($precio, 2, '.', ''));
                 }
                 $array_items[] = $item;
             }

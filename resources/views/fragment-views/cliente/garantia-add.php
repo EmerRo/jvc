@@ -1,4 +1,5 @@
 <!-- resources\views\fragment-views\cliente\garantia-add.php -->
+
 <div id="content-vue-modals" class="container-fluid">
     <div class="warranty-container bg-white py-3" style="max-width: 1000px; margin: 0 auto;">
         <div class="d-flex justify-content-between align-items-center px-4 mb-3">
@@ -27,9 +28,20 @@
                 </div>
                 <div class="p-3">
                     <div class="row">
+                        <div class="col-md-6" v-if="!clienteDesdeNumeroSerie">
+                            <label for="cliente_documento_garantia" class="form-label">(RUC o DNI)</label>
+                            <div class="input-group">
+                                <input v-model="garantia.cliente_documento" type="text" placeholder="Ingrese Documento"
+                                    class="form-control ui-autocomplete-input" name="cliente_documento_garantia"
+                                    id="cliente_documento_garantia" maxlength="11" autocomplete="off">
+                                <div class="input-group-append">
+                                    <button id="btn_buscar_cliente_garantia" class="btn bg-rojo text-white"
+                                        type="button"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-6 ">
-                            <label for="cliente" class="form-label">Nombre/Razón Social <span
-                                    class="text-danger">*</span></label>
+                            <label for="cliente" class="form-label">Cliente</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fa fa-building"></i></span>
                                 <input v-model="garantia.cliente_nombre" type="text" placeholder="Nombre del cliente"
@@ -161,11 +173,13 @@
             data: {
                 garantia: {
                     cliente_nombre: '',
+                    cliente_documento: '',
                     guiaRemision: '',
                     fechaInicio: '',
                     fechaCaducidad: '',
                     equipos: []
-                }
+                },
+                clienteDesdeNumeroSerie: false
             },
             mounted() {
                 this.cargarDatosNumeroSerie();
@@ -182,7 +196,16 @@
                             success: (response) => {
                                 const data = JSON.parse(response);
                                 if (data.success) {
-                                    this.garantia.cliente_nombre = data.data.cliente_ruc_dni;
+                                    // Si hay cliente desde número de serie
+                                    if (data.data.cliente_ruc_dni && data.data.cliente_ruc_dni !== 'Sin Cliente') {
+                                        this.garantia.cliente_nombre = data.data.cliente_ruc_dni;
+                                        this.clienteDesdeNumeroSerie = true;
+                                    } else {
+                                        // No hay cliente, permitir búsqueda
+                                        this.clienteDesdeNumeroSerie = false;
+                                        this.inicializarBusquedaCliente();
+                                    }
+
                                     this.garantia.equipos = data.data.equipos;
 
                                     // Establecer fecha de inicio como la fecha actual
@@ -209,6 +232,65 @@
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
+                },
+                inicializarBusquedaCliente() {
+                    // Esperar a que Vue renderice el DOM
+                    this.$nextTick(() => {
+                        // Autocompletado para el campo de documento
+                        $("#cliente_documento_garantia").autocomplete({
+                            source: _URL + "/ajs/buscar/cliente/datos",
+                            minLength: 2,
+                            select: (event, ui) => {
+                                event.preventDefault();
+                                this.garantia.cliente_nombre = ui.item.datos;
+                                this.garantia.cliente_documento = ui.item.documento;
+                                $("#cliente_documento_garantia").val(ui.item.documento);
+                            }
+                        });
+
+
+                                               // Búsqueda por botón usando prealerta
+                        $("#btn_buscar_cliente_garantia").click(() => {
+                            const docNum = this.garantia.cliente_documento.trim();
+                            const docLength = docNum.length;
+
+                            if (docLength === 8 || docLength === 11) {
+                                $.ajax({
+                                    url: _URL + "/ajs/prealerta/doc/cliente",
+                                    type: "POST",
+                                    data: { doc: docNum },
+                                    success: (resp) => {
+                                        // <CHANGE> Parsear la respuesta JSON antes de usarla
+                                        const data = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                                        
+                                        if (docLength === 8) {
+                                            // DNI - construir nombre completo
+                                            if (data.success) {
+                                                const nombreCompleto = data.nombres + ' ' +
+                                                    (data.apellidoPaterno ? data.apellidoPaterno : '') + ' ' +
+                                                    (data.apellidoMaterno ? data.apellidoMaterno : '');
+                                                this.garantia.cliente_nombre = nombreCompleto.trim();
+                                            } else {
+                                                Swal.fire("Advertencia", "Documento no encontrado", "warning");
+                                            }
+                                        } else if (docLength === 11) {
+                                            // RUC - usar razón social
+                                            if (data.razonSocial) {
+                                                this.garantia.cliente_nombre = data.razonSocial;
+                                            } else {
+                                                Swal.fire("Advertencia", "RUC no encontrado", "warning");
+                                            }
+                                        }
+                                    },
+                                    error: () => {
+                                        Swal.fire("Error", "Error al buscar cliente", "error");
+                                    }
+                                });
+                            } else {
+                                Swal.fire("Advertencia", "Documento: DNI es 8 dígitos y RUC 11 dígitos", "warning");
+                            }
+                        });
+                    });
                 }
             }
         });
@@ -236,14 +318,15 @@
                 return;
             }
 
-            const data = {
-                numero_serie_id: new URLSearchParams(window.location.search).get('id'),
-                guia_remision: app.garantia.guiaRemision || '',
-                fecha_inicio: app.garantia.fechaInicio,
-                fecha_caducidad: app.garantia.fechaCaducidad,
-                cliente_nombre: app.garantia.cliente_nombre,
-                equipos: JSON.stringify(app.garantia.equipos)
-            };
+           const data = {
+    numero_serie_id: new URLSearchParams(window.location.search).get('id'),
+    guia_remision: app.garantia.guiaRemision || '',
+    fecha_inicio: app.garantia.fechaInicio,
+    fecha_caducidad: app.garantia.fechaCaducidad,
+    cliente_nombre: app.garantia.cliente_nombre,
+    cliente_documento: app.garantia.cliente_documento || '', // <CHANGE> Agregar cliente_documento
+    equipos: JSON.stringify(app.garantia.equipos)
+};
 
             // Depuración
             console.log("Datos a enviar:", data);

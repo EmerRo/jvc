@@ -1,4 +1,4 @@
-<!-- resources/views/fragment-views/cliente/documentos/componentes/archivos-internos.php -->
+<!-- resources/views/fragment-views/cliente/documentos/componentes/otros-archivos.php -->
 <style>
     /* Estilos generales */
     .image-preview {
@@ -83,11 +83,11 @@
 
 <!-- Botones de acción -->
 <div class="mb-4">
-    <button class="btn border-rojo" id="btn-lista-archivos-internos">
-        <i class="fas fa-list me-2"></i>Lista de Archivos Internos
+    <button class="btn border-rojo" id="btn-lista-otros-archivos">
+        <i class="fas fa-list me-2"></i>Lista de Otros Archivos
     </button>
-    <button class="btn bg-rojo text-white" id="btn-nuevo-archivo-interno">
-        <i class="fas fa-plus me-2"></i>Nuevo Archivo Interno
+    <button class="btn bg-rojo text-white" id="btn-nuevo-otro-archivo">
+        <i class="fas fa-plus me-2"></i>Nuevo Otro Archivo
     </button>
     <button class="btn border-rojo" id="btn-editar-plantilla">
         <i class="fas fa-edit me-2"></i>Editar Plantilla
@@ -95,63 +95,73 @@
     <button class="btn border-rojo" id="btn-gestionar-membretes">
         <i class="fas fa-image me-2"></i>Gestionar Membretes
     </button>
+    <button class="btn bg-rojo hover:bg-white" onclick="window.otroArchivoModuleInstance.reiniciar()">
+        <i class="fas fa-sync me-2"></i>Reiniciar Módulo
+    </button>
 </div>
 
-<!-- Vista de lista de archivos internos -->
-<div id="vista-lista-archivos-internos" class="vista active">
+<!-- Vista de lista de otros archivos -->
+<div id="vista-lista-otros-archivos" class="vista active">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Archivos Internos</h3>
+        <h3>Otros Archivos</h3>
         <div class="input-group" style="max-width: 300px;">
-            <input type="text" class="form-control border-rojo" id="buscar-archivo-interno" placeholder="Buscar archivos internos...">
+            <input type="text" class="form-control border-rojo" id="buscar-otro-archivo" placeholder="Buscar otros archivos...">
             <button class="btn bg-rojo text-white" type="button">
                 <i class="fas fa-search"></i>
             </button>
         </div>
     </div>
 
-    <div id="lista-archivos-internos-container">
-        <!-- Aquí se cargarán dinámicamente los archivos internos -->
+    <div id="lista-otros-archivos-container">
+        <!-- Aquí se cargarán dinámicamente los otros archivos -->
         <div class="text-center py-5">
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-2 text-muted">Cargando archivos internos...</p>
+            <p class="mt-2 text-muted">Cargando otros archivos...</p>
         </div>
     </div>
 </div>
 
-<!-- Vista de formulario de nuevo/editar archivo interno -->
-<div id="vista-editar-archivo-interno" class="vista">
+<!-- Vista de formulario de nuevo/editar otro archivo -->
+<div id="vista-editar-otro-archivo" class="vista">
     <div class="form-header">
-        <h3 id="titulo-pagina-archivo-interno" class="m-0">Nuevo Archivo Interno</h3>
-        <p class="m-0">Complete la información del archivo interno</p>
+        <h3 id="titulo-pagina-otro-archivo" class="m-0">Nuevo Otro Archivo</h3>
+        <p class="m-0">Complete la información del otro archivo</p>
     </div>
 
-    <form id="formArchivoInterno" enctype="multipart/form-data">
-        <input type="hidden" id="id_archivo_interno" name="id">
-        <input type="hidden" id="contenido_archivo_interno" name="contenido">
+    <form id="formOtroArchivo" enctype="multipart/form-data">
+        <input type="hidden" id="id_otro_archivo" name="id">
+        <input type="hidden" id="contenido_otro_archivo" name="contenido">
         <input type="hidden" id="header_image_data" name="header_image">
         <input type="hidden" id="footer_image_data" name="footer_image">
 
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="titulo_archivo_interno" class="form-label">Título del Archivo Interno</label>
-                    <input type="text" class="form-control" id="titulo_archivo_interno" name="titulo" required>
+                    <label for="titulo_otro_archivo" class="form-label">Título del Otro Archivo</label>
+                    <input type="text" class="form-control" id="titulo_otro_archivo" name="titulo" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="tipo_archivo_interno" class="form-label">Tipo de Archivo Interno</label>
+                    <label for="tipo_otro_archivo" class="form-label">Tipo de Otro Archivo</label>
                     <div class="input-group">
-                        <select class="form-select" id="tipo_archivo_interno" name="tipo" required>
+                        <select class="form-select" id="tipo_otro_archivo" name="tipo" required>
                             <option value="">Seleccione un tipo</option>
                         </select>
-                        <button class="btn bg-rojo text-white" type="button" id="btn-gestionar-tipos-archivo-interno"
-                            onclick="abrirModalTiposArchivosInternos()">
+                        <button class="btn bg-rojo text-white" type="button" id="btn-gestionar-tipos-otro-archivo"
+                            onclick="abrirModalTiposOtrosArchivos()">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
-                    <div class="form-text text-gris small">Este campo se usará para categorizar los archivos internos.</div>
+                    <div class="form-text text-gris small">Este campo se usará para categorizar los otros archivos.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="motivo_otro_archivo" class="form-label">Motivo o Descripción</label>
+                    <textarea class="form-control" id="motivo_otro_archivo" name="motivo" rows="3"
+                        placeholder="Describe el motivo o propósito de este archivo..."></textarea>
+                    <div class="form-text text-gris small">Campo opcional para describir el propósito del archivo.</div>
                 </div>
             </div>
 
@@ -177,31 +187,31 @@
             </div>
         </div>
         <div class="mb-3">
-            <label for="editor-container-archivo-interno" class="form-label">Contenido del Archivo Interno</label>
-            <div id="editor-container-archivo-interno" class="editor-container"></div>
+            <label for="editor-container-otro-archivo" class="form-label">Contenido del Otro Archivo</label>
+            <div id="editor-container-otro-archivo" class="editor-container"></div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn btn-secondary" id="btn-cancel-archivo-interno">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-otro-archivo">
                 <i class="fas fa-times me-1"></i> Cancelar
             </button>
-            <button type="button" class="btn border-rojo" id="btn-preview-archivo-interno">
+            <button type="button" class="btn border-rojo" id="btn-preview-otro-archivo">
                 <i class="fas fa-eye me-1"></i> Vista Previa
             </button>
-            <button type="button" class="btn btn-rojo" id="btn-save-archivo-interno">
+            <button type="button" class="btn btn-rojo" id="btn-save-otro-archivo">
                 <i class="fas fa-save me-1"></i> Guardar
             </button>
         </div>
     </form>
 </div>
 
-<!-- Modal para Gestionar Tipos de Archivo Interno -->
-<div class="modal fade" id="gestionarTiposArchivoInternoModal" tabindex="-1" aria-labelledby="gestionarTiposArchivoInternoModalLabel"
-    aria-hidden="true">
+<!-- Modal para Gestionar Tipos de Otro Archivo -->
+<div class="modal fade" id="gestionarTiposOtroArchivoModal" tabindex="-1"
+    aria-labelledby="gestionarTiposOtroArchivoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="gestionarTiposArchivoInternoModalLabel">Gestionar Tipos de Archivo Interno</h5>
+                <h5 class="modal-title" id="gestionarTiposOtroArchivoModalLabel">Gestionar Tipos de Otro Archivo</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
@@ -214,13 +224,14 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-8">
-                                <label for="nuevo-tipo-archivo-interno-nombre" class="form-label">Nombre del Tipo <span
+                                <label for="nuevo-tipo-otro-archivo-nombre" class="form-label">Nombre del Tipo <span
                                         class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nuevo-tipo-archivo-interno-nombre"
+                                <input type="text" class="form-control" id="nuevo-tipo-otro-archivo-nombre"
                                     placeholder="Ej: COMERCIAL, FORMAL, NOTIFICACIÓN">
                             </div>
                             <div class="col-md-4 d-flex align-items-end">
-                                <button type="button" class="btn bg-rojo text-white w-100" onclick="agregarTipoArchivoInterno()">
+                                <button type="button" class="btn bg-rojo text-white w-100"
+                                    onclick="agregarTipoOtroArchivo()">
                                     <i class="fas fa-plus me-2"></i>Agregar
                                 </button>
                             </div>
@@ -242,7 +253,7 @@
                                         <th width="120">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="lista-tipos-archivo-interno">
+                                <tbody id="lista-tipos-otro-archivo">
                                     <tr>
                                         <td colspan="2" class="text-center">
                                             <div class="spinner-border spinner-border-sm text-rojo" role="status">
@@ -264,26 +275,26 @@
 </div>
 
 <!-- Modal para Editar Tipo -->
-<div class="modal fade" id="editarTipoArchivoInternoModal" tabindex="-1" aria-labelledby="editarTipoArchivoInternoModalLabel"
+<div class="modal fade" id="editarTipoOtroArchivoModal" tabindex="-1" aria-labelledby="editarTipoOtroArchivoModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="editarTipoArchivoInternoModalLabel">Editar Tipo de Archivo Interno</h5>
+                <h5 class="modal-title" id="editarTipoOtroArchivoModalLabel">Editar Tipo de Otro Archivo</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="editar-tipo-archivo-interno-id">
+                <input type="hidden" id="editar-tipo-otro-archivo-id">
                 <div class="mb-3">
-                    <label for="editar-tipo-archivo-interno-nombre" class="form-label">Nombre del Tipo <span
+                    <label for="editar-tipo-otro-archivo-nombre" class="form-label">Nombre del Tipo <span
                             class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="editar-tipo-archivo-interno-nombre">
+                    <input type="text" class="form-control" id="editar-tipo-otro-archivo-nombre">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoArchivoInternoEditado()">Guardar
+                <button type="button" class="btn bg-rojo text-white" onclick="guardarTipoOtroArchivoEditado()">Guardar
                     Cambios</button>
             </div>
         </div>
@@ -291,16 +302,16 @@
 </div>
 
 <!-- Modal de Vista Previa -->
-<div class="modal fade" id="previewArchivoInternoModal" tabindex="-1" aria-labelledby="previewArchivoInternoModalLabel"
+<div class="modal fade" id="previewOtroArchivoModal" tabindex="-1" aria-labelledby="previewOtroArchivoModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="previewArchivoInternoModalLabel">Vista Previa del Archivo Interno</h5>
+                <h5 class="modal-title" id="previewOtroArchivoModalLabel">Vista Previa del Otro Archivo</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <iframe id="preview-frame-archivo-interno" style="width: 100%; height: 600px; border: none;"></iframe>
+                <iframe id="preview-frame-otro-archivo" style="width: 100%; height: 600px; border: none;"></iframe>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -313,20 +324,20 @@
 </div>
 
 <!-- Modal de Confirmación para Eliminar -->
-<div class="modal fade" id="confirmarEliminarArchivoInternoModal" tabindex="-1"
-    aria-labelledby="confirmarEliminarArchivoInternoModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmarEliminarOtroArchivoModal" tabindex="-1"
+    aria-labelledby="confirmarEliminarOtroArchivoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmarEliminarArchivoInternoModalLabel">Confirmar Eliminación</h5>
+                <h5 class="modal-title" id="confirmarEliminarOtroArchivoModalLabel">Confirmar Eliminación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                ¿Está seguro de que desea eliminar este archivo interno? Esta acción no se puede deshacer.
+                ¿Está seguro de que desea eliminar este otro archivo? Esta acción no se puede deshacer.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-archivo-interno">Eliminar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-otro-archivo">Eliminar</button>
             </div>
         </div>
     </div>
@@ -347,7 +358,7 @@
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Información:</strong> Las imágenes configuradas aquí se aplicarán automáticamente a todos
-                    los archivos internos y plantillas.
+                    los otros archivos y plantillas.
                 </div>
 
                 <form id="formMembretes" enctype="multipart/form-data">
@@ -415,17 +426,17 @@
 </div>
 
 <!-- Modal de Edición de Plantilla -->
-<div class="modal fade" id="editarPlantillaArchivoInternoModal" tabindex="-1" aria-labelledby="editarPlantillaArchivoInternoModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="editarPlantillaOtroArchivoModal" tabindex="-1"
+    aria-labelledby="editarPlantillaOtroArchivoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="editarPlantillaArchivoInternoModalLabel">Editar Plantilla de Archivo Interno</h5>
+                <h5 class="modal-title" id="editarPlantillaOtroArchivoModalLabel">Editar Plantilla de Otro Archivo</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formPlantillaArchivoInterno" enctype="multipart/form-data">
+                <form id="formPlantillaOtroArchivo" enctype="multipart/form-data">
                     <input type="hidden" id="id_plantilla" name="id">
                     <input type="hidden" id="contenido_plantilla" name="contenido">
                     <input type="hidden" id="plantilla_header_image_data" name="header_image">
@@ -459,66 +470,67 @@
 <script src="<?= URL::to('public/js/modulo-documentos/utils.js') ?>?v=<?= time() ?>"></script>
 
 <script>
-    // Configuración específica para archivos internos
-    const archivosInternosConfig = {
-        tipo: 'archivo-interno',
+    // Configuración específica para otros archivos
+    const otrosArchivosConfig = {
+        tipo: 'otroArchivo',
         urls: {
-            render: _URL + "/ajs/archivo-interno/render",
-            insertar: _URL + "/ajs/archivo-interno/insertar",
-            editar: _URL + "/ajs/archivo-interno/editar",
-            borrar: _URL + "/ajs/archivo-interno/borrar",
-            getOne: _URL + "/ajs/archivo-interno/getOne",
-            generarPDF: _URL + "/ajs/archivo-interno/generarPDF",
-            vistaPrevia: _URL + "/ajs/archivo-interno/vista-previa",
-            obtenerTemplate: _URL + "/ajs/archivo-interno/obtener-template",
-            guardarTemplate: _URL + "/ajs/archivo-interno/guardar-template",
-            obtenerMembretes: _URL + "/ajs/archivo-interno/obtener-membretes",
-            guardarMembretes: _URL + "/ajs/archivo-interno/guardar-membretes",
-            obtenerTipos: _URL + "/ajs/archivo-interno/obtener-tipos-archivos"
+            render: _URL + "/ajs/otroArchivo/render",
+            insertar: _URL + "/ajs/otroArchivo/insertar",
+            editar: _URL + "/ajs/otroArchivo/editar",
+            borrar: _URL + "/ajs/otroArchivo/borrar",
+            getOne: _URL + "/ajs/otroArchivo/getOne",
+            generarPDF: _URL + "/ajs/otroArchivo/generarPDF",
+            vistaPrevia: _URL + "/ajs/otroArchivo/vista-previa",
+            obtenerTemplate: _URL + "/ajs/otroArchivo/obtener-template",
+            guardarTemplate: _URL + "/ajs/otroArchivo/guardar-template",
+            obtenerMembretes: _URL + "/ajs/otroArchivo/obtener-membretes",
+            guardarMembretes: _URL + "/ajs/otroArchivo/guardar-membretes",
+            obtenerTipos: _URL + "/ajs/otroArchivo/obtener-tipos-otroArchivos"
         },
         elementos: {
             // Botones principales
-            btnLista: "#btn-lista-archivos-internos",
-            btnNuevo: "#btn-nuevo-archivo-interno",
+            btnLista: "#btn-lista-otros-archivos",
+            btnNuevo: "#btn-nuevo-otro-archivo",
             btnEditarPlantilla: "#btn-editar-plantilla",
             btnGestionarMembretes: "#btn-gestionar-membretes",
             
             // Vistas
-            vistaLista: "#vista-lista-archivos-internos",
-            vistaFormulario: "#vista-editar-archivo-interno",
-            contenedorLista: "#lista-archivos-internos-container",
+            vistaLista: "#vista-lista-otros-archivos",
+            vistaFormulario: "#vista-editar-otro-archivo",
+            contenedorLista: "#lista-otros-archivos-container",
             
             // Formulario principal
-            formulario: "#formArchivoInterno",
-            idDocumento: "#id_archivo_interno",
-            tituloDocumento: "#titulo_archivo_interno",
-            tipoDocumento: "#tipo_archivo_interno",
-            contenidoDocumento: "#contenido_archivo_interno",
+            formulario: "#formOtroArchivo",
+            idDocumento: "#id_otro_archivo",
+            tituloDocumento: "#titulo_otro_archivo",
+            tipoDocumento: "#tipo_otro_archivo",
+            contenidoDocumento: "#contenido_otro_archivo",
             clienteId: "#cliente_id",
-            tituloPagina: "#titulo-pagina-archivo-interno",
+            tituloPagina: "#titulo-pagina-otro-archivo",
+            motivoDocumento: "#motivo_otro_archivo",
             
             // Editor
-            editorPrincipal: "#editor-container-archivo-interno",
+            editorPrincipal: "#editor-container-otro-archivo",
             
             // Búsqueda
-            inputBuscar: "#buscar-archivo-interno",
+            inputBuscar: "#buscar-otro-archivo",
             
             // Botones de formulario
-            btnCancelar: "#btn-cancel-archivo-interno",
-            btnGuardar: "#btn-save-archivo-interno",
-            btnPreview: "#btn-preview-archivo-interno",
+            btnCancelar: "#btn-cancel-otro-archivo",
+            btnGuardar: "#btn-save-otro-archivo",
+            btnPreview: "#btn-preview-otro-archivo",
             
             // Modales
-            modalEliminar: "#confirmarEliminarArchivoInternoModal",
-            btnConfirmarEliminar: "#btn-confirmar-eliminar-archivo-interno",
-            modalPreview: "#previewArchivoInternoModal",
-            previewFrame: "#preview-frame-archivo-interno",
+            modalEliminar: "#confirmarEliminarOtroArchivoModal",
+            btnConfirmarEliminar: "#btn-confirmar-eliminar-otro-archivo",
+            modalPreview: "#previewOtroArchivoModal",
+            previewFrame: "#preview-frame-otro-archivo",
             btnDownloadPdf: "#btn-download-pdf",
             
             // Plantilla
-            modalPlantilla: "#editarPlantillaArchivoInternoModal",
+            modalPlantilla: "#editarPlantillaOtroArchivoModal",
             editorPlantilla: "#editor-container-plantilla",
-            formularioPlantilla: "#formPlantillaArchivoInterno",
+            formularioPlantilla: "#formPlantillaOtroArchivo",
             btnGuardarPlantilla: "#btn-save-plantilla",
             btnPreviewPlantilla: "#btn-preview-plantilla",
             
@@ -534,33 +546,33 @@
         }
     };
 
-    // Inicializar el módulo de archivos internos
-    let archivosInternosUtils;
+    // Inicializar el módulo de otros archivos
+    let otrosArchivosUtils;
 
     $(document).ready(function() {
-        archivosInternosUtils = new DocumentosUtils(archivosInternosConfig);
+        otrosArchivosUtils = new DocumentosUtils(otrosArchivosConfig);
         
         // Exponer funciones globales para compatibilidad
-        window.recargarArchivosInternos = () => archivosInternosUtils.cargarDocumentos();
-        window.editarArchivoInterno = (id) => archivosInternosUtils.editarDocumento(id);
-        window.eliminarArchivoInterno = (id) => archivosInternosUtils.eliminarDocumento(id);
-        window.editarPlantillaArchivoInterno = () => archivosInternosUtils.editarPlantilla();
-        window.mostrarFormularioNuevoArchivoInterno = () => archivosInternosUtils.mostrarFormularioNuevo();
-        window.mostrarVistaListaArchivosInternos = () => archivosInternosUtils.mostrarVistaLista();
-        window.mostrarVistaPreviewPlantilla = () => archivosInternosUtils.mostrarVistaPreviewPlantilla();
-        window.mostrarVistaPreviewMembretes = () => archivosInternosUtils.mostrarVistaPreviewMembretes();
-        window.gestionarMembretes = () => archivosInternosUtils.gestionarMembretes();
+        window.recargarOtrosArchivos = () => otrosArchivosUtils.cargarDocumentos();
+        window.editarOtroArchivo = (id) => otrosArchivosUtils.editarDocumento(id);
+        window.eliminarOtroArchivo = (id) => otrosArchivosUtils.eliminarDocumento(id);
+        window.editarPlantillaOtroArchivo = () => otrosArchivosUtils.editarPlantilla();
+        window.mostrarFormularioNuevoOtroArchivo = () => otrosArchivosUtils.mostrarFormularioNuevo();
+        window.mostrarVistaListaOtrosArchivos = () => otrosArchivosUtils.mostrarVistaLista();
+        window.mostrarVistaPreviewPlantilla = () => otrosArchivosUtils.mostrarVistaPreviewPlantilla();
+        window.mostrarVistaPreviewMembretes = () => otrosArchivosUtils.mostrarVistaPreviewMembretes();
+        window.gestionarMembretes = () => otrosArchivosUtils.gestionarMembretes();
     });
 
-    // Funciones específicas para tipos de archivos internos
-    function abrirModalTiposArchivosInternos() {
-        cargarTiposArchivosInternosModal();
-        $('#gestionarTiposArchivoInternoModal').modal('show');
+    // Funciones específicas para tipos de otros archivos
+    function abrirModalTiposOtrosArchivos() {
+        cargarTiposOtrosArchivosModal();
+        $('#gestionarTiposOtroArchivoModal').modal('show');
     }
 
-    function cargarTiposArchivosInternosModal() {
+    function cargarTiposOtrosArchivosModal() {
         $.ajax({
-            url: _URL + "/ajs/archivo-interno/obtener-tipos-archivos",
+            url: _URL + "/ajs/otroArchivo/obtener-tipos-otroArchivos",
             method: "GET",
             dataType: 'json',
             success: function (data) {
@@ -571,17 +583,17 @@
                             <tr>
                                 <td>${tipo.nombre}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTipoArchivoInterno(${tipo.id}, '${tipo.nombre}')">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTipoOtroArchivo(${tipo.id}, '${tipo.nombre}')">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarTipoArchivoInterno(${tipo.id}, '${tipo.nombre}')">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarTipoOtroArchivo(${tipo.id}, '${tipo.nombre}')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
                         `;
                     });
-                    $("#lista-tipos-archivo-interno").html(html);
+                    $("#lista-tipos-otro-archivo").html(html);
                 }
             },
             error: function (xhr, status, error) {
@@ -590,8 +602,8 @@
         });
     }
 
-    function agregarTipoArchivoInterno() {
-        const nombre = $("#nuevo-tipo-archivo-interno-nombre").val().trim();
+    function agregarTipoOtroArchivo() {
+        const nombre = $("#nuevo-tipo-otro-archivo-nombre").val().trim();
 
         if (!nombre) {
             Swal.fire('Error', 'El nombre es obligatorio', 'error');
@@ -599,16 +611,16 @@
         }
 
         $.ajax({
-            url: _URL + "/ajs/archivo-interno/insertar-tipo-archivo",
+            url: _URL + "/ajs/otroArchivo/insertar-tipo-archivo",
             method: "POST",
             data: { nombre: nombre },
             dataType: 'json',
             success: function (data) {
                 if (data.success) {
                     Swal.fire('Éxito', data.msg, 'success');
-                    $("#nuevo-tipo-archivo-interno-nombre").val('');
-                    cargarTiposArchivosInternosModal();
-                    archivosInternosUtils.cargarTiposSelect();
+                    $("#nuevo-tipo-otro-archivo-nombre").val('');
+                    cargarTiposOtrosArchivosModal();
+                    otrosArchivosUtils.cargarTiposSelect();
                 } else {
                     Swal.fire('Error', data.msg, 'error');
                 }
@@ -619,15 +631,15 @@
         });
     }
 
-    function editarTipoArchivoInterno(id, nombre) {
-        $("#editar-tipo-archivo-interno-id").val(id);
-        $("#editar-tipo-archivo-interno-nombre").val(nombre);
-        $("#editarTipoArchivoInternoModal").modal('show');
+    function editarTipoOtroArchivo(id, nombre) {
+        $("#editar-tipo-otro-archivo-id").val(id);
+        $("#editar-tipo-otro-archivo-nombre").val(nombre);
+        $("#editarTipoOtroArchivoModal").modal('show');
     }
 
-    function guardarTipoArchivoInternoEditado() {
-        const id = $("#editar-tipo-archivo-interno-id").val();
-        const nombre = $("#editar-tipo-archivo-interno-nombre").val().trim();
+    function guardarTipoOtroArchivoEditado() {
+        const id = $("#editar-tipo-otro-archivo-id").val();
+        const nombre = $("#editar-tipo-otro-archivo-nombre").val().trim();
 
         if (!nombre) {
             Swal.fire('Error', 'El nombre es obligatorio', 'error');
@@ -635,16 +647,16 @@
         }
 
         $.ajax({
-            url: _URL + "/ajs/archivo-interno/editar-tipo-archivo",
+            url: _URL + "/ajs/otroArchivo/editar-tipo-archivo",
             method: "POST",
             data: { id: id, nombre: nombre },
             dataType: 'json',
             success: function (data) {
                 if (data.success) {
                     Swal.fire('Éxito', data.msg, 'success');
-                    $("#editarTipoArchivoInternoModal").modal('hide');
-                    cargarTiposArchivosInternosModal();
-                    archivosInternosUtils.cargarTiposSelect();
+                    $("#editarTipoOtroArchivoModal").modal('hide');
+                    cargarTiposOtrosArchivosModal();
+                    otrosArchivosUtils.cargarTiposSelect();
                 } else {
                     Swal.fire('Error', data.msg, 'error');
                 }
@@ -655,7 +667,7 @@
         });
     }
 
-    function eliminarTipoArchivoInterno(id, nombre) {
+    function eliminarTipoOtroArchivo(id, nombre) {
         Swal.fire({
             title: '¿Está seguro?',
             text: `¿Desea eliminar el tipo "${nombre}"?`,
@@ -668,15 +680,15 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: _URL + "/ajs/archivo-interno/eliminar-tipo-archivo",
+                    url: _URL + "/ajs/otroArchivo/eliminar-tipo-archivo",
                     method: "POST",
                     data: { id: id },
                     dataType: 'json',
                     success: function (data) {
                         if (data.success) {
                             Swal.fire('Eliminado', data.msg, 'success');
-                            cargarTiposArchivosInternosModal();
-                            archivosInternosUtils.cargarTiposSelect();
+                            cargarTiposOtrosArchivosModal();
+                            otrosArchivosUtils.cargarTiposSelect();
                         } else {
                             Swal.fire('Error', data.msg, 'error');
                         }
@@ -688,4 +700,115 @@
             }
         });
     }
+
+    // Funciones para WhatsApp
+    function compartirWhatsAppOtroArchivo(id) {
+        console.log('Compartiendo otro archivo por WhatsApp:', id);
+        window.otroArchivoActualWhatsApp = id;
+        $('#compartirWhatsAppOtroArchivoModal').modal('show');
+    }
+
+    function enviarWhatsAppOtroArchivo() {
+        const numero = $('#numeroWhatsAppOtroArchivo').val().trim();
+        const mensaje = $('#mensajeWhatsAppOtroArchivo').val().trim();
+
+        if (!numero) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor ingrese un número de WhatsApp',
+                icon: 'error'
+            });
+            return;
+        }
+
+        if (!numero.match(/^[0-9]{9}$/)) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El número debe tener exactamente 9 dígitos',
+                icon: 'error'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Compartiendo...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: _URL + '/ajs/otroArchivo/compartir-whatsapp',
+            method: 'POST',
+            data: {
+                id_otroArchivo: window.otroArchivoActualWhatsApp,
+                numero: numero,
+                mensaje: mensaje
+            },
+            success: function(response) {
+                if (response.res) {
+                    $('#compartirWhatsAppOtroArchivoModal').modal('hide');
+                    Swal.close();
+                    
+                    // Abrir WhatsApp en nueva ventana
+                    window.open(response.whatsapp_url, '_blank');
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error al compartir por WhatsApp: ' + (response.error || 'Error desconocido'),
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al compartir por WhatsApp. Intente nuevamente.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    // Exportar funciones globalmente
+    window.compartirWhatsAppOtroArchivo = compartirWhatsAppOtroArchivo;
+    window.enviarWhatsAppOtroArchivo = enviarWhatsAppOtroArchivo;
 </script>
+
+<!-- Modal para compartir por WhatsApp -->
+<div class="modal fade" id="compartirWhatsAppOtroArchivoModal" tabindex="-1" aria-labelledby="compartirWhatsAppOtroArchivoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compartirWhatsAppOtroArchivoModalLabel">
+                    <i class="fab fa-whatsapp text-success me-2"></i>Compartir Otro Archivo por WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="numeroWhatsAppOtroArchivo" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Número de WhatsApp
+                    </label>
+                    <input type="text" class="form-control" id="numeroWhatsAppOtroArchivo" 
+                           placeholder="Ingrese el número sin +51 (ej: 999888777)" maxlength="9">
+                </div>
+                <div class="mb-3">
+                    <label for="mensajeWhatsAppOtroArchivo" class="form-label">
+                        <i class="fas fa-comment me-1"></i>Mensaje adicional (opcional)
+                    </label>
+                    <textarea class="form-control" id="mensajeWhatsAppOtroArchivo" rows="3" 
+                              placeholder="Mensaje adicional que desee agregar..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="enviarWhatsAppOtroArchivo()">
+                    <i class="fab fa-whatsapp me-1"></i>Compartir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

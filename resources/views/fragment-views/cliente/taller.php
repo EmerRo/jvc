@@ -61,37 +61,128 @@ if (isset($_SESSION['id_rol'])) {
   #modalEditar .row {
     margin-bottom: 0.25rem;
   }
+
+  /* Estilos para el menú de acciones */
+  .action-menu {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    margin: 0 auto;
+  }
+
+  .action-button {
+    background: none;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+  }
+
+  .action-button:hover {
+    color: #4f46e5;
+    background-color: #f3f4f6;
+  }
+
+  .dropdown-actions {
+    position: fixed;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    min-width: 180px;
+    display: none;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+  }
+
+  /* Posicionamiento dinámico controlado por JavaScript */
+
+  .dropdown-actions a {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .dropdown-actions a:hover {
+    background-color: #f3f4f6;
+  }
+
+  .dropdown-actions i {
+    width: 16px;
+  }
+
+  .dropdown-actions .text-danger:hover {
+    background-color: #fee2e2;
+  }
+
+  .dropdown-actions .divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+  }
+
+  /* Muestra el menú cuando tiene la clase show */
+  .action-menu.show .dropdown-actions {
+    display: block;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .dropdown-actions {
+      min-width: 160px;
+      max-width: calc(100vw - 20px);
+    }
+  }
 </style>
 <div class="page-title-box" style="padding: 12px 0;">
   <div class="row align-items-center">
-    <div class="col-md-12">
+    <div class="col-md-10">
       <h6 class="page-title text-center">REGISTRO DE ORDEN DE TRABAJO Y SERVICIO</h6>
+    </div>
+    <div class="col-md-2 text-end">
+      <!-- Espacio para mantener el layout -->
     </div>
   </div>
 </div>
 
 <div class="row">
   <div class="col-12">
-    <div id="conte-vue-modals">
-      <div class="card-body">
-        <!-- Botón para abrir el modal de reportes -->
-        <div class="mb-3 d-flex justify-content-end">
-          <button type="button" class="btn bg-rojo text-white" data-bs-toggle="modal"
-            data-bs-target="#modalReportesInventario">
-            <i class="fas fa-download"></i> Descargar Reportes de Inventario
-          </button>
-        </div>
+    <div class="card border-0" style="border-radius:12px;">
+      <div class="card-title-desc text-end" style="padding: 20px 10px 0 0;">
+        <button type="button" class="btn bg-rojo text-white" data-bs-toggle="modal"
+          data-bs-target="#modalReportesInventario">
+          <i class="fas fa-download me-1"></i>Reportes de Inventario
+        </button>
+      </div>
+      <div id="conte-vue-modals">
+        <div class="card-body p-3">
 
-        <!-- Modal de Reportes de Inventario -->
-        <div class="modal fade" id="modalReportesInventario" tabindex="-1"
-          aria-labelledby="modalReportesInventarioLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalReportesInventarioLabel">Reportes de Inventario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
+          <!-- Modal de Reportes de Inventario -->
+          <div class="modal fade" id="modalReportesInventario" tabindex="-1"
+            aria-labelledby="modalReportesInventarioLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content border-0 ">
+                <div class="modal-header py-2 bg-rojo text-white">
+                  <h5 class="modal-title" id="modalReportesInventarioLabel">
+                    <i class="fas fa-download me-1"></i>Reportes de Inventario
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
                 <div class="mb-3">
                   <label for="reporteTipoOrden" class="form-label">Tipo de Orden:</label>
                   <select id="reporteTipoOrden" class="form-select">
@@ -136,67 +227,69 @@ if (isset($_SESSION['id_rol'])) {
           </div>
         </div>
 
-        <div class="card-title-desc">
+          <div class="mb-3 d-flex align-items-center" style="width: fit-content;">
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted">Filtrar</span>
+              <i class="fas fa-filter text-muted"></i>
+              <select id="filtroOrigen" class="form-select form-select-sm" style="width: auto; min-width: 150px;">
+                <option value="">Seleccionar</option>
+                <option value="ORD TRABAJO">Orden de Trabajo</option>
+                <option value="ORD SERVICIO">Orden de Servicio</option>
+              </select>
+            </div>
+          </div>
+
           <div class="table-responsive">
-            <div class="mb-3 d-flex align-items-center" style="width: fit-content;">
-              <div class="d-flex align-items-center gap-2">
-                <span class="text-muted">Filtrar</span>
-                <i class="fas fa-filter text-muted"></i>
-                <select id="filtroOrigen" class="form-select form-select-sm" style="width: auto; min-width: 150px;">
-                  <option value="">Seleccionar</option>
-                  <option value="ORD TRABAJO">Orden de Trabajo</option>
-                  <option value="ORD SERVICIO">Orden de Servicio</option>
-                </select>
-              </div>
-            </div>
-            <div class="bg-white p-3 rounded shadow-sm">
-              <table id="tabla_ordenes"
-                class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer">
-                <thead class="table-light">
-                  <tr>
-                    <th>Item</th>
-                    <th>Cliente/Razón Social</th>
-                    <th>Documento</th>
-                    <th>Técnico</th>
-                    <th>Fecha De Ingreso</th>
-                    <th>Origen</th>
-                    <th>Cotizar</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
+            <table id="tabla_ordenes"
+              class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer"
+              style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+              <thead class="table-light">
+                <tr>
+                  <th>Item</th>
+                  <th>Cliente/Razón Social</th>
+                  <th>Documento</th>
+                  <th>Técnico</th>
+                  <th>Fecha De Ingreso</th>
+                  <th>Origen</th>
+                  <th>Cotizar</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+            </table>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Modal para mostrar detalles -->
-    <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title" id="modalDetallesLabel">Detalles De La Orden</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Aquí se cargarán los detalles dinámicamente -->
-          </div>
-        </div>
+<!-- Modal para mostrar detalles -->
+<div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 ">
+      <div class="modal-header py-2 bg-rojo text-white">
+        <h5 class="modal-title" id="modalDetallesLabel">Detalles De La Orden</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <!-- Aquí se cargarán los detalles dinámicamente -->
       </div>
     </div>
-    <div id="client">
+  </div>
+</div>
 
-      <!-- Modal Editar -->
-      <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-              <h5 class="modal-title" id="modalEditarLabel">Editar Registro</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form id="frmOrdenesEditar">
+<div id="client">
+
+  <!-- Modal Editar -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content border-0 ">
+        <div class="modal-header py-2 bg-rojo text-white">
+          <h5 class="modal-title" id="modalEditarLabel">Editar Registro</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3">
+          <form id="frmOrdenesEditar">
                 <input type="hidden" id="edit_id_orden" name="id_orden" v-model="editando.id">
                 <input type="hidden" id="edit_tipo_orden" name="tipo_orden" v-model="editando.tipo">
                 <div class="row">
@@ -289,21 +382,23 @@ if (isset($_SESSION['id_rol'])) {
                     v-model="editando.fecha_ingreso" required>
                 </div>
               </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" id="submitEditar" class="btn bg-rojo text-white"
-                @click="guardarEdicion">Actualizar</button>
-              <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+            <i class="fa fa-times me-1"></i>Cerrar
+          </button>
+          <button type="button" id="submitEditar" class="btn bg-rojo text-white" @click="guardarEdicion">
+            <i class="fa fa-save me-1"></i>Actualizar
+          </button>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
 
 <script>
-  let tabla_ordenes = null;
+  window.tabla_ordenes = null;
   $(document).ready(() => {
     const app = new Vue({
       el: "#client",
@@ -426,7 +521,7 @@ if (isset($_SESSION['id_rol'])) {
               try {
                 const response = typeof resp === "object" ? resp : JSON.parse(resp);
                 if (response && response.success) {
-                  tabla_ordenes.ajax.reload(null, false);
+                  window.tabla_ordenes.ajax.reload(null, false);
                   Swal.fire({
                     icon: "success",
                     title: "Éxito",
@@ -480,7 +575,7 @@ if (isset($_SESSION['id_rol'])) {
     let tallerFilterFunction = null;
     try {
       // DataTables initialization para vista unificada
-      tabla_ordenes = $("#tabla_ordenes").DataTable({
+      window.tabla_ordenes = $("#tabla_ordenes").DataTable({
         paging: true,
         bFilter: true,
         ordering: true,
@@ -517,7 +612,19 @@ if (isset($_SESSION['id_rol'])) {
           {
             data: null,
             class: "text-center",
-            render: (data, type, row, meta) => meta.row + 1,
+            render: (data, type, row, meta) => {
+              const numero = meta.row + 1;
+              // Verificar si este registro tiene notificación no leída
+              const tieneNotificacion = window.registrosConNotificacion &&
+                window.registrosConNotificacion.includes(row.id_original);
+
+              if (tieneNotificacion) {
+                return `<span class="registro-con-notificacion">
+                  <span class="punto-verde">🟢</span> ${numero}
+                </span>`;
+              }
+              return numero;
+            },
           },
           { data: "cliente_razon_social", class: "text-center" },
           { data: "cliente_ruc", class: "text-center" },
@@ -572,41 +679,39 @@ if (isset($_SESSION['id_rol'])) {
               }
 
               botonesHTML += `
-            <div class="btn-group">
-                <button type="button" class="btn bg-rojo text-white btn-sm dropdown-toggle" 
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-cog"></i> Acciones
+            <div class="action-menu">
+                <button type="button" class="action-button">
+                    <i class="fas fa-bars"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item btn-ver-detalles" href="javascript:void(0)" 
-                           data-id="${row.id_original}" data-tipo="${row.origen}">
+                <div class="dropdown-actions">
+                    <a class="btn-ver-detalles" href="javascript:void(0)"
+                       data-id="${row.id_original}" data-tipo="${row.origen}">
                         <i class="fa fa-eye text-info"></i> Ver detalles
-                    </a></li>
-                    <li><a class="dropdown-item btnEditar" href="javascript:void(0)" 
-                           data-id="${row.id_original}" data-tipo="${row.origen}">
+                    </a>
+                    <a class="btnEditar" href="javascript:void(0)"
+                       data-id="${row.id_original}" data-tipo="${row.origen}">
                         <i class="fa fa-edit text-warning"></i> Editar
-                    </a></li>`;
+                    </a>`;
 
               <?php if ($puedeEliminar): ?>
                 botonesHTML += `
-                    <li><a class="dropdown-item btnBorrar" href="javascript:void(0)" 
-                           data-id="${row.id_original}" data-tipo="${row.origen}">
+                    <a class="btnBorrar" href="javascript:void(0)"
+                       data-id="${row.id_original}" data-tipo="${row.origen}">
                         <i class="fa fa-trash text-danger"></i> Eliminar
-                    </a></li>`;
+                    </a>`;
               <?php endif; ?>
 
               botonesHTML += `
-                    <li><hr class="dropdown-divider"></li>
-                    <li><h6 class="dropdown-header">Reportes</h6></li>
-                    <li><a class="dropdown-item btn-reporte-pdf" href="javascript:void(0)" 
-                           data-id="${row.id_original}" data-tipo="${row.origen}">
+                    <div class="divider"></div>
+                    <a class="btn-reporte-pdf" href="javascript:void(0)"
+                       data-id="${row.id_original}" data-tipo="${row.origen}">
                         <i class="fas fa-file-pdf text-danger"></i> Reporte PDF
-                    </a></li>
-                    <li><a class="dropdown-item btn-reporte-excel" href="javascript:void(0)" 
-                           data-id="${row.id_original}" data-tipo="${row.origen}">
+                    </a>
+                    <a class="btn-reporte-excel" href="javascript:void(0)"
+                       data-id="${row.id_original}" data-tipo="${row.origen}">
                         <i class="fas fa-file-excel text-success"></i> Reporte Excel
-                    </a></li>
-                </ul>
+                    </a>
+                </div>
             </div>
           </div>`;
 
@@ -784,7 +889,7 @@ if (isset($_SESSION['id_rol'])) {
                   return;
                 }
 
-                tabla_ordenes.ajax.reload(null, false);
+                window.tabla_ordenes.ajax.reload(null, false);
                 Swal.fire("¡Buen trabajo!", "Registro Borrado Exitosamente", "success");
               },
               error: function (xhr, status, error) {
@@ -823,7 +928,7 @@ if (isset($_SESSION['id_rol'])) {
               const data = JSON.parse(response);
               if (data.success) {
                 Swal.fire("¡Completado!", "El trabajo ha sido marcado como culminado", "success");
-                tabla_ordenes.ajax.reload(null, false);
+                window.tabla_ordenes.ajax.reload(null, false);
               } else {
                 Swal.fire("Error", data.error || "No se pudo actualizar el estado del trabajo", "error");
               }
@@ -834,6 +939,60 @@ if (isset($_SESSION['id_rol'])) {
           });
         }
       });
+    });
+
+    // Manejo del menú de acciones personalizado
+    $(document).on("click", (e) => {
+      if (!$(e.target).closest(".action-menu").length) {
+        $(".action-menu").removeClass("show");
+      }
+    });
+
+    $(document).on("click", ".action-button", function (e) {
+      e.stopPropagation();
+      const button = $(this);
+      const menu = button.closest(".action-menu");
+      const dropdown = menu.find(".dropdown-actions");
+
+      // Cerrar otros menús
+      $(".action-menu").not(menu).removeClass("show");
+
+      if (menu.hasClass("show")) {
+        menu.removeClass("show");
+      } else {
+        // Calcular posición para position: fixed
+        const buttonOffset = button.offset();
+        const buttonHeight = button.outerHeight();
+        const buttonWidth = button.outerWidth();
+        const dropdownWidth = 180; // min-width definido en CSS
+
+        // Posición por defecto (debajo del botón, alineado a la derecha)
+        let top = buttonOffset.top + buttonHeight + 5;
+        let left = buttonOffset.left + buttonWidth - dropdownWidth;
+
+        // Verificar si se sale por la derecha de la pantalla
+        if (left < 10) {
+          left = buttonOffset.left; // Alinear a la izquierda del botón
+        }
+
+        // Verificar si se sale por abajo de la pantalla
+        const dropdownHeight = 250; // altura estimada
+        if (top + dropdownHeight > $(window).height()) {
+          top = buttonOffset.top - dropdownHeight - 5; // Mostrar arriba del botón
+        }
+
+        // Aplicar posición
+        dropdown.css({
+          'top': top + 'px',
+          'left': left + 'px'
+        });
+
+        menu.addClass("show");
+      }
+    });
+
+    $(document).on("click", ".dropdown-actions a", function () {
+      $(this).closest(".action-menu").removeClass("show");
     });
 
     // Manejadores para reportes
@@ -975,10 +1134,10 @@ if (isset($_SESSION['id_rol'])) {
       }
 
       // Destruir la tabla si existe
-      if (tabla_ordenes && $.fn.DataTable.isDataTable('#tabla_ordenes')) {
+      if (window.tabla_ordenes && $.fn.DataTable.isDataTable('#tabla_ordenes')) {
         try {
-          tabla_ordenes.destroy();
-          tabla_ordenes = null;
+          window.tabla_ordenes.destroy();
+          window.tabla_ordenes = null;
           console.log('DataTable destruida correctamente');
         } catch (error) {
           console.error('Error al destruir DataTable:', error);
@@ -997,5 +1156,552 @@ if (isset($_SESSION['id_rol'])) {
       }
     });
   });
+</script>
+
+<!-- CAMPANA FLOTANTE DE NOTIFICACIONES - COMENTADA TEMPORALMENTE -->
+
+<div class="notification-bell-floating" id="notificationBell" style="
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  cursor: pointer;
+  background: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 3px solid #C1272D;
+  transition: all 0.3s ease;
+">
+  <i class="fa fa-bell" style="
+    color: #C1272D;
+    font-size: 24px;
+    pointer-events: none;
+  "></i>
+  <span class="notification-badge" id="notificationBadge" style="
+    display: none;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    min-width: 22px;
+    height: 22px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    line-height: 1;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  ">0</span>
+</div>
+
+DROPDOWN DE NOTIFICACIONES FLOTANTE
+<div class="notification-dropdown-floating" id="notificationDropdown" style="
+  position: fixed;
+  top: 150px;
+  right: 20px;
+  background: white;
+  border: 1px solid #e3e6f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 400px;
+  max-height: 500px;
+  z-index: 9998;
+  display: none;
+  overflow: hidden;
+">
+  <div class="notification-header" style="
+    padding: 20px;
+    border-bottom: 1px solid #e3e6f0;
+    background: linear-gradient(135deg, #C1272D, #e63946);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  ">
+    <h6 class="mb-0" style="color: white; font-weight: 600;">
+      <i class="fa fa-bell me-2"></i>Notificaciones
+    </h6>
+    <button class="btn btn-sm text-white" id="markAllRead" style="
+      font-size: 12px;
+      opacity: 0.8;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+      padding: 4px 8px;
+    ">
+      <i class="fa fa-check-double me-1"></i>Marcar todas como leídas
+    </button>
+  </div>
+  <div id="notificationList" class="notification-list" style="
+    max-height: 350px;
+    overflow-y: auto;
+  ">
+    <div style="padding: 30px; text-align: center; color: #6c757d;">
+      <i class="fa fa-bell-slash fa-2x mb-3" style="opacity: 0.5;"></i>
+      <p class="mb-0">No hay notificaciones</p>
+    </div>
+  </div>
+  <div class="notification-footer" style="
+    padding: 15px 20px;
+    background: #f8f9fc;
+    border-top: 1px solid #e3e6f0;
+    text-align: center;
+  ">
+    <small class="text-muted">
+      <i class="fa fa-clock me-1"></i>Actualizándose en tiempo real
+    </small>
+  </div>
+</div>
+
+
+<!-- Script de Notificaciones - Solo para esta página -->
+<script src="<?= URL::to('public/js/notificaciones.js') ?>?v=<?= time() ?>"></script>
+
+<!-- Script de Notificaciones Flotantes - COMENTADO TEMPORALMENTE -->
+
+<script>
+console.log('=== NOTIFICACIONES FLOTANTES INICIANDO ===');
+
+let isDropdownOpen = false;
+
+// Array global para trackear registros con notificaciones no leídas
+window.registrosConNotificacion = [];
+
+// Función para actualizar registros con notificaciones
+function actualizarRegistrosConNotificacion(notifications) {
+    // Filtrar notificaciones de taller no leídas
+    const notificacionesTaller = notifications.filter(n =>
+        n.modulo_origen === 'taller' &&
+        (n.tipo === 'orden_trabajo' || n.tipo === 'orden_servicio') &&
+        n.leida == 0
+    );
+
+    // Extraer IDs de los registros
+    window.registrosConNotificacion = notificacionesTaller.map(n => n.registro_id);
+
+    console.log('📍 Registros con notificación:', window.registrosConNotificacion);
+}
+
+// Función para recargar tabla de forma robusta SIN REFRESCAR PÁGINA
+function recargarTablaTaller(forcePageReload = false) {
+    console.log('🔄 Intentando recargar tabla de taller...');
+
+    // Método 1: Variable global
+    if (typeof window.tabla_ordenes !== 'undefined' && window.tabla_ordenes) {
+        console.log('✅ Método 1: Usando variable global');
+        window.tabla_ordenes.ajax.reload(null, false);
+        return true;
+    }
+
+    // Método 2: Instancia desde DOM
+    if ($.fn.DataTable.isDataTable('#tabla_ordenes')) {
+        console.log('✅ Método 2: Usando instancia desde DOM');
+        $('#tabla_ordenes').DataTable().ajax.reload(null, false);
+        return true;
+    }
+
+    // Método 3: NUNCA REFRESCAR PÁGINA - Solo mostrar mensaje informativo
+    console.warn('⚠️ No se pudo recargar la tabla automáticamente');
+    console.log('💡 Sugerencia: La tabla se actualizará cuando se recargue manualmente');
+
+    // REMOVIDO: Ya no refresca la página automáticamente
+    return false;
+}
+
+// Función para cargar notificaciones directamente
+function loadNotificationsNow() {
+    console.log('🔄 Cargando notificaciones...');
+
+    if (typeof _URL === 'undefined') {
+        console.error('❌ _URL no está definido');
+        return;
+    }
+
+    const notificationList = document.getElementById('notificationList');
+    const badge = document.getElementById('notificationBadge');
+
+    // Mostrar loading
+    if (notificationList) {
+        notificationList.innerHTML = `
+            <div style="padding: 30px; text-align: center; color: #6c757d;">
+                <i class="fa fa-spinner fa-spin fa-2x mb-3"></i>
+                <p class="mb-0">Cargando notificaciones...</p>
+            </div>
+        `;
+    }
+
+    fetch(_URL + '/ajs/notificaciones/no-leidas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('📡 Respuesta:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('📦 Datos recibidos:', data);
+
+        if (Array.isArray(data)) {
+            updateNotificationsUI(data);
+        } else if (data.error) {
+            console.error('Error del servidor:', data.error);
+            showErrorInDropdown(data.error);
+        } else {
+            console.log('Formato de datos inesperado:', data);
+            showErrorInDropdown('Formato de datos inesperado');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error cargando notificaciones:', error);
+        showErrorInDropdown('Error de conexión: ' + error.message);
+    });
+}
+
+// Función para actualizar la UI con notificaciones
+function updateNotificationsUI(notifications) {
+    const notificationList = document.getElementById('notificationList');
+    const badge = document.getElementById('notificationBadge');
+
+    console.log('🔔 Actualizando UI con', notifications.length, 'notificaciones');
+
+    // Actualizar registros con notificaciones para mostrar puntos verdes
+    actualizarRegistrosConNotificacion(notifications);
+
+    // Verificar si hay nuevas notificaciones de taller y recargar tabla
+    const tallerNotifications = notifications.filter(n =>
+        n.modulo_origen === 'taller' &&
+        (n.tipo === 'orden_trabajo' || n.tipo === 'orden_servicio')
+    );
+
+    if (tallerNotifications.length > 0) {
+        console.log('🔄 Nueva notificación de taller detectada, recargando tabla...');
+        // NO forzar recarga de página en polling automático
+        recargarTablaTaller(false);
+    }
+
+    // Actualizar badge
+    if (badge) {
+        if (notifications.length > 0) {
+            badge.textContent = notifications.length > 99 ? '99+' : notifications.length;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Actualizar lista
+    if (notificationList) {
+        if (notifications.length === 0) {
+            notificationList.innerHTML = `
+                <div style="padding: 30px; text-align: center; color: #6c757d;">
+                    <i class="fa fa-bell-slash fa-2x mb-3" style="opacity: 0.5;"></i>
+                    <p class="mb-0">No hay notificaciones</p>
+                </div>
+            `;
+        } else {
+            const notificationsHTML = notifications.map(notification => `
+                <div class="notification-item" style="
+                    padding: 15px 20px;
+                    border-bottom: 1px solid #e3e6f0;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #C1272D;
+                " onmouseover="this.style.backgroundColor='#f8f9fc'"
+                   onmouseout="this.style.backgroundColor='#e3f2fd'"
+                   onclick="markNotificationAsRead(${notification.id_notificacion})">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <div style="
+                            flex-shrink: 0;
+                            width: 35px;
+                            height: 35px;
+                            border-radius: 50%;
+                            background: #f8f9fc;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 2px solid #e3e6f0;
+                        ">
+                            <i class="fa fa-${getIconByType(notification.tipo)} text-primary"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="
+                                font-size: 14px;
+                                line-height: 1.4;
+                                color: #5a5c69;
+                                margin-bottom: 5px;
+                                word-wrap: break-word;
+                            ">${notification.mensaje}</div>
+                            <div style="display: flex; gap: 10px; font-size: 12px;">
+                                <small class="text-muted">
+                                    <i class="fa fa-clock me-1"></i>${timeAgo(notification.created_at)}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fa fa-tag me-1"></i>${notification.modulo_origen}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            notificationList.innerHTML = notificationsHTML;
+        }
+    }
+}
+
+// Función para mostrar errores
+function showErrorInDropdown(errorMessage) {
+    const notificationList = document.getElementById('notificationList');
+    if (notificationList) {
+        notificationList.innerHTML = `
+            <div style="padding: 30px; text-align: center; color: #dc3545;">
+                <i class="fa fa-exclamation-triangle fa-2x mb-3"></i>
+                <p class="mb-0">${errorMessage}</p>
+                <button onclick="loadNotificationsNow()" class="btn btn-sm btn-outline-danger mt-2">
+                    <i class="fa fa-refresh me-1"></i>Reintentar
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Función para marcar como leída
+function markNotificationAsRead(id) {
+    console.log('✅ Marcando notificación', id, 'como leída');
+
+    fetch(_URL + '/ajs/notificaciones/marcar-leida', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id_notificacion=${id}`,
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Notificación marcada como leída');
+            loadNotificationsNow(); // Recargar lista y actualizar puntos verdes
+
+            // Recargar tabla para actualizar puntos verdes
+            setTimeout(() => {
+                recargarTablaTaller(false);
+            }, 500);
+        } else {
+            console.error('❌ Error marcando como leída:', data);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error:', error);
+    });
+}
+
+// Funciones auxiliares
+function getIconByType(type) {
+    const icons = {
+        'orden_trabajo': 'wrench',
+        'orden_servicio': 'briefcase',
+        'cotizacion': 'file-invoice',
+        'venta': 'shopping-cart'
+    };
+    return icons[type] || 'bell';
+}
+
+function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 30) return `${diffDays}d`;
+    return date.toLocaleDateString();
+}
+
+setTimeout(function() {
+    const bell = document.getElementById('notificationBell');
+    const dropdown = document.getElementById('notificationDropdown');
+
+    console.log('Bell encontrado:', !!bell);
+    console.log('Dropdown encontrado:', !!dropdown);
+
+    if (bell && dropdown) {
+        // Click en la campana
+        bell.onclick = function(e) {
+            console.log('🔔 CLICK EN CAMPANA FLOTANTE!');
+            e.stopPropagation();
+
+            isDropdownOpen = !isDropdownOpen;
+
+            if (isDropdownOpen) {
+                dropdown.style.display = 'block';
+                dropdown.style.animation = 'slideIn 0.3s ease';
+                console.log('Dropdown ABIERTO');
+
+                // Efecto hover en la campana
+                bell.style.transform = 'scale(1.1)';
+                bell.style.boxShadow = '0 6px 20px rgba(193, 39, 45, 0.3)';
+
+                // Cargar notificaciones DIRECTAMENTE con fetch
+                loadNotificationsNow();
+
+                // NUEVO: Recargar tabla de órdenes al abrir notificaciones
+                console.log('🔄 Recargando tabla de órdenes al abrir notificaciones...');
+                // NUNCA refrescar página, solo recargar tabla
+                recargarTablaTaller(false);
+            } else {
+                dropdown.style.display = 'none';
+                bell.style.transform = 'scale(1)';
+                bell.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                console.log('Dropdown CERRADO');
+            }
+        };
+
+        // Click fuera para cerrar
+        document.addEventListener('click', function(e) {
+            if (isDropdownOpen && !bell.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+                bell.style.transform = 'scale(1)';
+                bell.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                isDropdownOpen = false;
+                console.log('Dropdown cerrado por click fuera');
+            }
+        });
+
+        // Botón marcar todas como leídas
+        const markAllBtn = document.getElementById('markAllRead');
+        if (markAllBtn) {
+            markAllBtn.onclick = function(e) {
+                e.stopPropagation();
+                console.log('📋 Marcando todas como leídas...');
+
+                fetch(_URL + '/ajs/notificaciones/marcar-todas-leidas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('✅ Todas las notificaciones marcadas como leídas');
+                        loadNotificationsNow(); // Recargar lista
+
+                        // Recargar tabla para quitar todos los puntos verdes
+                        setTimeout(() => {
+                            recargarTablaTaller(false);
+                        }, 500);
+                    } else {
+                        console.error('❌ Error:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error:', error);
+                });
+            };
+        }
+
+        // Efecto hover en la campana
+        bell.addEventListener('mouseenter', function() {
+            if (!isDropdownOpen) {
+                bell.style.transform = 'scale(1.05)';
+                bell.style.boxShadow = '0 6px 16px rgba(193, 39, 45, 0.2)';
+            }
+        });
+
+        bell.addEventListener('mouseleave', function() {
+            if (!isDropdownOpen) {
+                bell.style.transform = 'scale(1)';
+                bell.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            }
+        });
+
+        console.log('✅ Campana flotante configurada correctamente');
+
+        // Cargar notificaciones automáticamente al iniciar
+        setTimeout(function() {
+            console.log('🚀 Carga inicial de notificaciones...');
+            loadNotificationsNow();
+        }, 1000);
+
+        // Polling para actualizar cada 30 segundos
+        setInterval(function() {
+            if (!isDropdownOpen) { // Solo actualizar si el dropdown está cerrado
+                console.log('🔄 Actualización automática de notificaciones...');
+                loadNotificationsNow();
+            }
+        }, 10000);
+    }
+
+    // Verificar _URL
+    if (typeof _URL !== 'undefined') {
+        console.log('_URL disponible:', _URL);
+    } else {
+        console.log('❌ _URL NO está definido');
+    }
+
+}, 500);
+
+// CSS para animaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notification-bell-floating:hover {
+        border-color: #a11f24 !important;
+    }
+
+    .notification-dropdown-floating {
+        animation: slideIn 0.3s ease;
+    }
+
+    /* Estilos para punto verde en tabla */
+    .punto-verde {
+        font-size: 12px;
+        margin-right: 5px;
+        animation: pulse-green 2s infinite;
+    }
+
+    .registro-con-notificacion {
+        font-weight: bold;
+        color: #155724;
+    }
+
+    @keyframes pulse-green {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 </script>
 <script src="<?= URL::to('public/js/taller-cotizaciones/taller-reportes.js') ?>?v=<?= time() ?>"></script>

@@ -150,30 +150,20 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             </nav>
                                         </div>
 
-                                        <!-- Detalles del equipo actual -->
-                                        <div class="col-md-12 mb-4" v-if="equipoActivo !== null">
-                                            <div class="row">
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Marca</label>
-                                                    <input type="text" class="form-control"
-                                                        :value="equiposPreAlerta[equipoActivo]?.marca" readonly>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Equipo</label>
-                                                    <input type="text" class="form-control"
-                                                        :value="equiposPreAlerta[equipoActivo]?.equipo" readonly>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Modelo</label>
-                                                    <input type="text" class="form-control"
-                                                        :value="equiposPreAlerta[equipoActivo]?.modelo" readonly>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Serie</label>
-                                                    <input type="text" class="form-control"
-                                                        :value="equiposPreAlerta[equipoActivo]?.numero_serie" readonly>
-                                                </div>
-                                            </div>
+                                        <!-- Título del equipo actual -->
+                                        <div class="col-md-12 mb-2" v-if="equipoActivo !== null">
+                                            <h5 class="text-center mb-3" style="font-weight: 600;">
+                                                <span style="color: #6c757d;">Equipo:</span>
+                                                <span style="color: #2c3e50; font-weight: 700;">{{ equiposPreAlerta[equipoActivo]?.marca }} {{ equiposPreAlerta[equipoActivo]?.equipo }}</span>
+                                                <span v-if="equiposPreAlerta[equipoActivo]?.modelo">
+                                                    <span style="color: #6c757d;"> // Modelo:</span>
+                                                    <span style="color: #2c3e50; font-weight: 700;">{{ equiposPreAlerta[equipoActivo]?.modelo }}</span>
+                                                </span>
+                                                <span v-if="equiposPreAlerta[equipoActivo]?.numero_serie">
+                                                    <span style="color: #6c757d;"> // Serie:</span>
+                                                    <span style="color: #2c3e50; font-weight: 700;">{{ equiposPreAlerta[equipoActivo]?.numero_serie }}</span>
+                                                </span>
+                                            </h5>
                                         </div>
 
                                         <div class="col-md-12">
@@ -240,9 +230,20 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                                 </select>
                                                             </div>
 
-                                                            <!-- Campo de Descuento -->
-                                                            <?php if ($mostrarBotonesYDescuento): ?>
-                                                                <div class="col-lg-6 d-flex align-items-center mt-3">
+                                                            <!-- Botón Agregar -->
+                                                            <div class="<?php echo $puedeVerPrecios ? 'col-lg-3' : 'col-lg-6'; ?> d-flex align-items-end">
+                                                                <button id="submit-a-product" type="submit"
+                                                                    class="btn bg-rojo text-white d-flex align-items-center justify-content-center"
+                                                                    style="min-width: 110px; margin-top: 32px;">
+                                                                    <i class="fa fa-check me-2"></i> Agregar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Campo de Descuento -->
+                                                        <?php if ($mostrarBotonesYDescuento): ?>
+                                                            <div class="row mt-3">
+                                                                <div class="col-lg-6 d-flex align-items-center">
                                                                     <label for="descuento-general"
                                                                         class="col-form-label mb-0 me-3">
                                                                         Descuento %
@@ -256,20 +257,8 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                                         type="text" placeholder="0" disabled
                                                                         style="max-width: 80px;">
                                                                 </div>
-                                                            <?php endif; ?>
-
-                                                        </div>
-
-                                                        <!-- Botón Agregar -->
-                                                        <div class="row mt-3">
-                                                            <div class="col-lg-2 d-flex align-items-center">
-                                                                <button id="submit-a-product" type="submit"
-                                                                    class="btn bg-rojo text-white w-100 d-flex align-items-center justify-content-center"
-                                                                    style="min-width: 110px;">
-                                                                    <i class="fa fa-check me-2"></i> Agregar
-                                                                </button>
                                                             </div>
-                                                        </div>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             </form>
@@ -285,25 +274,35 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             <table class="table" style="width: 100%;">
                                                 <thead>
                                                     <tr>
-                                                        <th>Item</th>
-                                                        <th>Código</th>
+                                                        <th style="width: 50px; text-align: center;">Item</th>
+                                                        <th style="width: 100px;">Código</th>
                                                         <th>Producto</th>
-                                                        <th>Cantidad</th>
+                                                        <th style="width: 80px; text-align: center;">Cantidad</th>
                                                         <?php if ($puedeVerPrecios): ?>
-                                                            <th>P. Unit.</th>
-                                                            <th>Parcial</th>
+                                                            <th style="width: 100px;">P. Unit.</th>
+                                                            <th style="width: 100px;">Parcial</th>
                                                         <?php endif; ?>
-                                                        <th></th>
+                                                        <th style="width: 100px;"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="(item,index) in productos">
-                                                        <td>{{index+1}}</td>
-                                                        <td>{{item.codigo_prod}}</td>
+                                                        <td style="width: 50px; text-align: center;">{{index+1}}</td>
+                                                        <td style="width: 100px;">{{item.codigo_prod}}</td>
                                                         <td>{{item.descripcion}}</td>
-                                                        <td>
+                                                        <td style="width: 80px; text-align: center;">
                                                             <span v-if="!item.editable">{{item.cantidad}}</span>
-                                                            <input v-if="item.editable" v-model="item.cantidad">
+                                                            <input v-if="item.editable" v-model="item.cantidad" style="text-align: center; width: 60px;">
+                                                            <!-- NUEVO: Indicador de stock -->
+                                                            <div class="stock-indicator mt-1">
+                                                                <small :class="getStockClass(item)">
+                                                                    <i :class="getStockIcon(item)"></i>
+                                                                    Stock: {{item.stock || 0}}
+                                                                    <span v-if="parseFloat(item.stock) < parseFloat(item.cantidad)" class="text-danger">
+                                                                        (Insuficiente)
+                                                                    </span>
+                                                                </small>
+                                                            </div>
                                                         </td>
                                                         <?php if ($puedeVerPrecios): ?>
                                                             <td>
@@ -459,7 +458,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                             <div class="input-group">
                                                                 <input id="input_datos_cliente" v-model="venta.num_doc"
                                                                     type="text" placeholder="Ingrese Documento"
-                                                                    class="form-control" maxlength="11" >
+                                                                    class="form-control" maxlength="11">
                                                                 <div class="input-group-addon btn bg-rojo text-white"
                                                                     @click="buscarDocumentSS">
                                                                     <i class="fa fa-search"></i>
@@ -831,7 +830,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                 Seleccionar imágenes (máximo 12)
                                             </label>
                                             <input type="file" class="form-control" name="images[]" id="imageInput"
-                                                multiple accept="image/*" required>
+                                                multiple accept="image/jpeg,image/png" required>
                                             <small class="text-muted">
                                                 Formatos permitidos: JPG, PNG, GIF
                                             </small>
@@ -887,6 +886,98 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
 <script>
     // Asegurar que la instancia de Vue sea accesible globalmente
     let vueApp = null;
+
+    // Estilos CSS para indicadores de stock
+    const stockStyles = `
+        <style>
+            .stock-indicator {
+                font-size: 11px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                background-color: #f8f9fa;
+                border-left: 3px solid #dee2e6;
+            }
+            
+            .stock-indicator .text-danger {
+                font-weight: bold;
+            }
+            
+            .stock-indicator .text-success {
+                font-weight: bold;
+            }
+            
+            .stock-indicator i {
+                margin-right: 4px;
+            }
+            
+            .table td {
+                vertical-align: top;
+            }
+            
+            /* Estilos para alertas de stock */
+            .swal2-popup .text-start {
+                text-align: left;
+            }
+            
+            .swal2-popup pre {
+                background-color: #f8f9fa;
+                padding: 10px;
+                border-radius: 4px;
+                border: 1px solid #dee2e6;
+                margin: 10px 0;
+                font-family: inherit;
+            }
+
+            /* Optimización de layout para tabla sin precios */
+            .table-fixed {
+                table-layout: fixed !important;
+            }
+
+            .table th,
+            .table td {
+                padding: 8px 12px;
+                text-align: left;
+                vertical-align: middle;
+                word-wrap: break-word;
+                overflow: hidden;
+            }
+
+            .table th:first-child,
+            .table td:first-child {
+                text-align: center;
+                font-weight: 600;
+            }
+
+            .table th:nth-child(2),
+            .table td:nth-child(2) {
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                color: #6c757d;
+                font-weight: 500;
+            }
+
+            .table th:nth-child(4),
+            .table td:nth-child(4) {
+                text-align: center;
+                font-weight: 500;
+            }
+
+            /* Responsive para pantallas pequeñas */
+            @media (max-width: 768px) {
+                .table th:nth-child(2),
+                .table td:nth-child(2) {
+                    display: none;
+                }
+
+                .table th:nth-child(3) {
+                    width: 70% !important;
+                }
+            }
+        </style>
+    `;
+    
+    // Insertar estilos en el head
+    document.head.insertAdjacentHTML('beforeend', stockStyles);
 
     // Esperar a que el documento esté listo
     $(document).ready(function () {
@@ -1394,46 +1485,57 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                     if (data.productos_existentes && data.productos_existentes.length > 0) {
                                         console.log("Productos existentes encontrados:", data.productos_existentes);
 
-                                        // Crear un mapa de equipos por número de serie para facilitar la asignación
-                                        const equiposPorSerie = {};
+                                        // Inicializar arrays de productos para cada equipo
                                         this.equiposPreAlerta.forEach((equipo, index) => {
-                                            equiposPorSerie[equipo.numero_serie] = index;
+                                            if (!equipo.productos) {
+                                                equipo.productos = [];
+                                            }
                                         });
 
-                                        // Asignar productos a sus equipos correspondientes
+                                        // Asignar productos a sus equipos correspondientes usando el número de serie
                                         data.productos_existentes.forEach(producto => {
-                                            const equipoIndex = equiposPorSerie[producto.equipoInfo.numero_serie];
-                                            if (equipoIndex !== undefined) {
-                                                // Formatear el producto para que sea compatible con Vue
-                                                const productoFormateado = {
-                                                    productoid: producto.productoid,
-                                                    codigo_prod: producto.codigo_prod,
-                                                    descripcion: producto.descripcion,
-                                                    cantidad: producto.cantidad,
-                                                    precioVenta: producto.precioVenta,
-                                                    costo: producto.costo,
-                                                    equipoActivo: equipoIndex,
-                                                    editable: false,
-                                                    stock: '999', // Valor por defecto
-                                                    precio: producto.precioVenta,
-                                                    precio2: producto.precioVenta,
-                                                    precio_unidad: producto.precioVenta,
-                                                    almacen: '<?php echo $_SESSION["sucursal"] ?>',
-                                                    precio_usado: 5
-                                                };
+                                            // Buscar el índice del equipo que corresponde a este producto
+                                            const equipoIndex = this.equiposPreAlerta.findIndex(equipo =>
+                                                equipo.numero_serie === producto.equipoInfo.numero_serie
+                                            );
+
+                                            if (equipoIndex !== -1) {
+                                                console.log(`Asignando producto ${producto.codigo_prod} al equipo ${equipoIndex} (serie: ${producto.equipoInfo.numero_serie})`);
+
+                                             // Formatear el producto para que sea compatible con Vue
+const productoFormateado = {
+    productoid: producto.productoid,
+    codigo_prod: producto.codigo_prod,
+    descripcion: producto.descripcion,
+    cantidad: producto.cantidad,
+    precioVenta: producto.precioVenta,
+    costo: producto.costo,
+    equipoActivo: equipoIndex,
+    editable: false,
+    stock: '999', // Valor por defecto
+    precio: producto.precioVenta,
+    precio2: producto.precioVenta,
+    precio_unidad: producto.precioVenta,
+    almacen: '<?php echo $_SESSION["sucursal"] ?>',
+    precio_usado: 5,
+    tipo_item: producto.tipo_item // AGREGAR ESTA LÍNEA
+};
+
 
                                                 // Agregar al equipo correspondiente
                                                 this.equiposPreAlerta[equipoIndex].productos.push(productoFormateado);
+                                            } else {
+                                                console.error(`No se encontró equipo para el producto ${producto.codigo_prod} con serie ${producto.equipoInfo.numero_serie}`);
                                             }
                                         });
 
-                                        // Si hay productos, activar el primer equipo que tenga productos
-                                        for (let i = 0; i < this.equiposPreAlerta.length; i++) {
-                                            if (this.equiposPreAlerta[i].productos.length > 0) {
-                                                this.equipoActivo = i;
-                                                this.productos = [...this.equiposPreAlerta[i].productos];
-                                                break;
-                                            }
+                                        // Activar el primer equipo y cargar sus productos
+                                        if (this.equiposPreAlerta.length > 0) {
+                                            this.equipoActivo = 0;
+                                            this.productos = [...(this.equiposPreAlerta[0].productos || [])];
+
+                                            console.log("Equipo activo:", this.equipoActivo);
+                                            console.log("Productos del equipo activo:", this.productos);
                                         }
                                     }
 
@@ -1466,6 +1568,40 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     if (this.productos.length > 0) {
                         var continuar = true;
                         var mensaje = '';
+
+                        // NUEVA VALIDACIÓN: Verificar stock antes de continuar
+                        const productosSinStock = this.productos.filter(producto => {
+                            const stockDisponible = parseFloat(producto.stock || 0);
+                            const cantidadSolicitada = parseFloat(producto.cantidad || 0);
+                            return stockDisponible < cantidadSolicitada;
+                        });
+
+                        if (productosSinStock.length > 0) {
+                            const mensajeStock = productosSinStock.map(producto => {
+                                const stockDisponible = parseFloat(producto.stock || 0);
+                                const cantidadSolicitada = parseFloat(producto.cantidad || 0);
+                                return `• ${producto.descripcion}\n  Stock disponible: ${stockDisponible}, Cantidad solicitada: ${cantidadSolicitada}`;
+                            }).join('\n');
+
+                            Swal.fire({
+                                icon: "warning",
+                                title: "Stock Insuficiente",
+                                html: `
+                                    <div class="text-start">
+                                        <p><strong>Los siguientes productos no tienen stock suficiente:</strong></p>
+                                        <pre class="text-danger" style="white-space: pre-wrap; font-size: 12px;">${mensajeStock}</pre>
+                                        <hr>
+                                        <p class="text-muted small">
+                                            <i class="fa fa-info-circle"></i> 
+                                            Ajuste las cantidades o contacte al administrador para actualizar el stock.
+                                        </p>
+                                    </div>
+                                `,
+                                confirmButtonText: "Entendido",
+                                confirmButtonColor: "#dc3545"
+                            });
+                            return;
+                        }
 
                         // Validaciones según tipo de documento
                         if (this.venta.tipo_doc == '1') {  // Boleta
@@ -1515,11 +1651,36 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 }
                             })
 
-                            // Agregar datos adicionales
-                            formData.append("usar_precio", this.usar_precio)
-                            formData.append("listaPro", JSON.stringify(this.productos))
-                            formData.append("dias_lista", JSON.stringify(this.venta.dias_lista))
-                            formData.append("descuento", this.descuentoGeneral || 0)
+                           // CORREGIDO: Recopilar TODOS los productos de TODOS los equipos
+let todosLosProductos = [];
+
+// Guardar productos del equipo actual antes de recopilar
+if (this.equipoActivo !== null && this.equiposPreAlerta[this.equipoActivo]) {
+    this.equiposPreAlerta[this.equipoActivo].productos = [...this.productos];
+}
+
+// Recopilar productos de todos los equipos
+this.equiposPreAlerta.forEach((equipo, equipoIndex) => {
+    if (equipo.productos && equipo.productos.length > 0) {
+        equipo.productos.forEach(producto => {
+            // Asegurar que cada producto tenga el equipoActivo correcto
+            const productoCompleto = {
+                ...producto,
+                equipoActivo: equipoIndex
+            };
+            todosLosProductos.push(productoCompleto);
+        });
+    }
+});
+
+console.log("Productos a enviar:", todosLosProductos);
+
+// Agregar datos adicionales
+formData.append("usar_precio", this.usar_precio)
+formData.append("listaPro", JSON.stringify(todosLosProductos))
+formData.append("dias_lista", JSON.stringify(this.venta.dias_lista))
+formData.append("descuento", this.descuentoGeneral || 0)
+
 
                             // Procesar y agregar equipos con sus fotos
                             const equiposConFotos = this.equiposPreAlerta.map((equipo) => {
@@ -1555,9 +1716,62 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                 contentType: false,
                                 success: (resp) => {
                                     $("#loader-menor").hide();
+                                    
+                                    // DEBUG: Log de la respuesta
+                                    console.log("Respuesta del servidor:", resp);
+                                    console.log("Tipo de respuesta:", typeof resp);
+                                    
                                     try {
                                         const response = typeof resp === "string" ? JSON.parse(resp) : resp;
-                                        if (response.res === true && response.cotizacion) {
+                                        console.log("Respuesta parseada:", response);
+                                        console.log("response.res:", response.res);
+                                        console.log("response.error:", response.error);
+                                        console.log("response.error_type:", response.error_type);
+                                        
+                                        // NUEVO: Verificar si la respuesta indica error (aunque venga en success)
+                                        if (response.res === false) {
+                                            console.log("Detectado error en respuesta, mostrando alerta...");
+                                            
+                                            // Es un error, mostrar la alerta correspondiente
+                                            if (response.error_type === 'stock_insuficiente' || (response.error && response.error.includes('Stock insuficiente'))) {
+                                                console.log("Mostrando alerta de stock insuficiente");
+                                                
+                                                // Mostrar alerta específica para stock insuficiente
+                                                Swal.fire({
+                                                    icon: "warning",
+                                                    title: "Stock Insuficiente",
+                                                    html: `
+                                                        <div class="text-start">
+                                                            <p><strong>No se puede procesar la cotización:</strong></p>
+                                                            <p class="text-danger">${response.error}</p>
+                                                            <hr>
+                                                            <p class="text-muted small">
+                                                                <i class="fa fa-info-circle"></i> 
+                                                                Verifique el stock disponible de los productos antes de continuar.
+                                                            </p>
+                                                        </div>
+                                                    `,
+                                                    confirmButtonText: "Entendido",
+                                                    confirmButtonColor: "#dc3545"
+                                                });
+                                            } else {
+                                                console.log("Mostrando alerta de error general");
+                                                
+                                                // Otros tipos de error
+                                                Swal.fire({
+                                                    icon: "error",
+                                                    title: "Error",
+                                                    text: response.error || "Error al guardar la cotización",
+                                                    confirmButtonText: "Cerrar"
+                                                });
+                                            }
+                                            return; // Salir aquí, no continuar
+                                        }
+                                        
+                                        console.log("Respuesta exitosa, continuando...");
+                                        
+                                        // Si llegamos aquí, la respuesta fue exitosa
+                                        if (response.cotizacion) {
                                             // Actualizar el modal con los datos de la cotización
                                             $('#cotizacion-numero').text(response.cotizacion.cotizacion_id);
 
@@ -1573,7 +1787,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                             // Mostrar directamente el modal con el PDF
                                             $('#modal-cotizacion-success').modal('show');
                                         } else {
-                                            throw new Error(response.error || "Error al guardar la cotización");
+                                            throw new Error("Respuesta exitosa pero sin datos de cotización");
                                         }
                                     } catch (error) {
                                         console.error("Error al procesar la respuesta:", error);
@@ -1585,17 +1799,62 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                     }
                                 },
                                 error: (xhr, status, error) => {
-                                    $("#loader-menor").hide()
+                                    $("#loader-menor").hide();
                                     console.error("Error en la petición AJAX:", {
                                         status: status,
                                         error: error,
                                         response: xhr.responseText,
-                                    })
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Error",
-                                        text: "Ocurrió un error al guardar la cotización",
-                                    })
+                                    });
+                                    
+                                    // Intentar parsear la respuesta para obtener el mensaje específico
+                                    try {
+                                        const response = JSON.parse(xhr.responseText);
+                                        if (response.error && response.error.includes("Stock insuficiente")) {
+                                            // Mostrar alerta específica para stock insuficiente
+                                            Swal.fire({
+                                                icon: "warning",
+                                                title: "Stock Insuficiente",
+                                                html: `
+                                                    <div class="text-start">
+                                                        <p><strong>No se puede procesar la cotización:</strong></p>
+                                                        <p class="text-danger">${response.error}</p>
+                                                        <hr>
+                                                        <p class="text-muted small">
+                                                            <i class="fa fa-info-circle"></i> 
+                                                            Verifique el stock disponible de los productos antes de continuar.
+                                                        </p>
+                                                    </div>
+                                                `,
+                                                confirmButtonText: "Entendido",
+                                                confirmButtonColor: "#dc3545"
+                                            });
+                                        } else if (response.error) {
+                                            // Mostrar otros errores específicos
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Error",
+                                                text: response.error,
+                                                confirmButtonText: "Cerrar"
+                                            });
+                                        } else {
+                                            // Error genérico si no se puede parsear
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Error",
+                                                text: "Ocurrió un error al guardar la cotización",
+                                                confirmButtonText: "Cerrar"
+                                            });
+                                        }
+                                    } catch (parseError) {
+                                        // Si no se puede parsear la respuesta, mostrar error genérico
+                                        console.error("Error parseando respuesta:", parseError);
+                                        Swal.fire({
+                                            icon: "error",
+                                            title: "Error",
+                                            text: "Ocurrió un error al guardar la cotización",
+                                            confirmButtonText: "Cerrar"
+                                        });
+                                    }
                                 },
                             })
                         } else {
@@ -1625,12 +1884,16 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                 },
 
                 cambiarEquipo(index) {
-                    this.equipoActivo = index;
+                    // Guardar el índice del equipo que se está dejando
+                    const indiceAnterior = this.equipoActivo;
 
-                    // Guardar los productos del equipo actual antes de cambiar
-                    if (this.equiposPreAlerta && this.equiposPreAlerta[this.equipoActivo]) {
-                        this.equiposPreAlerta[this.equipoActivo].productos = [...this.productos];
+                    // Guardar los productos del equipo anterior antes de cambiar
+                    if (indiceAnterior !== null && this.equiposPreAlerta[indiceAnterior]) {
+                        this.equiposPreAlerta[indiceAnterior].productos = [...this.productos];
                     }
+
+                    // Cambiar al nuevo equipo activo
+                    this.equipoActivo = index;
 
                     // Cargar los productos del nuevo equipo
                     if (this.equiposPreAlerta && this.equiposPreAlerta[index]) {
@@ -1780,6 +2043,26 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                     this.venta.fechaVen = this.venta.fecha;
                     this.venta.dias_lista = []
                     this.venta.dias_pago = ''
+                },
+
+                getStockClass(item) {
+                    if (parseFloat(item.stock) < parseFloat(item.cantidad)) {
+                        return 'text-danger';
+                    } else if (parseFloat(item.stock) === parseFloat(item.cantidad)) {
+                        return 'text-success';
+                    } else {
+                        return 'text-muted';
+                    }
+                },
+
+                getStockIcon(item) {
+                    if (parseFloat(item.stock) < parseFloat(item.cantidad)) {
+                        return 'fa-exclamation-triangle';
+                    } else if (parseFloat(item.stock) === parseFloat(item.cantidad)) {
+                        return 'fa-check-circle';
+                    } else {
+                        return 'fa-question-circle';
+                    }
                 }
             },
             computed: {

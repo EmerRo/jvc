@@ -1,0 +1,7 @@
+Venta: 8, fecha: 2025-08-20
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('1', '8', '1', '3651.00', '2100.00', NULL, NULL, '5') - trueProd: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('14', '8', '1', '321.00', '322.00', NULL, NULL, '5') - true

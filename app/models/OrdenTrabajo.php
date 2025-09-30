@@ -210,12 +210,12 @@ class OrdenTrabajo
     public function getAllData()
     {
         try {
-            $sql = "SELECT ot.*, 
+            $sql = "SELECT ot.*,
                            COUNT(otd.id_detalle) as total_equipos
                     FROM orden_trabajo_pre ot
                     LEFT JOIN orden_trabajo_detalles otd ON ot.id_orden_trabajo = otd.id_orden_trabajo
                     GROUP BY ot.id_orden_trabajo
-                    ORDER BY ot.fecha_ingreso DESC, ot.created_at DESC";
+                    ORDER BY ot.id_orden_trabajo DESC";
 
             $result = $this->conectar->query($sql);
 
@@ -241,7 +241,7 @@ class OrdenTrabajo
         try {
             $sql = "SELECT ot.*, 
                            GROUP_CONCAT(
-                               CONCAT_WS('|', otd.marca, otd.equipo, otd.modelo, otd.numero_serie) 
+                               CONCAT_WS('|', otd.id_detalle, otd.marca, otd.equipo, otd.modelo, otd.numero_serie) 
                                SEPARATOR '##'
                            ) as equipos
                     FROM orden_trabajo_pre ot
@@ -259,8 +259,9 @@ class OrdenTrabajo
                 $equiposArray = [];
                 $equipos = explode('##', $data['equipos']);
                 foreach ($equipos as $equipo) {
-                    list($marca, $tipo, $modelo, $serie) = explode('|', $equipo);
+                    list($id_detalle, $marca, $tipo, $modelo, $serie) = explode('|', $equipo);
                     $equiposArray[] = [
+                        'id_detalle' => $id_detalle,
                         'marca' => $marca,
                         'equipo' => $tipo,
                         'modelo' => $modelo,
@@ -443,62 +444,104 @@ class OrdenTrabajo
             return 'OT-01'; // Valor por defecto
         }
     }
-public function obtenerRepuestosPorOrden($id_orden_trabajo)
-{
-    try {
-        $sql = "SELECT otr.*, otd.marca, otd.equipo, otd.modelo, otd.numero_serie, otd.id_detalle
-            FROM orden_trabajo_repuestos otr
-            INNER JOIN orden_trabajo_detalles otd ON otr.id_detalle_maquina = otd.id_detalle
-            WHERE otr.id_orden_trabajo = ?
-            ORDER BY otd.id_detalle, otr.fecha_agregado";
+public function obtenerRepuestosPorOrden($id_orden_trabajo, $id_detalle_maquina = null)
+    {
+        try {
+            $sql = "SELECT 
+                        otr.id_repuesto_orden,
+                        otr.id_orden_trabajo,
+                        otr.id_detalle_maquina,
+                        otr.tipo_item,
+                        otr.cantidad,
+                        otr.precio_unitario,
+                        otr.precio_total,
+                        otr.fecha_agregado,
+                        otd.marca, 
+                        otd.equipo, 
+                        otd.modelo, 
+                        otd.numero_serie, 
+                        otd.id_detalle,
+                        -- Datos del producto o repuesto según el tipo
+                        CASE 
+                            WHEN otr.tipo_item = 'producto' THEN p.codigo
+                            WHEN otr.tipo_item = 'repuesto' THEN r.codigo
+                        END as codigo_item,
+                        CASE 
+                            WHEN otr.tipo_item = 'producto' THEN p.nombre
+                            WHEN otr.tipo_item = 'repuesto' THEN r.nombre
+                        END as nombre_item,
+                        CASE 
+                            WHEN otr.tipo_item = 'producto' THEN otr.id_producto
+                            WHEN otr.tipo_item = 'repuesto' THEN otr.id_repuesto
+                        END as id_item
+                    FROM orden_trabajo_repuestos otr
+                    INNER JOIN orden_trabajo_detalles otd ON otr.id_detalle_maquina = otd.id_detalle
+                    LEFT JOIN productos p ON otr.tipo_item = 'producto' AND otr.id_producto = p.id_producto
+                    LEFT JOIN repuestos r ON otr.tipo_item = 'repuesto' AND otr.id_repuesto = r.id_repuesto
+                    WHERE otr.id_orden_trabajo = ?";
 
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("i", $id_orden_trabajo);
-        $stmt->execute();
-        $result = $stmt->get_result();
+            // Filtrar por máquina específica si se proporciona
+            if ($id_detalle_maquina !== null) {
+                $sql .= " AND otr.id_detalle_maquina = ?";
+            }
 
-        $repuestos = [];
-        while ($row = $result->fetch_assoc()) {
-            $repuestos[] = $row;
+            $sql .= " ORDER BY otd.id_detalle, otr.fecha_agregado";
+
+            $stmt = $this->conectar->prepare($sql);
+
+            if ($id_detalle_maquina !== null) {
+                $stmt->bind_param("ii", $id_orden_trabajo, $id_detalle_maquina);
+            } else {
+                $stmt->bind_param("i", $id_orden_trabajo);
+            }
+            
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $repuestos = [];
+            while ($row = $result->fetch_assoc()) {
+                $repuestos[] = $row;
+            }
+
+            return $repuestos;
+        } catch (Exception $e) {
+            error_log("Error en obtenerRepuestosPorOrden: " . $e->getMessage());
+            return [];
         }
-
-        return $repuestos;
-    } catch (Exception $e) {
-        error_log("Error en obtenerRepuestosPorOrden: " . $e->getMessage());
-        return [];
     }
-}
 
+ public function agregarRepuesto($datos)
+    {
+        try {
+            $sql = "INSERT INTO orden_trabajo_repuestos 
+                (id_orden_trabajo, id_detalle_maquina, tipo_item, id_producto, id_repuesto, cantidad, precio_unitario, precio_total)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-   public function agregarRepuesto($datos)
-{
-    try {
-        $sql = "INSERT INTO orden_trabajo_repuestos 
-            (id_orden_trabajo, id_detalle_maquina, tipo_item, id_item, codigo_item, nombre_item, cantidad, precio_unitario, precio_total)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conectar->prepare($sql);
+            $precio_total = $datos['cantidad'] * $datos['precio_unitario'];
 
-        $stmt = $this->conectar->prepare($sql);
-        $precio_total = $datos['cantidad'] * $datos['precio_unitario'];
+            // Determinar qué ID usar según el tipo
+            $id_producto = ($datos['tipo_item'] === 'producto') ? $datos['id_item'] : null;
+            $id_repuesto = ($datos['tipo_item'] === 'repuesto') ? $datos['id_item'] : null;
 
-        $stmt->bind_param(
-            "iissssidd",
-            $datos['id_orden_trabajo'],
-            $datos['id_detalle_maquina'],
-            $datos['tipo_item'],
-            $datos['id_item'],
-            $datos['codigo_item'],
-            $datos['nombre_item'],
-            $datos['cantidad'],
-            $datos['precio_unitario'],
-            $precio_total
-        );
+            $stmt->bind_param(
+                "iisiiidd",
+                $datos['id_orden_trabajo'],
+                $datos['id_detalle_maquina'],
+                $datos['tipo_item'],
+                $id_producto,
+                $id_repuesto,
+                $datos['cantidad'],
+                $datos['precio_unitario'],
+                $precio_total
+            );
 
-        return $stmt->execute();
-    } catch (Exception $e) {
-        error_log("Error en agregarRepuesto: " . $e->getMessage());
-        return false;
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error en agregarRepuesto: " . $e->getMessage());
+            return false;
+        }
     }
-}
 
 
     public function eliminarRepuesto($id_repuesto_orden)

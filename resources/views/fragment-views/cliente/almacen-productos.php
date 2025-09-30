@@ -1,3 +1,4 @@
+<!-- resources\views\fragment-views\cliente\almacen-productos.php -->
 <?php
 
 require_once "app/models/Producto.php";
@@ -6,7 +7,7 @@ $c_producto->setIdEmpresa($_SESSION['id_empresa']);
 $almacenProducto = 1;
 
 ?>
-<link rel="stylesheet" href="<?= URL::to('/public/css/almacen-productos.css')  ?>?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= URL::to('/public/css/almacen-productos.css') ?>?v=<?= time() ?>">
 
 
 <div class="page-title-box">
@@ -49,1098 +50,1270 @@ $almacenProducto = 1;
             <div class="card"
                 style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06); background: #fff;">
                 <div class="card-header" style="background: #fff; border-bottom: none; padding-bottom: 0;">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center">
-                        <div class="text-end mt-2 mt-md-0">
-                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i
-                                    class="fa fa-file-excel"></i> Descargar Excel por búsqueda</button>
-                            <button data-bs-toggle="modal" data-bs-target="#importarModal"
-                                class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i>
-                                Importar</button>
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
-                                data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"> </i> Aumentar Stock de
-                                Productos</button>
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal"
-                                data-bs-target="#modal-historial-stock"><i class="fa fa-plus"> </i> Historial
-                                Stock</button>
-                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"> </i> Unidades</a>
-                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link"><i
-                                    class="fa fa-plus"> </i> Categorias</a>
-                            <button class="btn bg-rojo text-white bordes" id="add-prod"><i class="fa fa-plus"></i>
-                                Agregar Producto</button>
-                            <button class="btn bg-rojo btnBorrar bordes"><i class="fa fa-trash"></i> Borrar</button>
-                            <button hidden class="btn btn-rojo" @click="agregarIds"><i class="fa fa-times"></i>
-                                Seleccionar Todos</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
-                    <!-- Botones para cambiar vista -->
-                    <div class="view-toggle-buttons">
-                        <button id="btn-table-view" class="btn active">
-                            <i class="fa fa-table me-1"></i> Vista Tabla
-                        </button>
-                        <button id="btn-grid-view" class="btn">
-                            <i class="fa fa-th-large me-1"></i> Vista Grid
-                        </button>
-                    </div>
+                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
 
-                    <div class="row">
-                        <div class="form-group col-md-2" style="margin: 1rem 0;">
-                            <label for="">Almacén</label>
-                            <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                @change="changeAlmacen($event)" v-model="almacen">
-                                <option value="1">Almacén 1</option>
-                                <option value="2">Almacén 2</option>
-                                <option value="3">Almacén 3</option>
-                            </select>
-                        </div>
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="maquinas"
-                                    name="filter" value="maquinas">
-                                <label class="form-check-label" for="maquinas">#JVC</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="implementos"
-                                    name="filter" value="implementos">
-                                <label class="form-check-label" for="implementos">#IMPLE</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="cep" name="filter"
-                                    value="cep">
-                                <label class="form-check-label" for="cep">#CEP</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="pad" name="filter"
-                                    value="pad">
-                                <label class="form-check-label" for="pad">#PAD</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="port" name="filter"
-                                    value="port">
-                                <label class="form-check-label" for="port">#PORT</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input filter-option" id="acc" name="filter"
-                                    value="acc">
-                                <label class="form-check-label" for="acc">#ACC</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vista de Tabla (existente) -->
-                    <div id="table-view" class="table-view">
-                        <div class="table-responsive">
-                            <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
-                                style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Nombre</th>
-                                        <th>Unidades</th>
-                                        <th>Precios</th>
-                                        <th>Stock</th>
-                                        <th>Editar</th>
-                                        <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'></th>
-                                    </tr>
-                                </thead>
-                                <tbody id='tbodyProductos'>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Vista de Grid (nueva) -->
-                    <div id="grid-view" class="products-grid">
-                        <!-- Filtros para vista grid -->
-                        <div class="grid-filters">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="grid-search">
-                                        <input type="text" id="grid-search-input" class="form-control"
-                                            placeholder="Buscar productos...">
-                                    </div>
-                                </div>
-                                <div class="col-md-6 text-end">
-                                    <button class="btn border-rojo bg-white btnSeleccionarTodosGrid">
-                                        <i class="fa fa-check-square me-1"></i> Seleccionar Todos
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Loading -->
-                        <div class="loading-grid" id="loading-grid">
-                            <i class="fa fa-spinner"></i>
-                            <p>Cargando productos...</p>
-                        </div>
-
-                        <!-- Grid de productos -->
-                        <div class="product-grid-container" id="products-container">
-                            <!-- Los productos se cargarán aquí dinámicamente -->
-                        </div>
-
-                        <!-- Paginación -->
-                        <div class="grid-pagination" id="grid-pagination">
-                            <!-- La paginación se generará dinámicamente -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Todos los modales existentes se mantienen igual -->
-    <div class="modal fade" id="modal-precios" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Precios</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <form @submit.prevent="agregarPrecios">
-
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="form-group col-md-12">
-                                <label>Precio Venta: </label>
-                                <input v-model="edt.precio_unidad" id="precio_unidad" class="form-control">
-                            </div>
-                            <div class="form-group col-md-12">
-                                <label>Precio 1: </label>
-                                <input v-model="edt.precio" id="precio1" class="form-control">
-                            </div>
-                            <div class="form-group col-md-12">
-                                <label>Precio 2: </label>
-                                <input v-model="edt.precio2" id="precio2" class="form-control">
-                            </div>
-                            <div class="form-group col-md-12">
-                                <label>Precio 3: </label>
-                                <input v-model="edt.precio3" id="precio3" class="form-control">
-                            </div>
-                            <div class="form-group col-md-12">
-                                <label>Precio 4: </label>
-                                <input v-model="edt.precio4" id="precio4" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-    <!-- Modal de Agregar Producto Rediseñado -->
-    <div class="modal fade" id="modal-add-prod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">
-                        <i class="fa fa-plus-circle me-2"></i>Nuevo Producto
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form @submit.prevent="agregarProd">
-                    <div class="modal-body">
-                        <div class="row">
-                            <!-- Primera fila: Nombre y Código -->
-                            <div class="form-group col-md-8 mb-3">
-                                <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
-                                <input v-model="reg.nombre" type="text" class="form-control" required>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-barcode me-1"></i>Código</label>
-                                <input v-model="reg.codigo" type="text" class="form-control" required>
-                            </div>
-
-                            <!-- Segunda fila: Detalle y Categoría -->
-                            <div class="form-group col-md-8 mb-3">
-                                <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
-                                <textarea v-model="reg.detalle" class="form-control" rows="3"></textarea>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-folder me-1"></i>Categoría</label>
-                                <select v-model="reg.categoria" id="categoria" class="form-control" required>
-                                    <!-- Las opciones se cargan dinámicamente -->
-                                </select>
-                            </div>
-
-                            <!-- Tercera fila: Precio, Costo y Cantidad -->
-                            <div class="form-group col-md-4 mb-3">
-                                <label><span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
-                                <input v-model="reg.precio" @keypress="onlyNumber" type="text" class="form-control"
-                                    required>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-money-bill me-1"></i>Costo</label>
-                                <input v-model="reg.costo" @keypress="onlyNumber" type="text" class="form-control"
-                                    required>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
-                                <input v-model="reg.cantidad" @keypress="onlyNumber" type="text" class="form-control"
-                                    required>
-                            </div>
-
-                            <!-- Cuarta fila: Unidades, Almacén y Código Sunat -->
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-ruler me-1"></i>Unidades</label>
-                                <select v-model="reg.unidad" class="form-control" id="unidades" required>
-                                    <!-- Las opciones se cargan dinámicamente -->
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
-                                <select v-model="reg.almacen" class="form-control" required>
-                                    <option value="1">Almacén 1</option>
-                                    <option value="2">Almacén 2</option>
-                                    <option value="3">Almacén 3</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
-                                <input v-model="reg.codSunat" type="text" class="form-control">
-                            </div>
-
-                            <!-- Quinta fila: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
-                                <select v-model="reg.afecto" class="form-control">
-                                    <option value="0">No</option>
-                                    <option value="1">Si</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
-                                <input v-model="reg.precio1" @keypress="onlyNumber" type="text" class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mb-3">
-                                <label><i class="fa fa-shopping-cart me-1"></i>Precio Mayorista</label>
-                                <input v-model="reg.precio2" @keypress="onlyNumber" type="text" class="form-control">
-                            </div>
-
-                            <!-- Sexta fila: Imagen del Producto -->
-                            <div class="form-group col-md-12 mb-3">
-                                <label><i class="fa fa-image me-1"></i>Imagen del Producto</label>
-                                <div class="input-group">
-                                    <input type="file" @change="onImageChange" class="form-control"
-                                        accept="image/png, image/jpeg" id="product-image-input">
-                                </div>
-                                <div class="mt-2" v-if="imagePreview">
-                                    <img :src="imagePreview" alt="Vista previa" class="img-thumbnail"
-                                        style="max-height: 150px;">
-                                </div>
-                                <div class="mt-2" v-else>
-                                    <div class="text-center p-3 border rounded bg-light">
-                                        <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
-                                        <p class="mb-0">No hay imagen para este producto</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Séptima fila: ¿Utilizar MultiPrecio? -->
-                            <div class="form-group col-md-12 mb-3">
-                                <label><i class="fa fa-tags me-1"></i>¿Utilizar MultiPrecio?</label>
-                                <div class="form-check form-switch">
-                                    <input v-model="reg.usar_multiprecio" class="form-check-input" type="checkbox"
-                                        id="usar_multiprecio_add" style="width: 3em; height: 1.5em;">
-                                    <label class="form-check-label ms-2" for="usar_multiprecio_add"
-                                        :class="{'text-danger': reg.usar_multiprecio, 'text-secondary': !reg.usar_multiprecio}">
-                                        {{ reg.usar_multiprecio ? 'Sí' : 'No' }}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Campos ocultos -->
-                            <div class="form-group col-md-4" hidden>
-                                <label>Precio 3</label>
-                                <input v-model="reg.precio3" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-4" hidden>
-                                <label>Precio 4</label>
-                                <input v-model="reg.precio4" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <!-- Campo oculto para usar_barra -->
-                            <div class="form-group" hidden>
-                                <input v-model="reg.usar_barra" type="hidden" value="0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sección de MultiPrecio -->
-                    <div v-if="reg.usar_multiprecio" class="col-md-12 px-3 mb-3">
-                        <div class="card border-danger">
-                            <div
-                                class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
-                                <button type="button" @click="agregarPrecioNuevo" class="btn btn-sm btn-light">
-                                    <i class="fa fa-plus me-1"></i> Agregar
+                        <!-- Contenedor Izquierdo: Solo para pantallas pequeñas -->
+                        <div class="d-flex align-items-center gap-2 d-lg-none">
+                            <div class="view-toggle-buttons d-flex align-items-center">
+                                <button id="btn-table-view" class="btn active">
+                                    <i class="fa fa-table me-1"></i> Vista Tabla
+                                </button>
+                                <button id="btn-grid-view" class="btn">
+                                    <i class="fa fa-th-large me-1"></i> Vista Grid
                                 </button>
                             </div>
-                            <div class="card-body p-0">
-                                <table class="table table-bordered m-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 50%; padding: 4px 8px;">Nombre</th>
-                                            <th style="width: 35%; padding: 4px 8px;">Precio</th>
-                                            <th style="width: 15%; padding: 4px 8px; text-align: center;">Opciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(precio, index) in preciosNuevos" :key="index">
-                                            <td style="padding: 4px;">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text"><i class="fa fa-tag"></i></span>
-                                                    <input v-model="precio.nombre" type="text" class="form-control"
-                                                        placeholder="Nombre del precio">
-                                                </div>
-                                            </td>
-                                            <td style="padding: 4px;">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text"><span class="me-1"
-                                                            style="font-weight: bold;">S/</span></span>
-                                                    <input v-model="precio.precio" @keypress="onlyNumber" type="text"
-                                                        class="form-control" placeholder="0.00">
-                                                </div>
-                                            </td>
-                                            <td style="padding: 4px; text-align: center;">
-                                                <button @click="eliminarPrecioNuevo(index)" type="button"
-                                                    class="btn btn-sm btn-danger">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="preciosNuevos.length === 0">
-                                            <td colspan="3" class="text-center text-muted" style="padding: 4px;">
-                                                No hay precios configurados. Haga clic en "Agregar" para crear uno.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <!-- Dropdown de Opciones para móvil -->
+                            <div class="table-view-dropdown ms-2">
+                                <div class="dropdown">
+                                    <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                        id="dropdownOpciones" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa fa-cog me-1"></i> Opciones
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownOpciones">
+                                        <li>
+                                            <h6 class="dropdown-header">Filtrar productos</h6>
+                                        </li>
+                                        <li>
+                                            <select id="filtroProductos-mobile"
+                                                class="form-select mx-3 mb-2 filter-option-select"
+                                                style="width: calc(100% - 2rem);">
+                                                <option value="">Todos</option>
+                                                <option value="JVC">#JVC</option>
+                                                <option value="IMPLE">#IMPLE</option>
+                                                <option value="CEP">#CEP</option>
+                                                <option value="PAD">#PAD</option>
+                                                <option value="PORT">#PORT</option>
+                                                <option value="ACC">#ACC</option>
+                                            </select>
+
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" onclick="descarFunccc()">
+                                                <i class="fa fa-file-excel me-2"></i> Descargar Excel
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                                data-bs-target="#importarModal">
+                                                <i class="fa fa-file-excel me-2"></i> Importar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                                data-bs-target="#modal-aumentar-stock">
+                                                <i class="fa fa-plus me-2"></i> Aumentar Stock
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                                data-bs-target="#modal-historial-stock">
+                                                <i class="fa fa-history me-2"></i> Historial Stock
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="/unidades">
+                                                <i class="fa fa-ruler me-2"></i> Unidades
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="/categorias">
+                                                <i class="fa fa-folder me-2"></i> Categorías
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" id="add-prod-dropdown">
+                                                <i class="fa fa-plus me-2"></i> Agregar Producto
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="javascript:void(0)"
+                                                class="btnBorrar-dropdown">
+                                                <i class="fa fa-trash me-2"></i> Borrar
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Contenedor Derecho: Botones individuales para pantallas grandes -->
+                        <div class="grid-view-buttons d-none d-lg-flex flex-wrap justify-content-end gap-2">
+                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo btn-sm">
+                                <i class="fa fa-file-excel"></i>
+                                <span class="d-none d-lg-inline">Descargar Excel por búsqueda</span>
+                            </button>
+                            <button data-bs-toggle="modal" data-bs-target="#importarModal"
+                                class="btn bg-white text-rojo border-rojo btn-sm">
+                                <i class="fa fa-file-excel"></i>
+                                <span class="d-none d-lg-inline">Importar</span>
+                            </button>
+                            <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modal-aumentar-stock">
+                                <i class="fa fa-plus"></i>
+                                <span class="d-none d-lg-inline">Aumentar Stock de Productos</span>
+                            </button>
+                            <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modal-historial-stock">
+                                <i class="fa fa-history"></i>
+                                <span class="d-none d-lg-inline">Historial Stock</span>
+                            </button>
+                            <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link btn-sm">
+                                <i class="fa fa-ruler"></i>
+                                <span class="d-none d-lg-inline">Unidades</span>
+                            </a>
+                            <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link btn-sm">
+                                <i class="fa fa-folder"></i>
+                                <span class="d-none d-lg-inline">Categorías</span>
+                            </a>
+                            <button class="btn bg-rojo text-white btn-sm" id="add-prod">
+                                <i class="fa fa-plus"></i>
+                                <span class="d-none d-lg-inline">Agregar Producto</span>
+                            </button>
+                            <button class="btn bg-rojo btnBorrar btn-sm">
+                                <i class="fa fa-trash"></i>
+                                <span class="d-none d-lg-inline">Borrar</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                            <i class="fa fa-times me-1"></i>Cerrar
-                        </button>
-                        <button type="submit" class="btn bg-rojo text-white">
-                            <i class="fa fa-save me-1"></i>Guardar
-                        </button>
+                    <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
 
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!-- modal de editar -->
-    <div class="modal fade" id="modal-edt-prod" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="exampleModalLabel">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel"><i class="fa fa-edit me-2"></i>Editar Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form @submit.prevent="actualizarProd" enctype="multipart/form-data">
-                    <div class="modal-body">
-                        <div class="row">
-                            <input v-model="edt.cod_prod" type="hidden" class="form-control">
-                            <div class="form-group col-md-8 mt-2">
-                                <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
-                                <input v-model="edt.nombre" required type="text" class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-barcode me-1"></i>Código</label>
-                                <input v-model="edt.codigo" required type="text" class="form-control">
-                            </div>
-                            <div class="form-group col-md-8 mt-2">
-                                <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
-                                <textarea v-model="edt.detalle" class="form-control"></textarea>
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-folder me-1"></i>Categoría</label>
-                                <select v-model="edt.categoria" id="categoria-edt" class="form-control">
-                                </select>
-                            </div>
-
-                            <!-- PRIMERA FILA: Precio Venta, Costo, Cantidad -->
-                            <div class="form-group col-md-4 mt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label><span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
-                                    <span v-if="parseFloat(edt.precio) <= 0" class="text-danger small">
-                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                    </span>
-                                </div>
-                                <input v-model="edt.precio" @keypress="onlyNumber" required value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label><i class="fa fa-money-bill me-1"></i>Costo</label>
-                                    <span v-if="parseFloat(edt.costo) <= 0" class="text-danger small">
-                                        <i class="fa fa-exclamation-triangle"></i> Costo está en 0
-                                    </span>
-                                </div>
-                                <input v-model="edt.costo" @keypress="onlyNumber" required value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
-                                    <span v-if="parseInt(edt.cantidad) <= 0" class="text-danger small">
-                                        <i class="fa fa-exclamation-triangle"></i> Cantidad está en 0
-                                    </span>
-                                </div>
-                                <input v-model="edt.cantidad" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-
-                            <!-- SEGUNDA FILA: Unidades, Almacén, Cod. Sunat -->
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-ruler me-1"></i>Unidades</label>
-                                <select v-model="edt.unidad" id="unidades-edt" class="form-control">
-                                    <option v-for="unit in units" :key="unit.id" :value="unit.id">{{unit.nombre}}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
-                                <select v-model="edt.almacen" required class="form-control">
+                        <div class="row align-items-end">
+                            <div class="form-group col-md-2">
+                                <label for="">Almacén</label>
+                                <select name="almacenSelect" id="almacenSelect" class="form-control"
+                                    @change="changeAlmacen($event)" v-model="almacen">
                                     <option value="1">Almacén 1</option>
                                     <option value="2">Almacén 2</option>
                                     <option value="3">Almacén 3</option>
                                 </select>
                             </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
-                                <input v-model="edt.codSunat" type="text" class="form-control">
-                            </div>
 
-                            <!-- TERCERA FILA: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
-                                <select v-model="edt.afecto" class="form-control">
-                                    <option value="0">No</option>
-                                    <option value="1">Si</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
-                                    <span v-if="parseFloat(edt.precioMayor) <= 0" class="text-danger small">
-                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                    </span>
-                                </div>
-                                <input v-model="edt.precioMayor" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label><i class="fa fa-shopping-cart me-1"></i>Precio Mayorista</label>
-                                    <span v-if="parseFloat(edt.precioMenor) <= 0" class="text-danger small">
-                                        <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                    </span>
-                                </div>
-                                <input v-model="edt.precioMenor" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
+                                                       <!-- Toggle de Vista y Filtros para pantallas grandes -->
+                            <div class="col-md-6 d-none d-lg-block">
+                                <div class="d-flex align-items-end justify-content-start gap-3" style="height: 100%;">
+                                    <!-- Filtro Dropdown -->
+                                    <div class="filter-dropdown">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="text-muted">Filtrar</span>
+                                            <i class="fas fa-filter text-muted"></i>
+                                            <select id="filtroProductos" class="form-select filter-option-select"
+                                                style="width: auto; min-width: 120px;">
+                                                <option value="">Todos</option>
+                                                <option value="JVC">#JVC</option>
+                                                <option value="IMPLE">#IMPLE</option>
+                                                <option value="CEP">#CEP</option>
+                                                <option value="PAD">#PAD</option>
+                                                <option value="PORT">#PORT</option>
+                                                <option value="ACC">#ACC</option>
+                                            </select>
 
-                            <!-- Campos ocultos -->
-                            <div class="form-group col-md-4 mt-2" hidden>
-                                <label>Precio 3</label>
-                                <input v-model="edt.precio3" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-4 mt-2" hidden>
-                                <label>Precio 4</label>
-                                <input v-model="edt.precio4" @keypress="onlyNumber" value="0" type="text"
-                                    class="form-control">
-                            </div>
-                            <div class="form-group col-md-8 mt-3">
-                                <label class="d-flex align-items-center mb-2">
-                                    <i class="fa fa-image me-2"></i>
-                                    <span class="fw-bold">Imagen del Producto</span>
-                                </label>
+                                        </div>
+                                    </div>
 
-                                <!-- Contenedor de la imagen existente -->
-                                <div class="image-container position-relative" style="display: none; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden; background-color: #f8f9fa; text-align: center; min-height: 200px; align-items: center; justify-content: center; display: flex;">
-                                    <img id="img-preview" alt="Vista previa" style="max-height: 180px; width: auto; margin: 10px;" />
-                                    
-                                    <!-- Botón de edición -->
-                                    <div id="image-edit-button" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                                        <button type="button" class="btn btn-light" onclick="toggleImageMenu()" style="background-color: rgba(255, 255, 255, 0.9); border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                            <i class="fa fa-pencil-alt me-1"></i>
-                                            Editar
+                                    <!-- Botones de Vista -->
+                                    <div class="view-toggle-buttons-desktop d-flex align-items-center gap-2">
+                                        <button id="btn-table-view-desktop" class="btn active">
+                                            <i class="fa fa-table me-1"></i> Vista Tabla
                                         </button>
-                                        
-                                        <!-- Menú desplegable -->
-                                        <div id="image-menu" class="position-absolute shadow-sm" style="display: none; top: 100%; right: 0; margin-top: 5px; background-color: white; border-radius: 4px; border: 1px solid #dee2e6; min-width: 160px; z-index: 1000;">
-                                            <div class="p-2 hover-bg-light" style="cursor: pointer;" onclick="changeImage()">
-                                                <i class="fa fa-upload me-2"></i> Cambiar foto...
+                                        <button id="btn-grid-view-desktop" class="btn">
+                                            <i class="fa fa-th-large me-1"></i> Vista Grid
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Vista de Tabla (existente) -->
+                            <div id="table-view" class="table-view">
+                                <div class="table-responsive">
+                                    <table id="datatable"
+                                        class="table table-bordered dt-responsive nowrap text-center table-sm"
+                                        style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Unidades</th>
+                                                <th>Precios</th>
+                                                <th>Stock</th>
+                                                <th>Editar</th>
+                                                <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id='tbodyProductos'>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Vista de Grid (nueva) -->
+                            <div id="grid-view" class="products-grid">
+                                <!-- Filtros para vista grid -->
+                                <div class="grid-filters">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="grid-search">
+                                                <input type="text" id="grid-search-input" class="form-control"
+                                                    placeholder="Buscar productos...">
                                             </div>
-                                            <div class="p-2 text-danger hover-bg-light" style="cursor: pointer;" onclick="removeImage()">
-                                                <i class="fa fa-trash me-2"></i> Eliminar foto
-                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <button class="btn border-rojo bg-white btnSeleccionarTodosGrid">
+                                                <i class="fa fa-check-square me-1"></i> Seleccionar Todos
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Input oculto para subir imagen -->
-                                <input type="file" id="upload-input" name="imagen" class="d-none" accept="image/*" onchange="previewImage(this)" />
-
-                                <!-- Mensaje y botón para cuando NO hay imagen -->
-                                <div id="no-image-message" class="text-center p-3 border rounded bg-light mt-2" style="display: none;">
-                                    <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
-                                    <p class="mb-2">No hay imagen para este producto</p>
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="changeImage()">
-                                        <i class="fa fa-upload me-1"></i> Subir imagen
-                                    </button>
+                                <!-- Loading -->
+                                <div class="loading-grid" id="loading-grid">
+                                    <i class="fa fa-spinner"></i>
+                                    <p>Cargando productos...</p>
                                 </div>
-                            </div>
 
-
-
-                            <div class="form-group col-md-4 mt-2">
-                                <label><i class="fa fa-qrcode me-1"></i>Usar Código Barra</label>
-                                <div class="input-group">
-                                    <select v-model="edt.usar_barra" class="form-control">
-                                        <option value="0">No</option>
-                                        <option value="1">Si</option>
-                                    </select>
-                                    <div v-if="edt.usar_barra=='1'" class="input-group-append">
-                                        <button @click="edtGenerarCodeBarra" type="button" class="btn border-rojo"><i
-                                                class="fa fa-sync-alt"></i> Generar</button>
-                                    </div>
+                                <!-- Grid de productos -->
+                                <div class="product-grid-container" id="products-container">
+                                    <!-- Los productos se cargarán aquí dinámicamente -->
                                 </div>
-                            </div>
 
-                            <div class="col-md-12 mt-3 text-center" v-if="edt.usar_barra=='1'">
-                                <label><i class="fa fa-barcode me-1"></i>Código de Barras</label>
-                                <div class="p-2 border rounded bg-light">
-                                    <img id="barcode" class="img-fluid" />
-                                </div>
-                            </div>
-
-                            <div class="form-group col-md-4 mt-2">
-                                <label class="d-flex align-items-center">
-                                    <i class="fa fa-tags me-2"></i>
-                                    <span class="fw-bold">¿Utilizar MultiPrecio?</span>
-                                </label>
-                                <div class="form-check form-switch">
-                                    <input v-model="edt.usar_multiprecio" class="form-check-input" type="checkbox"
-                                        id="usar_multiprecio_edit" style="width: 3em; height: 1.5em;">
-                                    <label class="form-check-label ms-2 fw-bold" for="usar_multiprecio_edit"
-                                        :class="{'text-danger': edt.usar_multiprecio, 'text-secondary': !edt.usar_multiprecio}">
-                                        {{ edt.usar_multiprecio ? 'Sí' : 'No' }}
-                                    </label>
+                                <!-- Paginación -->
+                                <div class="grid-pagination" id="grid-pagination">
+                                    <!-- La paginación se generará dinámicamente -->
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-if="edt.usar_multiprecio" class="col-md-12 mt-0 ">
-                        <div class="card border-danger mb-3">
-                            <div
-                                class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
-                                <button type="button" @click="agregarPrecio" class="btn btn-sm btn-light">
-                                    <i class="fa fa-plus me-1"></i> Agregar
-                                </button>
+                </div>
+            </div>
+
+            <!-- Todos los modales existentes se mantienen igual -->
+            <div class="modal fade" id="modal-precios" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Precios</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <form @submit.prevent="agregarPrecios">
+
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="form-group col-md-12">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Venta: </label>
+                                        <input v-model="edt.precio_unidad" id="precio_unidad" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 1: </label>
+                                        <input v-model="edt.precio" id="precio1" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 2: </label>
+                                        <input v-model="edt.precio2" id="precio2" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 3: </label>
+                                        <input v-model="edt.precio3" id="precio3" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-12">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 4: </label>
+                                        <input v-model="edt.precio4" id="precio4" class="form-control">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body p-0">
-                                <table class="table table-bordered m-0">
-                                    <thead class="table-light">
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Modal de Agregar Producto Rediseñado -->
+            <div class="modal fade" id="modal-add-prod" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="exampleModalLabel">
+                                <i class="fa fa-plus-circle me-2"></i>Nuevo Producto
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form @submit.prevent="agregarProd">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <!-- Primera fila: Nombre y Código -->
+                                    <div class="form-group col-md-8 mb-3">
+                                        <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
+                                        <input v-model="reg.nombre" type="text" class="form-control" required>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-barcode me-1"></i>Código</label>
+                                        <input v-model="reg.codigo" type="text" class="form-control" required>
+                                    </div>
+
+                                    <!-- Segunda fila: Detalle y Categoría -->
+                                    <div class="form-group col-md-8 mb-3">
+                                        <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
+                                        <textarea v-model="reg.detalle" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-folder me-1"></i>Categoría</label>
+                                        <select v-model="reg.categoria" id="categoria" class="form-control" required>
+                                            <!-- Las opciones se cargan dinámicamente -->
+                                        </select>
+                                    </div>
+
+                                    <!-- Tercera fila: Precio, Costo y Cantidad -->
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio
+                                            Venta</label>
+                                        <input v-model="reg.precio" @keypress="onlyNumber" type="text"
+                                            class="form-control" required>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Costo</label>
+                                        <input v-model="reg.costo" @keypress="onlyNumber" type="text"
+                                            class="form-control" required>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
+                                        <input v-model="reg.cantidad" @keypress="onlyNumber" type="text"
+                                            class="form-control" required>
+                                    </div>
+
+                                    <!-- Cuarta fila: Unidades, Almacén y Código Sunat -->
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-ruler me-1"></i>Unidades</label>
+                                        <select v-model="reg.unidad" class="form-control" id="unidades" required>
+                                            <!-- Las opciones se cargan dinámicamente -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
+                                        <select v-model="reg.almacen" class="form-control" required>
+                                            <option value="1">Almacén 1</option>
+                                            <option value="2">Almacén 2</option>
+                                            <option value="3">Almacén 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-money-bill-wave me-1"></i>Moneda</label>
+                                        <select v-model="reg.moneda" class="form-control" required>
+                                            <option value="PEN">Soles (PEN)</option>
+                                            <option value="USD">Dólares (USD)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Quinta fila: Código Sunat -->
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
+                                        <input v-model="reg.codSunat" type="text" class="form-control">
+                                    </div>
+
+                                    <!-- Quinta fila: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
+                                        <select v-model="reg.afecto" class="form-control">
+                                            <option value="0">No</option>
+                                            <option value="1">Si</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Distribuidor</label>
+                                        <input v-model="reg.precio1" @keypress="onlyNumber" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Mayorista</label>
+                                        <input v-model="reg.precio2" @keypress="onlyNumber" type="text"
+                                            class="form-control">
+                                    </div>
+
+                                    <!-- Sexta fila: Imagen del Producto -->
+                                    <div class="form-group col-md-12 mb-3">
+                                        <label><i class="fa fa-image me-1"></i>Imagen del Producto</label>
+                                        <div class="input-group">
+                                            <input type="file" @change="onImageChange" class="form-control"
+                                                accept="image/png, image/jpeg" id="product-image-input">
+                                        </div>
+                                        <div class="mt-2" v-if="imagePreview">
+                                            <img :src="imagePreview" alt="Vista previa" class="img-thumbnail"
+                                                style="max-height: 150px;">
+                                        </div>
+                                        <div class="mt-2" v-else>
+                                            <div class="text-center p-3 border rounded bg-light">
+                                                <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
+                                                <p class="mb-0">No hay imagen para este producto</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Séptima fila: ¿Utilizar MultiPrecio? -->
+                                    <div class="form-group col-md-12 mb-3">
+                                        <label><i class="fa fa-tags me-1"></i>¿Utilizar MultiPrecio?</label>
+                                        <div class="form-check form-switch">
+                                            <input v-model="reg.usar_multiprecio" class="form-check-input"
+                                                type="checkbox" id="usar_multiprecio_add"
+                                                style="width: 3em; height: 1.5em;">
+                                            <label class="form-check-label ms-2" for="usar_multiprecio_add"
+                                                :class="{'text-danger': reg.usar_multiprecio, 'text-secondary': !reg.usar_multiprecio}">
+                                                {{ reg.usar_multiprecio ? 'Sí' : 'No' }}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campos ocultos -->
+                                    <div class="form-group col-md-4" hidden>
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio 3</label>
+                                        <input v-model="reg.precio3" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4" hidden>
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio 4</label>
+                                        <input v-model="reg.precio4" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <!-- Campo oculto para usar_barra -->
+                                    <div class="form-group" hidden>
+                                        <input v-model="reg.usar_barra" type="hidden" value="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección de MultiPrecio -->
+                            <div v-if="reg.usar_multiprecio" class="col-md-12 px-3 mb-3">
+                                <div class="card border-danger">
+                                    <div
+                                        class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
+                                        <button type="button" @click="agregarPrecioNuevo" class="btn btn-sm btn-light">
+                                            <i class="fa fa-plus me-1"></i> Agregar
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-bordered m-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 50%; padding: 4px 8px;">Nombre</th>
+                                                    <th style="width: 35%; padding: 4px 8px;">Precio</th>
+                                                    <th style="width: 15%; padding: 4px 8px; text-align: center;">
+                                                        Opciones
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(precio, index) in preciosNuevos" :key="index">
+                                                    <td style="padding: 4px;">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text"><i
+                                                                    class="fa fa-tag"></i></span>
+                                                            <input v-model="precio.nombre" type="text"
+                                                                class="form-control" placeholder="Nombre del precio">
+                                                        </div>
+                                                    </td>
+                                                    <td style="padding: 4px;">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text"><span class="me-1"
+                                                                    style="font-weight: bold;">S/</span></span>
+                                                            <input v-model="precio.precio" @keypress="onlyNumber"
+                                                                type="text" class="form-control" placeholder="0.00">
+                                                        </div>
+                                                    </td>
+                                                    <td style="padding: 4px; text-align: center;">
+                                                        <button @click="eliminarPrecioNuevo(index)" type="button"
+                                                            class="btn btn-sm btn-danger">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="preciosNuevos.length === 0">
+                                                    <td colspan="3" class="text-center text-muted"
+                                                        style="padding: 4px;">
+                                                        No hay precios configurados. Haga clic en "Agregar" para crear
+                                                        uno.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                                    <i class="fa fa-times me-1"></i>Cerrar
+                                </button>
+                                <button type="submit" class="btn bg-rojo text-white">
+                                    <i class="fa fa-save me-1"></i>Guardar
+                                </button>
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- modal de editar -->
+            <div class="modal fade" id="modal-edt-prod" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="exampleModalLabel">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="exampleModalLabel"><i class="fa fa-edit me-2"></i>Editar
+                                Producto
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form @submit.prevent="actualizarProd" enctype="multipart/form-data">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <input v-model="edt.cod_prod" type="hidden" class="form-control">
+                                    <div class="form-group col-md-8 mt-2">
+                                        <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
+                                        <input v-model="edt.nombre" required type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-barcode me-1"></i>Código</label>
+                                        <input v-model="edt.codigo" required type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-8 mt-2">
+                                        <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
+                                        <textarea v-model="edt.detalle" class="form-control"></textarea>
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-folder me-1"></i>Categoría</label>
+                                        <select v-model="edt.categoria" id="categoria-edt" class="form-control">
+                                        </select>
+                                    </div>
+
+                                    <!-- PRIMERA FILA: Precio Venta, Costo, Cantidad -->
+                                    <div class="form-group col-md-4 mt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio
+                                                Venta</label>
+                                            <span v-if="parseFloat(edt.precio) <= 0" class="text-danger small">
+                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                            </span>
+                                        </div>
+                                        <input v-model="edt.precio" @keypress="onlyNumber" required value="0"
+                                            type="text" class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Costo</label>
+                                            <span v-if="parseFloat(edt.costo) <= 0" class="text-danger small">
+                                                <i class="fa fa-exclamation-triangle"></i> Costo está en 0
+                                            </span>
+                                        </div>
+                                        <input v-model="edt.costo" @keypress="onlyNumber" required value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
+                                            <span v-if="parseInt(edt.cantidad) <= 0" class="text-danger small">
+                                                <i class="fa fa-exclamation-triangle"></i> Cantidad está en 0
+                                            </span>
+                                        </div>
+                                        <input v-model="edt.cantidad" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+
+                                    <!-- SEGUNDA FILA: Unidades, Almacén, Cod. Sunat -->
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-ruler me-1"></i>Unidades</label>
+                                        <select v-model="edt.unidad" id="unidades-edt" class="form-control">
+                                            <option v-for="unit in units" :key="unit.id" :value="unit.id">
+                                                {{unit.nombre}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
+                                        <select v-model="edt.almacen" required class="form-control">
+                                            <option value="1">Almacén 1</option>
+                                            <option value="2">Almacén 2</option>
+                                            <option value="3">Almacén 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-money-bill-wave me-1"></i>Moneda</label>
+                                        <select v-model="edt.moneda" class="form-control" required>
+                                            <option value="PEN">Soles (PEN)</option>
+                                            <option value="USD">Dólares (USD)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- TERCERA FILA: Cod. Sunat -->
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
+                                        <input v-model="edt.codSunat" type="text" class="form-control">
+                                    </div>
+
+                                    <!-- TERCERA FILA: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
+                                        <select v-model="edt.afecto" class="form-control">
+                                            <option value="0">No</option>
+                                            <option value="1">Si</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Distribuidor</label>
+                                            <span v-if="parseFloat(edt.precioMayor) <= 0" class="text-danger small">
+                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                            </span>
+                                        </div>
+                                        <input v-model="edt.precioMayor" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Mayorista</label>
+                                            <span v-if="parseFloat(edt.precioMenor) <= 0" class="text-danger small">
+                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
+                                            </span>
+                                        </div>
+                                        <input v-model="edt.precioMenor" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+
+                                    <!-- Campos ocultos -->
+                                    <div class="form-group col-md-4 mt-2" hidden>
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 3</label>
+                                        <input v-model="edt.precio3" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-4 mt-2" hidden>
+                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 4</label>
+                                        <input v-model="edt.precio4" @keypress="onlyNumber" value="0" type="text"
+                                            class="form-control">
+                                    </div>
+                                    <div class="form-group col-md-8 mt-3">
+                                        <label class="d-flex align-items-center mb-2">
+                                            <i class="fa fa-image me-2"></i>
+                                            <span class="fw-bold">Imagen del Producto</span>
+                                        </label>
+
+                                        <!-- Contenedor de la imagen existente -->
+                                        <div class="image-container position-relative"
+                                            style="display: none; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden; background-color: #f8f9fa; text-align: center; min-height: 200px; align-items: center; justify-content: center; display: flex;">
+                                            <img id="img-preview" alt="Vista previa"
+                                                style="max-height: 180px; width: auto; margin: 10px;" />
+
+                                            <!-- Botón de edición -->
+                                            <div id="image-edit-button"
+                                                style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                                                <button type="button" class="btn btn-light" onclick="toggleImageMenu()"
+                                                    style="background-color: rgba(255, 255, 255, 0.9); border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    <i class="fa fa-pencil-alt me-1"></i>
+                                                    Editar
+                                                </button>
+
+                                                <!-- Menú desplegable -->
+                                                <div id="image-menu" class="position-absolute shadow-sm"
+                                                    style="display: none; top: 100%; right: 0; margin-top: 5px; background-color: white; border-radius: 4px; border: 1px solid #dee2e6; min-width: 160px; z-index: 1000;">
+                                                    <div class="p-2 hover-bg-light" style="cursor: pointer;"
+                                                        onclick="changeImage()">
+                                                        <i class="fa fa-upload me-2"></i> Cambiar foto...
+                                                    </div>
+                                                    <div class="p-2 text-danger hover-bg-light" style="cursor: pointer;"
+                                                        onclick="removeImage()">
+                                                        <i class="fa fa-trash me-2"></i> Eliminar foto
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Input oculto para subir imagen -->
+                                        <input type="file" id="upload-input" name="imagen" class="d-none"
+                                            accept="image/*" onchange="previewImage(this)" />
+
+                                        <!-- Mensaje y botón para cuando NO hay imagen -->
+                                        <div id="no-image-message" class="text-center p-3 border rounded bg-light mt-2"
+                                            style="display: none;">
+                                            <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
+                                            <p class="mb-2">No hay imagen para este producto</p>
+                                            <button type="button" class="btn btn-primary btn-sm"
+                                                onclick="changeImage()">
+                                                <i class="fa fa-upload me-1"></i> Subir imagen
+                                            </button>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label><i class="fa fa-qrcode me-1"></i>Usar Código Barra</label>
+                                        <div class="input-group">
+                                            <select v-model="edt.usar_barra" class="form-control">
+                                                <option value="0">No</option>
+                                                <option value="1">Si</option>
+                                            </select>
+                                            <div v-if="edt.usar_barra=='1'" class="input-group-append">
+                                                <button @click="edtGenerarCodeBarra" type="button"
+                                                    class="btn border-rojo"><i class="fa fa-sync-alt"></i>
+                                                    Generar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 mt-3 text-center" v-if="edt.usar_barra=='1'">
+                                        <label><i class="fa fa-barcode me-1"></i>Código de Barras</label>
+                                        <div class="p-2 border rounded bg-light">
+                                            <img id="barcode" class="img-fluid" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-4 mt-2">
+                                        <label class="d-flex align-items-center">
+                                            <i class="fa fa-tags me-2"></i>
+                                            <span class="fw-bold">¿Utilizar MultiPrecio?</span>
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input v-model="edt.usar_multiprecio" class="form-check-input"
+                                                type="checkbox" id="usar_multiprecio_edit"
+                                                style="width: 3em; height: 1.5em;">
+                                            <label class="form-check-label ms-2 fw-bold" for="usar_multiprecio_edit"
+                                                :class="{'text-danger': edt.usar_multiprecio, 'text-secondary': !edt.usar_multiprecio}">
+                                                {{ edt.usar_multiprecio ? 'Sí' : 'No' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="edt.usar_multiprecio" class="col-md-12 mt-0 ">
+                                <div class="card border-danger mb-3">
+                                    <div
+                                        class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
+                                        <button type="button" @click="agregarPrecio" class="btn btn-sm btn-light">
+                                            <i class="fa fa-plus me-1"></i> Agregar
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-bordered m-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 50%; padding: 4px 8px;">Nombre</th>
+                                                    <th style="width: 35%; padding: 4px 8px;">Precio</th>
+                                                    <th style="width: 15%; padding: 4px 8px; text-align: center;">
+                                                        Opciones
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(precio, index) in precios" :key="index">
+                                                    <td style="padding: 4px;">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text"><i
+                                                                    class="fa fa-tag"></i></span>
+                                                            <input v-model="precio.nombre" type="text"
+                                                                class="form-control" placeholder="Nombre del precio">
+                                                        </div>
+                                                    </td>
+                                                    <td style="padding: 4px;">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text"><span
+                                                                    style="font-weight: bold;">S/</span></span>
+                                                            <input v-model="precio.precio" @keypress="onlyNumber"
+                                                                type="text" class="form-control" placeholder="0.00">
+                                                        </div>
+                                                    </td>
+                                                    <td style="padding: 4px; text-align: center;">
+                                                        <button @click="eliminarPrecio(index)" type="button"
+                                                            class="btn btn-sm btn-danger">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="precios.length === 0">
+                                                    <td colspan="3" class="text-center text-muted"
+                                                        style="padding: 4px;">
+                                                        No hay precios configurados. Haga clic en "Agregar" para crear
+                                                        uno.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn bg-rojo"><i
+                                        class="fa fa-save me-1"></i>Actualizar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i
+                                        class="fa fa-times me-1"></i>Cerrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Historial Stock -->
+            <div class="modal fade" id="modal-historial-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title">
+                                <i class="fa fa-history me-2"></i>Historial de Stock
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-sm">
+                                    <thead class="table-light sticky-top">
                                         <tr>
-                                            <th style="width: 50%; padding: 4px 8px;">Nombre</th>
-                                            <th style="width: 35%; padding: 4px 8px;">Precio</th>
-                                            <th style="width: 15%; padding: 4px 8px; text-align: center;">Opciones</th>
+                                            <th>Código</th>
+                                            <th>Producto</th>
+                                            <th>Movimiento</th>
+                                            <th>Cantidad</th>
+                                            <th>Fecha</th>
+                                            <th>Usuario</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="(precio, index) in precios" :key="index">
-                                            <td style="padding: 4px;">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text"><i class="fa fa-tag"></i></span>
-                                                    <input v-model="precio.nombre" type="text" class="form-control"
-                                                        placeholder="Nombre del precio">
-                                                </div>
+                                        <tr v-for="item in historialStock" :key="item.id">
+                                            <td>{{ item.codigo }}</td>
+                                            <td>{{ item.producto_nombre }}</td>
+                                            <td>
+                                                <span class="badge"
+                                                    :class="item.tipo_movimiento === 'INGRESO' ? 'bg-success' : 'bg-danger'">
+                                                    {{ item.tipo_movimiento }}
+                                                </span>
                                             </td>
-                                            <td style="padding: 4px;">
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text"><span
-                                                            style="font-weight: bold;">S/</span></span>
-                                                    <input v-model="precio.precio" @keypress="onlyNumber" type="text"
-                                                        class="form-control" placeholder="0.00">
-                                                </div>
-                                            </td>
-                                            <td style="padding: 4px; text-align: center;">
-                                                <button @click="eliminarPrecio(index)" type="button"
-                                                    class="btn btn-sm btn-danger">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </td>
+                                            <td>{{ item.cantidad }}</td>
+                                            <td>{{ formatearFecha(item.fecha_movimiento) }}</td>
+                                            <td>{{ item.usuario }}</td>
                                         </tr>
-                                        <tr v-if="precios.length === 0">
-                                            <td colspan="3" class="text-center text-muted" style="padding: 4px;">
-                                                No hay precios configurados. Haga clic en "Agregar" para crear uno.
+                                        <tr v-if="historialStock.length === 0">
+                                            <td colspan="6" class="text-center text-muted">No hay movimientos
+                                                registrados
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fa fa-times me-1"></i>Cerrar
+                            </button>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn bg-rojo"><i class="fa fa-save me-1"></i>Actualizar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i
-                                class="fa fa-times me-1"></i>Cerrar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Historial Stock -->
-    <div class="modal fade" id="modal-historial-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title">
-                        <i class="fa fa-history me-2"></i>Historial de Stock
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover table-sm">
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Producto</th>
-                                    <th>Movimiento</th>
-                                    <th>Cantidad</th>
-                                    <th>Fecha</th>
-                                    <th>Usuario</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="item in historialStock" :key="item.id">
-                                    <td>{{ item.codigo }}</td>
-                                    <td>{{ item.producto_nombre }}</td>
-                                    <td>
-                                        <span class="badge"
-                                            :class="item.tipo_movimiento === 'INGRESO' ? 'bg-success' : 'bg-danger'">
-                                            {{ item.tipo_movimiento }}
-                                        </span>
-                                    </td>
-                                    <td>{{ item.cantidad }}</td>
-                                    <td>{{ formatearFecha(item.fecha_movimiento) }}</td>
-                                    <td>{{ item.usuario }}</td>
-                                </tr>
-                                <tr v-if="historialStock.length === 0">
-                                    <td colspan="6" class="text-center text-muted">No hay movimientos registrados</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fa fa-times me-1"></i>Cerrar
-                    </button>
                 </div>
             </div>
-        </div>
-    </div>
 
 
-    <!-- Modal Aumentar Stock de Productos -->
-    <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title">
-                        <i class="fa fa-box me-2"></i>Aumentar Stock de Productos
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form @submit.prevent="aumentarStockProducto">
-                    <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fa fa-info-circle me-2"></i>
-                            Aquí Debes Buscar y Seleccionar un Producto:
+            <!-- Modal Aumentar Stock de Productos -->
+            <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title">
+                                <i class="fa fa-box me-2"></i>Aumentar Stock de Productos
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
+                        <form @submit.prevent="aumentarStockProducto">
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle me-2"></i>
+                                    Aquí Debes Buscar y Seleccionar un Producto:
+                                </div>
 
-                        <div class="form-group mb-3">
-                            <label><i class="fa fa-search me-1"></i>Buscar Producto:</label>
-                            <input type="text" id="buscar-producto-stock" class="form-control"
-                                placeholder="Buscar por código o nombre...">
-                            <input type="hidden" id="producto-seleccionado-id" v-model="stockData.producto_id">
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label><i class="fa fa-cubes me-1"></i>Stock Actual:</label>
-                                    <input type="text" class="form-control" v-model="stockData.stock_actual" readonly>
+                                    <label><i class="fa fa-search me-1"></i>Buscar Producto:</label>
+                                    <input type="text" id="buscar-producto-stock" class="form-control"
+                                        placeholder="Buscar por código o nombre...">
+                                    <input type="hidden" id="producto-seleccionado-id" v-model="stockData.producto_id">
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label><i class="fa fa-plus-circle me-1"></i>Cant. a Ingresar *:</label>
-                                    <input type="number" class="form-control" v-model="stockData.cantidad_ingresar"
-                                        min="1" required placeholder="0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                            <i class="fa fa-times me-1"></i>Cerrar
-                        </button>
-                        <button type="submit" class="btn bg-rojo text-white">
-                            <i class="fa fa-check me-1"></i>Aumentar Stock Ahora
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="modal-restock" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form @submit.prevent="agregarStock">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label>Cantidad</label>
-                            <input v-model="restock.cantidad" required type="text" class="form-control">
-                            <small class="form-text text-muted">La cantidad ingresada se sumará a la cantidad
-                                actual</small>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
-                </form>
 
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="importarModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content"
-                style="border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-                <div class="modal-header bg-rojo text-white" style="border-radius: 15px 15px 0 0; border-bottom: none;">
-                    <h5 class="modal-title" id="exampleModalLabel" style="font-weight: 600;">
-                        <i class="fas fa-file-excel me-2"></i>Importar Productos con EXCEL
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form enctype='multipart/form-data'>
-                        <div class="mb-4">
-                            <div class="p-3 bg-light rounded-3" style="border: 1px dashed #dee2e6;">
-                                <p class="mb-2">Descargue el modelo en <span class="fw-bold">EXCEL</span> para importar,
-                                    no
-                                    modifique los campos en el archivo.</p>
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold me-2">Click para descargar:</span>
-                                    <a href="<?= URL::to('/reporte/producto/guia') ?>"
-                                        class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
-                                        <i class="fas fa-download me-1"></i>plantilla.xlsx
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold mb-2">Importar Excel:</label>
-                            <div class="file-upload-wrapper">
-                                <div class="file-upload-area"
-                                    style="position: relative; border: 2px dashed #CA3438; border-radius: 10px; padding: 20px; text-align: center; background-color: #fff5f5; transition: all 0.3s ease;">
-                                    <input id="file-import-exel"
-                                        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                        type="file"
-                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-                                    <div class="file-info">
-                                        <i class="fas fa-cloud-upload-alt"
-                                            style="font-size: 2rem; color: #CA3438; margin-bottom: 10px;"></i>
-                                        <p class="mb-0" id="file-name-display">Arrastre su archivo aquí o haga click
-                                            para seleccionar</p>
-                                        <p class="text-muted small mt-1">Formatos aceptados: Excel, CSV</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label><i class="fa fa-cubes me-1"></i>Stock Actual:</label>
+                                            <input type="text" class="form-control" v-model="stockData.stock_actual"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label><i class="fa fa-plus-circle me-1"></i>Cant. a Ingresar *:</label>
+                                            <input type="number" class="form-control"
+                                                v-model="stockData.cantidad_ingresar" min="1" required placeholder="0">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                                    <i class="fa fa-times me-1"></i>Cerrar
+                                </button>
+                                <button type="submit" class="btn bg-rojo text-white">
+                                    <i class="fa fa-check me-1"></i>Aumentar Stock Ahora
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="modal-restock" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form @submit.prevent="agregarStock">
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label>Cantidad</label>
+                                    <input v-model="restock.cantidad" required type="text" class="form-control">
+                                    <small class="form-text text-muted">La cantidad ingresada se sumará a la cantidad
+                                        actual</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="importarModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content"
+                        style="border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                        <div class="modal-header bg-rojo text-white"
+                            style="border-radius: 15px 15px 0 0; border-bottom: none;">
+                            <h5 class="modal-title" id="exampleModalLabel" style="font-weight: 600;">
+                                <i class="fas fa-file-excel me-2"></i>Importar Productos con EXCEL
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form enctype='multipart/form-data'>
+                                <div class="mb-4">
+                                    <div class="p-3 bg-light rounded-3" style="border: 1px dashed #dee2e6;">
+                                        <p class="mb-2">Descargue el modelo en <span class="fw-bold">EXCEL</span> para
+                                            importar,
+                                            no
+                                            modifique los campos en el archivo.</p>
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold me-2">Click para descargar:</span>
+                                            <a href="<?= URL::to('/reporte/producto/guia') ?>"
+                                                class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
+                                                <i class="fas fa-download me-1"></i>plantilla.xlsx
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold mb-2">Importar Excel:</label>
+                                    <div class="file-upload-wrapper">
+                                        <div class="file-upload-area"
+                                            style="position: relative; border: 2px dashed #CA3438; border-radius: 10px; padding: 20px; text-align: center; background-color: #fff5f5; transition: all 0.3s ease;">
+                                            <input id="file-import-exel"
+                                                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                                                type="file"
+                                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                                            <div class="file-info">
+                                                <i class="fas fa-cloud-upload-alt"
+                                                    style="font-size: 2rem; color: #CA3438; margin-bottom: 10px;"></i>
+                                                <p class="mb-0" id="file-name-display">Arrastre su archivo aquí o haga
+                                                    click
+                                                    para seleccionar</p>
+                                                <p class="text-muted small mt-1">Formatos aceptados: Excel, CSV</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer" style="border-top: none;">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                                style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">Cancelar</button>
+                            <button type="button" class="btn bg-rojo text-white" id="btn-importar"
+                                style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">
+                                <i class="fas fa-file-import me-1"></i>Importar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+            <div class="modal fade" id="modal-lista-productos" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog  modal-dialog-scrollable modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="staticBackdropLabel">Lista de productos</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-sm table-bordered text-center">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Descripción</th>
+                                        <th>Cantidad</th>
+                                        <th>Costo</th>
+                                        <th>Precio Venta</th>
+                                        <th>Precio 1</th>
+                                        <th>Precio 2</th>
+                                        <th>Almacén</th>
+                                        <th>Código</th>
+                                        <th>Unidades</th>
+                                        <th>Categorías</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item,index) in listaProd">
+                                        <td>{{item.producto}}</td>
+                                        <td>{{item.descripcicon}}</td>
+                                        <td> {{item.cantidad}}</td>
+                                        <td>{{item.costo}}</td>
+                                        <td>{{item.precio_unidad}}</td>
+                                        <td>{{item.precio}}</td>
+                                        <td>{{item.precio2}}</td>
+                                        <td>{{item.almacen}}</td>
+                                        <td>{{item.codigoProd}}</td>
+                                        <td>{{item.unidad}}</td>
+                                        <td>{{item.categoria}}</td>
+                                        <td><button @click="eliminarItemTablaPro(index)"
+                                                class="btn-sm btn btn-danger"><i class="fa fa-times"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button @click="agregarListaImport" type="button" class="btn btn-primary">Guardar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modalCodigoBarras" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="exampleModalLabel">Código de Barras</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <div class="mb-3 text-center">
+                                <img id="idCodigoBarras">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Escalar</label>
+                                <select id="scalimg" class="form-control">
+                                    <option value="1">NO</option>
+                                    <option value="2">SI</option>
+                                </select>
+                            </div>
+                            <div class="text-center">
+                                <button class="btn border-rojo text-rojo" id="btnImprimir"
+                                    onclick="imprimir()">Imprimir</button>
+                                <button class="btn  border-rojo text-rojo" id="btnImprimir2"
+                                    onclick="imprimir2()">Imprimir
+                                    2</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal fade" id="modal-prodEreport" tabindex="-1" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Reporte De Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Año</label>
+                            <select id='anioreporEFG' class="form-control">
+                                <?php
+                                $anio = date("Y");
+                                for ($i = 0; $i < 10; $i++) {
+                                    echo "<option value='$anio'>$anio</option>";
+                                    $anio--;
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Mes</label>
+                            <select id='mesreprEFG' class="form-control">
+                                <?php
+                                $contador = 1;
+                                $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
+                                foreach ($meses as $mes) {
+                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
+                                    $contador++;
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Día</label>
+                            <input id='diareporEfghg' class="form-control">
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button id="generarreporteProd" type="button" class="btn btn-primary">Generar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="modal-imagen" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Imagen del Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="col-md-12 mb-3" id="imagen">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Agregar Categoría</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="addCategoria">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="nombreCategoria" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombreCategoria">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" id="submitCategoria" class="btn btn-primary">Guardar</button>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer" style="border-top: none;">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                        style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">Cancelar</button>
-                    <button type="button" class="btn bg-rojo text-white" id="btn-importar"
-                        style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">
-                        <i class="fas fa-file-import me-1"></i>Importar
-                    </button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="listaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Lista de Categorías</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="addCategoria">
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Categoría</th>
+                                            <th scope="col">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyCat">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
 
-
-
-
-
-    <div class="modal fade" id="modal-lista-productos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog  modal-dialog-scrollable modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="staticBackdropLabel">Lista de productos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-sm table-bordered text-center">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Descripción</th>
-                                <th>Cantidad</th>
-                                <th>Costo</th>
-                                <th>Precio Venta</th>
-                                <th>Precio 1</th>
-                                <th>Precio 2</th>
-                                <th>Almacén</th>
-                                <th>Código</th>
-                                <th>Unidades</th>
-                                <th>Categorías</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item,index) in listaProd">
-                                <td>{{item.producto}}</td>
-                                <td>{{item.descripcicon}}</td>
-                                <td> {{item.cantidad}}</td>
-                                <td>{{item.costo}}</td>
-                                <td>{{item.precio_unidad}}</td>
-                                <td>{{item.precio}}</td>
-                                <td>{{item.precio2}}</td>
-                                <td>{{item.almacen}}</td>
-                                <td>{{item.codigoProd}}</td>
-                                <td>{{item.unidad}}</td>
-                                <td>{{item.categoria}}</td>
-                                <td><button @click="eliminarItemTablaPro(index)" class="btn-sm btn btn-danger"><i
-                                            class="fa fa-times"></i></button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button @click="agregarListaImport" type="button" class="btn btn-primary">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalCodigoBarras" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Código de Barras</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-
-                    <div class="mb-3 text-center">
-                        <img id="idCodigoBarras">
+        <div class="modal fade" id="updateCategoria" tabindex="-1" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Actualizar Categoría</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Escalar</label>
-                        <select id="scalimg" class="form-control">
-                            <option value="1">NO</option>
-                            <option value="2">SI</option>
-                        </select>
-                    </div>
-                    <div class="text-center">
-                        <button class="btn border-rojo text-rojo" id="btnImprimir"
-                            onclick="imprimir()">Imprimir</button>
-                        <button class="btn  border-rojo text-rojo" id="btnImprimir2" onclick="imprimir2()">Imprimir
-                            2</button>
-                    </div>
+                    <form id="addCategoria">
+                        <div class="modal-body">
+                            <input type="text" id="idCatU" value="" hidden>
+                            <div class="mb-3">
+                                <label for="nombreCategoriaU" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombreCategoriaU">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" id="updateCategoriaBtn" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<div class="modal fade" id="modal-prodEreport" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte De Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Año</label>
-                    <select id='anioreporEFG' class="form-control">
-                        <?php
-                        $anio = date("Y");
-                        for ($i = 0; $i < 10; $i++) {
-                            echo "<option value='$anio'>$anio</option>";
-                            $anio--;
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Mes</label>
-                    <select id='mesreprEFG' class="form-control">
-                        <?php
-                        $contador = 1;
-                        $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                        foreach ($meses as $mes) {
-                            echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                            $contador++;
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Día</label>
-                    <input id='diareporEfghg' class="form-control">
-                </div>
-
-            </div>
-            <div class="modal-footer">
-                <button id="generarreporteProd" type="button" class="btn btn-primary">Generar</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 
-
-<div class="modal fade" id="modal-imagen" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Imagen del Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="col-md-12 mb-3" id="imagen">
-
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Agregar Categoría</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addCategoria">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="nombreCategoria" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombreCategoria">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="submitCategoria" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="listaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Lista de Categorías</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addCategoria">
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Categoría</th>
-                                    <th scope="col">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyCat">
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="updateCategoria" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Actualizar Categoría</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addCategoria">
-                <div class="modal-body">
-                    <input type="text" id="idCatU" value="" hidden>
-                    <div class="mb-3">
-                        <label for="nombreCategoriaU" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombreCategoriaU">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" id="updateCategoriaBtn" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@pokusew/escpos@3.0.8/dist/index.min.js"></script> -->
 
 <script>
     // Variables globales para el control de vistas
@@ -1158,37 +1331,39 @@ $almacenProducto = 1;
     }
 
     var codProdT = ''
+    /*
     async function printBarcode() {
         try {
             const printer = await EscPosPrinter.requestPrinter();
-
+ 
             // Conectar a la impresora
             await printer.connect();
-
+ 
             // Configurar el tamaño del ticket (50 mm x 25 mm)
             await printer.setPageFormat(50, 25);
-
+ 
             // Imprimir el título
             await printer.printText('Barcode Title\n');
-
+ 
             // Generar el código de barras utilizando JsBarcode
             const svgData = JsBarcode.generateSvg('123456789', {
                 format: 'CODE128',
                 displayValue: true,
             });
-
+ 
             // Imprimir el código de barras
             await printer.printImage(svgData);
-
+ 
             // Cortar el ticket
             await printer.cut();
-
+ 
             // Desconectar la impresora
             await printer.disconnect();
         } catch (error) {
             console.error(error);
         }
     }
+    */
 
     function imprimir2() {
         window.open(_URL + "/ge/bar/code2?code=" + codeBarraTemps + "&nombre=" + nombreBarraTemps + "&scal=" + $("#scalimg").val(), "_blank");
@@ -1237,12 +1412,9 @@ $almacenProducto = 1;
         $('#loading-grid').addClass('active');
         $('#products-container').empty();
 
-        const filter = $('#maquinas').prop('checked') ? 'JVC' :
-            $('#implementos').prop('checked') ? 'IMPLE' :
-                $('#cep').prop('checked') ? 'CEP' :
-                    $('#pad').prop('checked') ? 'PAD' :
-                        $('#port').prop('checked') ? 'PORT' :
-                            $('#acc').prop('checked') ? 'ACC' : '';
+        const filter = $('#filtroProductos').val() || $('#filtroProductos-mobile').val() || ''
+
+
 
         _ajax("/ajs/data/productos/grid", "POST", {
             almacenId: almacenCod,
@@ -1412,7 +1584,7 @@ $almacenProducto = 1;
         const app = new Vue({
             el: "#conte-vue-modals",
             data: {
-               almacen: <?php echo json_encode($_SESSION["sucursal"]); ?>,
+                almacen: <?php echo json_encode($_SESSION["sucursal"]); ?>,
                 t: 0,
                 listaProd: [],
                 restock: {
@@ -1440,6 +1612,7 @@ $almacenProducto = 1;
                     categoria: '',
                     almacen: 1,
                     unidad: '',
+                    moneda: 'PEN',
                     usar_multiprecio: false,
                 },
                 edt: {
@@ -1465,6 +1638,7 @@ $almacenProducto = 1;
                     categoria: '',
                     almacen: '',
                     unidad: '',
+                    moneda: 'PEN',
                     usar_multiprecio: false,
                 },
                 listaIdsss: [],
@@ -1477,6 +1651,16 @@ $almacenProducto = 1;
                     producto_nombre: ''
                 },
                 historialStock: [],
+            },
+            computed: {
+                // Símbolos de moneda para el formulario de agregar
+                simboloMonedaReg() {
+                    return this.reg.moneda === 'USD' ? '$' : 'S/';
+                },
+                // Símbolos de moneda para el formulario de editar
+                simboloMonedaEdt() {
+                    return this.edt.moneda === 'USD' ? '$' : 'S/';
+                }
             },
             methods: {
                 agregarPrecio() {
@@ -1693,6 +1877,7 @@ $almacenProducto = 1;
                     let formData = new FormData();
 
                     // Añadir los datos al formData
+                    formData.append('id_producto', this.edt.cod);
                     formData.append('cod', this.edt.cod);
                     formData.append('nombre', this.edt.nombre);
                     formData.append('codigo', this.edt.codigo);
@@ -1712,13 +1897,15 @@ $almacenProducto = 1;
                     formData.append('cantidad', this.edt.cantidad);
                     formData.append('razon', 1);
                     formData.append('ruc', 1);
+                    formData.append('moneda', this.edt.moneda);
                     formData.append('usar_multiprecio', this.edt.usar_multiprecio ? '1' : '0');
 
-                    // Agregar la imagen solo si fue seleccionada
-                    let imagen = document.querySelector('#upload-input').files[0];
-                    if (imagen) {
-                        formData.append('imagen', imagen);
-                    }
+                  // Agregar la imagen solo si fue seleccionada Y el input no está vacío
+let inputImagen = document.querySelector('#upload-input');
+let imagen = inputImagen && inputImagen.files && inputImagen.files[0];
+if (imagen && inputImagen.value) {
+    formData.append('imagen', imagen);
+}
 
                     // Verificar si se debe eliminar la imagen
                     let eliminarImagen = document.querySelector('#eliminar-imagen-flag');
@@ -1806,6 +1993,7 @@ $almacenProducto = 1;
                     formData.append('categoria', this.reg.categoria);
                     formData.append('almacen', this.reg.almacen);
                     formData.append('unidad', this.reg.unidad);
+                    formData.append('moneda', this.reg.moneda);
                     formData.append('usar_multiprecio', this.reg.usar_multiprecio ? '1' : '0');
                     formData.append('precios', JSON.stringify(this.preciosNuevos));
 
@@ -1894,7 +2082,8 @@ $almacenProducto = 1;
                             precio4: data.precio4,
                             cantidad: data.cantidad,
                             razon_social: data.razon_social,
-                            ruc: data.ruc
+                            ruc: data.ruc,
+                            moneda: data.moneda || 'PEN'
                         };
                         // Si hay código de barras y usar_barra es '1', generar el código de barras
                         if (this.edt.usar_barra === '1') {
@@ -1932,8 +2121,12 @@ $almacenProducto = 1;
                             $('#no-image-message').show();
                         }
 
-                        // Limpiar flag de eliminar imagen al abrir modal
-                        $('#eliminar-imagen-flag').remove();
+                       // Limpiar flag de eliminar imagen al abrir modal
+$('#eliminar-imagen-flag').remove();
+
+// CRÍTICO: Limpiar el input file para evitar que se envíe imagen de otro producto
+$('#upload-input').val('');
+
 
                     }).catch(error => {
                         console.error('Error cargando datos:', error);
@@ -2044,12 +2237,8 @@ $almacenProducto = 1;
                     aoData.push(
                         { "name": "almacenId", "value": almacenCod },
                         {
-                            "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
-                                $('#implementos').prop('checked') ? 'IMPLE' :
-                                    $('#cep').prop('checked') ? 'CEP' :
-                                        $('#pad').prop('checked') ? 'PAD' :
-                                            $('#port').prop('checked') ? 'PORT' :
-                                                $('#acc').prop('checked') ? 'ACC' : ''
+                            "name": "filter", "value": $('#filtroProductos').val() || $('#filtroProductos-mobile').val() || ''
+
                         }
                     );
                 },
@@ -2082,6 +2271,16 @@ $almacenProducto = 1;
                         }
                     },
                     {
+                        "targets": [3],
+                        "className": "text-center",
+                        "render": function (data, type, row, meta) {
+                            // La moneda está en row[7] (índice 7 del array de columnas)
+                            const moneda = row[7] || 'PEN';
+                            const simbolo = moneda === 'USD' ? '$' : 'S/';
+                            return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
+                        }
+                    },
+                    {
                         "targets": 5,
                         "render": function (data, type, row, meta) {
                             return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
@@ -2100,21 +2299,49 @@ $almacenProducto = 1;
         // Inicializar DataTable
         initializeDataTable();
 
-        // Event listeners para cambio de vista
+
+
+        function toggleViewButtons() {
+            const isTablet = window.innerWidth < 992;
+            const isDesktop = window.innerWidth >= 1200;
+
+            if (isTablet) {
+                // En tablet/móvil: mostrar dropdown, ocultar botones individuales
+                $('.grid-view-buttons').addClass('d-none');
+                $('.table-view-dropdown').removeClass('d-none');
+            } else if (isDesktop) {
+                // En desktop grande: mostrar botones individuales, ocultar dropdown
+                $('.grid-view-buttons').removeClass('d-none');
+                $('.table-view-dropdown').addClass('d-none');
+            } else {
+                // En pantallas medianas: mostrar solo los toggle buttons
+                $('.grid-view-buttons').addClass('d-none');
+                $('.table-view-dropdown').addClass('d-none');
+            }
+        }
+
+        // Función 'debounce' para optimizar el evento de resize.
+        const debounce = (func, delay) => {
+            let timeoutId;
+            return (...args) => {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func.apply(this, args), delay);
+            };
+        };
+
+        // Asignamos el evento de resize usando el debounce.
+        $(window).on('resize', debounce(toggleViewButtons, 200));
+
+        // Event listeners para cambio de vista (código original del usuario)
         $('#btn-table-view').click(function () {
             if (currentView !== 'table') {
                 currentView = 'table';
-
-                // Cambiar clases de botones
                 $('#btn-table-view').addClass('active');
                 $('#btn-grid-view').removeClass('active');
-
-                // Mostrar/ocultar vistas
                 $('#table-view').removeClass('hidden');
                 $('#grid-view').removeClass('active');
                 $('.grid-filters').removeClass('active');
-
-                // Recargar tabla si es necesario
+                toggleViewButtons();
                 if ($.fn.DataTable.isDataTable('#datatable')) {
                     datatable.ajax.reload();
                 }
@@ -2124,20 +2351,51 @@ $almacenProducto = 1;
         $('#btn-grid-view').click(function () {
             if (currentView !== 'grid') {
                 currentView = 'grid';
-
-                // Cambiar clases de botones
                 $('#btn-grid-view').addClass('active');
                 $('#btn-table-view').removeClass('active');
-
-                // Mostrar/ocultar vistas
                 $('#table-view').addClass('hidden');
                 $('#grid-view').addClass('active');
                 $('.grid-filters').addClass('active');
-
-                // Cargar productos en grid
+                toggleViewButtons();
                 loadGridProducts(1, searchTerm);
             }
         });
+        // Event listeners para botones desktop
+        $('#btn-table-view-desktop').click(function () {
+            $('#btn-table-view').click(); // Reutilizar funcionalidad existente
+        });
+
+        $('#btn-grid-view-desktop').click(function () {
+            $('#btn-grid-view').click(); // Reutilizar funcionalidad existente
+        });
+
+        // Sincronizar estados entre versiones móvil y desktop
+        $(document).on('click', '#btn-table-view, #btn-table-view-desktop', function () {
+            $('#btn-table-view, #btn-table-view-desktop').addClass('active');
+            $('#btn-grid-view, #btn-grid-view-desktop').removeClass('active');
+        });
+
+        $(document).on('click', '#btn-grid-view, #btn-grid-view-desktop', function () {
+            $('#btn-grid-view, #btn-grid-view-desktop').addClass('active');
+            $('#btn-table-view, #btn-table-view-desktop').removeClass('active');
+        });
+
+
+        // Llamada inicial para establecer el estado correcto.
+        toggleViewButtons();
+
+        // Event listeners para el dropdown
+        $(document).on('click', '#add-prod-dropdown', function () {
+            $('#add-prod').click(); // Reutilizar la funcionalidad existente
+        });
+
+        $(document).on('click', '.btnBorrar-dropdown', function () {
+            $('.btnBorrar').click(); // Reutilizar la funcionalidad existente
+        });
+
+        // Inicializar la vista correcta al cargar la página
+        currentView = 'table';
+        toggleViewButtons(); // Usar la función para inicializar correctamente
 
         // Search en vista grid
         let searchTimeout;
@@ -2272,8 +2530,10 @@ $almacenProducto = 1;
         });
 
         // Update filter handling
-        $('.filter-option').on('change', function () {
-            $('.filter-option').not(this).prop('checked', false);
+        $('.filter-option-select').on('change', function () {
+            // Sincronizar ambos selects (desktop y mobile)
+            const selectedValue = $(this).val();
+            $('.filter-option-select').val(selectedValue);
 
             if (currentView === 'table') {
                 datatable.ajax.reload();
@@ -2282,6 +2542,7 @@ $almacenProducto = 1;
                 loadGridProducts(currentPage, searchTerm);
             }
         });
+
 
         $("#file-import-exel").change(function () {
             if ($("#file-import-exel").val().length > 0) {
@@ -2350,6 +2611,7 @@ $almacenProducto = 1;
                                         codigoProd: el[8] || '',
                                         unidad: el[9] || '',
                                         categoria: el[10] || '',
+                                        moneda: el[11] || 'PEN',
                                         afecto: false
                                     });
                                 }
@@ -2433,7 +2695,10 @@ $almacenProducto = 1;
         })
 
         // Event delegation para botones de editar (funciona tanto en tabla como en grid)
-        $(document).on("click", ".btn-edt", function (evt) {
+       $(document).on("click", ".btn-edt", function (evt) {
+    // Limpiar input file antes de abrir modal
+    $('#upload-input').val('');
+  
             const cod = $(evt.currentTarget).attr("data-item");
             _ajax("/ajs/data/producto/info", "POST", {
                 cod
@@ -2661,11 +2926,11 @@ $almacenProducto = 1;
                 reader.onload = function (e) {
                     // Asignar la imagen a la vista previa
                     $('#img-preview').attr('src', e.target.result);
-                    
+
                     // Mostrar el contenedor de la imagen y ocultar el mensaje
                     $('.image-container').show();
                     $('#no-image-message').hide();
-                    
+
                     // Ocultar el menú desplegable
                     $('#image-menu').hide();
                     imageMenuOpen = false;
@@ -2720,5 +2985,7 @@ $almacenProducto = 1;
                 }
             }
         });
+
+
     })();
 </script>

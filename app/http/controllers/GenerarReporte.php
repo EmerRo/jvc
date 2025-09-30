@@ -467,41 +467,77 @@ class GenerarReporte extends Controller
 
     public function generarExcelCaja($id)
     {
-        $listaTotal = [];
-        $sql = "select * from caja_chica where id_caja_empresa ='{$id}' ORDER BY id_caja_chica DESC";
-        foreach ($this->conexion->query($sql) as $row) {
-            $listaTotal[] = [
-                'detalle' => $row['detalle'], 
-                'salida' => $row['salida'], 
-                'entrada' => $row['entrada'], 
-                'hora' => $row['hora'], 
-                'metodo' => $row['metodo'],
-                'documento' => $row['documento'] ?? '' // Incluimos el documento
-            ];
+        // 1. Obtener la fecha de la caja
+        $fecha_caja = null;
+        $sql_fecha = "SELECT fecha FROM caja_empresa WHERE caja_id = ?";
+        $stmt_fecha = $this->conexion->prepare($sql_fecha);
+        $stmt_fecha->bind_param("i", $id);
+        if ($stmt_fecha->execute()) {
+            $result_fecha = $stmt_fecha->get_result();
+            if ($row_fecha = $result_fecha->fetch_assoc()) {
+                $fecha_caja = $row_fecha['fecha'];
+            }
         }
-    
-        $dateHoy = date('Y-m-d');
-    
-        $sql = "SELECT v.id_venta, v.fecha_emision, CONCAT(ds.abreviatura, ' | ', v.serie, ' - ', v.numero) AS detalle, 
+        $stmt_fecha->close();
+
+        if (!$fecha_caja) {
+            echo "Error: No se pudo encontrar la caja con el ID proporcionado.";
+            return; 
+        }
+
+        $listaTotal = [];
+
+        // 2. Obtener movimientos manuales de caja_chica
+        $sql1 = "SELECT * FROM caja_chica WHERE id_caja_empresa = ? ORDER BY caja_chica_id DESC";
+        $stmt1 = $this->conexion->prepare($sql1);
+        $stmt1->bind_param("i", $id);
+        $stmt1->execute();
+        $result1 = $stmt1->get_result();
+
+        if ($result1) {
+            while ($row = $result1->fetch_assoc()) {
+                $listaTotal[] = [
+                    'detalle' => $row['detalle'],
+                    'salida' => $row['salida'],
+                    'entrada' => $row['entrada'],
+                    'hora' => $row['hora'],
+                    'metodo' => $row['metodo'],
+                    'documento' => $row['documento'] ?? ''
+                ];
+            }
+        }
+        $stmt1->close();
+
+        // 3. Obtener ventas en efectivo de la fecha correcta
+        $sql2 = "SELECT v.id_venta, v.fecha_emision, CONCAT(ds.abreviatura, ' | ', v.serie, ' - ', v.numero) AS detalle, 
             v.total AS entrada, ds.nombre as tipo_documento, v.serie, v.numero
             FROM ventas AS v
             LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
             LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
-            WHERE v.id_empresa = '{$_SESSION['id_empresa']}' AND v.sucursal='{$_SESSION['sucursal']}' 
-            AND v.medoto_pago_id = '10' AND v.fecha_emision ='$dateHoy'
+            WHERE v.id_empresa = ? AND v.sucursal = ? 
+            AND v.medoto_pago_id = '10' AND v.fecha_emision = ?
             ORDER BY v.id_venta DESC";
-    
-        foreach ($this->conexion->query($sql) as $row2) {
-            $listaTotal[] = [
-                'detalle' => $row2['detalle'], 
-                'salida' => 0, 
-                'entrada' => $row2['entrada'], 
-                'hora' => '-',
-                'metodo' => 1,
-                'documento' => $row2['tipo_documento'] . ' ' . $row2['serie'] . '-' . $row2['numero']
-            ];
-        }
         
+        $stmt2 = $this->conexion->prepare($sql2);
+        $stmt2->bind_param("iis", $_SESSION['id_empresa'], $_SESSION['sucursal'], $fecha_caja);
+        $stmt2->execute();
+        $result2 = $stmt2->get_result();
+
+        if ($result2) {
+            while ($row2 = $result2->fetch_assoc()) {
+                $listaTotal[] = [
+                    'detalle' => $row2['detalle'], 
+                    'salida' => 0, 
+                    'entrada' => $row2['entrada'], 
+                    'hora' => '-',
+                    'metodo' => 1,
+                    'documento' => $row2['tipo_documento'] . ' ' . $row2['serie'] . '-' . $row2['numero']
+                ];
+            }
+        }
+        $stmt2->close();
+        
+        // 4. Generar el Excel
         $tabla = '';
         $tbody = '';
         foreach ($listaTotal as $i => $fila) {
@@ -517,18 +553,18 @@ class GenerarReporte extends Controller
             $tbody .= '
                     <tr>
                             <td style="font-size: 10px;border:1px solid black;">' . $index . '</td>
-                            <td style="font-size: 10px;border:1px solid black;">' . $fila['detalle'] . '</td>
+                            <td style="font-size: 10px;border:1px solid black;">' . htmlspecialchars($fila['detalle']) . '</td>
                             <td style="font-size: 10px;border:1px solid black;">' . $fila['hora'] . '</td>
-                            <td style="font-size: 10px;border:1px solid black;">' . $fila['salida'] . '</td>
                             <td style="font-size: 10px;border:1px solid black;">' . $fila['entrada'] . '</td>
+                            <td style="font-size: 10px;border:1px solid black;">' . $fila['salida'] . '</td>
                             <td style="font-size: 10px;border:1px solid black;">' . $tipo . '</td>
-                            <td style="font-size: 10px;border:1px solid black;">' . ($fila['documento'] ?: '-') . '</td>
-                </tr>
+                            <td style="font-size: 10px;border:1px solid black;">' . (htmlspecialchars($fila['documento']) ?: '-') . '</td>
+                    </tr>
                     ';
         }
         $tabla = '  <table style="width:100%">
-                    <tr>					
-                        <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Id</td>
+                    <tr>
+                        <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Item</td>
                         <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:13px;text-align: center;word-wrap: break-word">Detalle</td>
                         <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Hora</td>
                         <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:10px;text-align: center;word-wrap: break-word">Entrada</td>
@@ -539,7 +575,7 @@ class GenerarReporte extends Controller
                     ' . $tbody . '
                     </table>';
     
-        $nombre_exel = "cierreDeCaja$dateHoy.xlsx";
+        $nombre_exel = "cierreDeCaja_" . $id . "_" . date("Y-m-d") . ".xlsx";
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
@@ -565,33 +601,27 @@ class GenerarReporte extends Controller
             }
         }
 
-        // Construir la consulta SQL
-        $sql = "SELECT 
+        // Construir la consulta SQL - Simplificada sin JOIN problemáticos
+        $sql = "SELECT
                     c.cotizacion_id,
                     c.numero,
                     c.fecha,
                     c.total,
                     c.estado,
-                    CASE 
-                        WHEN u.nombres IS NOT NULL AND u.apellidos IS NOT NULL 
-                        THEN CONCAT(u.nombres, ' ', u.apellidos)
-                        WHEN u.nombres IS NOT NULL 
-                        THEN u.nombres
-                        ELSE u.usuario
-                    END AS vendedor,
-                    cl.documento,
-                    cl.datos AS cliente,
-                    CASE 
+                    c.moneda,
+                    c.id_usuario,
+                    c.id_cliente,
+                    COALESCE((SELECT CONCAT(u.nombres, ' ', COALESCE(u.apellidos, '')) FROM usuarios u WHERE u.usuario_id = c.id_usuario), 'Sin Vendedor') AS vendedor,
+                    COALESCE((SELECT cl.documento FROM clientes cl WHERE cl.id_cliente = c.id_cliente), 'Sin RUC') AS documento,
+                    COALESCE((SELECT cl.datos FROM clientes cl WHERE cl.id_cliente = c.id_cliente), 'Sin Cliente') AS cliente,
+                    CASE
                         WHEN c.estado = '0' THEN 'No Vendido'
                         WHEN c.estado = '1' THEN 'Vendido'
                         WHEN c.estado = '2' THEN 'Facturado'
                         ELSE 'Desconocido'
                     END AS estado_texto
                 FROM cotizaciones c
-                LEFT JOIN usuarios u ON u.usuario_id = c.id_usuario
-                LEFT JOIN clientes cl ON cl.id_cliente = c.id_cliente
-                WHERE c.id_empresa = '{$_SESSION['id_empresa']}' 
-                AND c.estado <> '2'";
+                WHERE c.id_empresa = '12'";
 
         // Agregar filtros
         if ($vendedor_id != '0' && !empty($vendedor_id)) {
@@ -602,67 +632,97 @@ class GenerarReporte extends Controller
             $sql .= " AND c.fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
         }
 
-        $sql .= " ORDER BY u.nombres ASC, c.fecha DESC";
+        $sql .= " ORDER BY c.fecha DESC, c.cotizacion_id DESC";
+
+        // Debug: Mostrar la consulta SQL completa
+        error_log("SQL Query: " . $sql);
+        error_log("ID empresa fijo: 12");
+        error_log("Vendedor ID: " . $vendedor_id);
+        error_log("Fecha inicio: " . $fecha_inicio);
+        error_log("Fecha fin: " . $fecha_fin);
 
         $result = $this->conexion->query($sql);
 
+        if (!$result) {
+            error_log("Error en la consulta SQL: " . $this->conexion->error);
+            die("Error en la consulta: " . $this->conexion->error);
+        }
+
+        // Debug: Consulta simple para verificar datos
+        $test_query = "SELECT COUNT(*) as total FROM cotizaciones WHERE id_empresa = '12'";
+        $test_result = $this->conexion->query($test_query);
+        $test_row = $test_result->fetch_assoc();
+        error_log("Total cotizaciones en la empresa: " . $test_row['total']);
+
         // Generar el contenido del Excel
         $tbody = '';
-        $total_general = 0;
+        $total_general_soles = 0;
+        $total_general_dolares = 0;
         $contador = 0;
         $vendedor_actual = '';
-        $total_vendedor = 0;
+        $total_vendedor_soles = 0;
+        $total_vendedor_dolares = 0;
 
-        foreach ($result as $fila) {
+        // Versión simplificada para debug
+        while ($fila = $result->fetch_assoc()) {
             $contador++;
-            
-            // Si cambia el vendedor, agregar subtotal del vendedor anterior
-            if ($vendedor_actual != '' && $vendedor_actual != $fila['vendedor']) {
-                $tbody .= '
-                <tr style="background-color: #f0f0f0;">
-                    <td colspan="5" style="font-weight: bold; text-align: right;">Subtotal ' . $vendedor_actual . ':</td>
-                    <td style="font-weight: bold;">S/ ' . number_format($total_vendedor, 2) . '</td>
-                    <td></td>
-                </tr>';
-                $total_vendedor = 0;
+            error_log("Procesando fila $contador: " . json_encode($fila));
+
+            try {
+                // Datos básicos con validación y escape HTML
+                $numero = isset($fila['numero']) ? str_pad($fila['numero'], 3, '0', STR_PAD_LEFT) : 'N/A';
+                $fecha = isset($fila['fecha']) ? date('d/m/Y', strtotime($fila['fecha'])) : 'N/A';
+                $cliente = isset($fila['cliente']) ? htmlspecialchars($fila['cliente'], ENT_QUOTES, 'UTF-8') : 'Sin Cliente';
+                $vendedor = isset($fila['vendedor']) ? htmlspecialchars($fila['vendedor'], ENT_QUOTES, 'UTF-8') : 'Sin Vendedor';
+                $total = isset($fila['total']) ? $fila['total'] : 0;
+                $moneda = isset($fila['moneda']) ? $fila['moneda'] : 1;
+                $estado_texto = isset($fila['estado_texto']) ? $fila['estado_texto'] : 'N/A';
+
+                // Símbolo de moneda
+                $simbolo_moneda = ($moneda == 2) ? '$' : 'S/';
+
+                // Acumular totales
+                if ($moneda == 2) {
+                    $total_general_dolares += $total;
+                } else {
+                    $total_general_soles += $total;
+                }
+
+                // Agregar fila al tbody
+                $tbody .= "<tr>
+                    <td style='font-size: 10px;'>$contador</td>
+                    <td style='font-size: 10px;'>COT-$numero</td>
+                    <td style='font-size: 10px;'>$fecha</td>
+                    <td style='font-size: 10px;'>$cliente</td>
+                    <td style='font-size: 10px;'>$vendedor</td>
+                    <td style='font-size: 10px;'>$simbolo_moneda " . number_format($total, 2) . "</td>
+                    <td style='font-size: 10px;'>$estado_texto</td>
+                </tr>";
+
+                error_log("Fila $contador agregada correctamente al tbody");
+            } catch (Exception $e) {
+                error_log("Error procesando fila $contador: " . $e->getMessage());
             }
-            
-            $vendedor_actual = $fila['vendedor'];
-            $total_vendedor += $fila['total'];
-            $total_general += $fila['total'];
-
-            $tbody .= '
-            <tr>
-                <td style="font-size: 10px;">' . $contador . '</td>
-                <td style="font-size: 10px;">COT-' . str_pad($fila['numero'], 3, '0', STR_PAD_LEFT) . '</td>
-                <td style="font-size: 10px;">' . date('d/m/Y', strtotime($fila['fecha'])) . '</td>
-                <td style="font-size: 10px;">' . $fila['cliente'] . '</td>
-                <td style="font-size: 10px;">' . $fila['vendedor'] . '</td>
-                <td style="font-size: 10px;">S/ ' . number_format($fila['total'], 2) . '</td>
-                <td style="font-size: 10px;">' . $fila['estado_texto'] . '</td>
-            </tr>';
         }
 
-        // Agregar subtotal del último vendedor
-        if ($vendedor_actual != '') {
-            $tbody .= '
-            <tr style="background-color: #f0f0f0;">
-                <td colspan="5" style="font-weight: bold; text-align: right;">Subtotal ' . $vendedor_actual . ':</td>
-                <td style="font-weight: bold;">S/ ' . number_format($total_vendedor, 2) . '</td>
-                <td></td>
-            </tr>';
+        // Agregar total general simplificado
+        $total_general_text = '';
+        if ($total_general_soles > 0) {
+            $total_general_text .= 'S/ ' . number_format($total_general_soles, 2);
+        }
+        if ($total_general_dolares > 0) {
+            if ($total_general_text != '') $total_general_text .= ' + ';
+            $total_general_text .= '$ ' . number_format($total_general_dolares, 2);
         }
 
-        // Agregar total general
-        $tbody .= '
-        <tr style="background-color: #CA3438; color: white;">
-            <td colspan="5" style="font-weight: bold; text-align: right;">TOTAL GENERAL:</td>
-            <td style="font-weight: bold;">S/ ' . number_format($total_general, 2) . '</td>
+        $tbody .= "<tr style='background-color: #CA3438; color: white;'>
+            <td colspan='5' style='font-weight: bold; text-align: right;'>TOTAL GENERAL:</td>
+            <td style='font-weight: bold;'>$total_general_text</td>
             <td></td>
-        </tr>';
+        </tr>";
 
         // Obtener información de la empresa
-        $empresa = $this->conexion->query("SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'")->fetch_assoc();
+        $empresa = $this->conexion->query("SELECT * FROM empresas WHERE id_empresa = '12'")->fetch_assoc();
 
         // Obtener nombre del vendedor si se filtró por uno específico
         $nombre_vendedor = 'TODOS LOS VENDEDORES';
@@ -716,12 +776,184 @@ class GenerarReporte extends Controller
             </tbody>
         </table>";
 
-        // Generar el archivo Excel
-        $nombre_exel = "reporte_cotizaciones_vendedores_" . date('Y-m-d_H-i-s') . ".xlsx";
+        // Debug: Verificar si hay datos
+        error_log("Número de filas encontradas: " . $result->num_rows);
+        error_log("Contenido tbody: " . substr($tbody, 0, 500)); // Primeros 500 caracteres
+        error_log("Total general soles: " . $total_general_soles);
+        error_log("Total general dolares: " . $total_general_dolares);
+
+        // Si no hay datos, mostrar mensaje de error
+        if (empty($tbody)) {
+            die("No se encontraron cotizaciones para los filtros aplicados. Revisa el error.log para más detalles.");
+        }
+
+        // Generar el archivo Excel directamente (sin HTML)
+        try {
+            $nombre_exel = "reporte_cotizaciones_vendedores_" . date('Y-m-d_H-i-s') . ".xlsx";
+
+            // Crear spreadsheet nuevo
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Encabezados del reporte
+            $sheet->setCellValue('A1', 'REPORTE DE COTIZACIONES POR VENDEDOR');
+            $sheet->mergeCells('A1:G1');
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('CA3438');
+            $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+            $sheet->setCellValue('A2', "EMPRESA: {$empresa['razon_social']} - RUC: {$empresa['ruc']}");
+            $sheet->mergeCells('A2:G2');
+            $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+            $sheet->setCellValue('A3', "VENDEDOR: $nombre_vendedor");
+            $sheet->mergeCells('A3:G3');
+            $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+            $sheet->setCellValue('A4', "PERÍODO: $periodo");
+            $sheet->mergeCells('A4:G4');
+            $sheet->getStyle('A4')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+            // Encabezados de columnas
+            $fila = 6;
+            $sheet->setCellValue('A' . $fila, 'N°');
+            $sheet->setCellValue('B' . $fila, 'COTIZACIÓN');
+            $sheet->setCellValue('C' . $fila, 'FECHA');
+            $sheet->setCellValue('D' . $fila, 'CLIENTE');
+            $sheet->setCellValue('E' . $fila, 'VENDEDOR');
+            $sheet->setCellValue('F' . $fila, 'TOTAL');
+            $sheet->setCellValue('G' . $fila, 'ESTADO');
+
+            // Estilo para encabezados
+            $sheet->getStyle('A' . $fila . ':G' . $fila)->getFont()->setBold(true);
+            $sheet->getStyle('A' . $fila . ':G' . $fila)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('90BFEB');
+
+            // Agregar datos - volver a procesar el resultado
+            $result->data_seek(0); // Resetear el puntero del resultado
+            $fila = 7;
+            $contador = 0;
+            $total_general_soles_excel = 0;
+            $total_general_dolares_excel = 0;
+
+            while ($fila_data = $result->fetch_assoc()) {
+                $contador++;
+
+                $numero = str_pad($fila_data['numero'], 3, '0', STR_PAD_LEFT);
+                $fecha = date('d/m/Y', strtotime($fila_data['fecha']));
+                $cliente = $fila_data['cliente'];
+                $vendedor = $fila_data['vendedor'];
+                $total = $fila_data['total'];
+                $moneda = $fila_data['moneda'];
+                $estado_texto = $fila_data['estado_texto'];
+
+                $simbolo_moneda = ($moneda == 2) ? '$' : 'S/';
+
+                // Acumular totales
+                if ($moneda == 2) {
+                    $total_general_dolares_excel += $total;
+                } else {
+                    $total_general_soles_excel += $total;
+                }
+
+                $sheet->setCellValue('A' . $fila, $contador);
+                $sheet->setCellValue('B' . $fila, 'COT-' . $numero);
+                $sheet->setCellValue('C' . $fila, $fecha);
+                $sheet->setCellValue('D' . $fila, $cliente);
+                $sheet->setCellValue('E' . $fila, $vendedor);
+                $sheet->setCellValue('F' . $fila, $simbolo_moneda . ' ' . number_format($total, 2));
+                $sheet->setCellValue('G' . $fila, $estado_texto);
+
+                $fila++;
+            }
+
+            // Total general
+            $sheet->setCellValue('A' . $fila, 'TOTAL GENERAL:');
+            $sheet->mergeCells('A' . $fila . ':E' . $fila);
+            $sheet->getStyle('A' . $fila)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('A' . $fila)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('CA3438');
+
+            $total_general_text_excel = '';
+            if ($total_general_soles_excel > 0) {
+                $total_general_text_excel .= 'S/ ' . number_format($total_general_soles_excel, 2);
+            }
+            if ($total_general_dolares_excel > 0) {
+                if ($total_general_text_excel != '') $total_general_text_excel .= ' + ';
+                $total_general_text_excel .= '$ ' . number_format($total_general_dolares_excel, 2);
+            }
+
+            $sheet->setCellValue('F' . $fila, $total_general_text_excel);
+            $sheet->getStyle('F' . $fila)->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+            $sheet->getStyle('F' . $fila)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('CA3438');
+
+            // Ajustar ancho de columnas
+            $sheet->getColumnDimension('A')->setWidth(8);
+            $sheet->getColumnDimension('B')->setWidth(15);
+            $sheet->getColumnDimension('C')->setWidth(12);
+            $sheet->getColumnDimension('D')->setWidth(40);
+            $sheet->getColumnDimension('E')->setWidth(25);
+            $sheet->getColumnDimension('F')->setWidth(15);
+            $sheet->getColumnDimension('G')->setWidth(15);
+
+            // Configurar headers para descarga directa
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $nombre_exel . '"');
+            header('Cache-Control: max-age=0');
+
+            // Crear writer y enviar
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+            $writer->save('php://output');
+            exit;
+
+        } catch (Exception $e) {
+            error_log("Error generando Excel: " . $e->getMessage());
+            die("Error generando el archivo Excel: " . $e->getMessage());
+        }
+    }
+     public function generarExcelRegistroCajas()
+    {
+        $sql = "SELECT * FROM caja_empresa WHERE sucursal = ? AND id_empresa = ? ORDER BY caja_id DESC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("ii", $_SESSION['sucursal'], $_SESSION['id_empresa']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $tbody = '';
+        foreach ($result as $fila) {
+            $total = doubleval($fila['entrada']) - doubleval($fila['salida']);
+            $fecha_apertura = (new DateTime($fila['fecha']))->format('d/m/Y');
+            $fecha_cierre_val = $fila['fecha_cierre'];
+            $fecha_cierre = ($fecha_cierre_val && $fecha_cierre_val != '0000-00-00 00:00:00') ? (new DateTime($fecha_cierre_val))->format('d/m/Y h:i A') : '<span style="color:green;">Abierta</span>';
+
+            $tbody .= '
+                <tr>
+                    <td style="font-size: 10px;border:1px solid black;">' . htmlspecialchars($fila['numero'] ?: '-') . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . htmlspecialchars($fila['detalle']) . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fecha_apertura . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fecha_cierre . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . number_format(doubleval($fila['entrada']), 2) . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . number_format(doubleval($fila['salida']), 2) . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . number_format($total, 2) . '</td>
+                </tr>';
+        }
+        $stmt->close();
+
+        $tabla = '  <table style="width:100%">
+                    <tr>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Código</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Detalle</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Apertura</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Cierre</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Entrada</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Salida</th>
+                        <th style="font-size: 10px;font-weight:bold;border:1px solid black;background-color: #90BFEB;">Total</th>
+                    </tr>
+                    ' . $tbody . '
+                    </table>';
+
+        $nombre_exel = "RegistroGeneralCajas_" . date("Y-m-d") . ".xlsx";
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
-
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }

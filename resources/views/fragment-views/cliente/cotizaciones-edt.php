@@ -4,6 +4,125 @@
 <!-- Incluir Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<style>
+/* Estilos para el autocomplete de productos únicamente */
+#input_buscar_productos + .ui-autocomplete {
+    max-height: 300px;
+    overflow-y: auto;
+    background: white !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 9999 !important;
+    /* Adaptar al ancho del input */
+    width: auto !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item {
+    border: none !important;
+    margin: 2px !important;
+    border-radius: 6px !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 50px !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: inherit !important;
+    border-radius: 6px !important;
+    height: auto !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+/* Override con máxima especificidad para sobrescribir jQuery UI */
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus,
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item:hover,
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-active,
+html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focus {
+    background: #f8f9fa !important;
+    border: 1px solid #CA3438 !important;
+    color: #CA3438 !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item img {
+    transition: transform 0.2s ease;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item:hover img {
+    transform: scale(1.05);
+}
+
+/* Controlar el contenido del texto - solo para autocomplete de productos */
+#input_buscar_productos + .ui-autocomplete .ui-menu-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .producto-info {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Asegurar que el contenido no se desborde - solo para autocomplete de productos */
+#input_buscar_productos + .ui-autocomplete .ui-menu-item {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Estilos normales para autocomplete de clientes */
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9998 !important;
+}
+
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item {
+    border-bottom: 1px solid #eee !important;
+    padding: 8px 12px !important;
+    background: white !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Hover para autocomplete de clientes */
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper:hover,
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+    background: #f8f9fa !important;
+    color: #CA3438 !important;
+    border-left: 3px solid #CA3438 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+</style>
+
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -15,7 +134,13 @@
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
+                <button type="button" onclick="$('#btn_finalizar_pedido').click()"
+                    class="btn bg-rojo text-white">
+                    <i class="fa fa-plus "></i> Guardar Cotización
+                </button>
 
+                <a id="backbuttonvp" style="margin-left:25px;" href="/cotizaciones"
+                    class="btn border-rojo text-rojo button-link"><i class="fa fa-arrow-left"></i> Regresar</a>
             </div>
         </div>
     </div>
@@ -29,16 +154,7 @@
                 <h4 class="card-title"></h4>
 
                 <div class="card-title-desc">
-                    <div class="col-lg-12 text-end">
-                        <a hidden href="/ventas/productos?coti=<?= $coti ?>" class="btn btn-success button-link"
-                            id="btnVenta">Proceder a Vender</a>
-                        <button type="button" onclick="$('#btn_finalizar_pedido').click()" class="btn bg-rojo text-white">
-                            <i class="fa fa-plus "></i> Guardar Cotización
-                        </button>
 
-                        <a id="backbuttonvp" style="margin-left:25px;" href="/cotizaciones"
-                            class="btn border-rojo text-rojo button-link"><i class="fa fa-arrow-left"></i> Regresar</a>
-                    </div>
                 </div>
                 <div class="row" id="container-vue">
                     <div class="col-12 row">
@@ -69,128 +185,134 @@
                                                 <div class="form-group row  mb-3">
                                                     <!-- primera fila con stock actual, cantidad y precio -->
 
-                                                    <div class="col-lg-10">
-                                                        <div class="row">
+                                                <div class="form-group row mb-3">
+                                                    <!-- Primera fila: 3 columnas -->
+                                                    <div class="col-lg-4">
+                                                        <label for="stock-actual" class="col-form-label">Stock Actual</label>
+                                                        <input id="stock-actual" disabled
+                                                            v-model="producto.stock"
+                                                            class="form-control text-center" type="text"
+                                                            placeholder="0" style="height: 38px;">
+                                                    </div>
 
-                                                            <div class="row  col-lg-3">
-                                                                <label for="example-text-input" class="col-form-label">
-                                                                    Stock Actual
-                                                                </label>
-                                                                <input disabled v-model="producto.stock"
-                                                                    class="form-control text-center" type="text"
-                                                                    placeholder="0">
-                                                            </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="cantidad-input" class="col-form-label">Cantidad</label>
+                                                        <input id="cantidad-input" @keypress="onlyNumber"
+                                                            required v-model="producto.cantidad"
+                                                            class="form-control text-center" type="text"
+                                                            placeholder="0" style="height: 38px;">
+                                                    </div>
 
-                                                            <!-- Campo Cantidad -->
-                                                            <div class="col-lg-3">
-                                                                <label for="cantidad-input"
-                                                                    class="col-form-label">Cantidad</label>
-                                                                <input id="cantidad-input" @keypress="onlyNumber"
-                                                                    required v-model="producto.cantidad"
-                                                                    class="form-control text-center" type="text"
-                                                                    placeholder="0" style="height: 38px;">
-                                                            </div>
-
-                                                            <div class=" col-lg-3">
-                                                                <label for="example-text-input"
-                                                                    class="col-form-label">Precio</label>
-                                                                <div class="input-group">
+                                                    <div class="col-lg-4">
+                                                        <label for="precio-input" class="col-form-label">Precio ({{simboloMonedaCotizacion}})</label>
+                                                                <div class="input-group" style="height: 38px;">
                                                                     <input id="precio-input" type="text"
-                                                                        class="form-control dropdown-toggle"
-                                                                        data-bs-toggle="dropdown" aria-expanded="false"
+                                                                        class="form-control"
+                                                                        :class="{'dropdown-toggle': producto.descripcion.length > 0}"
+                                                                        :data-bs-toggle="producto.descripcion.length > 0 ? 'dropdown' : ''"
+                                                                        aria-expanded="false"
                                                                         v-model="producto.precio_mostrado"
                                                                         style="height: 38px; background-color: #f8f9fa; cursor: pointer;"
                                                                         readonly>
-                                                                    <ul class="dropdown-menu w-100">
+                                                                    <ul class="dropdown-menu"
+                                                                        style="width: 300px; max-width: none;">
                                                                         <li>
                                                                             <a class="dropdown-item" href="#"
-                                                                                @click.prevent="seleccionarPrecioConTipo('PV', producto.precioVenta)">
-                                                                                PV: {{ producto.precioVenta }}
+                                                                                @click.prevent="seleccionarPrecioConTipo('PV', producto.precioVenta)"
+                                                                                style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
+                                                                                <span
+                                                                                    style="width: 150px; display: inline-block;">Precio
+                                                                                    Venta:</span>
+                                                                                <span
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{simboloMonedaCotizacion}}
+                                                                                    {{ producto.precioVenta }}</span>
                                                                             </a>
                                                                         </li>
                                                                         <li>
                                                                             <a class="dropdown-item" href="#"
-                                                                                @click.prevent="seleccionarPrecioConTipo('C', producto.costo)">
-                                                                                C: {{ producto.costo }}
+                                                                                @click.prevent="seleccionarPrecioConTipo('PM', producto.precio_mayor)"
+                                                                                style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
+                                                                                <span
+                                                                                    style="width: 150px; display: inline-block;">Precio
+                                                                                    Mayorista:</span>
+                                                                                <span
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{simboloMonedaCotizacion}}
+                                                                                    {{ producto.precio_mayor }}</span>
                                                                             </a>
                                                                         </li>
                                                                         <li>
                                                                             <a class="dropdown-item" href="#"
-                                                                                @click.prevent="seleccionarPrecioConTipo('PM', producto.precio_mayor)">
-                                                                                PM: {{ producto.precio_mayor }}
+                                                                                @click.prevent="seleccionarPrecioConTipo('PMn', producto.precio_menor)"
+                                                                                style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
+                                                                                <span
+                                                                                    style="width: 150px; display: inline-block;">Precio
+                                                                                    Menor:</span>
+                                                                                <span
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{simboloMonedaCotizacion}}
+                                                                                    {{ producto.precio_menor }}</span>
                                                                             </a>
                                                                         </li>
-                                                                        <li>
+                                                                        <li v-for="(value, key) in precioProductos"
+                                                                            :key="key">
                                                                             <a class="dropdown-item" href="#"
-                                                                                @click.prevent="seleccionarPrecioConTipo('PMn', producto.precio_menor)">
-                                                                                PMn: {{ producto.precio_menor }}
+                                                                                @click.prevent="seleccionarPrecioConTipo(value.nombre, value.precio)"
+                                                                                style="color: #333; padding: 8px 15px; display: flex; align-items: center;">
+                                                                                <span
+                                                                                    style="width: 150px; display: inline-block;">{{
+                                                                                        value.nombre }}:</span>
+                                                                                <span
+                                                                                    style="background-color: #007bff; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{simboloMonedaCotizacion}}
+                                                                                    {{ value.precio }}</span>
                                                                             </a>
                                                                         </li>
                                                                     </ul>
-                                                                    <div class="input-group-append">
-                                                                        <button
-                                                                            class="btn btn-outline-secondary dropdown-toggle"
-                                                                            type="button" data-bs-toggle="dropdown"
-                                                                            aria-expanded="false"
-                                                                            style="background-color: #CA3438; color: white;">
-                                                                            <i class="fa fa-tag"></i>
-                                                                        </button>
-                                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                                            <li v-for="(value, key) in precioProductos"
-                                                                                :key="key">
-                                                                                <a class="dropdown-item" href="#"
-                                                                                    @click.prevent="seleccionarPrecioConTipo(value.nombre, value.precio)"
-                                                                                    style="color: #6c757d;">
-                                                                                    {{ value.nombre }}: {{ value.precio
-                                                                                    }}
-                                                                                </a>
-                                                                            </li>
-                                                                        </ul>
-                                                                    </div>
                                                                 </div>
-                                                            </div>
-
-                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                <!-- Nuevos campos para Precio Especial y Descuento -->
-                                                <div class="row mt-3">
-                                                    <!-- Campo de Precio Especial -->
-                                                    <div class="col-lg-6 d-flex align-items-center">
-                                                        <label for="example-text-input"
-                                                            class="col-form-label mb-0 me-2">Precio Especial</label>
-
-
-
-                                                        <input type="checkbox" class="toggle-checkbox"
-                                                            onclick="toggleInput(this)" style="margin-right: 10px;" />
+                                                    <!-- Segunda fila: 3 columnas -->
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label for="precio-especial" class="col-form-label me-2">Precio Especial ({{simboloMonedaCotizacion}})</label>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                    onclick="toggleInput(this)"
+                                                                    style="width: 2em; height: 1em;">
+                                                                <label class="form-check-label ms-1">Activar</label>
+                                                            </div>
+                                                        </div>
                                                         <input id="precio-especial"
                                                             class="form-control text-center precio-input"
-                                                            @keypress="onlyNumber" v-model="producto.precioEspecial"
-                                                            type="text" placeholder="0" disabled
-                                                            style="max-width: 80px;">
+                                                            @keypress="onlyNumber"
+                                                            v-model="producto.precioEspecial" type="text"
+                                                            placeholder="0.00" disabled
+                                                            style="height: 38px;">
                                                     </div>
 
-
-                                                    <!-- Campo de Descuento -->
-                                                    <div class="col-lg-6 d-flex align-items-center">
-                                                        <label for="descuento-general" class="col-form-label mb-0 me-2">
-                                                            Descuento %
-                                                        </label>
-                                                        <input type="checkbox" class="toggle-checkbox"
-                                                            onclick="toggleInput(this)" style="margin-right: 10px;" />
-                                                        <input id="descuento-general"
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label for="descuento" class="col-form-label me-2">Descuento General</label>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                    onclick="toggleInput(this)"
+                                                                    style="width: 2em; height: 1em;">
+                                                                <label class="form-check-label ms-1">Activar</label>
+                                                            </div>
+                                                        </div>
+                                                        <input id="descuento"
                                                             class="form-control text-center precio-input"
                                                             @keypress="onlyNumber" v-model="descuentoGeneral"
                                                             type="text" placeholder="0" disabled
-                                                            style="max-width: 80px;">
+                                                            style="height: 38px;">
                                                     </div>
-                                                    <div class="col-lg-2 d-flex align-items-center">
-                                                        <button id="submit-a-product" type="submit" c
-                                                            class="btn bg-rojo text-white w-100 d-flex align-items-center justify-content-center"
-                                                            style="min-width: 110px;"></i>
-                                                            Agregar
+
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label class="col-form-label">&nbsp;</label>
+                                                        </div>
+                                                        <button id="submit-a-product" type="submit"
+                                                            class="btn bg-rojo text-white w-100"
+                                                            style="height: 38px;">
+                                                            <i class="fa fa-plus me-1"></i> Agregar
                                                         </button>
                                                     </div>
                                                 </div>
@@ -248,10 +370,10 @@
                                                             <span
                                                                 v-if="!item.editable">{{formatNumber(item.cantidad)}}</span>
                                                         </td>
-                                                        <td><input v-if="item.editable" v-model="item.precioVenta">
-                                                            <span v-if="!item.editable">{{item.precioVenta}}</span>
-                                                        </td>
-                                                        <td>{{formatoDecimal(item.precioVenta * item.cantidad, 2)}}</td>
+                                                        <td style="white-space: nowrap;"><span
+                                                                v-if="!item.editable">{{simboloMonedaCotizacion + ' ' + item.precioVenta}}</span><input
+                                                                v-if="item.editable" v-model="item.precioVenta"></td>
+                                                        <td style="white-space: nowrap;">{{simboloMonedaCotizacion + ' ' + (item.precioVenta*item.cantidad).toFixed(2)}}</td>
                                                         <td>{{item.precioEspecial ?
                                                             parseFloat(item.precioEspecial).toFixed(2) : '-'}}</td>
                                                         <td>
@@ -272,6 +394,7 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -339,6 +462,43 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group ">
+                                                                        <label class="control-label">Aplicar IGV</label>
+                                                                        <div class="col-lg-12">
+                                                                            <select v-model="venta.aplicar_igv" class="form-control text-center">
+                                                                                <option value="1">SÍ</option>
+                                                                                <option value="0">NO</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group ">
+                                                                        <label class="control-label">Moneda</label>
+                                                                        <div class="col-lg-12">
+                                                                            <select v-model="venta.moneda"
+                                                                                class="form-control">
+                                                                                <option value="1">SOLES</option>
+                                                                                <option value="2">DOLARES</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div v-if="venta.moneda == '2'" class="form-group ">
+                                                                        <label class="control-label">Tasa de cambio</label>
+                                                                        <div class="col-lg-12">
+                                                                            <input v-model="venta.tc" type="text"
+                                                                                class="form-control text-center"
+                                                                                placeholder="Ingresa la tasa de cambio">
+                                                                            <small class="text-muted" v-if="fechaTasa">Tasa SUNAT del {{fechaTasa}}</small>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                                 <div style="display: none" class="col-md-6">
                                                                     <div class="form-group ">
                                                                         <label class="control-label">Vencimiento</label>
@@ -432,7 +592,7 @@
 
                                             <div class="bg-rojo pv-15 text-center  p-3"
                                                 style="height: 90px; color: white">
-                                                <h1 class="mv-0 font-400" id="lbl_suma_pedido">S/ {{totalProdustos}}
+                                                <h1 class="mv-0 font-400" id="lbl_suma_pedido">{{simboloMonedaCotizacion}} {{totalProdustos}}
                                                 </h1>
                                                 <div class="text-uppercase">Suma Pedido</div>
                                             </div>
@@ -552,7 +712,7 @@
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="'S/ '+venta.total" disabled type="text"
+                                                <input :value="simboloMonedaCotizacion + ' ' + venta.total" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -577,7 +737,7 @@
                                                     <tr v-for="(item,index) in venta.dias_lista">
                                                         <td></td>
                                                         <td>{{visualFechaSee(item.fecha)}}</td>
-                                                        <td>S/ {{formatoDecimal(item.monto)}}</td>
+                                                        <td>{{simboloMonedaCotizacion}} {{formatoDecimal(item.monto)}}</td>
                                                     </tr>
                                                 </tbody>
                                                 <tfoot>
@@ -618,7 +778,7 @@
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="'S/ '+venta.total" disabled type="text"
+                                                <input :value="simboloMonedaCotizacion + ' ' + venta.total" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -634,7 +794,7 @@
                                             </label>
                                         </div>
                                         <div v-if="venta.tiene_inicial" class="input-group">
-                                            <span class="input-group-text">S/</span>
+                                            <span class="input-group-text">{{simboloMonedaCotizacion}}</span>
                                             <input type="number" class="form-control" v-model="venta.monto_inicial"
                                                 placeholder="Monto inicial" @input="calcularCuotasRestantes">
                                             <span class="input-group-text">o</span>
@@ -673,7 +833,7 @@
                                                             <td>0</td>
                                                             <td>Inicial</td>
                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
-                                                            <td>S/ {{formatoDecimal(venta.monto_inicial)}}</td>
+                                                            <td>{{simboloMonedaCotizacion}} {{formatoDecimal(venta.monto_inicial)}}</td>
                                                         </tr>
                                                         <!-- Mostrar cuotas con fechas seleccionables -->
                                                         <tr v-for="(cuota, index) in cuotas" :key="index">
@@ -685,7 +845,7 @@
                                                             </td>
                                                             <td>
                                                                 <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text">S/</span>
+                                                                    <span class="input-group-text">{{simboloMonedaCotizacion}}</span>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         v-model="cuota.monto"
@@ -839,7 +999,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
             </div>
@@ -913,7 +1072,10 @@
                     tipoventa: 1,
                     total: 0,
                     dias_lista: [],
-                    asunto: ''
+                    moneda: '1',
+                    tc: '',
+                    asunto: '',
+                    aplicar_igv: '0'
 
                 },
                 dataKey: '',
@@ -924,6 +1086,8 @@
                 numeroCuotas: 1,
                 cuotas: [],
                 precioProductosEdit: [],
+                cargandoTasa: false,
+                fechaTasa: null,
             },
             watch: {
                 'descuentoGeneral': function (newValue) {
@@ -933,6 +1097,14 @@
                         if (descuento > 100) {
                             this.descuentoGeneral = '100';
                         }
+                    }
+                },
+                'venta.moneda': function (newValue, oldValue) {
+                    // Cargar automáticamente la tasa de cambio cuando se selecciona USD
+                    if (newValue === '2' && oldValue !== '2') {
+                        this.$nextTick(() => {
+                            this.actualizarTasaCambio();
+                        });
                     }
                 },
                 'venta.dias_pago': {
@@ -1201,6 +1373,9 @@
 
 
                             vue.descuentoGeneral = resp.descuento || '';
+                            vue.venta.aplicar_igv = resp.aplicar_igv.toString();
+                            vue.venta.moneda = resp.moneda.toString();
+                            vue.venta.tc = resp.cm_tc;
 
                             setTimeout(function () {
                                 vue.venta.dias_lista = resp.cuotas
@@ -1722,6 +1897,9 @@
             },
 
             computed: {
+                simboloMonedaCotizacion() {
+                    return this.venta.moneda === '2' ? '$' : 'S/';
+                },
                 totalValorCuotas() {
                     let total = 0;
 
@@ -1735,20 +1913,21 @@
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return "S/ " + total.toFixed(2);
+                    return this.simboloMonedaCotizacion + " " + total.toFixed(2);
                 },
                 totalValorListaDias() {
                     var total_ = 0;
                     this.venta.dias_lista.forEach((el) => {
                         total_ += parseFloat(el.monto + "")
                     })
-                    return "S/ " + total_.toFixed(2);
+                    return this.simboloMonedaCotizacion + " " + total_.toFixed(2);
                 },
                 isDirreccionCont() {
                     return this.venta.dir2_cli.length > 0;
                 },
                 totalProdustos() {
-                    let total = 0;
+                    // Primero calculamos el total sin descuento (base imponible)
+                    let totalBase = 0;
                     this.productos.forEach((prod) => {
                         // Use precioEspecial if available, otherwise use precioVenta
                         const precio = prod.precioEspecial && parseFloat(prod.precioEspecial) > 0
@@ -1756,17 +1935,49 @@
                             : parseFloat(prod.precioVenta || prod.precio || 0);
 
                         const cantidad = parseFloat(prod.cantidad || 0);
-                        total += precio * cantidad;
+                        totalBase += precio * cantidad;
                     });
 
-                    // Apply general discount if exists
+                    // Aplicamos el descuento general si existe
                     if (this.descuentoGeneral && this.descuentoGeneral !== '') {
                         const descuento = parseFloat(this.descuentoGeneral) / 100;
-                        total = total * (1 - descuento);
+                        totalBase = totalBase * (1 - descuento);
                     }
 
-                    this.venta.total = total;
-                    return total.toFixed(2);
+                    // Calculamos el total final según si aplica IGV
+                    let totalFinal = totalBase;
+                    if (this.venta.aplicar_igv == '1') {
+                        totalFinal = totalBase * 1.18; // Agregamos IGV del 18%
+                    }
+
+                    // Actualizamos el total en venta y retornamos con 2 decimales
+                    this.venta.total = totalFinal;
+                    return totalFinal.toFixed(2);
+                },
+                async actualizarTasaCambio() {
+                    this.cargandoTasa = true;
+                    this.fechaTasa = null;
+
+                    try {
+                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
+                        const result = await response.json();
+
+                        if (result.success && result.data && result.data.venta) {
+                            this.venta.tc = result.data.venta.toString();
+                            this.fechaTasa = result.data.fecha;
+                        } else {
+                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
+                        }
+                    } catch (error) {
+                        console.error('Error al obtener tasa de cambio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
+                        });
+                    } finally {
+                        this.cargandoTasa = false;
+                    }
                 }
             }
         });
@@ -1802,11 +2013,24 @@
                     productos = productos.map(p => ({ ...p, tipo: 'producto' }));
                     repuestos = repuestos.map(r => ({ ...r, tipo: 'repuesto' }));
 
-                    // Combinamos y enviamos los resultados
-                    response([...productos, ...repuestos]);
+                    // Combinamos y limitamos los resultados a 15 elementos para mejorar rendimiento
+                    const resultados = [...productos, ...repuestos].slice(0, 15);
+                    response(resultados);
                 });
             },
-            minLength: 1,
+            minLength: 2,
+            position: {
+                my: "left top",
+                at: "left bottom",
+                collision: "flip"
+            },
+            open: function() {
+                var inputWidth = $(this).outerWidth();
+                $(this).autocomplete("widget").css({
+                    'width': inputWidth + 'px',
+                    'max-width': inputWidth + 'px'
+                });
+            },
             select: function (event, ui) {
                 // Prevenir la acción por defecto
                 event.preventDefault();
@@ -1832,8 +2056,8 @@
 
                 // Establecer los precios
                 const precioVenta = parseFloat(ui.item.precio || 0).toFixed(2);
-                app.producto.precioVenta = precioVenta; // Precio de venta que se mantiene
-                app.producto.precio_mostrado = precioVenta; // Precio que se muestra inicialmente
+                app.producto.precioVenta = precioVenta;
+                app.producto.precio_mostrado = precioVenta;
                 app.producto.precio = precioVenta;
                 app.producto.costo = parseFloat(ui.item.costo || 0).toFixed(2);
                 app.producto.precio_mayor = parseFloat(ui.item.precio_mayor || ui.item.precio2 || 0).toFixed(2);
@@ -1843,7 +2067,7 @@
                 app.producto.codigo = ui.item.codigo;
                 app.producto.productoid = ui.item.codigo;
                 app.producto.usar_multiprecio = ui.item.usar_multiprecio;
-                app.producto.tipo_precio = 'PV'; // Establecer tipo inicial como PV
+                app.producto.tipo_precio = 'PV';
 
                 // Cargar los precios adicionales
                 app.cargarPreciosAdicionales(ui.item.codigo, ui.item.tipo);
@@ -1855,7 +2079,36 @@
 
                 return false;
             }
-        });
+        }).data('ui-autocomplete')._renderItem = function (ul, item) {
+            // HTML personalizado - con o sin imagen
+            let html = '';
+            if (item.imagen) {
+                // Con imagen
+                html = `
+                    <div style="display: flex; align-items: flex-start; padding: 8px; max-width: 100%;">
+                        <img src="${_URL}/public/img/productos/${item.imagen}"
+                             style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0; margin-top: 2px;"
+                             loading="lazy"
+                             onerror="this.style.display='none';" />
+                        <div class="producto-info">
+                            <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Sin imagen - solo texto
+                html = `
+                    <div style="padding: 8px; max-width: 100%;">
+                        <div class="producto-info">
+                            <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return $('<li>').data('item.autocomplete', item).html(html).appendTo(ul);
+        };
+
 
         $("#example-text-input-cnt").on('keypress', function (e) {
             if (e.which == 13) {
@@ -1870,8 +2123,12 @@
 
 <script>
     function toggleInput(checkbox) {
-        const input = checkbox.parentElement.querySelector('.precio-input');
-        input.disabled = !checkbox.checked;
+        // Busca el input relacionado a la clase 'precio-input' dentro del mismo contenedor padre
+        const container = checkbox.closest('.col-lg-6');
+        const input = container.querySelector('.precio-input');
+        if (input) {
+            input.disabled = !checkbox.checked;  // Habilita el input si la casilla está marcada
+        }
     }
 
     function onlyNumber(event) {

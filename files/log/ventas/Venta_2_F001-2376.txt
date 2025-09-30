@@ -1,0 +1,8 @@
+Venta: 2, fecha: 2025-09-08
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('11', '2', '1', '212.00000', '', NULL, NULL, '5') - false 
+Incorrect decimal value: '' for column `factura_jvc1`.`productos_ventas`.`costo` at row 1
+
+

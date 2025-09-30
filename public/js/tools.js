@@ -85,6 +85,12 @@ function _ajaxDOM(url, contenedor_id, callback) {
 function inicializarModuloSegunURL(url) {
     console.log('Inicializando módulo para URL:', url);
 
+    // NO limpiar módulos para rutas de ventas (interfiere con Vue)
+    if (url.includes('/ventas/productos') || url.includes('/ventas')) {
+        console.log('🎯 Saltando limpieza de módulos para módulo de ventas');
+        return; // Salir completamente para ventas
+    }
+    
     // Limpiar módulos de documentos antes de inicializar uno nuevo
     limpiarModulosDocumentos();
 
@@ -222,6 +228,11 @@ function _ajax(url, method, data = {}, func) {
                 console.log(resp);
                 alertError('ERR', 'Error en el servidor');
             }
+        },
+        error: function (xhr, status, error) {
+            $("#loader-menor").hide();
+            console.error('Error AJAX:', error);
+            alertError('Error', 'Error de conexión. Intente nuevamente.');
         }
     });
 }

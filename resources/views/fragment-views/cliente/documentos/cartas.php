@@ -95,6 +95,9 @@
     <button class="btn border-rojo" id="btn-gestionar-membretes">
         <i class="fas fa-image me-2"></i>Gestionar Membretes
     </button>
+    <button class="btn bg-rojo hover:bg-white" onclick="window.cartaModuleInstance.reiniciar()">
+        <i class="fas fa-sync me-2"></i>Reiniciar Módulo
+    </button>
 </div>
 
 <!-- Vista de lista de cartas -->
@@ -774,4 +777,115 @@
             }
         });
     }
+
+    // Funciones para WhatsApp
+    function compartirWhatsAppCarta(id) {
+        console.log('Compartiendo carta por WhatsApp:', id);
+        window.cartaActualWhatsApp = id;
+        $('#compartirWhatsAppCartaModal').modal('show');
+    }
+
+    function enviarWhatsAppCarta() {
+        const numero = $('#numeroWhatsAppCarta').val().trim();
+        const mensaje = $('#mensajeWhatsAppCarta').val().trim();
+
+        if (!numero) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor ingrese un número de WhatsApp',
+                icon: 'error'
+            });
+            return;
+        }
+
+        if (!numero.match(/^[0-9]{9}$/)) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El número debe tener exactamente 9 dígitos',
+                icon: 'error'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Compartiendo...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: _URL + '/ajs/carta/compartir-whatsapp',
+            method: 'POST',
+            data: {
+                id_carta: window.cartaActualWhatsApp,
+                numero: numero,
+                mensaje: mensaje
+            },
+            success: function(response) {
+                if (response.res) {
+                    $('#compartirWhatsAppCartaModal').modal('hide');
+                    Swal.close();
+                    
+                    // Abrir WhatsApp en nueva ventana
+                    window.open(response.whatsapp_url, '_blank');
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error al compartir por WhatsApp: ' + (response.error || 'Error desconocido'),
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al compartir por WhatsApp. Intente nuevamente.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    // Exportar funciones globalmente
+    window.compartirWhatsAppCarta = compartirWhatsAppCarta;
+    window.enviarWhatsAppCarta = enviarWhatsAppCarta;
 </script>
+
+<!-- Modal para compartir por WhatsApp -->
+<div class="modal fade" id="compartirWhatsAppCartaModal" tabindex="-1" aria-labelledby="compartirWhatsAppCartaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compartirWhatsAppCartaModalLabel">
+                    <i class="fab fa-whatsapp text-success me-2"></i>Compartir Carta por WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="numeroWhatsAppCarta" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Número de WhatsApp
+                    </label>
+                    <input type="text" class="form-control" id="numeroWhatsAppCarta" 
+                           placeholder="Ingrese el número sin +51 (ej: 999888777)" maxlength="9">
+                </div>
+                <div class="mb-3">
+                    <label for="mensajeWhatsAppCarta" class="form-label">
+                        <i class="fas fa-comment me-1"></i>Mensaje adicional (opcional)
+                    </label>
+                    <textarea class="form-control" id="mensajeWhatsAppCarta" rows="3" 
+                              placeholder="Mensaje adicional que desee agregar..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="enviarWhatsAppCarta()">
+                    <i class="fab fa-whatsapp me-1"></i>Compartir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

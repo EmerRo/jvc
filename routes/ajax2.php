@@ -68,6 +68,7 @@ Route::post("/ajs/cotizaciones/getvendedores", "CotizacionesController@getVended
 Route::post("/ajs/cotizaciones/crear-asunto", "CotizacionesController@crearAsunto");
 Route::get("/ajs/cotizaciones/asuntos", "CotizacionesController@getAsuntos");
 Route::get("/ajs/cotizaciones/ultimo-numero", "CotizacionesController@ultimoNumero");
+Route::get("/ajs/cotizaciones/tasa-cambio", "CotizacionesController@obtenerTasaCambio");
 
 
 // ================  CobranzaController ===================================
@@ -88,6 +89,7 @@ Route::post('/ajs/caja/chica/add', "CajaController@agregarMovimiento");
 Route::post('/ajs/caja/chica/cerrar', "CajaController@cerrarCajaChica");
 Route::post('/ajs/caja/chica/update', "CajaController@updateMovimiento");
 Route::post('/ajs/caja/chica/delete', "CajaController@deleteMovimiento");
+Route::post('/ajs/caja/siguiente-numero', "CajaController@obtenerSiguienteNumero");
 
 // ================  ComprasController ===================================
 Route::post('/ajs/prodcutos/compras/render', "ComprasController@getAll");
@@ -105,6 +107,9 @@ Route::get("/ajs/compra/serie-numero", "ComprasController@obtenerSerieNumeroComp
 // ================  DashboardController ===================================
 Route::get("/ajs/dashboard/cliente-detalle", "DashboardController@getClienteDetalle");
 Route::get("/ajs/dashboard/cliente-estadisticas", "DashboardController@getClienteEstadisticas");
+Route::get("/ajs/dashboard/datos-clientes", "DashboardController@getDatosClientes");
+Route::get("/ajs/dashboard/datos-cotizaciones", "DashboardController@getDatosCotizaciones");
+Route::get("/ajs/dashboard/datos-guias", "DashboardController@getDatosGuias");
 Route::get("/ajs/dashboard/producto-detalle", "DashboardController@getProductoDetalle");
 Route::get("/ajs/dashboard/producto-estadisticas", "DashboardController@getProductoEstadisticas");
 Route::get("/ajs/dashboard/estadisticas-stock", "DashboardController@getEstadisticasStock");
@@ -114,11 +119,17 @@ Route::get('/ajs/dashboard/datos', 'DashboardController@getDatos');
 Route::get("/ajs/dashboard/productos-por-estado", "DashboardController@getProductosPorEstado");
 Route::get("/ajs/dashboard/datos-productos", "DashboardController@getDatosProductos");
 Route::get("/ajs/dashboard/datos-ingresos-egresos", "DashboardController@getDatosIngresosEgresos");
+Route::get("/ajs/dashboard/datos-stock", "DashboardController@getDatosStock");
+
+// Rutas para gestión de vendedores y metas individuales
+Route::get("/ajs/dashboard/todos-vendedores", "DashboardController@getTodosVendedores");
+Route::post("/ajs/dashboard/guardar-meta-individual", "DashboardController@guardarMetaIndividual");
+Route::post("/ajs/dashboard/distribuir-metas-automaticas", "DashboardController@distribuirMetasAutomaticas");
 
 
 
 Route::post("/ajs/getroles", "ConsultasController@getRoles");
-Route::post("/ajs/add/users", "ConsultasController@saveUser");
+// Route duplicada eliminada - ahora usa UsuariosController@insertar en ajaxs.php
 
 // catehorias 
 Route::get("/ajs/get/categorias", "CategoriasController@getCategoria");
@@ -190,10 +201,11 @@ Route::post("/ajs/update/numeroseries", "SeriesController@updateSerie");
 Route::post("/ajs/delete/numeroseries", "SeriesController@deleteSerie");
 Route::post("/ajs/getSerieByNumero", "SeriesController@getSerieByNumero");
 Route::post("/ajs/verificar/numeroserie", "SeriesController@verificarNumeroSerie");
+Route::post("/ajs/verificar/garantias", "SeriesController@verificarGarantias");
 Route::get("/ajs/getOne/numeroseries/:id", "SeriesController@getOneSerieById");
 Route::get("/ajs/get/ultimonumeroserie", "SeriesController@getUltimoNumeroSerie");
 Route::get("/ajs/generar/numeroserie", "SeriesController@generarNumeroSerie");
-
+Route::get("/ajs/get/proximonumero/series", "SeriesController@getProximoNumero");
 // maquinas gestion activos
 Route::get("/ajs/get/maquinas", "RegistroMaquinaController@getMaquinas");
 Route::post("/ajs/save/maquinas", "RegistroMaquinaController@saveMaquina");
@@ -288,8 +300,9 @@ Route::get('/ajs/notificaciones/obtener', "TallerCotizacionesController@obtenerN
 Route::get("/ajs/get/terminos/repuestos", "TallerCotizacionesController@getTerminosRepuestos");
 Route::get("/ajas/get/diagnostico/repuestos", "TallerCotizacionesController@getDiagnosticoRepuestos");
 Route::post("/jvc/ajs/save/taller/condiciones/global", "TallerCotizacionesController@saveCondicionGlobalTaller");
-Route::post("/jvc/ajas/save/taller/diagnosticos/global", "TallerCotizacionesController@saveDiagnosticoGlobalTaller");
 Route::post("/ajs/taller/cotizaciones/info", "TallerCotizacionesController@obtenerInfo")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/taller/cotizacion/datos", "TallerCotizacionesController@obtenerDatosCotizacion");
+Route::get("/ajs/taller/cotizacion/completa/:id_cotizacion", "TallerCotizacionesController@obtenerCotizacionCompleta");
 
 
 
@@ -318,3 +331,9 @@ Route::post("/ajs/get/conductor/configuraciones/chofer", "ConductorConfiguracion
 Route::post("/ajs/save/conductor/configuracion", "ConductorConfiguracionController@save");
 Route::post("/ajs/update/conductor/configuracion", "ConductorConfiguracionController@update"); // NUEVA
 Route::post("/ajs/delete/conductor/configuracion", "ConductorConfiguracionController@delete"); // NUEVA
+
+// Nueva ruta específica para compras que muestra COSTO en lugar de P.Venta
+Route::get("/ajs/cargar/productos/compra/:almacen", "ConsultasController@buscarProductoCompra")->Middleware([ValidarTokenMiddleware::class]);
+
+// Nueva ruta específica para repuestos en compras que muestra COSTO en lugar de P.Venta
+Route::get("/ajs/cargar/repuestos/compra/:almacen", "ConsultasController@buscarRepuestoCompra")->Middleware([ValidarTokenMiddleware::class]);

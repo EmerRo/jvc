@@ -348,7 +348,10 @@
 
         /* Estilos para el login */
         .container-login100 {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            background-image: url('<?= URL::to("public/img/fondo.jpg") ?>');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             position: relative;
             overflow: hidden;
         }
@@ -360,116 +363,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('<?= URL::to("public/login/images/pattern.png") ?>');
-            opacity: 0.05;
+            background-color: rgba(0, 0, 0, 0.3);
             z-index: 0;
-        }
-
-        /* --- ESTILOS MEJORADOS PARA ANIMACIONES DE FONDO CON ICONOS --- */
-        .animated-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-
-        .left-shapes, .right-shapes {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            overflow: hidden;
-        }
-
-        .right-shapes {
-            right: 0;
-        }
-
-        .animated-shape {
-            position: absolute;
-            opacity: 0;
-            animation-name: floatFade;
-            animation-duration: 20s;
-            animation-iteration-count: infinite;
-            animation-timing-function: ease-in-out;
-        }
-
-        .animated-shape::before {
-            font-family: 'FontAwesome';
-            line-height: 1;
-            text-rendering: auto;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Colores para los iconos */
-        .shape-red::before {
-            color: #C1272D;
-        }
-        .shape-gray::before {
-            color: #a0a0a0;
-        }
-
-        /* Posiciones, tamaños e iconos específicos */
-        .shape-1 { top: 10%; left: 5%; animation-delay: 0s; animation-duration: 25s; }
-        .shape-1::before { content: '\f0f6'; font-size: 100px; } /* fa-file-text-o */
-
-        .shape-2 { bottom: 10%; left: 25%; animation-delay: 2s; animation-duration: 20s; }
-        .shape-2::before { content: '\f080'; font-size: 80px; } /* fa-bar-chart */
-
-        .shape-3 { top: 35%; left: 15%; animation-delay: 4s; animation-duration: 18s; }
-        .shape-3::before { content: '\f013'; font-size: 60px; } /* fa-cog */
-
-        .shape-4 { top: 15%; right: 5%; animation-delay: 1s; animation-duration: 22s; }
-        .shape-4::before { content: '\f1ec'; font-size: 90px; } /* fa-calculator */
-
-        .shape-5 { bottom: 20%; right: 20%; animation-delay: 3s; animation-duration: 24s; }
-        .shape-5::before { content: '\f02f'; font-size: 70px; } /* fa-print */
-
-        .shape-6 { top: 55%; right: 15%; animation-delay: 5s; animation-duration: 19s; }
-        .shape-6::before { content: '\f0b1'; font-size: 60px; } /* fa-briefcase */
-
-        /* Animación mejorada: flotar, rotar y desvanecer con MÁS OPACIDAD */
-        @keyframes floatFade {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-            25% {
-                transform: translateY(-25px) rotate(10deg);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0.25;
-            }
-            75% {
-                transform: translateY(25px) rotate(-10deg);
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0;
-            }
-        }
-
-        /* Retrasos para diferentes elementos */
-        .delay-1 {
-            animation-delay: 0.5s;
-        }
-
-        .delay-2 {
-            animation-delay: 1s;
-        }
-
-        .delay-3 {
-            animation-delay: 1.5s;
-        }
-
-        .delay-4 {
-            animation-delay: 2s;
         }
 
         .wrap-login100 {
@@ -605,18 +500,6 @@
 
     <div class="limiter">
         <div class="container-login100">
-            <div class="animated-background">
-                <div class="left-shapes">
-                    <div class="animated-shape shape-red shape-1"></div>
-                    <div class="animated-shape shape-gray shape-2"></div>
-                    <div class="animated-shape shape-red shape-3"></div>
-                </div>
-                <div class="right-shapes">
-                    <div class="animated-shape shape-gray shape-4"></div>
-                    <div class="animated-shape shape-red shape-5"></div>
-                    <div class="animated-shape shape-gray shape-6"></div>
-                </div>
-            </div>
             
             <div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
                 <form class="login100-form validate-form">

@@ -124,25 +124,7 @@ function generarSeriesMasivas(ultimoNumero) {
     validarCantidadSeries();
 }
 
-// Nueva función para asignar números de serie automáticamente
-function asignarNumeroSerieAutomatico() {
-    const ultimoNumero = parseInt($("#ultimo_numero_serie").val());
-    
-    if (isNaN(ultimoNumero)) return; // Si no hay un número válido, salir
-    
-    // Obtener todos los equipos y asignar números correlativos
-    $("#equipos_container .equipo-item").each(function(index) {
-      const numeroSerieInput = $(this).find('input[name$="[numero_serie]"]');
-      const nuevoNumero = ultimoNumero + index + 1;
-      
-      // Solo asignar si el campo está vacío o si es el primer equipo
-      if (numeroSerieInput.val() === "" || index === 0) {
-        numeroSerieInput.val(nuevoNumero);
-        numeroSerieInput.addClass('is-valid');
-        numeroSerieInput.siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
-      }
-    });
-}
+
 
 // Función para limpiar el formulario de registro
 function limpiarFormularioRegistro() {

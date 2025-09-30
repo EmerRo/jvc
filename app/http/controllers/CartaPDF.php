@@ -55,6 +55,10 @@ class CartaPDF extends Controller
             }
         }
 
+        // Optimizar imágenes antes de usarlas
+        $headerImageUrl = $this->optimizarImagenParaPDF($headerImageUrl);
+        $footerImageUrl = $this->optimizarImagenParaPDF($footerImageUrl);
+        
         // Definir el HTML del encabezado y pie de página
         $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
             <img src='" . $headerImageUrl . "' style='width: 100%; margin: 0;'>
@@ -150,7 +154,8 @@ class CartaPDF extends Controller
         $html .= $carta->getContenido();
         $html .= "</div>";
 
-        $this->mpdf->WriteHTML($html);
+        // Dividir el HTML en fragmentos más pequeños para evitar pcre.backtrack_limit
+        $this->escribirHTMLEnFragmentos($html);
         $this->mpdf->Output("Carta_" . $numeroCorrelativo . ".pdf", "I");
     }
     
@@ -162,6 +167,10 @@ class CartaPDF extends Controller
         $numeroEjemplo = "NRO.XXX-$anio-JVC";
         
         $this->mpdf->SetTitle($titulo . " " . $numeroEjemplo);
+        
+        // Optimizar imágenes antes de usarlas
+        $header_image = $this->optimizarImagenParaPDF($header_image);
+        $footer_image = $this->optimizarImagenParaPDF($footer_image);
         
         // Definir el HTML del encabezado y pie de página
         $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
@@ -226,9 +235,434 @@ class CartaPDF extends Controller
         $html .= $contenido;
         $html .= "</div>";
 
-        $this->mpdf->WriteHTML($html);
+        // Dividir el HTML en fragmentos más pequeños para evitar pcre.backtrack_limit
+        $this->escribirHTMLEnFragmentos($html);
         
         // Devolver el PDF como base64 para la vista previa
         return base64_encode($this->mpdf->Output('', 'S'));
+    }
+    
+    /**
+     * Escribe HTML en fragmentos más pequeños para evitar el error pcre.backtrack_limit
+     */
+    private function escribirHTMLEnFragmentos($html)
+    {
+        // Tamaño máximo por fragmento (50KB)
+        $maxSize = 50000;
+        
+        // Si el HTML es pequeño, escribirlo directamente
+        if (strlen($html) <= $maxSize) {
+            $this->mpdf->WriteHTML($html);
+            return;
+        }
+        
+        // Dividir el HTML en fragmentos respetando las etiquetas
+        $fragmentos = $this->dividirHTMLEnFragmentos($html, $maxSize);
+        
+        foreach ($fragmentos as $fragmento) {
+            if (!empty(trim($fragmento))) {
+                $this->mpdf->WriteHTML($fragmento);
+            }
+        }
+    }
+    
+    /**
+     * Divide el HTML en fragmentos respetando las etiquetas HTML
+     */
+    private function dividirHTMLEnFragmentos($html, $maxSize)
+    {
+        $fragmentos = [];
+        $posicionActual = 0;
+        $longitudHTML = strlen($html);
+        
+        while ($posicionActual < $longitudHTML) {
+            $finFragmento = min($posicionActual + $maxSize, $longitudHTML);
+            
+            // Si no estamos al final del HTML, buscar un punto de corte seguro
+            if ($finFragmento < $longitudHTML) {
+                // Buscar el final de una etiqueta o un espacio
+                $ultimoEspacio = strrpos(substr($html, $posicionActual, $maxSize), ' ');
+                $ultimaEtiqueta = strrpos(substr($html, $posicionActual, $maxSize), '>');
+                
+                // Usar el punto de corte más tardío que sea seguro
+                $puntoCorte = max($ultimoEspacio, $ultimaEtiqueta);
+                
+                if ($puntoCorte !== false && $puntoCorte > 100) {
+                    $finFragmento = $posicionActual + $puntoCorte + 1;
+                }
+            }
+            
+            $fragmento = substr($html, $posicionActual, $finFragmento - $posicionActual);
+            $fragmentos[] = $fragmento;
+            $posicionActual = $finFragmento;
+        }
+        
+        return $fragmentos;
+    }
+    
+    /**
+     * Optimiza una imagen usando técnicas avanzadas para mantener máxima calidad
+     */
+    private function optimizarImagenParaPDF($imagenUrl)
+    {
+        // Si no es una imagen base64, devolverla tal como está
+        if (!$imagenUrl || strpos($imagenUrl, 'data:image/') !== 0) {
+            return $imagenUrl;
+        }
+        
+        try {
+            // Extraer los datos base64
+            $parts = explode(',', $imagenUrl);
+            if (count($parts) !== 2) {
+                return $imagenUrl;
+            }
+            
+            $imageData = base64_decode($parts[1]);
+            $originalSize = strlen($imageData);
+            
+            // Si la imagen ya es pequeña (menos de 300KB), aplicar solo optimización ligera
+            if ($originalSize < 300 * 1024) {
+                return $this->optimizacionLigera($imagenUrl, $parts, $imageData);
+            }
+            
+            $image = imagecreatefromstring($imageData);
+            
+            if ($image === false) {
+                return $imagenUrl;
+            }
+            
+            // Aplicar filtros de mejora de calidad ANTES del redimensionado
+            $image = $this->aplicarFiltrosCalidad($image);
+            
+            // Obtener dimensiones originales
+            $width = imagesx($image);
+            $height = imagesy($image);
+            
+            // Calcular dimensiones óptimas de manera inteligente
+            $dimensiones = $this->calcularDimensionesOptimas($width, $height, $originalSize);
+            
+            // Redimensionar solo si es beneficioso
+            if ($dimensiones['resize']) {
+                $image = $this->redimensionarConCalidadMaxima($image, $width, $height, 
+                    $dimensiones['newWidth'], $dimensiones['newHeight'], strpos($parts[0], 'png') !== false);
+            }
+            
+            // Determinar el mejor formato de salida
+            $formatoOptimo = $this->determinarFormatoOptimo($parts[0], $image);
+            
+            // Generar imagen optimizada con la mejor calidad posible
+            $optimizedData = $this->generarImagenOptimizada($image, $formatoOptimo);
+            
+            imagedestroy($image);
+            
+            // Verificar que la optimización sea efectiva
+            $newSize = strlen($optimizedData);
+            if ($newSize >= $originalSize * 0.9 && $originalSize < 2 * 1024 * 1024) {
+                // Si no se redujo significativamente y es < 2MB, usar original
+                return $imagenUrl;
+            }
+            
+            return 'data:' . $formatoOptimo['mime'] . ';base64,' . base64_encode($optimizedData);
+            
+        } catch (Exception $e) {
+            error_log("Error optimizando imagen: " . $e->getMessage());
+            return $imagenUrl;
+        }
+    }
+    
+    /**
+     * Aplica optimización ligera para imágenes pequeñas
+     */
+    private function optimizacionLigera($imagenUrl, $parts, $imageData)
+    {
+        $image = imagecreatefromstring($imageData);
+        if ($image === false) return $imagenUrl;
+        
+        // Solo aplicar filtros de mejora sin redimensionar
+        $image = $this->aplicarFiltrosCalidad($image);
+        
+        $isPng = strpos($parts[0], 'png') !== false;
+        $isTransparent = $this->tieneTransparencia($image);
+        
+        ob_start();
+        if ($isPng && $isTransparent) {
+            imagepng($image, null, 5); // Menos compresión para mejor calidad
+        } else {
+            imagejpeg($image, null, 92); // Calidad muy alta
+        }
+        $optimizedData = ob_get_clean();
+        
+        imagedestroy($image);
+        
+        $mimeType = ($isPng && $isTransparent) ? 'image/png' : 'image/jpeg';
+        return 'data:' . $mimeType . ';base64,' . base64_encode($optimizedData);
+    }
+    
+    /**
+     * Aplica filtros para mejorar la calidad de la imagen
+     */
+    private function aplicarFiltrosCalidad($image)
+    {
+        // Aplicar filtro de nitidez suave
+        $sharpenMatrix = array(
+            array(0, -1, 0),
+            array(-1, 5, -1),
+            array(0, -1, 0)
+        );
+        $divisor = 1;
+        $offset = 0;
+        imageconvolution($image, $sharpenMatrix, $divisor, $offset);
+        
+        // Mejorar contraste ligeramente
+        imagefilter($image, IMG_FILTER_CONTRAST, -5);
+        
+        return $image;
+    }
+    
+    /**
+     * Calcula las dimensiones óptimas basado en contenido y tamaño
+     */
+    private function calcularDimensionesOptimas($width, $height, $fileSize)
+    {
+        // Límites más generosos para mejor calidad
+        $maxWidth = 1200;
+        $maxHeight = 400;
+        
+        // Factor de decisión basado en el tamaño del archivo
+        $sizeFactor = $fileSize / (1024 * 1024); // MB
+        
+        // Ajustar límites dinámicamente
+        if ($sizeFactor > 3) {
+            $maxWidth = 1000;
+            $maxHeight = 350;
+        } elseif ($sizeFactor < 1) {
+            $maxWidth = 1400;
+            $maxHeight = 450;
+        }
+        
+        $needsResize = ($width > $maxWidth || $height > $maxHeight || $sizeFactor > 2);
+        
+        if (!$needsResize) {
+            return ['resize' => false];
+        }
+        
+        // Calcular ratio manteniendo proporción
+        $ratioW = $maxWidth / $width;
+        $ratioH = $maxHeight / $height;
+        $ratio = min($ratioW, $ratioH, 1.0);
+        
+        return [
+            'resize' => true,
+            'newWidth' => intval($width * $ratio),
+            'newHeight' => intval($height * $ratio)
+        ];
+    }
+    
+    /**
+     * Redimensiona con la máxima calidad posible
+     */
+    private function redimensionarConCalidadMaxima($image, $width, $height, $newWidth, $newHeight, $isPng)
+    {
+        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+        
+        // Configurar para máxima calidad
+        imagealphablending($resizedImage, false);
+        imagesavealpha($resizedImage, true);
+        
+        if ($isPng) {
+            $transparent = imagecolorallocatealpha($resizedImage, 255, 255, 255, 127);
+            imagefill($resizedImage, 0, 0, $transparent);
+        } else {
+            // Fondo blanco para JPEG
+            $white = imagecolorallocate($resizedImage, 255, 255, 255);
+            imagefill($resizedImage, 0, 0, $white);
+        }
+        
+        // Usar el mejor algoritmo de redimensionado
+        imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        
+        imagedestroy($image);
+        return $resizedImage;
+    }
+    
+    /**
+     * Determina el formato óptimo para la salida
+     */
+    private function determinarFormatoOptimo($originalMime, $image)
+    {
+        $isPng = strpos($originalMime, 'png') !== false;
+        $hasTransparency = $this->tieneTransparencia($image);
+        
+        if ($isPng && $hasTransparency) {
+            return ['format' => 'png', 'mime' => 'image/png'];
+        }
+        
+        // Para membretes sin transparencia, JPEG suele ser mejor
+        return ['format' => 'jpeg', 'mime' => 'image/jpeg'];
+    }
+    
+    /**
+     * Genera la imagen optimizada con la mejor calidad
+     */
+    private function generarImagenOptimizada($image, $formato)
+    {
+        ob_start();
+        
+        if ($formato['format'] === 'png') {
+            // PNG con compresión mínima para máxima calidad
+            imagepng($image, null, 3);
+        } else {
+            // JPEG con calidad muy alta
+            imagejpeg($image, null, 95);
+        }
+        
+        return ob_get_clean();
+    }
+    
+    /**
+     * Detecta si una imagen tiene transparencia
+     */
+    private function tieneTransparencia($image)
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        
+        // Muestrear algunos puntos para detectar transparencia
+        $samplePoints = min(100, $width * $height); // Máximo 100 puntos
+        
+        for ($i = 0; $i < $samplePoints; $i++) {
+            $x = rand(0, $width - 1);
+            $y = rand(0, $height - 1);
+            $color = imagecolorat($image, $x, $y);
+            $alpha = ($color & 0x7F000000) >> 24;
+            
+            if ($alpha > 0) {
+                return true; // Tiene transparencia
+            }
+        }
+        
+        return false;
+    }
+
+    // Método para generar PDF como base64 (para vista previa)
+    public function generarCartaPDFBase64($id_carta)
+    {
+        try {
+            // Evitar que notices/warnings rompan la salida del PDF
+            if (function_exists('ini_set')) {
+                @ini_set('display_errors', '0');
+                @ini_set('html_errors', '0');
+                @ini_set('zlib.output_compression', '0');
+            }
+
+            $carta = new Carta();
+            $carta->obtenerCarta($id_carta);
+
+            // Generar número correlativo
+            $numeroCorrelativo = $carta->generarNumeroCorrelativo($carta->getTipo());
+            
+            $this->mpdf->SetTitle($carta->getTitulo() . " " . $numeroCorrelativo);
+            
+            // Obtener las URLs de las imágenes
+            $headerImageUrl = $carta->getHeaderImageUrl();
+            $footerImageUrl = $carta->getFooterImageUrl();
+
+            // Si no hay imágenes específicas, usar las de la plantilla
+            if (!$headerImageUrl || !$footerImageUrl) {
+                $template = new CartaTemplate();
+                $template->obtenerTemplateActual();
+                
+                if (!$headerImageUrl) {
+                    $headerImageUrl = $template->getHeaderImageUrl();
+                }
+                if (!$footerImageUrl) {
+                    $footerImageUrl = $template->getFooterImageUrl();
+                }
+            }
+
+            // Generar el HTML del PDF
+            $html = $this->generarHTMLCarta($carta, $headerImageUrl, $footerImageUrl, $numeroCorrelativo);
+            
+            // Escribir HTML en el PDF
+            $this->mpdf->WriteHTML($html);
+            
+            // Generar el PDF como string base64
+            $pdfContent = $this->mpdf->Output('', 'S');
+            return base64_encode($pdfContent);
+            
+        } catch (Exception $e) {
+            error_log("Error generando PDF base64 de carta: " . $e->getMessage());
+            throw new Exception("Error al generar el PDF: " . $e->getMessage());
+        }
+    }
+
+    // Método auxiliar para generar HTML de carta
+    private function generarHTMLCarta($carta, $headerImageUrl, $footerImageUrl, $numeroCorrelativo)
+    {
+        $html = $this->generarEncabezado($headerImageUrl);
+        
+        // Agregar contenido específico de carta
+        $html .= "
+        <div style='padding: 20px 15mm; min-height: calc(100vh - 200px);'>
+            <table style='width: 100%; border-spacing: 0; font-family: Arial, sans-serif;'>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Carta N°:</td>
+                    <td style='padding: 5px 0;'>" . $numeroCorrelativo . "</td>
+                </tr>";
+        
+        // Agregar información del cliente si existe
+        if ($carta->getIdCliente()) {
+            $stmt = $this->conexion->prepare("SELECT datos, documento, direccion FROM clientes WHERE id_cliente = ?");
+            $clienteId = $carta->getIdCliente();
+            $stmt->bind_param("i", $clienteId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($row = $result->fetch_assoc()) {
+                $html .= "
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>A:</td>
+                    <td style='padding: 5px 0;'>" . $row['datos'] . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Documento:</td>
+                    <td style='padding: 5px 0;'>" . $row['documento'] . "</td>
+                </tr>";
+                
+                if (!empty($row['direccion'])) {
+                    $html .= "
+                    <tr>
+                        <td style='font-weight: bold; padding: 5px 0;'>Dirección:</td>
+                        <td style='padding: 5px 0;'>" . $row['direccion'] . "</td>
+                    </tr>";
+                }
+            }
+        }
+        
+        $html .= "
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Asunto:</td>
+                    <td style='padding: 5px 0;'>" . $carta->getTitulo() . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Tipo:</td>
+                    <td style='padding: 5px 0;'>" . $carta->getTipo() . "</td>
+                </tr>
+                <tr>
+                    <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
+                    <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y', strtotime($carta->getFechaCreacion())) . "</td>
+                </tr>
+            </table>
+        </div>
+        
+        <hr style='margin: 0 15mm; border: none; border-top: 1px solid #ccc;'>
+        
+        <div style='padding: 20px 15mm; line-height: 1.6;'>
+            " . $carta->getContenido() . "
+        </div>";
+        
+        $html .= $this->generarPie($footerImageUrl);
+        
+        return $html;
     }
 }

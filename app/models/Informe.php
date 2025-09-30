@@ -6,8 +6,8 @@ class Informe
     private $tipo;
     private $titulo;
     private $contenido;
-    private $header_image;
-    private $footer_image;
+    private $imagen1;
+    private $imagen2;
     private $cliente_id;
     private $usuario_id;
     private $fecha_creacion;
@@ -73,24 +73,24 @@ class Informe
         $this->contenido = $contenido;
     }
 
-    public function getHeaderImage()
+    public function getImagen1()
     {
-        return $this->header_image;
+        return $this->imagen1;
     }
 
-    public function setHeaderImage($header_image)
+    public function setImagen1($imagen1)
     {
-        $this->header_image = $header_image;
+        $this->imagen1 = $imagen1;
     }
 
-    public function getFooterImage()
+    public function getImagen2()
     {
-        return $this->footer_image;
+        return $this->imagen2;
     }
 
-    public function setFooterImage($footer_image)
+    public function setImagen2($imagen2)
     {
-        $this->footer_image = $footer_image;
+        $this->imagen2 = $imagen2;
     }
 
     public function getClienteId()
@@ -165,12 +165,12 @@ public function setPersonaEntregar($persona_entregar)
 
    public function insertar()
 {
-    $sql = "INSERT INTO informes (tipo, titulo, contenido, header_image, footer_image, cliente_id, usuario_id, persona_entregar) 
+    $sql = "INSERT INTO informes (tipo, titulo, contenido, imagen1, imagen2, cliente_id, usuario_id, persona_entregar) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $this->conectar->prepare($sql);
     
     // CORREGIR ESTA LÍNEA - Agregar 's' y $this->persona_entregar
-    $stmt->bind_param("sssssiis", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->usuario_id, $this->persona_entregar);
+    $stmt->bind_param("sssssiis", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->usuario_id, $this->persona_entregar);
     
     $result = $stmt->execute();
 
@@ -183,13 +183,13 @@ public function setPersonaEntregar($persona_entregar)
 public function editar()
 {
     $sql = "UPDATE informes 
-            SET tipo = ?, titulo = ?, contenido = ?, header_image = ?, footer_image = ?, cliente_id = ?, persona_entregar = ?, usuario_id = ? 
+            SET tipo = ?, titulo = ?, contenido = ?, imagen1 = ?, imagen2 = ?, cliente_id = ?, persona_entregar = ?, usuario_id = ? 
             WHERE id_informe = ?";
 
     $stmt = $this->conectar->prepare($sql);
     
     // CORREGIR ESTA LÍNEA - Cambiar tipos de datos
-    $stmt->bind_param("sssssissi", $this->tipo, $this->titulo, $this->contenido, $this->header_image, $this->footer_image, $this->cliente_id, $this->persona_entregar, $this->usuario_id, $this->id_informe);
+    $stmt->bind_param("sssssissi", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->persona_entregar, $this->usuario_id, $this->id_informe);
 
     return $stmt->execute();
 }
@@ -226,8 +226,8 @@ public function editar()
             $this->tipo = $fila['tipo'];
             $this->titulo = $fila['titulo'];
             $this->contenido = $fila['contenido'];
-            $this->header_image = $fila['header_image'];
-            $this->footer_image = $fila['footer_image'];
+            $this->imagen1 = $fila['imagen1'];
+            $this->imagen2 = $fila['imagen2'];
             $this->cliente_id = $fila['cliente_id'];
             $this->usuario_id = $fila['usuario_id'];
             $this->fecha_creacion = $fila['fecha_creacion'];
@@ -254,8 +254,10 @@ public function editar()
     public function getAllData($filtro = null, $tipo = null)
     {
         try {
-            // Construir la consulta SQL base con las columnas correctas
-            $sql = "SELECT i.*, c.datos as cliente_nombre, u.nombres as usuario_nombre 
+            // Construir la consulta SQL base SIN las columnas de imágenes para mejorar rendimiento
+            $sql = "SELECT i.id_informe, i.tipo, i.titulo, i.contenido, i.cliente_id, i.persona_entregar, 
+                          i.usuario_id, i.fecha_creacion, i.fecha_modificacion,
+                          c.datos as cliente_nombre, u.nombres as usuario_nombre 
                 FROM informes i
                 LEFT JOIN clientes c ON i.cliente_id = c.id_cliente
                 LEFT JOIN usuarios u ON i.usuario_id = u.usuario_id";
@@ -418,6 +420,127 @@ public function editar()
         return sprintf("NRO.%03d-%d-JVC", $numero, $anio);
     }
 
+    // Método para validar que el cliente sea requerido
+    public function validarClienteRequerido($cliente_id)
+    {
+        if (empty($cliente_id) || $cliente_id <= 0) {
+            throw new Exception("El cliente es requerido para crear un informe");
+        }
+        return true;
+    }
 
+    /**
+     * Convierte la imagen1 de ruta a base64 para usar en PDF
+     */
+    public function getImagen1Base64()
+    {
+        if (!$this->imagen1 || strpos($this->imagen1, 'data:image/') === 0) {
+            // Ya es base64 o está vacía
+            return $this->imagen1;
+        }
+        
+        // Es una ruta de archivo, convertir a base64
+        return $this->convertirArchivoABase64($this->imagen1);
+    }
+
+    /**
+     * Convierte la imagen2 de ruta a base64 para usar en PDF
+     */
+    public function getImagen2Base64()
+    {
+        if (!$this->imagen2 || strpos($this->imagen2, 'data:image/') === 0) {
+            // Ya es base64 o está vacía
+            return $this->imagen2;
+        }
+        
+        // Es una ruta de archivo, convertir a base64
+        return $this->convertirArchivoABase64($this->imagen2);
+    }
+
+    /**
+     * Convierte un archivo de imagen a base64
+     */
+    private function convertirArchivoABase64($rutaArchivo)
+    {
+        if (!file_exists($rutaArchivo)) {
+            error_log("Archivo de imagen no encontrado: " . $rutaArchivo);
+            return null;
+        }
+        
+        try {
+            // Leer el archivo
+            $imageData = file_get_contents($rutaArchivo);
+            if ($imageData === false) {
+                error_log("No se pudo leer el archivo de imagen: " . $rutaArchivo);
+                return null;
+            }
+            
+            // Detectar el tipo MIME
+            $mimeType = mime_content_type($rutaArchivo);
+            if (!$mimeType) {
+                // Fallback basado en extensión
+                $extension = strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION));
+                switch ($extension) {
+                    case 'jpg':
+                    case 'jpeg':
+                        $mimeType = 'image/jpeg';
+                        break;
+                    case 'png':
+                        $mimeType = 'image/png';
+                        break;
+                    case 'gif':
+                        $mimeType = 'image/gif';
+                        break;
+                    default:
+                        $mimeType = 'image/jpeg';
+                }
+            }
+            
+            // Convertir a base64
+            $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+            
+            return $base64;
+            
+        } catch (Exception $e) {
+            error_log("Error convirtiendo archivo a base64: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtiene la URL pública de la imagen1 para mostrar en web
+     */
+    public function getImagen1Url()
+    {
+        if (!$this->imagen1) {
+            return null;
+        }
+        
+        // Si ya es base64, devolverla tal como está
+        if (strpos($this->imagen1, 'data:image/') === 0) {
+            return $this->imagen1;
+        }
+        
+        // Si es una ruta de archivo, crear URL
+        return '/' . $this->imagen1;
+    }
+
+    /**
+     * Obtiene la URL pública de la imagen2 para mostrar en web
+     */
+    public function getImagen2Url()
+    {
+        if (!$this->imagen2) {
+            return null;
+        }
+        
+        // Si ya es base64, devolverla tal como está
+        if (strpos($this->imagen2, 'data:image/') === 0) {
+            return $this->imagen2;
+        }
+        
+        // Si es una ruta de archivo, crear URL
+        return '/' . $this->imagen2;
+    }
 
 }

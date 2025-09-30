@@ -1,0 +1,9 @@
+Venta: 1, fecha: 2025-09-07
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('1', '1', '1', '3651', '2100.00', '1', '102', '5') - trueProd: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('2', '1', '1', '110', '135.00', '2', '103', '5') - trueProd: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('11', '1', '1', '212', '1230.00', '3', '104', '5') - true

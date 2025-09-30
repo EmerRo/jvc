@@ -8,28 +8,6 @@ $igv_empresa = $datoEmpresa['igv'];
 ?>
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
 
-<style>
-    .nav-equipos {
-        border-bottom: 1px solid #dee2e6;
-        margin-bottom: 1rem;
-    }
-
-    .nav-equipos .nav-link {
-        border: 1px solid transparent;
-        border-top-left-radius: 0.25rem;
-        border-top-right-radius: 0.25rem;
-        color: #495057;
-        background-color: #f8f9fa;
-        margin-right: 2px;
-    }
-
-    .nav-equipos .nav-link.active {
-        color: #CA3438;
-        background-color: #fff;
-        border-color: #dee2e6 #dee2e6 #fff;
-        border-bottom-color: transparent;
-    }
-</style>
 <div class="page-title-box">
     <div class="row align-items-center">
         <h6 class="page-title text-center">FACTURAR PRODUCTOS</h6>
@@ -42,8 +20,8 @@ $igv_empresa = $datoEmpresa['igv'];
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
-                <button id="backbuttonvp" href="/ventas" type="button" class="btn border-rojo button-link"><i
-                        class="fa fa-arrow-left"></i> Regresar</button>
+                <a id="backbuttonvp" href="/ventas" class="btn border-rojo button-link"><i
+                        class="fa fa-arrow-left"></i> Regresar</a>
             </div>
         </div>
     </div>
@@ -60,16 +38,21 @@ $igv_empresa = $datoEmpresa['igv'];
 
 <!-- Debug: Mostrar qué parámetros llegaron -->
 <script>
+    // Debug comentado
+    /*
     console.log("Parámetros URL recibidos desde controlador:", {
         coti: "<?php echo isset($coti) ? $coti : 'No definido'; ?>",
         coti_taller: "<?php echo isset($coti_taller) ? $coti_taller : 'No definido'; ?>"
     });
+    */
 </script>
 
 
 <?php
-if (isset($_GET["guia"])) {
-    echo "<input type='hidden' id='guia' value='{$_GET["guia"]}'>";
+// Verificar si viene de una guía de remisión
+if (isset($_GET["guia"]) || isset($guia)) {
+    $guiaId = isset($guia) ? $guia : $_GET["guia"];
+    echo "<input type='hidden' id='guia' value='{$guiaId}'>";
 }
 ?>
 
@@ -101,43 +84,6 @@ if (isset($_GET["guia"])) {
                                 </div>
                                 <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
                                     style="width: 300px; padding: 10px;"></canvas>
-                                <!-- Navegación por equipos - Solo visible cuando viene de taller -->
-                                <div class="col-md-12 mb-4" v-if="vieneDetallerCotizacion && equiposData.length > 0">
-                                    <nav class="nav nav-equipos">
-                                        <a v-for="(equipo, index) in equiposData" :key="index" class="nav-link"
-                                            :class="{ active: equipoActivo === index }"
-                                            @click.prevent="cambiarEquipoVenta(index)" href="#">
-                                            Equipo {{index + 1}}
-                                        </a>
-                                    </nav>
-                                </div>
-
-                                <!-- Detalles del equipo actual - Solo visible cuando viene de taller -->
-                                <div class="col-md-12 mb-4"
-                                    v-if="vieneDetallerCotizacion && equipoActivo !== null && equiposData.length > 0">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Marca</label>
-                                            <input type="text" class="form-control"
-                                                :value="equiposData[equipoActivo]?.marca" readonly>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Equipo</label>
-                                            <input type="text" class="form-control"
-                                                :value="equiposData[equipoActivo]?.equipo" readonly>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Modelo</label>
-                                            <input type="text" class="form-control"
-                                                :value="equiposData[equipoActivo]?.modelo" readonly>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Serie</label>
-                                            <input type="text" class="form-control"
-                                                :value="equiposData[equipoActivo]?.numero_serie" readonly>
-                                        </div>
-                                    </div>
-                                </div>
 
 
                                 <div class="form-group row mb-3">
@@ -302,20 +248,39 @@ if (isset($_GET["guia"])) {
                                         <th>Cantidad</th>
                                         <th>P. Unit.</th>
                                         <th>Parcial</th>
-                                        <th></th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item,index) in productos">
-                                        <td>{{index+1}}</td>
-                                        <td>{{item.descripcion}}</td>
-                                        <td><span v-if="!item.edicion">{{parseFloat(item.cantidad)}}</span><input
-                                                v-if="item.edicion" v-model="item.cantidad"></td>
-                                        <td><span v-if="!item.edicion">{{item.precioVenta}}</span><input
-                                                v-if="item.edicion" v-model="item.precioVenta"></td>
-                                        <td>{{(item.precioVenta*Number(item.cantidad)).toFixed(2)}}</td>
+                                    <tr v-for="(item,index) in productos"
+                                        :style="item.esEquipo ? 'background-color: #e3f2fd; font-weight: bold;' : 'background-color: white;'">
+                                        <td>
+                                            <!-- Mostrar numeración solo para productos, no para equipos -->
+                                            <span v-if="!item.esEquipo">{{getProductoIndex(index)}}</span>
+                                            <span v-else><i class="fas fa-cog text-primary"></i></span>
+                                        </td>
+                                        <td class="text-start">
+                                            <!-- Estilo diferente para equipos vs productos -->
+                                            <span v-if="item.esEquipo" class="fw-bold text-primary">{{item.nombre || item.descripcion}}</span>
+                                            <span v-else>{{item.descripcion}}</span>
+                                        </td>
+                                        <td>
+                                            <!-- Solo mostrar cantidad para productos -->
+                                            <span v-if="!item.esEquipo && !item.edicion">{{parseFloat(item.cantidad)}}</span>
+                                            <input v-if="!item.esEquipo && item.edicion" v-model="item.cantidad">
+                                        </td>
                                         <td style="white-space: nowrap;">
-                                            <div class="d-flex">
+                                            <!-- Solo mostrar precio para productos -->
+                                            <span v-if="!item.esEquipo && !item.edicion">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + item.precioVenta}}</span>
+                                            <input v-if="!item.esEquipo && item.edicion" v-model="item.precioVenta">
+                                        </td>
+                                        <td style="white-space: nowrap;">
+                                            <!-- Solo calcular parcial para productos -->
+                                            <span v-if="!item.esEquipo">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + (item.precioVenta*Number(item.cantidad)).toFixed(2)}}</span>
+                                        </td>
+                                        <td style="white-space: nowrap;">
+                                            <!-- Solo mostrar botones para productos, no para equipos -->
+                                            <div class="d-flex" v-if="!item.esEquipo">
                                                 <button @click="eliminarItemPro(index)" type="button"
                                                     class="btn btn-danger btn-sm me-1">
                                                     <i class="fa fa-times"></i>
@@ -325,8 +290,6 @@ if (isset($_GET["guia"])) {
                                                     <i class="fa fa-edit"></i>
                                                 </button>
                                             </div>
-                                            <!-- <button v-if="item.edicion" @click="item.edicion=false"
-        class="btn btn-warning btn-sm"><i class="fa fa-save"></i></button> -->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -933,9 +896,8 @@ if (isset($_GET["guia"])) {
             }
         }
 
-        console.log($('.idAlmacen').val());
 
-        const app = new Vue({
+        window.app = new Vue({
             el: "#container-vue",
             data: {
                 enProceso: true,
@@ -965,6 +927,7 @@ if (isset($_GET["guia"])) {
                     precio_usado: 1,
                     tipo_precio: 'PV',
                     precio_mostrado: '',
+                    moneda: 'PEN',
                 },
                 productoEdit: {
                     index: -1,
@@ -978,7 +941,8 @@ if (isset($_GET["guia"])) {
                     costo: '', // Nuevo
                     precio_mayor: '', // Nuevo
                     precio_menor: '', // Nuevo
-                    tipo_precio: 'PV' // Nuevo
+                    tipo_precio: 'PV', // Nuevo
+                    moneda: 'PEN' // Nuevo
                 },
                 usar_precio: '5',
                 productos: [],
@@ -1027,6 +991,7 @@ if (isset($_GET["guia"])) {
                 cuotas: [],
                 pointSel: 1,
                 vieneDesCotizacion: false,
+                vieneDesGuia: false,
             },
             watch: {
 
@@ -1121,14 +1086,11 @@ if (isset($_GET["guia"])) {
                         if (isNaN(fechaBase.getTime())) {
                             // Si la fecha no es válida, usar la fecha actual
                             fechaBase = new Date();
-                            console.error("Fecha base inválida en formatDate:", fechaBase);
                         }
                     } catch (e) {
                         fechaBase = new Date();
-                        console.error("Error al procesar fecha base:", e);
                     }
 
-                    console.log("Fecha base para generar cuotas:", fechaBase);
 
                     for (let i = 0; i < numCuotas; i++) {
                         try {
@@ -1136,7 +1098,6 @@ if (isset($_GET["guia"])) {
                             const fechaCuota = new Date(fechaBase.getTime());
                             fechaCuota.setMonth(fechaCuota.getMonth() + i + 1); // Incrementar un mes por cada cuota
 
-                            console.log(`Cuota ${i + 1} - Fecha calculada:`, fechaCuota);
 
                             // Ajustar el monto de la última cuota para evitar problemas de redondeo
                             const monto = i === numCuotas - 1
@@ -1148,9 +1109,7 @@ if (isset($_GET["guia"])) {
                                 monto: monto
                             });
 
-                            console.log(`Cuota ${i + 1} - Fecha formateada:`, this.formatDate(fechaCuota));
                         } catch (e) {
-                            console.error(`Error al generar cuota ${i + 1}:`, e);
                         }
                     }
 
@@ -1170,10 +1129,7 @@ if (isset($_GET["guia"])) {
                             this.venta.fechaVen = this.cuotas[this.cuotas.length - 1].fecha;
                         }
 
-                        console.log("Días lista actualizado:", this.venta.dias_lista);
-                        console.log("Fecha vencimiento actualizada:", this.venta.fechaVen);
                     } catch (e) {
-                        console.error("Error en actualizarDiasPago:", e);
                     }
                 },
                 // Actualizar el total de las cuotas
@@ -1219,11 +1175,7 @@ if (isset($_GET["guia"])) {
                 },
 
                 mounted() {
-                    // Recuperar productos guardados si existen
-                    const productosGuardados = localStorage.getItem('productosCotizacion');
-                    if (productosGuardados) {
-                        this.productos = JSON.parse(productosGuardados);
-                    }
+                    // No se usa para guías - la lógica está en created()
                 },
 
                 toggleCamara() {
@@ -1288,9 +1240,7 @@ if (isset($_GET["guia"])) {
                                             producto: respuesta // Código escaneado
                                         },
                                         success: function (response) {
-                                            //console.log(response);
                                             let data = JSON.parse(response);
-                                            console.log(data);
                                             // // Manejar la respuesta del servidor
                                             if (data.res == true) {
                                                 //alert("es verdadero el producto");
@@ -1385,6 +1335,7 @@ if (isset($_GET["guia"])) {
                         return {
                             ...e,
                             precioVenta: e.precio_unidad,
+                            moneda: e.moneda || 'PEN',
                             edicion: false,
                             productoid: e.codigo
                         }
@@ -1424,7 +1375,6 @@ if (isset($_GET["guia"])) {
                     vue.listaTempProd = []
                     if (this.dataKey.length > 0) {
                         _get("/ajs/cargar/productos/<?php echo $_SESSION["sucursal"] ?>?term=" + this.dataKey, (result) => {
-                            console.log(result)
                             vue.listaTempProd = result
                         })
                     }
@@ -1442,7 +1392,6 @@ if (isset($_GET["guia"])) {
                                 almacen: this.producto.almacen
                             },
                                 function (resp) {
-                                    console.log(resp.data);
                                     if (resp.res) {
                                         const ui = {
                                             item: resp.data
@@ -1460,6 +1409,7 @@ if (isset($_GET["guia"])) {
                                         app.producto.precioVenta = parseFloat(ui.item.precio_unidad + "").toFixed(0)
                                         app.producto.codigo = ui.item.codigo
                                         app.producto.costo = ui.item.costo
+                                        app.producto.moneda = ui.item.moneda || 'PEN'
                                         let array = [{
                                             precio: app.producto.precio
                                         },
@@ -1478,7 +1428,6 @@ if (isset($_GET["guia"])) {
                                         ]
 
                                         app.precioProductos = array
-                                        console.log(array);
                                         $("#input_buscar_productos").val('')
                                         $("#example-text-input").focus();
                                     } else {
@@ -1491,7 +1440,6 @@ if (isset($_GET["guia"])) {
                     }
                 },
                 cambiarPrecio(event) {
-                    console.log(event.target.value)
 
                     var self = this
 
@@ -1527,7 +1475,6 @@ if (isset($_GET["guia"])) {
                         coti: $("#cotizacion").val()
                     },
                         function (resp) {
-                            console.log("aaaaaaaaa", resp);
                             vue.productos = resp.productos.map(ert => {
                                 ert.descripcion = ert.codigo.toString().trim() + ' | ' + ert.descripcion
                                 ert.edicion = false
@@ -1564,85 +1511,91 @@ if (isset($_GET["guia"])) {
                             }, 1000)
                         })
                 },
-              cargarCotizacionTaller() {
-    const vue = this;
-    const cotiId = $("#cotizacion").val();
-
-    console.log("=== INICIO cargarCotizacionTaller ===");
-    console.log("Cotización ID:", cotiId);
-
-    if (!cotiId || cotiId === '') {
-        console.error("No hay ID de cotización disponible");
-        alertAdvertencia("No se pudo obtener el ID de la cotización de taller");
-        return;
-    }
-
-    _post("/ajs/taller/cotizaciones/info", { coti: cotiId }, function (resp) {
-        console.log("=== RESPUESTA cargarCotizacionTaller ===");
-        console.log("Respuesta completa:", resp);
-
-        if (resp.res) {
-            // Marcar que viene de taller
-            vue.vieneDetallerCotizacion = true;
-
-            // Mapear productos
-            vue.productos = resp.productos.map(ert => {
-                ert.descripcion = ert.codigo.toString().trim() + ' | ' + ert.descripcion;
-                ert.edicion = false;
-                return ert;
-            });
-
-            // CARGAR EQUIPOS - ESTA ES LA PARTE CLAVE
-            if (resp.equipos && resp.equipos.length > 0) {
-                vue.equiposData = resp.equipos;
-                vue.equipoActivo = 0; // Activar el primer equipo
-                console.log("Equipos cargados:", vue.equiposData);
-            } else {
-                vue.equiposData = [];
-                vue.equipoActivo = null;
-                console.log("No se encontraron equipos");
-            }
-
-            // Datos del cliente
-            if (resp.cliente_doc) {
-                if (resp.cliente_doc.length === 11) {
-                    vue.venta.tipo_doc = '2';
-                } else if (resp.cliente_doc.length === 8) {
-                    vue.venta.tipo_doc = '1';
-                } else {
-                    vue.venta.tipo_doc = resp.id_tido;
-                }
-            }
-
-            vue.venta.moneda = resp.moneda || 1;
-            vue.venta.tc = resp.cm_tc || '1';
-            vue.venta.tipo_pago = resp.id_tipo_pago || '1';
-            vue.venta.dias_pago = resp.dias_pagos || '';
-            vue.venta.dir_pos = parseInt(resp.direccion + "") || 1;
-            vue.venta.num_doc = resp.cliente_doc || '';
-            vue.venta.nom_cli = resp.cliente_nom || '';
-            vue.venta.dir_cli = resp.cliente_dir1 || '';
-            vue.venta.dir2_cli = resp.cliente_dir2 || '';
-
-            vue.buscarSNdoc();
-
-            setTimeout(function () {
-                vue.venta.dias_lista = resp.cuotas || [];
-            }, 1000);
-        } else {
-            console.error("Error en respuesta:", resp);
-            alertAdvertencia("Error al cargar datos de la cotización de taller");
-        }
-    });
-},
-
-
-
-                cambiarEquipoVenta(index) {
-                    this.equipoActivo = index;
-                    // Aquí puedes agregar lógica adicional si necesitas filtrar productos por equipo
-                    console.log("Equipo activo cambiado a:", index);
+                // Función para cargar cotización de taller con formato agrupado como guía
+                cargarCotizacionTaller() {
+                    const vue = this;
+                    const cotiId = $("#cotizacion").val();
+                    
+                    if (!cotiId || cotiId === '') {
+                        alertAdvertencia("No se pudo obtener el ID de la cotización de taller");
+                        return;
+                    }
+                    
+                    _post("/ajs/taller/cotizaciones/info", { coti: cotiId }, function (resp) {
+                        
+                        if (resp.res) {
+                            // Marcar que viene de taller
+                            vue.vieneDetallerCotizacion = true;
+                            
+                            // Crear estructura agrupada como en guía de remisión
+                            if (resp.equipos && resp.equipos.length > 0) {
+                                const equiposConProductos = [];
+                                
+                                // Agrupar productos por equipo
+                                resp.equipos.forEach(equipo => {
+                                    // Buscar productos que pertenecen a este equipo
+                                    const productosDelEquipo = (resp.productos || []).filter(producto => 
+                                        producto.id_cotizacion_equipo === equipo.id_cotizacion_equipo
+                                    );
+                                    
+                                    // Agregar encabezado del equipo
+                                    equiposConProductos.push({
+                                        esEquipo: true,
+                                        nombre: `EQUIPO: ${equipo.marca} ${equipo.equipo} - Modelo: ${equipo.modelo} - Serie: ${equipo.numero_serie}`,
+                                        descripcion: `EQUIPO: ${equipo.marca} ${equipo.equipo} - Modelo: ${equipo.modelo} - Serie: ${equipo.numero_serie}`,
+                                        cantidad: '',
+                                        precioVenta: 0,
+                                        id_cotizacion_equipo: equipo.id_cotizacion_equipo
+                                    });
+                                    
+                                    // Agregar productos del equipo
+                                    productosDelEquipo.forEach(producto => {
+                                        const codigo = producto.codigo || '';
+                                        equiposConProductos.push({
+                                            ...producto,
+                                            esProducto: true,
+                                            descripcion: (codigo ? (codigo + ' | ') : '') + (producto.descripcion || '').trim(),
+                                            precioVenta: parseFloat(producto.precioVenta || 0),
+                                            moneda: producto.moneda || 'PEN',
+                                            edicion: false
+                                        });
+                                    });
+                                });
+                                
+                                // Asignar la estructura agrupada
+                                vue.productos = equiposConProductos;
+                                
+                                // Asignar también equiposData para el guardado
+                                vue.equiposData = resp.equipos || [];
+                            } else {
+                                // Fallback para estructura antigua
+                                vue.productos = resp.productos || [];
+                            }
+                            
+                            // Cargar datos del cliente
+                            vue.venta.nom_cli = resp.cliente_nom;
+                            vue.venta.num_doc = resp.cliente_doc;
+                            vue.venta.dir_cli = resp.cliente_dir1;
+                            vue.venta.dir2_cli = resp.cliente_dir2;
+                            vue.venta.tipo_doc = resp.id_tido;
+                            vue.venta.moneda = resp.moneda;
+                            vue.venta.tc = resp.cm_tc;
+                            vue.venta.tipo_pago = resp.id_tipo_pago;
+                            vue.venta.dias_pago = resp.dias_pagos;
+                            vue.usar_precio = resp.usar_precio;
+                            
+                            // Actualizar serie y número después de determinar el tipo de documento
+                            vue.buscarSNdoc();
+                            
+                            setTimeout(function () {
+                                vue.venta.dias_lista = resp.cuotas || [];
+                            }, 1000);
+                        } else {
+                            alertAdvertencia("Error al cargar datos de la cotización de taller");
+                        }
+                    });
                 },
+
 
 
 
@@ -1652,15 +1605,12 @@ if (isset($_GET["guia"])) {
                     const guiaId = $("#guia").val();
 
                     if (!guiaId) {
-                        console.log("No guide ID found");
                         return;
                     }
-
-                    _post("/ajs/guia/remision/info", {
+                    
+                    _ajax("/ajs/guia/remision/info", "POST", {
                         guia: guiaId
                     }, function (resp) {
-                        console.log("Guide API response:", resp);
-
                         if (resp.res) {
                             if (Array.isArray(resp.productos) && resp.productos.length > 0) {
                                 vue.productos = resp.productos;
@@ -1668,14 +1618,26 @@ if (isset($_GET["guia"])) {
                                 vue.productos = [];
                             }
 
-                            // Determinar tipo de documento basado en el número de documento del cliente
-                            if (resp.cliente_doc) {
-                                if (resp.cliente_doc.length === 11) {
-                                    vue.venta.tipo_doc = '2'; // Factura para RUC
-                                } else if (resp.cliente_doc.length === 8) {
-                                    vue.venta.tipo_doc = '1'; // Boleta para DNI
+                            // Determinar tipo de documento basado en la selección del usuario (factura/boleta)
+                            const tipoDocumentoSeleccionado = localStorage.getItem('tipoDocumento');
+                            if (tipoDocumentoSeleccionado) {
+                                if (tipoDocumentoSeleccionado === 'factura') {
+                                    vue.venta.tipo_doc = '2'; // Factura
+                                } else if (tipoDocumentoSeleccionado === 'boleta') {
+                                    vue.venta.tipo_doc = '1'; // Boleta
                                 } else {
                                     vue.venta.tipo_doc = '6'; // NOTA DE VENTA por defecto
+                                }
+                            } else {
+                                // Fallback: autodeterminar basado en el documento del cliente
+                                if (resp.cliente_doc) {
+                                    if (resp.cliente_doc.length === 11) {
+                                        vue.venta.tipo_doc = '2'; // Factura para RUC
+                                    } else if (resp.cliente_doc.length === 8) {
+                                        vue.venta.tipo_doc = '1'; // Boleta para DNI
+                                    } else {
+                                        vue.venta.tipo_doc = '6'; // NOTA DE VENTA por defecto
+                                    }
                                 }
                             }
 
@@ -1688,7 +1650,6 @@ if (isset($_GET["guia"])) {
                             // Actualizar serie y número después de determinar el tipo de documento
                             vue.buscarSNdoc();
                         } else {
-                            console.error("Error loading guide data:", resp);
                             alertAdvertencia("Error al cargar datos de la guía: " + (resp.error || 'Error desconocido'));
                         }
                     });
@@ -1706,7 +1667,6 @@ if (isset($_GET["guia"])) {
                     return formatFechaVisual(fecha);
                 },
                 formatDate(date) {
-                    console.log(date);
                     var d = date,
                         month = '' + (d.getMonth() + 1),
                         day = '' + (d.getDate() + 1),
@@ -1720,25 +1680,21 @@ if (isset($_GET["guia"])) {
                     return [year, month, day].join('-');
                 },
                 onlyNumberComas($event) {
-                    //console.log($event.keyCode); //keyCodes value
                     let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
                     if ((keyCode < 48 || keyCode > 57) && keyCode !== 44) { // 46 is dot
                         $event.preventDefault();
                     }
                 },
                 focusDiasPagos() {
-                    //console.log("1000000000000000000")
                     $("#modal-dias-pagos").modal("show")
                 },
                 changeTipoPago(event) {
-                    console.log(event.target.value)
                     this.venta.fechaVen = this.venta.fecha;
                     this.venta.dias_lista = []
                     this.venta.dias_pago = ''
                 },
                 onChangeAlmacen(event) {
                     /*    window.localStorage.removeItem('idChecks'); */
-                    console.log(event.target.value)
                     this.producto.almacen = event.target.value
                     var self = this
                     $("#input_buscar_productos").autocomplete({
@@ -1756,7 +1712,6 @@ if (isset($_GET["guia"])) {
                             event.preventDefault();
                             /*    console.log(item);
                                console.log(ui); */
-                            console.log(ui.item);
                             /*   return */
                             app.producto.productoid = ui.item.codigo
                             app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre
@@ -1771,6 +1726,7 @@ if (isset($_GET["guia"])) {
                             app.producto.codigo = ui.item.codigo
                             app.producto.costo = ui.item.costo
                             app.producto.precioVenta = ui.item.precio_unidad == null ? parseFloat(0 + "").toFixed(2) : ui.item.precio_unidad
+                            app.producto.moneda = ui.item.moneda || 'PEN'
                             let array = [{
                                 precio: app.producto.precio
                             },
@@ -1789,7 +1745,6 @@ if (isset($_GET["guia"])) {
                             ]
 
                             app.precioProductos = array
-                            console.log(array);
                             $('#input_buscar_productos').val("");
                             $("#example-text-input").focus()
                         }
@@ -1808,6 +1763,16 @@ if (isset($_GET["guia"])) {
                 eliminarItemPro(index) {
                     this.productos.splice(index, 1)
                     /*  this.producto.almacen = 1 */
+                },
+                // Función para obtener el índice correcto de productos (sin contar equipos)
+                getProductoIndex(index) {
+                    let productoCount = 0;
+                    for (let i = 0; i <= index; i++) {
+                        if (!this.productos[i].esEquipo) {
+                            productoCount++;
+                        }
+                    }
+                    return productoCount;
                 },
                 // Modifica la función buscarDocumentSS() así:
                 buscarDocumentSS() {
@@ -1832,7 +1797,6 @@ if (isset($_GET["guia"])) {
                         },
                             function (resp) {
                                 $("#loader-menor").hide()
-                                console.log(resp);
                                 if (resp.res) {
                                     app._data.venta.nom_cli = (resp.data.nombre ? resp.data.nombre : '') + (resp.data.razon_social ? resp.data.razon_social : '')
                                     if (typeof resp.data.direccion !== 'undefined') {
@@ -1848,14 +1812,6 @@ if (isset($_GET["guia"])) {
                 },
 
                 guardarVenta() {
-                    console.log("Moneda:", this.venta.moneda);
-                    console.log("Tipo de cambio:", this.venta.tc);
-                    console.log("Tipo de documento:", this.venta.tipo_doc);
-                    console.log("Número de documento:", this.venta.num_doc);
-                    console.log("Tipo de pago:", this.venta.tipo_pago);
-                    console.log("Días de pago:", this.venta.dias_lista);
-                    console.log("Total de la venta:", this.venta.total);
-
                     const vuee = this
                     if (this.enProceso) {
                         this.enProceso = false
@@ -1886,7 +1842,7 @@ if (isset($_GET["guia"])) {
                                     mensaje = 'Debe escribir la Razón Social o dar al botón para buscar el ruc';
                                     continuar = false;
                                 }
-                                if (this.venta.num_doc.length != 11) {
+                                if (this.venta.num_doc.length != 11 && !this.vieneDesGuia) {
                                     mensaje = 'Solo se puede emitir Factura usando RUC';
                                     continuar = false;
                                 }
@@ -1907,24 +1863,50 @@ if (isset($_GET["guia"])) {
 
                             if (continuar) {
                                 if (this.venta.total > 0) {
-                                    let idCoti = JSON.parse('<?php echo addslashes(json_encode(isset($_GET["coti"]) ? $_GET["coti"] : null)); ?>');
+                                    // Obtener id de cotización desde el input oculto (soporta normal y taller)
+                                    let idCoti = $("#cotizacion").val();
+                                    if (!idCoti) {
+                                        // Fallback legacy: parámetro coti (normal)
+                                        idCoti = JSON.parse('<?php echo addslashes(json_encode(isset($_GET["coti"]) ? $_GET["coti"] : null)); ?>');
+                                    }
+                                    // Extraer equipos y filtrar productos
+                                    let allProducts = [];
+                                    let equiposData = [];
+                                    
+                                    if (this.vieneDetallerCotizacion) {
+                                        // Para taller, usar los equipos de this.equiposData
+                                        allProducts = this.productos.filter(item => item.esProducto === true || !item.esEquipo);
+                                        equiposData = this.equiposData;
+                                    } else if (this.vieneDesGuia) {
+                                        // Para guías, extraer equipos de this.productos antes de filtrar
+                                        equiposData = this.productos.filter(item => item.esEquipo === true);
+                                        allProducts = this.productos.filter(item => item.esProducto === true || !item.esEquipo);
+                                    } else {
+                                        allProducts = this.productos;
+                                    }
+
                                     const data = {
                                         ...this.venta,
-                                        listaPro: JSON.stringify(this.productos),
+                                        listaPro: JSON.stringify(allProducts),
                                         datosGuiaRemosion: localStorage.getItem('datosGuiaRemosion'),
                                         datosTransporteGuiaRemosion: localStorage.getItem('datosTransporteGuiaRemosion'),
                                         productosGuiaRemosion: localStorage.getItem('productosGuiaRemosion'),
                                         datosUbigeoGuiaRemosion: localStorage.getItem('datosUbigeoGuiaRemosion'),
                                         idCoti: idCoti,
-                                        tipoCotizacion: $("#tipo_cotizacion").val()
+                                        tipoCotizacion: $("#tipo_cotizacion").val(),
+                                        idGuia: $("#guia").val() // Agregar ID de guía si existe
                                     }
                                     data.dias_lista = JSON.stringify(data.dias_lista)
+                                    // Enviar equipos cuando hay equipos (taller o guía)
+                                    if (equiposData.length > 0) {
+                                        data.equiposVenta = JSON.stringify(equiposData)
+                                    }
 
                                     _ajax("/ajs/ventas/add", "POST",
                                         data,
                                         function (resp) {
+                                            $("#loader-menor").hide(); // Asegurar que se oculte el loader
                                             vuee.enProceso = true
-                                            console.log(resp);
 
                                             let desde = localStorage.getItem('desde')
                                             if (resp.res) {
@@ -1939,38 +1921,42 @@ if (isset($_GET["guia"])) {
                                                         //location.reload();
                                                     })
 
-                                                if (desde == 'coti_guia') {
-                                                    let idVenta = {
-                                                        idVenta: resp.venta
-                                                    }
-                                                    data.idVenta = resp.venta
-                                                    _ajax("/ajs/guia/remision/add2", "POST", {
-                                                        data
-                                                    },
-                                                        function (resp) {
-                                                            console.log(resp);
-                                                            localStorage.removeItem("desde");
-                                                            localStorage.removeItem("datosGuiaRemosion");
-                                                            localStorage.removeItem("datosTransporteGuiaRemosion");
-                                                            localStorage.removeItem("productosGuiaRemosion");
-                                                            localStorage.removeItem("datosUbigeoGuiaRemosion");
-                                                            $("#backbuttonvp").click();
-                                                        }
-                                                    )
-                                                }
+                                                // Comentado: duplicaba petición innecesaria que fallaba
+                                                // if (desde == 'coti_guia') {
+                                                //     let idVenta = {
+                                                //         idVenta: resp.venta
+                                                //     }
+                                                //     data.idVenta = resp.venta
+                                                //     _ajax("/ajs/guia/remision/add2", "POST", {
+                                                //         data
+                                                //     },
+                                                //         function (resp) {
+                                                //             localStorage.removeItem("desde");
+                                                //             localStorage.removeItem("datosGuiaRemosion");
+                                                //             localStorage.removeItem("datosTransporteGuiaRemosion");
+                                                //             localStorage.removeItem("productosGuiaRemosion");
+                                                //             localStorage.removeItem("datosUbigeoGuiaRemosion");
+                                                //             $("#backbuttonvp").click();
+                                                //         }
+                                                //     )
+                                                // }
                                             } else {
+                                                $("#loader-menor").hide(); // Asegurar que se oculte el loader
                                                 alertAdvertencia(resp.mensaje || "No se pudo Guardar la Venta")
                                             }
                                         }
                                     )
                                 } else {
+                                    $("#loader-menor").hide(); // Asegurar que se oculte el loader
                                     alertAdvertencia('El monto debe ser mayor a 0')
                                 }
                             } else {
+                                $("#loader-menor").hide(); // Asegurar que se oculte el loader
                                 this.enProceso = true
                                 alertAdvertencia(mensaje)
                             }
                         } else {
+                            $("#loader-menor").hide(); // Asegurar que se oculte el loader
                             this.enProceso = true
                             alertAdvertencia("No hay productos agregados a la lista ")
                         }
@@ -2013,7 +1999,8 @@ if (isset($_GET["guia"])) {
                         // precio4: '',
                         precio_unidad: '',
                         precioVenta: '',
-                        precio_usado: 1
+                        precio_usado: 1,
+                        moneda: 'PEN'
                     }
                 },
 
@@ -2048,7 +2035,6 @@ if (isset($_GET["guia"])) {
                             prod.precioVenta = parseFloat(precio).toFixed(2);
                             this.productos.push(prod);
                             //this.limpiasDatos();
-                            console.log("QR", prod);
                         }
                     } else {
                         alert("No se pudo guardar los datos");
@@ -2062,7 +2048,6 @@ if (isset($_GET["guia"])) {
                             ...this.producto
                         }
                         this.productos.push(prod)
-                        console.log("addproduct:", prod);
                         this.limpiasDatos();
                         this.usar_precio = 5
                     } else {
@@ -2094,7 +2079,8 @@ if (isset($_GET["guia"])) {
                         precio2: producto.precio2,
                         precio_unidad: producto.precio_unidad,
                         precio_mostrado: producto.precio_mostrado || producto.precioVenta,
-                        tipo_precio: producto.tipo_precio || 'PV'
+                        tipo_precio: producto.tipo_precio || 'PV',
+                        moneda: producto.moneda || 'PEN'
                     };
 
                     // Cargar precios adicionales para el producto en edición
@@ -2106,8 +2092,6 @@ if (isset($_GET["guia"])) {
                     new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
                 },
                 cargarPreciosAdicionales(idProducto, tipo = 'producto') {
-                    console.log("Cargando precios para ID:", idProducto, "Tipo:", tipo);
-
                     const url = tipo === 'repuesto'
                         ? _URL + '/ajs/cargar/repuesto_precios/' + idProducto
                         : _URL + '/ajs/cargar/producto_precios/' + idProducto;
@@ -2117,8 +2101,6 @@ if (isset($_GET["guia"])) {
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            console.log("Precios adicionales recibidos:", data);
-
                             let array = [];
 
                             if (data && data.length > 0) {
@@ -2136,7 +2118,6 @@ if (isset($_GET["guia"])) {
                             }
                         },
                         error: function (xhr, status, error) {
-                            console.error("Error cargando precios:", error);
                             app.precioProductos = [
                                 { nombre: 'Error al cargar precios', precio: app.producto.precio }
                             ];
@@ -2219,26 +2200,48 @@ if (isset($_GET["guia"])) {
 
             },
             created() {
-                console.log("Component created");
+                // Generar ID único para esta instancia
+                this.instanceId = Math.random().toString(36).substr(2, 9);
+                
+                // Verificar si ya existe otra instancia
+                if (window.vueInstances) {
+                    window.vueInstances.push(this.instanceId);
+                } else {
+                    window.vueInstances = [this.instanceId];
+                }
                 // Verificar si viene de cotización (normal o taller)
                 const cotiId = $("#cotizacion").val();
                 const tipoCoti = $("#tipo_cotizacion").val();
+                const guiaId = $("#guia").val();
 
-                console.log("Debug created - cotiId:", cotiId, "tipoCoti:", tipoCoti);
 
                 if (cotiId && cotiId !== '') {
-                    console.log("Quote ID found:", cotiId, "Tipo:", tipoCoti);
                     this.vieneDesCotizacion = true;
 
                     if (tipoCoti === 'taller') {
-                        console.log("Llamando cargarCotizacionTaller...");
                         this.cargarCotizacionTaller();
                     } else {
-                        console.log("Llamando cargarCotizacion...");
                         this.cargarCotizacion();
                     }
-                } else {
-                    console.log("No hay cotización ID disponible");
+                }
+                
+                // Verificar si viene de una guía de remisión
+                try {
+                    if (guiaId && guiaId !== '') {
+                        this.vieneDesGuia = true;
+                    } else {
+                        this.vieneDesGuia = false;
+                    }
+                    
+                    // MOVER LÓGICA AQUÍ COMO PRUEBA
+                    if (this.vieneDesGuia) {
+                        setTimeout(() => {
+                            this.productos = [];
+                            this.cargarDatosGuia();
+                        }, 100); // Reducido de 500ms a 100ms
+                    }
+                    
+                } catch (error) {
                 }
             },
 
@@ -2307,7 +2310,6 @@ if (isset($_GET["guia"])) {
 
         },
             function (resp) {
-                console.log(resp);
                 app._data.metodosPago = resp
                 /*     app.venta.serie = resp.serie
                     app.venta.numero = resp.numero */
@@ -2318,7 +2320,6 @@ if (isset($_GET["guia"])) {
             minLength: 2,
             select: function (event, ui) {
                 event.preventDefault();
-                console.log(ui.item);
                 app._data.venta.dir_pos = 1
                 app._data.venta.nom_cli = ui.item.datos
                 app._data.venta.num_doc = ui.item.documento
@@ -2341,7 +2342,6 @@ if (isset($_GET["guia"])) {
 
         // Agregar esta función fuera del objeto Vue
         function cargarPreciosAdicionales(idProducto, tipo = 'producto') {
-            console.log("Cargando precios para ID:", idProducto, "Tipo:", tipo);
 
             // Determinar la URL según el tipo
             const url = tipo === 'repuesto'
@@ -2353,7 +2353,6 @@ if (isset($_GET["guia"])) {
                 type: 'GET',
                 dataType: 'json',
                 success: function (data) {
-                    console.log("Precios adicionales recibidos:", data);
 
                     let array = [];
 
@@ -2372,7 +2371,6 @@ if (isset($_GET["guia"])) {
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error("Error cargando precios:", error);
                     app.precioProductos = [
                         { nombre: 'Error al cargar precios', precio: app.producto.precio }
                     ];
@@ -2394,7 +2392,6 @@ if (isset($_GET["guia"])) {
                 event.preventDefault();
                 /*    console.log(item);
                    console.log(ui); */
-                console.log(ui.item);
                 /*  return */
 
                 app.producto.productoid = ui.item.codigo
@@ -2416,6 +2413,7 @@ if (isset($_GET["guia"])) {
                 app.producto.precioVenta = app.producto.precio
                 app.producto.tipo_precio = 'PV'
                 app.producto.precio_mostrado = app.producto.precio
+                app.producto.moneda = ui.item.moneda || 'PEN'
 
                 cargarPreciosAdicionales(ui.item.codigo, ui.item.tipo);
                 let array = [{
@@ -2437,7 +2435,6 @@ if (isset($_GET["guia"])) {
 
                 app.precioProductos = array
                 /*  app.precioProductos = array */
-                console.log(array);
                 $('#input_buscar_productos').val("");
                 $("#example-text-input").focus()
             }
@@ -2456,7 +2453,6 @@ if (isset($_GET["guia"])) {
             }
         });
         $("#container-vue").on("click", ".print-pfd-sld", function () {
-            console.log("ssssssssssssssssssss")
 
             let printA4 = $(this).attr('href')
             if ($("#device-app").val() == 'desktop') {
@@ -2466,7 +2462,6 @@ if (isset($_GET["guia"])) {
                 document.body.appendChild(iframe);
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
-                console.log(printA4);
             } else {
                 window.open(printA4)
             }

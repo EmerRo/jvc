@@ -157,7 +157,7 @@
                         return `GR-${numeroFormateado}`;
                     }
                 },
-                { data: "cliente_ruc_dni", class: "text-center" },
+              { data: "cliente_nombre", class: "text-center" },
                 { 
                     data: null, 
                     class: "text-center",
@@ -206,9 +206,9 @@
                                 <button data-id="${row.id_garantia}" class="btn btn-sm btn-info btnDetalle" title="Ver detalles">
                                     <i class="fa fa-eye"></i>
                                 </button>
-                                <button data-id="${row.id_garantia}" class="btn btn-sm btn-warning btnEditar" title="Editar">
+                             <!--  <button data-id="${row.id_garantia}" class="btn btn-sm btn-warning btnEditar" title="Editar">
                                     <i class="fa fa-edit"></i>
-                                </button>
+                                </button> -->
                                 <a href="${_URL + '/r/garantia/certificado/' + row.id_garantia}" target="_blank" class="btn btn-sm btn-primary" title="Ver certificado">
                                     <i class="fa fa-file"></i>
                                 </a>
@@ -248,7 +248,7 @@
                             const garantia = data[0];
                             
                             // Llenar la información básica
-                            $('#detalle_cliente').text(garantia.cliente_ruc_dni || '-');
+                         $('#detalle_cliente').text(garantia.cliente_nombre || '-');
                             $('#detalle_guia').text(garantia.guia_remision || '-');
                             $('#detalle_fecha_inicio').text(garantia.fecha_inicio || '-');
                             $('#detalle_fecha_caducidad').text(garantia.fecha_caducidad || '-');

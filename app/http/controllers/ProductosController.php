@@ -67,7 +67,8 @@ class ProductosController extends Controller
                 "precio_unidad",
                 "cantidad",
                 "id_producto",
-                "id_producto"
+                "id_producto",
+                "moneda"
             ],
             false,
             $orderBy,
@@ -191,6 +192,7 @@ class ProductosController extends Controller
                 $precioUnidad = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
                 $costo = isset($item['costo']) ? floatval($item['costo']) : 0;
                 $cantidad = isset($item['cantidad']) ? intval($item['cantidad']) : 0;
+                $moneda = isset($item['moneda']) ? $item['moneda'] : 'PEN';
 
                 // Verificar si el producto existe usando FOR UPDATE para bloqueo explícito
                 $sqlProducto = "SELECT * FROM productos WHERE codigo = ? FOR UPDATE";
@@ -203,7 +205,7 @@ class ProductosController extends Controller
 
                 if ($producto) {
                     // Actualizar producto existente
-                    $updateProducto = "UPDATE productos SET 
+                    $updateProducto = "UPDATE productos SET
                         nombre = ?,
                         detalle = ?,
                         precio = ?,
@@ -214,7 +216,8 @@ class ProductosController extends Controller
                         cantidad = ?,
                         estado = '1',
                         unidad = ?,
-                        categoria = ?
+                        categoria = ?,
+                        moneda = ?
                         WHERE codigo = ?";
 
                     $stmt = $this->conexion->prepare($updateProducto);
@@ -223,7 +226,7 @@ class ProductosController extends Controller
                     }
 
                     $stmt->bind_param(
-                        'ssddsdddiii',
+                        'ssddsdddiiiss',
                         $nombre,
                         $descripcion,
                         $precio,
@@ -234,16 +237,17 @@ class ProductosController extends Controller
                         $cantidad,
                         $unidadId,
                         $categoriaId,
+                        $moneda,
                         $codigoProd
                     );
                 } else {
                     // Insertar nuevo producto
                     $sql = "INSERT INTO productos (
-                        nombre, detalle, precio, precio2, almacen, 
-                        precio_unidad, costo, cantidad, iscbp, 
+                        nombre, detalle, precio, precio2, almacen,
+                        precio_unidad, costo, cantidad, iscbp,
                         id_empresa, sucursal, codigo, ultima_salida,
-                        codsunat, estado, unidad, categoria
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '1', ?, ?)";
+                        codsunat, estado, unidad, categoria, moneda
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '1', ?, ?, ?)";
 
                     $stmt = $this->conexion->prepare($sql);
                     if (!$stmt) {
@@ -252,7 +256,7 @@ class ProductosController extends Controller
 
                     $ultimaSalida = '1000-01-01';
                     $stmt->bind_param(
-                        'ssddsdddsissssii',
+                        'ssddsdddsissssiis',
                         $nombre,
                         $descripcion,
                         $precio,
@@ -268,7 +272,8 @@ class ProductosController extends Controller
                         $ultimaSalida,
                         $codsunat,
                         $unidadId,
-                        $categoriaId
+                        $categoriaId,
+                        $moneda
                     );
                 }
 
@@ -394,28 +399,29 @@ class ProductosController extends Controller
             }
 
             // Consulta SQL con manejo de imagen opcional
-            $sql = "INSERT INTO productos SET 
+            $sql = "INSERT INTO productos SET
                 nombre = '{$_POST['nombre']}',
-                precio = '{$_POST['precio']}', 
-                costo = '{$_POST['costo']}', 
-                almacen = '{$_POST['almacen']}', 
-                cantidad = '{$_POST['cantidad']}', 
-                iscbp = '{$_POST['afecto']}', 
-                sucursal = '{$_SESSION['sucursal']}', 
-                id_empresa = '{$_SESSION['id_empresa']}', 
-                ultima_salida = '1000-01-01', 
-                codsunat = '{$_POST['codSunat']}', 
-                precio_mayor = {$_POST['precio1']}, 
-                precio_menor = {$_POST['precio2']}, 
-                precio2 = {$_POST['precio2']}, 
-                precio3 = {$_POST['precio3']}, 
-                precio4 = {$_POST['precio4']}, 
-                precio_unidad = {$_POST['precio']}, 
-                razon_social = '{$_POST['razon']}', 
-                ruc = '{$_POST['ruc']}', 
+                precio = '{$_POST['precio']}',
+                costo = '{$_POST['costo']}',
+                almacen = '{$_POST['almacen']}',
+                cantidad = '{$_POST['cantidad']}',
+                iscbp = '{$_POST['afecto']}',
+                sucursal = '{$_SESSION['sucursal']}',
+                id_empresa = '{$_SESSION['id_empresa']}',
+                ultima_salida = '1000-01-01',
+                codsunat = '{$_POST['codSunat']}',
+                precio_mayor = {$_POST['precio1']},
+                precio_menor = {$_POST['precio2']},
+                precio2 = {$_POST['precio2']},
+                precio3 = {$_POST['precio3']},
+                precio4 = {$_POST['precio4']},
+                precio_unidad = {$_POST['precio']},
+                razon_social = '{$_POST['razon']}',
+                ruc = '{$_POST['ruc']}',
                 detalle= '{$_POST['detalle']}',
-                categoria= '{$_POST['categoria']}',  
+                categoria= '{$_POST['categoria']}',
                 unidad= '{$_POST['unidad']}',
+                moneda= '{$_POST['moneda']}',
                 usar_multiprecio = '{$usar_multiprecio}',
                  usar_barra = '" . (isset($_POST['usar_barra']) ? $_POST['usar_barra'] : '0') . "',
             cod_barra = " . ($codigoBarras ? "'{$codigoBarras}'" : "NULL") . ",
@@ -466,6 +472,18 @@ class ProductosController extends Controller
         try {
             $this->conexion->begin_transaction();
 
+            // Obtener la imagen actual antes de actualizarla
+            $imagenAnterior = null;
+            $sqlGetImagen = "SELECT imagen FROM productos WHERE id_producto = ?";
+            $stmtGet = $this->conexion->prepare($sqlGetImagen);
+            $stmtGet->bind_param('i', $_POST['id_producto']);
+            $stmtGet->execute();
+            $result = $stmtGet->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                $imagenAnterior = $row['imagen'];
+            }
+
             // Manejo de imagen
             $nombreImagen = null;
             $eliminarImagen = isset($_POST['eliminar_imagen']) && $_POST['eliminar_imagen'] === '1';
@@ -473,6 +491,19 @@ class ProductosController extends Controller
             if ($eliminarImagen) {
                 // Si se solicita eliminar la imagen, establecer como NULL
                 $nombreImagen = 'NULL';
+
+                // Eliminar archivo físico de la imagen anterior y su thumbnail
+                if ($imagenAnterior) {
+                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
+                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
+
+                    if (file_exists($rutaImagenAnterior)) {
+                        unlink($rutaImagenAnterior);
+                    }
+                    if (file_exists($rutaThumbnailAnterior)) {
+                        unlink($rutaThumbnailAnterior);
+                    }
+                }
             } elseif (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
                 $imagen = $_FILES['imagen'];
                 $nombreImagen = time() . '_' . $imagen['name']; // Nombre único
@@ -480,6 +511,19 @@ class ProductosController extends Controller
 
                 if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
                     throw new Exception("Error al subir la imagen");
+                }
+
+                // Eliminar archivo físico de la imagen anterior y su thumbnail
+                if ($imagenAnterior) {
+                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
+                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
+
+                    if (file_exists($rutaImagenAnterior)) {
+                        unlink($rutaImagenAnterior);
+                    }
+                    if (file_exists($rutaThumbnailAnterior)) {
+                        unlink($rutaThumbnailAnterior);
+                    }
                 }
             }
 
@@ -499,7 +543,7 @@ if ($eliminarImagen) {
     $sqlImagenPart = ", imagen = ?";
 }
 
-$sql = "UPDATE productos SET 
+$sql = "UPDATE productos SET
     nombre = ?,
     codigo = ?,
     detalle = ?,
@@ -520,7 +564,8 @@ $sql = "UPDATE productos SET
     precio_unidad = ?,
     cantidad = ?,
     razon_social = ?,
-    ruc = ?" . $sqlImagenPart . " WHERE id_producto = ?";
+    ruc = ?,
+    moneda = ?" . $sqlImagenPart . " WHERE id_producto = ?";
 
 
 $stmt = $this->conexion->prepare($sql);
@@ -548,7 +593,8 @@ $params = [
                 $_POST['precio'],
                 $_POST['cantidad'],
                 $_POST['razon'],
-                $_POST['ruc']
+                $_POST['ruc'],
+                $_POST['moneda']
             ];
 // Agregar imagen solo si no es NULL y no está vacía
 if ($nombreImagen && $nombreImagen !== 'NULL') {
@@ -662,11 +708,31 @@ $stmt->bind_param($types, ...$params);
     {
         $respuesta["res"] = true;
         $respuesta["data"] = $_POST;
-        $sql = '';
-        foreach ($respuesta["data"]['arrayId'] as $ids) {
-            /*   $sql .= $ids; */
 
-            $sql = "UPDATE   productos set estado=0 where id_producto = '{$ids['id']}'";
+        foreach ($respuesta["data"]['arrayId'] as $ids) {
+            // Obtener la imagen del producto antes de eliminarlo
+            $sqlGetImagen = "SELECT imagen FROM productos WHERE id_producto = '{$ids['id']}'";
+            $resultado = $this->conexion->query($sqlGetImagen);
+
+            if ($resultado && $row = $resultado->fetch_assoc()) {
+                $imagenAnterior = $row['imagen'];
+
+                // Eliminar archivos físicos de imagen y thumbnail si existen
+                if ($imagenAnterior) {
+                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
+                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
+
+                    if (file_exists($rutaImagenAnterior)) {
+                        unlink($rutaImagenAnterior);
+                    }
+                    if (file_exists($rutaThumbnailAnterior)) {
+                        unlink($rutaThumbnailAnterior);
+                    }
+                }
+            }
+
+            // Cambiar estado a 0 (eliminado lógico)
+            $sql = "UPDATE productos set estado=0 where id_producto = '{$ids['id']}'";
             if ($this->conexion->query($sql)) {
                 $respuesta["res"] = true;
             }

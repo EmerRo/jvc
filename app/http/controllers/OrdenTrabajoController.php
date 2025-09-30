@@ -96,6 +96,39 @@ class OrdenTrabajoController extends Controller
                             }
                         }
 
+                        // NUEVA FUNCIONALIDAD: Crear notificación en tiempo real
+                        try {
+                            require_once 'app/models/Notificacion.php';
+                            $notificacion = new Notificacion();
+
+                            // Construir nombre completo del usuario logueado
+                            $usuario_actual = '';
+                            if (isset($_SESSION['nombres'])) {
+                                $usuario_actual = $_SESSION['nombres'];
+                                if (isset($_SESSION['apellidos']) && !empty($_SESSION['apellidos'])) {
+                                    $usuario_actual .= ' ' . $_SESSION['apellidos'];
+                                }
+                            } else {
+                                $usuario_actual = 'Usuario desconocido';
+                            }
+
+                            $orden_id = $this->ordenTrabajo->idLast();
+                            $mensaje = "El usuario {$usuario_actual} ha agregado un registro de orden de trabajo";
+
+                            $notificacion->crear(
+                                'orden_trabajo',
+                                $mensaje,
+                                $usuario_actual,
+                                'taller',
+                                $orden_id
+                            );
+
+                            // Notificación creada exitosamente
+                        } catch (Exception $e) {
+                            error_log("Error al crear notificación: " . $e->getMessage());
+                            // No fallar el proceso principal si falla la notificación
+                        }
+
                         // Devolver solo el ID para Orden de Trabajo
                         echo $this->ordenTrabajo->idLast();
 
@@ -126,12 +159,12 @@ class OrdenTrabajoController extends Controller
 
         $id = filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT);
         $datos = [
-            'cliente_razon_social' => $_POST['cliente_razon_social'],
-            'cliente_ruc' => $_POST['cliente_ruc'],
-            'atencion_encargado' => $_POST['atencion_encargado'],
-            'fecha_ingreso' => $_POST['fecha_ingreso'],
-            'fecha_salida' => $_POST['fecha_salida'],
-            'observaciones' => $_POST['observaciones']
+            'cliente_razon_social' => isset($_POST['cliente_razon_social']) ? $_POST['cliente_razon_social'] : '',
+            'cliente_ruc' => isset($_POST['cliente_ruc']) ? $_POST['cliente_ruc'] : '',
+            'atencion_encargado' => isset($_POST['atencion_encargado']) ? $_POST['atencion_encargado'] : '',
+            'fecha_ingreso' => isset($_POST['fecha_ingreso']) ? $_POST['fecha_ingreso'] : null,
+            'fecha_salida' => isset($_POST['fecha_salida']) && !empty($_POST['fecha_salida']) ? $_POST['fecha_salida'] : null,
+            'observaciones' => isset($_POST['observaciones']) ? $_POST['observaciones'] : ''
         ];
         $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];
 
@@ -247,46 +280,48 @@ class OrdenTrabajoController extends Controller
             echo json_encode(['error' => 'Error al obtener los detalles de la orden de trabajo']);
         }
     }
-    public function obtenerRepuestos()
-    {
-        if (!isset($_POST['id_orden_trabajo'])) {
-            echo json_encode(['error' => 'ID no proporcionado']);
-            return;
-        }
-
-        $id = filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT);
-        $repuestos = $this->ordenTrabajo->obtenerRepuestosPorOrden($id);
-
-        echo json_encode($repuestos);
-    }
-
-public function agregarRepuesto()
+   public function obtenerRepuestos()
 {
-    if (!isset($_POST['id_orden_trabajo']) || !isset($_POST['id_detalle_maquina'])) {
-        echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+    if (!isset($_POST['id_orden_trabajo'])) {
+        echo json_encode(['error' => 'ID no proporcionado']);
         return;
     }
 
-    $datos = [
-        'id_orden_trabajo' => filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT),
-        'id_detalle_maquina' => filter_var($_POST['id_detalle_maquina'], FILTER_SANITIZE_NUMBER_INT),
-        'id_item' => filter_var($_POST['id_repuesto'], FILTER_SANITIZE_NUMBER_INT),
-        'tipo_item' => isset($_POST['tipo_item']) ? $_POST['tipo_item'] : 'repuesto',
-        'codigo_item' => filter_var($_POST['codigo_repuesto'], FILTER_SANITIZE_STRING),
-        'nombre_item' => filter_var($_POST['nombre_repuesto'], FILTER_SANITIZE_STRING),
-        'cantidad' => filter_var($_POST['cantidad'], FILTER_SANITIZE_NUMBER_INT),
-        'precio_unitario' => filter_var($_POST['precio_unitario'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION)
-    ];
+    $id = filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT);
+    
+    // NUEVO: Permitir filtrar por máquina específica
+    $idDetalleMaquina = isset($_POST['id_detalle_maquina']) ? 
+        filter_var($_POST['id_detalle_maquina'], FILTER_SANITIZE_NUMBER_INT) : null;
+    
+    $repuestos = $this->ordenTrabajo->obtenerRepuestosPorOrden($id, $idDetalleMaquina);
 
-    $result = $this->ordenTrabajo->agregarRepuesto($datos);
-
-    if ($result) {
-        echo json_encode(['success' => true, 'message' => 'Item agregado correctamente']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al agregar item']);
-    }
+    echo json_encode($repuestos);
 }
 
+  public function agregarRepuesto()
+    {
+        if (!isset($_POST['id_orden_trabajo']) || !isset($_POST['id_detalle_maquina'])) {
+            echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+            return;
+        }
+
+        $datos = [
+            'id_orden_trabajo' => filter_var($_POST['id_orden_trabajo'], FILTER_SANITIZE_NUMBER_INT),
+            'id_detalle_maquina' => filter_var($_POST['id_detalle_maquina'], FILTER_SANITIZE_NUMBER_INT),
+            'id_item' => filter_var($_POST['id_repuesto'], FILTER_SANITIZE_NUMBER_INT), // Puede ser id_producto o id_repuesto
+            'tipo_item' => isset($_POST['tipo_item']) ? $_POST['tipo_item'] : 'repuesto',
+            'cantidad' => filter_var($_POST['cantidad'], FILTER_SANITIZE_NUMBER_INT),
+            'precio_unitario' => filter_var($_POST['precio_unitario'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION)
+        ];
+
+        $result = $this->ordenTrabajo->agregarRepuesto($datos);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Item agregado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al agregar item']);
+        }
+    }
     public function eliminarRepuesto()
     {
         if (!isset($_POST['id_repuesto_orden'])) {
@@ -303,6 +338,8 @@ public function agregarRepuesto()
             echo json_encode(['success' => false, 'message' => 'Error al eliminar repuesto']);
         }
     }
+
+    
 
 
 }

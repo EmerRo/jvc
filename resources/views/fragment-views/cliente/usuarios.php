@@ -17,7 +17,42 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
     .bg-gris {
         background-color: rgb(107, 76, 76);
         color: #000;
+    }
 
+    /* Estilos para preview de imagen */
+    .preview-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .img-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #dee2e6;
+        transition: border-color 0.3s ease;
+    }
+
+    .img-preview:hover {
+        border-color: #CA3438;
+    }
+
+    .placeholder-img {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .preview-label {
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 500;
     }
 </style>
 <div class="row">
@@ -119,10 +154,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             <thead class="table-light">
                                 <tr>
                                     <th>Item</th>
+                                    <th>Nombres</th>
                                     <th>Rol</th>
                                     <th>Usuario</th>
                                     <th>Email</th>
-                                    <th>Nombres</th>
                                     <th>Teléfono</th>
                                     <!-- <th>Tienda</th> -->
                                     <!-- <th>Rotativo</th> -->
@@ -217,6 +252,30 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="1">Si</option>
                             </select>
                         </div>
+
+                        <!-- Quinta fila - Foto de perfil -->
+                        <div class="col-12">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        <i class="fa fa-camera me-1"></i>Foto de perfil
+                                    </label>
+                                    <input type="file" name="foto_perfil" id="foto_perfil"
+                                           class="form-control form-control-sm"
+                                           accept="image/*" onchange="previewImage(this, 'preview-add')">
+                                    <small class="text-muted">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="preview-container">
+                                        <div id="preview-add" class="img-preview placeholder-img">
+                                            <i class="fas fa-image fa-2x text-muted"></i>
+                                            <div style="font-size: 10px; margin-top: 5px;">image.png</div>
+                                        </div>
+                                        <div class="preview-label">Vista previa</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -298,7 +357,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             <input required type="email" class="form-control form-control-sm" id="emailEditar"
                                 name="emailEditar">
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <label class="form-label ">
                                 <i class="fa fa-store "></i>Tienda
                             </label>
@@ -306,13 +365,35 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="1">Tienda 435</option>
                                 <option value="2">Tienda 426</option>
                             </select>
-                        </div>
+                        </div> -->
                         <div class="col-md-3">
                             <label class="form-label ">Rotativo</label>
                             <select name="rotativou" id="rotativou" class="form-select form-select-sm">
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
                             </select>
+                        </div>
+
+                        <!-- Quinta fila - Foto de perfil -->
+                        <div class="col-12">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label">
+                                        <i class="fa fa-camera me-1"></i>Foto de perfil
+                                    </label>
+                                    <input type="file" name="foto_perfil_edit" id="foto_perfil_edit"
+                                           class="form-control form-control-sm"
+                                           accept="image/*" onchange="previewImage(this, 'preview-edit')">
+                                    <small class="text-muted">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB. Dejar vacío para mantener la actual</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="preview-container">
+                                        <img id="preview-edit" src="public/assets/images/users/user-4.jpg"
+                                             alt="Preview" class="img-preview">
+                                        <div class="preview-label">Foto actual</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -584,6 +665,19 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             class: "text-center",
         },
         {
+            data: "nombres",
+            class: "text-left",
+            render: function (data, type, row) {
+                const fotoUrl = row.foto_perfil || 'public/assets/images/users/user-4.jpg';
+                return `<div class="d-flex align-items-center">
+                    <img src="${fotoUrl}" alt="Foto de perfil"
+                         class="rounded-circle me-3"
+                         style="width: 32px; height: 32px; object-fit: cover; border: 2px solid #dee2e6;">
+                    <span>${data}</span>
+                </div>`;
+            },
+        },
+        {
             data: "nombre",
             class: "text-center",
         },
@@ -593,10 +687,6 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
         },
         {
             data: "email",
-            class: "text-center",
-        },
-        {
-            data: "nombres",
             class: "text-center",
         },
         {
@@ -654,6 +744,9 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         $("#tiendau").val(json.sucursal || 1);
                         $("#rotativou").val(json.rotativo || 0);
                         $("#idCliente").val(id);
+
+                        // Cargar foto actual
+                        loadCurrentPhoto(json.foto_perfil, 'preview-edit');
                         $("#trid").val(trid);
                     },
                     error: function (response) {
@@ -666,13 +759,16 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
     $("#updateCliente").click(function () {
         $("#loader-menor").show();
-        let data = $("#clientesEditar").serializeArray();
+        let formData = new FormData(document.getElementById('clientesEditar'));
         let id = $("#idCliente").val();
+        formData.append('idCliente', id);
 
         $.ajax({
             url: _URL + "/ajs/usuarios/editar",
             type: "POST",
-            data: data,
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function (resp) {
                 $("#loader-menor").hide();
                 console.log(resp);
@@ -775,12 +871,14 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
     $('#submitButton').click(function () {
         if ($('#rol').val() && $('#ndoc').val() && $('#usuario').val() && $('#clave').val() && $('#email').val() && $('#nombres').val()) {
-            var formData = $('#myForm').serialize();
+            var formData = new FormData(document.getElementById('myForm'));
 
             $.ajax({
                 url: _URL + "/ajs/add/users",
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function (response) {
                     Swal.fire({
                         title: "Éxito",
@@ -1260,5 +1358,77 @@ $.ajax({
     // Llamar a la función después de cargar los módulos
     $(document).on('DOMNodeInserted', '#modulos-izquierda, #modulos-derecha', function () {
         setTimeout(mejorarVisualizacionModulos, 100);
+    });
+
+    // Función para preview de imagen
+    function previewImage(input, previewId) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // Validar tamaño (2MB máximo)
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'El archivo debe ser menor a 2MB'
+                });
+                input.value = '';
+                return;
+            }
+
+            // Validar tipo de archivo
+            if (!file.type.match('image.*')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Tipo de archivo no válido',
+                    text: 'Solo se permiten archivos de imagen'
+                });
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewElement = document.getElementById(previewId);
+
+                // Si es el placeholder (div), convertirlo a img
+                if (previewElement.classList.contains('placeholder-img')) {
+                    previewElement.outerHTML = `<img id="${previewId}" src="${e.target.result}" alt="Preview" class="img-preview">`;
+                } else {
+                    // Si ya es img, solo cambiar src
+                    previewElement.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Función para cargar la foto actual en el modal de editar
+    function loadCurrentPhoto(photoUrl, previewId) {
+        if (photoUrl && photoUrl !== 'null' && photoUrl !== '') {
+            document.getElementById(previewId).src = photoUrl;
+        } else {
+            document.getElementById(previewId).src = 'public/assets/images/users/user-4.jpg';
+        }
+    }
+
+    // Función para resetear el placeholder en modal agregar
+    function resetAddUserPreview() {
+        const previewElement = document.getElementById('preview-add');
+        if (previewElement && !previewElement.classList.contains('placeholder-img')) {
+            previewElement.outerHTML = `
+                <div id="preview-add" class="img-preview placeholder-img">
+                    <i class="fas fa-image fa-2x text-muted"></i>
+                    <div style="font-size: 10px; margin-top: 5px;">image.png</div>
+                </div>
+            `;
+        }
+    }
+
+    // Resetear preview cuando se cierre el modal
+    $('#usuario-add-bs').on('hidden.bs.modal', function () {
+        resetAddUserPreview();
+        // También limpiar el input de archivo
+        $('#foto_perfil').val('');
     });
 </script>

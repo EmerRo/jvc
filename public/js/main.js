@@ -29,6 +29,13 @@ $(document).ready(function () {
 function limpiarModulosActivos() {
     console.log('Limpiando módulos activos antes de navegación...');
     
+    // DESHABILITADO: Interferencia con Vue en módulos de ventas
+    // Verificar si estamos en una ruta de ventas
+    if (window.location.href.includes('/ventas')) {
+        console.log('🎯 Saltando limpieza para módulo de ventas');
+        return;
+    }
+    
     // CORRECCIÓN: Limpiar filtro de taller antes de navegar
     if (typeof window.limpiarFiltroTaller === 'function') {
         window.limpiarFiltroTaller();

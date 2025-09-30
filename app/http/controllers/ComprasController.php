@@ -138,9 +138,9 @@ class ComprasController extends Controller
                 $updateStock = false;
                 foreach ($array_detalle as $row) {
                     if ($row['tipo'] == 'producto') {
-                        $updateStock = $c_compra->updateStock($row['cantidad'], $row['productoid']);
+                        $updateStock = $c_compra->updateStock($row['cantidad'], $row['productoid'], $row['precio']);
                     } else if ($row['tipo'] == 'repuesto') {
-                        $updateStock = $c_compra->updateStockRepuesto($row['cantidad'], $row['productoid']);
+                        $updateStock = $c_compra->updateStockRepuesto($row['cantidad'], $row['productoid'], $row['precio']);
                     }
                 }
 

@@ -26,7 +26,8 @@ $(document).ready(() => {
 
     // Procesar cada archivo
     files.forEach((file) => {
-      if (!file.type.startsWith("image/")) {
+      const allowedTypes = ['image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
         Swal.fire({
           icon: "error",
           title: "Tipo de archivo no válido",

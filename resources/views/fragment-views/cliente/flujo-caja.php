@@ -1,17 +1,27 @@
+<!-- resources\views\fragment-views\cliente\flujo-caja.php -->
 <?php
 $conexion = (new Conexion())->getConexion();
 
 $isAbierta = false;
 $cajaid = '';
+$currentDate = date("Y-m-d");
 
-$sql = "SELECT * FROM caja_empresa 
-where id_empresa='{$_SESSION['id_empresa']}' and sucursal='{$_SESSION['sucursal']}' and fecha='" . date("Y-m-d") . "' and estado='1'";
+$sql = "SELECT caja_id FROM caja_empresa 
+        WHERE id_empresa = ? 
+          AND sucursal = ? 
+          AND fecha = ? 
+          AND estado = '1'";
 
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("iis", $_SESSION['id_empresa'], $_SESSION['sucursal'], $currentDate);
+$stmt->execute();
+$result = $stmt->get_result();
 
-if ($orrr = $conexion->query($sql)->fetch_assoc()) {
+if ($orrr = $result->fetch_assoc()) {
     $isAbierta = true;
     $cajaid = $orrr['caja_id'];
 }
+$stmt->close();
 
 ?>
 <div class="page-title-box">
@@ -57,7 +67,8 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header bg-rojo text-white">
-                                    <h5 class="modal-title" id="exampleModalLabel">Apertura de caja</h5>
+                                    <h5 class="modal-title" id="exampleModalLabel">Apertura de caja {{siguienteNumero}}</h5>
+
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
@@ -127,8 +138,10 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                                             <td>{{item.documento || '-'}}</td>
                                             <td>
                                                 <div class="d-flex gap-2">
-                                                    <button @click="editarMovimiento(item)" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
-                                                    <button @click="eliminarMovimiento(item.caja_chica_id)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                    <button @click="editarMovimiento(item)"
+                                                        class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button @click="eliminarMovimiento(item.caja_chica_id)"
+                                                        class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -321,6 +334,8 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                 listaCajaChic: [],
                 egreso: 0,
                 ingreso: 0,
+                siguienteNumero: '',
+
             },
             computed: {
                 egresos() {
@@ -490,7 +505,19 @@ if ($orrr = $conexion->query($sql)->fetch_assoc()) {
                         $event.preventDefault();
                     }
                 },
+                obtenerSiguienteNumero() {
+                    _post("/ajs/caja/siguiente-numero", {},
+                        (resp) => {
+                            this.siguienteNumero = resp.numero;
+                        }
+                    )
+                },
+
+            },
+            mounted() {
+                this.obtenerSiguienteNumero();
             }
+
         })
 
         <?php

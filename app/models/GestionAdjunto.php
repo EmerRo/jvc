@@ -5,9 +5,12 @@ class GestionAdjunto
     private $id_adjunto;
     private $id_archivo;
     private $nombre_adjunto;
-    private $tipo_adjunto;
-    private $ruta_adjunto;
+    private $url_pdf;
+    private $url_editable;
+    private $url_imagen;
+    private $url_youtube;
     private $es_principal;
+    private $fecha_creacion;
     private $conectar;
 
     /**
@@ -69,33 +72,65 @@ class GestionAdjunto
     /**
      * @return mixed
      */
-    public function getTipoAdjunto()
+    public function getUrlPdf()
     {
-        return $this->tipo_adjunto;
+        return $this->url_pdf;
     }
 
     /**
-     * @param mixed $tipo_adjunto
+     * @param mixed $url_pdf
      */
-    public function setTipoAdjunto($tipo_adjunto)
+    public function setUrlPdf($url_pdf)
     {
-        $this->tipo_adjunto = $tipo_adjunto;
+        $this->url_pdf = $url_pdf;
     }
 
     /**
      * @return mixed
      */
-    public function getRutaAdjunto()
+    public function getUrlEditable()
     {
-        return $this->ruta_adjunto;
+        return $this->url_editable;
     }
 
     /**
-     * @param mixed $ruta_adjunto
+     * @param mixed $url_editable
      */
-    public function setRutaAdjunto($ruta_adjunto)
+    public function setUrlEditable($url_editable)
     {
-        $this->ruta_adjunto = $ruta_adjunto;
+        $this->url_editable = $url_editable;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUrlImagen()
+    {
+        return $this->url_imagen;
+    }
+
+    /**
+     * @param mixed $url_imagen
+     */
+    public function setUrlImagen($url_imagen)
+    {
+        $this->url_imagen = $url_imagen;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUrlYoutube()
+    {
+        return $this->url_youtube;
+    }
+
+    /**
+     * @param mixed $url_youtube
+     */
+    public function setUrlYoutube($url_youtube)
+    {
+        $this->url_youtube = $url_youtube;
     }
 
     /**
@@ -114,55 +149,210 @@ class GestionAdjunto
         $this->es_principal = $es_principal;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getFechaCreacion()
+    {
+        return $this->fecha_creacion;
+    }
+
+    /**
+     * @param mixed $fecha_creacion
+     */
+    public function setFechaCreacion($fecha_creacion)
+    {
+        $this->fecha_creacion = $fecha_creacion;
+    }
+
     public function insertar()
     {
-        $sql = "INSERT INTO gestion_adjuntos (id_archivo, nombre_adjunto, tipo_adjunto, ruta_adjunto, es_principal) 
-                VALUES ('$this->id_archivo', '$this->nombre_adjunto', '$this->tipo_adjunto', '$this->ruta_adjunto', '$this->es_principal')";
+        $sql = "INSERT INTO gestion_adjuntos 
+                (id_archivo, nombre_adjunto, url_pdf, url_editable, url_imagen, url_youtube, es_principal, fecha_creacion) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
-        if ($this->conectar->query($sql)) {
-            return $this->conectar->insert_id;
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("issssss", 
+            $this->id_archivo,
+            $this->nombre_adjunto,
+            $this->url_pdf,
+            $this->url_editable,
+            $this->url_imagen,
+            $this->url_youtube,
+            $this->es_principal,
+            $this->fecha_creacion
+        );
+        
+        if ($stmt->execute()) {
+            $this->id_adjunto = $this->conectar->insert_id;
+            $stmt->close();
+            return $this->id_adjunto;
         }
+        
+        $stmt->close();
         return false;
+    }
+
+    public function modificar()
+    {
+        $sql = "UPDATE gestion_adjuntos 
+                SET nombre_adjunto = ?, 
+                    url_pdf = ?, 
+                    url_editable = ?, 
+                    url_imagen = ?, 
+                    url_youtube = ?, 
+                    es_principal = ?, 
+                    fecha_creacion = ? 
+                WHERE id_adjunto = ?";
+        
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("sssssssi", 
+            $this->nombre_adjunto,
+            $this->url_pdf,
+            $this->url_editable,
+            $this->url_imagen,
+            $this->url_youtube,
+            $this->es_principal,
+            $this->fecha_creacion,
+            $this->id_adjunto
+        );
+        
+        $resultado = $stmt->execute();
+        $stmt->close();
+        return $resultado;
     }
 
     public function eliminar()
     {
-        $sql = "DELETE FROM gestion_adjuntos WHERE id_adjunto = '$this->id_adjunto'";
-        return $this->conectar->query($sql);
+        $sql = "DELETE FROM gestion_adjuntos WHERE id_adjunto = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_adjunto);
+        
+        $resultado = $stmt->execute();
+        $stmt->close();
+        return $resultado;
     }
 
     public function eliminarPorArchivo()
     {
-        $sql = "DELETE FROM gestion_adjuntos WHERE id_archivo = '$this->id_archivo'";
-        return $this->conectar->query($sql);
+        $sql = "DELETE FROM gestion_adjuntos WHERE id_archivo = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_archivo);
+        
+        $resultado = $stmt->execute();
+        $stmt->close();
+        return $resultado;
     }
 
     public function listarPorArchivo()
     {
-        $sql = "SELECT * FROM gestion_adjuntos WHERE id_archivo = '$this->id_archivo' ORDER BY es_principal DESC, fecha_subida DESC";
-        return $this->conectar->query($sql);
-    }
-
-    public function listarPorTipo()
-    {
-        $sql = "SELECT * FROM gestion_adjuntos WHERE id_archivo = '$this->id_archivo' AND tipo_adjunto = '$this->tipo_adjunto' ORDER BY fecha_subida DESC";
-        return $this->conectar->query($sql);
+        $sql = "SELECT * FROM gestion_adjuntos 
+                WHERE id_archivo = ? 
+                ORDER BY es_principal DESC, fecha_creacion ASC";
+        
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_archivo);
+        $stmt->execute();
+        
+        $resultado = $stmt->get_result();
+        $stmt->close();
+        
+        return $resultado;
     }
 
     public function obtenerAdjuntoPrincipal()
     {
-        $sql = "SELECT * FROM gestion_adjuntos WHERE id_archivo = '$this->id_archivo' AND es_principal = '1' LIMIT 1";
-        return $this->conectar->query($sql)->fetch_assoc();
+        $sql = "SELECT * FROM gestion_adjuntos 
+                WHERE id_archivo = ? AND es_principal = '1' 
+                LIMIT 1";
+        
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_archivo);
+        $stmt->execute();
+        
+        $resultado = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        return $resultado;
     }
 
     public function establecerComoPrincipal()
     {
         // Primero quitar el principal actual
-        $sql1 = "UPDATE gestion_adjuntos SET es_principal = '0' WHERE id_archivo = '$this->id_archivo'";
-        $this->conectar->query($sql1);
+        $sql1 = "UPDATE gestion_adjuntos SET es_principal = '0' WHERE id_archivo = ?";
+        $stmt1 = $this->conectar->prepare($sql1);
+        $stmt1->bind_param("i", $this->id_archivo);
+        $stmt1->execute();
+        $stmt1->close();
         
         // Establecer el nuevo principal
-        $sql2 = "UPDATE gestion_adjuntos SET es_principal = '1' WHERE id_adjunto = '$this->id_adjunto'";
-        return $this->conectar->query($sql2);
+        $sql2 = "UPDATE gestion_adjuntos SET es_principal = '1' WHERE id_adjunto = ?";
+        $stmt2 = $this->conectar->prepare($sql2);
+        $stmt2->bind_param("i", $this->id_adjunto);
+        
+        $resultado = $stmt2->execute();
+        $stmt2->close();
+        
+        return $resultado;
+    }
+
+    // NUEVOS MÉTODOS PARA LOS CAMPOS ESPECÍFICOS
+    public function obtenerPorTipo($tipo)
+    {
+        $campo = '';
+        switch ($tipo) {
+            case 'pdf':
+                $campo = 'url_pdf';
+                break;
+            case 'editable':
+                $campo = 'url_editable';
+                break;
+            case 'imagen':
+                $campo = 'url_imagen';
+                break;
+            case 'youtube':
+                $campo = 'url_youtube';
+                break;
+            default:
+                return false;
+        }
+
+        $sql = "SELECT * FROM gestion_adjuntos 
+                WHERE id_archivo = ? AND $campo IS NOT NULL 
+                ORDER BY es_principal DESC, fecha_creacion ASC";
+        
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_archivo);
+        $stmt->execute();
+        
+        $resultado = $stmt->get_result();
+        $stmt->close();
+        
+        return $resultado;
+    }
+
+    public function obtenerPorId()
+    {
+        $sql = "SELECT * FROM gestion_adjuntos WHERE id_adjunto = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $this->id_adjunto);
+        $stmt->execute();
+        
+        $resultado = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($resultado) {
+            $this->id_archivo = $resultado['id_archivo'];
+            $this->nombre_adjunto = $resultado['nombre_adjunto'];
+            $this->url_pdf = $resultado['url_pdf'];
+            $this->url_editable = $resultado['url_editable'];
+            $this->url_imagen = $resultado['url_imagen'];
+            $this->url_youtube = $resultado['url_youtube'];
+            $this->es_principal = $resultado['es_principal'];
+            $this->fecha_creacion = $resultado['fecha_creacion'];
+            return true;
+        }
+        
+        return false;
     }
 }

@@ -5,6 +5,9 @@ class GuiaDetalle
     private $guia_detalle_id;
     private $id_guia;
     private $id_producto;
+    private $id_repuesto;
+    private $tipo_item;
+    private $id_guia_equipo;
     private $detalles;
     private $unidad;
     private $cantidad;
@@ -128,6 +131,54 @@ class GuiaDetalle
         $this->precio = $precio;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getIdRepuesto()
+    {
+        return $this->id_repuesto;
+    }
+
+    /**
+     * @param mixed $id_repuesto
+     */
+    public function setIdRepuesto($id_repuesto): void
+    {
+        $this->id_repuesto = $id_repuesto;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTipoItem()
+    {
+        return $this->tipo_item;
+    }
+
+    /**
+     * @param mixed $tipo_item
+     */
+    public function setTipoItem($tipo_item): void
+    {
+        $this->tipo_item = $tipo_item;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIdGuiaEquipo()
+    {
+        return $this->id_guia_equipo;
+    }
+
+    /**
+     * @param mixed $id_guia_equipo
+     */
+    public function setIdGuiaEquipo($id_guia_equipo): void
+    {
+        $this->id_guia_equipo = $id_guia_equipo;
+    }
+
   public function insertar() {
     try {
         // Registrar los datos que se intentan insertar
@@ -141,7 +192,10 @@ class GuiaDetalle
         
         // Escapar los valores para prevenir SQL injection
         $id_guia = $this->conectar->real_escape_string($this->id_guia);
-        $id_producto = $this->conectar->real_escape_string($this->id_producto);
+        $id_producto = $this->id_producto ? $this->conectar->real_escape_string($this->id_producto) : 'NULL';
+        $id_repuesto = $this->id_repuesto ? $this->conectar->real_escape_string($this->id_repuesto) : 'NULL';
+        $id_guia_equipo = $this->id_guia_equipo ? $this->conectar->real_escape_string($this->id_guia_equipo) : 'NULL';
+        $tipo_item = $this->conectar->real_escape_string($this->tipo_item ?: 'producto');
         $detalles = $this->conectar->real_escape_string($this->detalles);
         $unidad = $this->conectar->real_escape_string($this->unidad);
         $cantidad = $this->conectar->real_escape_string($this->cantidad);
@@ -150,13 +204,19 @@ class GuiaDetalle
         $sql = "INSERT INTO guia_detalles (
             id_guia,
             id_producto,
+            id_repuesto,
+            id_guia_equipo,
+            tipo_item,
             detalles,
             unidad,
             cantidad,
             precio
         ) VALUES (
             '$id_guia',
-            '$id_producto',
+            " . ($this->id_producto ? "'$id_producto'" : 'NULL') . ",
+            " . ($this->id_repuesto ? "'$id_repuesto'" : 'NULL') . ",
+            " . ($this->id_guia_equipo ? "'$id_guia_equipo'" : 'NULL') . ",
+            '$tipo_item',
             '$detalles',
             '$unidad',
             '$cantidad',

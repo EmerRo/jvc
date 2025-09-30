@@ -192,10 +192,10 @@ $("#submitRegistro").click(function () {
       });
     });
 
-    // Preparar datos de cliente (pueden estar vacíos)
+    // Preparar datos de cliente - si no tiene cliente, usar datos de empresa
     const tieneCliente = $("#tiene_cliente").is(":checked");
-    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "";
-    const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "";
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "20538381978";
 
     console.log("Datos a enviar:", {
       cliente_ruc_dni: clienteRucDni,
@@ -273,13 +273,24 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
         $("#fecha_creacion_u").val(registro.fecha_creacion);
 
         // Configurar el checkbox de cliente según si tiene datos de cliente
-        const tieneCliente = registro.tiene_cliente || (registro.cliente_ruc_dni && registro.cliente_ruc_dni !== "Sin Cliente");
+        const tieneCliente = registro.tiene_cliente && (registro.cliente_ruc_dni && registro.cliente_ruc_dni !== "Sin Cliente" && registro.cliente_ruc_dni !== null);
         $("#tiene_cliente_u").prop("checked", tieneCliente);
-        
+
+        // Siempre mostrar la sección cliente
+        $("#seccion_cliente_u").removeClass("oculta");
+
         if (tieneCliente) {
-          $("#seccion_cliente_u").removeClass("oculta");
+          // Datos de cliente externo
+          $("#input_datos_cliente_u").val(registro.cliente_documento || "");
+          $("#input_datos_cliente_u").prop("readonly", false);
+          $("#cliente_ruc_dni_u").prop("readonly", false);
         } else {
-          $("#seccion_cliente_u").addClass("oculta");
+          // Datos de la empresa
+          $("#input_datos_cliente_u").val("20538381978");
+          $("#cliente_documento_u").val("20538381978");
+          $("#cliente_ruc_dni_u").val("COMERCIAL & INDUSTRIAL J. V. C. S.A.C.");
+          $("#input_datos_cliente_u").prop("readonly", true);
+          $("#cliente_ruc_dni_u").prop("readonly", true);
         }
 
         // Cargar equipos existentes
@@ -303,7 +314,7 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                     <select class="form-select" name="equipos_existentes[${index}][marca]" required>
                                         <option value="">Seleccionar Marca</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-seleccionar-marca"
+                                    <button type="button" class="btn bg-rojo btn-seleccionar-marca"
                                         data-bs-toggle="modal" data-bs-target="#modalMarca">
                                         <i class="fa fa-list"></i>
                                     </button>
@@ -317,7 +328,7 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                     <select class="form-select" name="equipos_existentes[${index}][modelo]" required>
                                         <option value="">Seleccionar Modelo</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-seleccionar-modelo"
+                                    <button type="button" class="btn bg-rojo btn-seleccionar-modelo"
                                         data-bs-toggle="modal" data-bs-target="#modalModelo">
                                         <i class="fa fa-list"></i>
                                     </button>
@@ -329,7 +340,7 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                     <select class="form-select" name="equipos_existentes[${index}][equipo]" required>
                                         <option value="">Seleccionar Equipo</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-seleccionar-equipo"
+                                    <button type="button" class="btn bg-rojo btn-seleccionar-equipo"
                                         data-bs-toggle="modal" data-bs-target="#modalEquipo">
                                         <i class="fa fa-list"></i>
                                     </button>
@@ -525,10 +536,10 @@ $("#updateRegistroBtn").click(function () {
       });
     }
 
-    // Preparar datos de cliente (pueden estar vacíos)
+    // Preparar datos de cliente - si no tiene cliente, usar datos de empresa
     const tieneCliente = $("#tiene_cliente_u").is(":checked");
-    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "";
-    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "";
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "20538381978";
 
     // Enviar los datos al servidor
     $.ajax({
@@ -643,10 +654,10 @@ $("#updateRegistroBtn").click(function () {
       });
     });
 
-    // Preparar datos de cliente (pueden estar vacíos)
+    // Preparar datos de cliente - si no tiene cliente, usar datos de empresa
     const tieneCliente = $("#tiene_cliente_u").is(":checked");
-    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "";
-    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "";
+    const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
+    const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "20538381978";
 
     // Enviar los datos al servidor
     $.ajax({
@@ -720,7 +731,7 @@ $("#agregar_equipo_diferente_u").click(function () {
                         <select class="form-select" name="equipos_nuevos[${index}][marca]" required>
                             <option value="">Seleccionar Marca</option>
                         </select>
-                        <button type="button" class="btn btn-outline-secondary btn-seleccionar-marca"
+                        <button type="button" class="btn bg-rojo btn-seleccionar-marca"
                             data-bs-toggle="modal" data-bs-target="#modalMarca">
                             <i class="fa fa-list"></i>
                         </button>
@@ -732,7 +743,7 @@ $("#agregar_equipo_diferente_u").click(function () {
                         <select class="form-select" name="equipos_nuevos[${index}][modelo]" required>
                             <option value="">Seleccionar Modelo</option>
                         </select>
-                        <button type="button" class="btn btn-outline-secondary btn-seleccionar-modelo"
+                        <button type="button" class="btn bg-rojo btn-seleccionar-modelo"
                             data-bs-toggle="modal" data-bs-target="#modalModelo">
                             <i class="fa fa-list"></i>
                         </button>
@@ -744,7 +755,7 @@ $("#agregar_equipo_diferente_u").click(function () {
                         <select class="form-select" name="equipos_nuevos[${index}][equipo]" required>
                             <option value="">Seleccionar Equipo</option>
                         </select>
-                        <button type="button" class="btn btn-outline-secondary btn-seleccionar-equipo"
+                        <button type="button" class="btn bg-rojo btn-seleccionar-equipo"
                             data-bs-toggle="modal" data-bs-target="#modalEquipo">
                             <i class="fa fa-list"></i>
                         </button>

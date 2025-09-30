@@ -199,4 +199,6 @@ Route::postBase("/documentos/constancias", "FragmentController@documentosConstan
 Route::postBase("/documentos/archivos/internos", "FragmentController@documentosArchivosInternos");
 Route::postBase("/documentos/otros", "FragmentController@documentosOtros");
 
+Route::get("/reporte/cajas/general/excel", "GenerarReporte@generarExcelRegistroCajas");
+
 

@@ -3,7 +3,7 @@
 require_once 'app/models/TallerCotizacion.php';
 require_once 'app/models/TallerEquipo.php';
 require_once 'app/models/TallerRepuesto.php';
-require_once 'app/models/TallerCliente.php';
+require_once 'app/models/Cliente.php';
 require_once 'app/models/TallerCuota.php';
 require_once 'app/models/TallerFoto.php';
 
@@ -14,7 +14,7 @@ class TallerCotizacionesController extends Controller
     private $tallerCotizacion;
     private $tallerEquipo;
     private $tallerRepuesto;
-    private $tallerCliente;
+    private $cliente;
     private $tallerCuota;
     private $tallerFoto;
 
@@ -24,7 +24,7 @@ class TallerCotizacionesController extends Controller
         $this->tallerCotizacion = new TallerCotizacion();
         $this->tallerEquipo = new TallerEquipo();
         $this->tallerRepuesto = new TallerRepuesto();
-        $this->tallerCliente = new TallerCliente();
+        $this->cliente = new Cliente();
         $this->tallerCuota = new TallerCuota();
         $this->tallerFoto = new TallerFoto();
     }
@@ -96,7 +96,7 @@ class TallerCotizacionesController extends Controller
             error_log("Tipo de origen: " . $tipoOrigen);
 
             // Gestionar cliente
-            $idCli = $this->tallerCliente->gestionar($data);
+            $idCli = $this->cliente->gestionarTaller($data);
 
             // Obtener siguiente número de cotización
             $numCoti = $this->tallerCotizacion->obtenerSiguienteNumero();
@@ -159,10 +159,31 @@ class TallerCotizacionesController extends Controller
             $this->conectar->rollback();
             error_log("Error en TallerCotizacionesController::agregar: " . $e->getMessage());
 
+            // Determinar el tipo de error para devolver una respuesta más específica
+            $errorMessage = $e->getMessage();
+            $errorType = 'general';
+            
+            if (strpos($errorMessage, 'Stock insuficiente') !== false) {
+                $errorType = 'stock_insuficiente';
+                $errorMessage = 'Stock insuficiente para el producto: ' . $errorMessage;
+                // Cambiar status HTTP para errores de stock
+                http_response_code(400);
+            } elseif (strpos($errorMessage, 'No se encontró') !== false) {
+                $errorType = 'producto_no_encontrado';
+                http_response_code(400);
+            } elseif (strpos($errorMessage, 'permisos') !== false) {
+                $errorType = 'permisos';
+                http_response_code(403);
+            } else {
+                http_response_code(500);
+            }
+
             header('Content-Type: application/json');
             echo json_encode([
                 'res' => false,
-                'error' => $e->getMessage()
+                'error' => $errorMessage,
+                'error_type' => $errorType,
+                'timestamp' => date('Y-m-d H:i:s')
             ]);
         }
     }
@@ -619,8 +640,10 @@ class TallerCotizacionesController extends Controller
                     'condiciones' => $condiciones ? $condiciones['condiciones'] : null,
                     'diagnostico' => $diagnostico ? $diagnostico['diagnostico'] : null,
                     'productos' => array_map(function ($repuesto) {
+                        $productoid = ($repuesto['tipo_item'] === 'producto') ? $repuesto['id_producto'] : $repuesto['id_repuesto'];
                         return [
-                            'productoid' => $repuesto['id_repuesto'],
+                            'productoid' => $productoid,
+                            'tipo_item' => $repuesto['tipo_item'],
                             'codigo_prod' => $repuesto['codigo_prod'],
                             'descripcion' => $repuesto['descripcion'],
                             'cantidad' => $repuesto['cantidad'],
@@ -791,6 +814,7 @@ $resultEquipos = $stmtEquipos->get_result();
 $equipos = [];
 while ($equipo = $resultEquipos->fetch_assoc()) {
     $equipos[] = [
+        'id_cotizacion_equipo' => $equipo['id_cotizacion_equipo'],
         'marca' => $equipo['marca'],
         'equipo' => $equipo['equipo'], 
         'modelo' => $equipo['modelo'],
@@ -816,13 +840,16 @@ while ($equipo = $resultEquipos->fetch_assoc()) {
 
         // Formatear productos para que sean compatibles con ventas-productos.php
         $productos = array_map(function ($repuesto) {
+            $productoid = ($repuesto['tipo_item'] === 'producto') ? $repuesto['id_producto'] : $repuesto['id_repuesto'];
             return [
                 'codigo' => $repuesto['codigo_prod'],
                 'descripcion' => $repuesto['descripcion'],
                 'cantidad' => $repuesto['cantidad'],
                 'precioVenta' => $repuesto['precio'],
                 'costo' => $repuesto['costo'],
-                'productoid' => $repuesto['id_repuesto'],
+                'productoid' => $productoid,
+                'tipo_item' => $repuesto['tipo_item'],
+                'id_cotizacion_equipo' => $repuesto['id_cotizacion_equipo'],
                 'precio' => $repuesto['precio'],
                 'precio2' => $repuesto['precio'],
                 'precio_unidad' => $repuesto['precio'],
@@ -859,5 +886,177 @@ while ($equipo = $resultEquipos->fetch_assoc()) {
         ]);
     }
 }
+public function obtenerDatosCotizacion()
+{
+    try {
+        if (!isset($_POST['id_cotizacion'])) {
+            throw new Exception("ID de cotización no proporcionado");
+        }
+
+        $id_cotizacion = intval($_POST['id_cotizacion']);
+        
+        // Obtener datos principales
+        $cotizacion = $this->tallerCotizacion->obtenerDetalle($id_cotizacion);
+        
+        // Obtener equipos
+        $equipos = $this->tallerEquipo->obtenerPorCotizacion($id_cotizacion);
+        
+        // Obtener productos/repuestos
+        $items = $this->tallerRepuesto->obtenerPorCotizacion($id_cotizacion);
+        
+        echo json_encode([
+            'success' => true,
+            'cotizacion' => $cotizacion,
+            'equipos' => $equipos,
+            'items' => $items
+        ], JSON_PRETTY_PRINT);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+public function getObservaciones()
+{
+    try {
+        if (!isset($_POST['id_cotizacion'])) {
+            throw new Exception('ID de cotización no proporcionado');
+        }
+
+        $id_cotizacion = intval($_POST['id_cotizacion']);
+
+        $sql = "SELECT observaciones FROM taller_observaciones_cotizacion WHERE id_cotizacion = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $id_cotizacion);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        echo json_encode([
+            'res' => true,
+            'observaciones' => $row ? $row['observaciones'] : ''
+        ]);
+
+    } catch (Exception $e) {
+        echo json_encode([
+            'res' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+ 
+   public function obtenerCotizacionCompleta($id_cotizacion)
+    {
+        try {
+            // 1. Obtener los datos principales de la cotización.
+            $tallerCotizacionModel = new TallerCotizacion();
+            $cotizacion = $tallerCotizacionModel->obtenerDetalle($id_cotizacion);
+
+            // 2. Verificar si la cotización fue encontrada.
+            if (!$cotizacion) {
+                header('Content-Type: application/json');
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'La cotización con el ID proporcionado no fue encontrada.'
+                ]);
+                return;
+            }
+
+            // 3. Obtener los datos relacionados.
+            $tallerRepuestoModel = new TallerRepuesto();
+            $repuestos = $tallerRepuestoModel->obtenerPorCotizacion($id_cotizacion);
+
+            // TODO: Implementar la búsqueda para las otras partes de la cotización.
+            $diagnosticos = [];
+            $condiciones = [];
+            $fotos = [];
+
+            // Completar equipos, fotos, diagnósticos y condiciones con los mismos fallbacks del PDF
+            $equipos = $this->tallerEquipo->obtenerPorCotizacion($id_cotizacion);
+
+            // Fotos con posible equipo_index
+            $fotosRows = $this->tallerFoto->obtenerPorCotizacion($id_cotizacion);
+            $fotos = array_map(function ($row) {
+                return [
+                    'nombre_foto' => $row['nombre_foto'],
+                    'equipo_index' => isset($row['equipo_index']) ? (int)$row['equipo_index'] : null
+                ];
+            }, $fotosRows);
+
+            // Diagnóstico específico o por defecto
+            $diagnosticoText = '';
+            $sqlDiagnostico = "SELECT diagnostico FROM taller_diagnosticos_cotizacion WHERE id_cotizacion = ? LIMIT 1";
+            $stmtDiagnostico = $this->conectar->prepare($sqlDiagnostico);
+            $stmtDiagnostico->bind_param("i", $id_cotizacion);
+            $stmtDiagnostico->execute();
+            $resultDiagnostico = $stmtDiagnostico->get_result();
+            $rowDiag = $resultDiagnostico->fetch_assoc();
+            if ($rowDiag && isset($rowDiag['diagnostico'])) {
+                $diagnosticoText = $rowDiag['diagnostico'];
+            } else {
+                $sqlDiagnosticoDefault = "SELECT nombre FROM diagnostico_repuestos LIMIT 1";
+                $stmtDiagnosticoDefault = $this->conectar->prepare($sqlDiagnosticoDefault);
+                $stmtDiagnosticoDefault->execute();
+                $resultDiagnosticoDefault = $stmtDiagnosticoDefault->get_result();
+                $rowDiagDef = $resultDiagnosticoDefault->fetch_assoc();
+                $diagnosticoText = $rowDiagDef ? $rowDiagDef['nombre'] : '';
+            }
+            $diagnosticos = $diagnosticoText !== '' ? [['diagnostico' => $diagnosticoText]] : [];
+
+            // Condiciones específicas o por defecto
+            $terminosText = '';
+            $sqlTerminos = "SELECT condiciones FROM taller_condiciones_cotizacion WHERE id_cotizacion = ? LIMIT 1";
+            $stmtTerminos = $this->conectar->prepare($sqlTerminos);
+            $stmtTerminos->bind_param("i", $id_cotizacion);
+            $stmtTerminos->execute();
+            $resultTerminos = $stmtTerminos->get_result();
+            $rowTerm = $resultTerminos->fetch_assoc();
+            if ($rowTerm && isset($rowTerm['condiciones'])) {
+                $terminosText = $rowTerm['condiciones'];
+            } else {
+                $sqlTerminosDefault = "SELECT nombre FROM terminos_repuestos LIMIT 1";
+                $stmtTerminosDefault = $this->conectar->prepare($sqlTerminosDefault);
+                $stmtTerminosDefault->execute();
+                $resultTerminosDefault = $stmtTerminosDefault->get_result();
+                $rowTermDef = $resultTerminosDefault->fetch_assoc();
+                $terminosText = $rowTermDef ? $rowTermDef['nombre'] : '';
+            }
+            $condiciones = $terminosText !== '' ? [['condiciones' => $terminosText]] : [];
+
+            // 4. Unir toda la información en un solo array.
+            $respuesta = [
+                'status' => 'success',
+                'data' => [
+                    'cotizacion' => $cotizacion,
+                    'repuestos' => $repuestos,
+                    'equipos' => isset($equipos) ? $equipos : [],
+                    'diagnosticos' => $diagnosticos,
+                    'condiciones' => $condiciones,
+                    'fotos' => $fotos
+                ]
+            ];
+
+            // 5. Devolver la respuesta como un JSON con el código de estado HTTP 200 (OK).
+            header('Content-Type: application/json');
+            http_response_code(200);
+            echo json_encode($respuesta);
+            return;
+
+        } catch (\Exception $e) {
+            // Este bloque captura cualquier otro error inesperado (ej. error de base de datos).
+            error_log("Error en obtenerCotizacionCompleta: " . $e->getMessage());
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Ocurrió un error interno al procesar la solicitud.'
+            ]);
+            return;
+        }
+    }
 
 }

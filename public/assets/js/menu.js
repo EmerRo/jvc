@@ -1,3 +1,4 @@
+// public\assets\js\menu.js
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.querySelector(".jvc-sidebar")
     const mainContent = document.querySelector(".main-content")
@@ -33,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         e.stopPropagation();
         
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 1024) {
             // Comportamiento móvil
             document.body.classList.toggle("sidebar-open");
             sidebar.classList.toggle("show-mobile");
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     // Cerrar sidebar móvil al hacer clic fuera
     document.addEventListener("click", (e) => {
-        if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
             if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
                 document.body.classList.remove("sidebar-open");
                 sidebar.classList.remove("show-mobile");
@@ -91,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     // Responsive
     window.addEventListener("resize", () => {
-        if (window.innerWidth > 768) {
+        if (window.innerWidth > 1024) {
             document.body.classList.remove("sidebar-open");
             sidebar.classList.remove("show-mobile");
         }

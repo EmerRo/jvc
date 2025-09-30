@@ -20,32 +20,29 @@
         </div>
 
         <form class="px-4">
-            <!-- Sección de Método de Búsqueda -->
+            <!-- Búsqueda por Número de Registro (único método) -->
             <div class="mb-0">
                 <div class="bg-white text-rojo p-2">
-                    <h5 class="mb-0"><i class="fa fa-search me-2"></i>Método de Búsqueda</h5>
+                    <h5 class="mb-0"><i class="fa fa-search me-2"></i>Búsqueda por N° de Registro</h5>
                 </div>
                 <div class="p-3">
-                    <div class="d-flex justify-content-center mb-3">
-                        <div class="btn-group" role="group" aria-label="Método de búsqueda">
-                            <button type="button" id="btn_buscar_serie" class="btn btn-outline-danger active">
-                                <i class="fa fa-barcode me-2"></i>Buscar por Serie
-                            </button>
-                            <button type="button" id="btn_buscar_cliente" class="btn btn-outline-danger">
-                                <i class="fa fa-users me-2"></i>Buscar por Cliente
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-primary bg-light-blue border-0 mt-2 mb-0" role="alert"
-                        style="background-color: #e6f0ff;">
-                        <div class="d-flex">
-                            <div class="me-2">
-                                <i class="fa fa-info-circle text-primary"></i>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">N° Registro (NS-01, NS-02, ...)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-hashtag"></i></span>
+                                <input id="input_buscar_numero_garantia" type="text" class="form-control" placeholder="Ingrese N° de registro">
                             </div>
-                            <div>
-                                <strong class="text-primary">Información</strong>
-                                <p class="mb-0">Seleccione un método de búsqueda para registrar una garantía.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-primary bg-light-blue border-0 mb-0" role="alert" style="background-color:#e6f0ff;">
+                                <div class="d-flex">
+                                    <div class="me-2"><i class="fa fa-info-circle text-primary"></i></div>
+                                    <div>
+                                        <strong class="text-primary">Tip:</strong>
+                                        Empiece a escribir “NS-” para ver los registros disponibles.
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -59,32 +56,12 @@
                 </div>
                 <div class="p-3">
                     <div class="row">
-                        <!-- Campo de búsqueda por serie (visible por defecto) -->
-                        <div id="grupo_buscar_serie" class="col-md-6 mb-3">
-                            <label for="input_buscar_Dataseries" class="form-label">Buscar Serie <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa fa-barcode"></i></span>
-                                <input id="input_buscar_Dataseries" v-model="garantia.buscar_serie" type="text"
-                                    placeholder="Ingrese número de serie" class="form-control">
-                            </div>
-                        </div>
-
-                        <!-- Campo de búsqueda por cliente (oculto inicialmente) -->
-                        <div id="grupo_buscar_cliente" class="col-md-6 mb-3" style="display: none;">
-                            <label for="input_buscar_cliente" class="form-label">Buscar Cliente <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa fa-building"></i></span>
-                                <input id="input_buscar_cliente" v-model="garantia.buscar_cliente" type="text"
-                                    placeholder="Ingrese nombre del cliente" class="form-control">
-                            </div>
-                        </div>
-
                         <div class="col-md-6 mb-3">
-                            <label for="cliente" class="form-label">Nombre/Razón Social <span class="text-danger">*</span></label>
+                            <label for="cliente" class="form-label">Cliente</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fa fa-building"></i></span>
                                 <input v-model="garantia.cliente_nombre" type="text" placeholder="Nombre del cliente"
-                                    class="form-control" name="cliente" id="cliente">
+                                    class="form-control" name="cliente" id="cliente" readonly>
                             </div>
                         </div>
                     </div>
@@ -134,7 +111,8 @@
                 <div class="p-3">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="numero_serie" class="form-label">Número De Serie <span class="text-danger">*</span></label>
+                            <label for="numero_serie" class="form-label">Número De Serie <span
+                                    class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fa fa-barcode"></i></span>
                                 <input v-model="garantia.num_serie" type="text" placeholder="Número de serie"
@@ -217,7 +195,8 @@
                             </div>
                             <div>
                                 <strong class="text-primary">Información de Garantía</strong>
-                                <p class="mb-0">La garantía tiene una duración de 1 año a partir de la fecha de inicio.</p>
+                                <p class="mb-0">La garantía tiene una duración de 1 año a partir de la fecha de inicio.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -231,6 +210,77 @@
 
 <script>
     $(document).ready(function () {
+        // Autocompletar por N° de registro (como pre-alerta)
+        // Inicializar autocomplete por N° de registro (idéntico a pre-alerta)
+        const $inpNum = $("#input_buscar_numero_garantia");
+        if ($inpNum.length) {
+            // Destruir si existía
+            if ($inpNum.hasClass("ui-autocomplete-input")) {
+                $inpNum.autocomplete("destroy");
+            }
+
+            $inpNum.on("focus.autocomplete click.autocomplete", function(){
+                console.log("[garantia] focus/click input_buscar_numero_garantia");
+                $(this).autocomplete("search", "");
+            }).autocomplete({
+                source: function (request, response) {
+                    console.log("[garantia] buscando numeros:", request.term);
+                    $.ajax({
+                        url: _URL + "/ajs/prealerta/buscar/numero/datos", // mismo endpoint que pre-alerta
+                        type: "GET",
+                        data: { term: request.term },
+                        success: function (data) {
+                            try {
+                                const numeros = JSON.parse(data);
+                                console.log("[garantia] resultados:", numeros);
+                                response(numeros);
+                            } catch (e) {
+                                console.error("Error al parsear números:", e);
+                                response([]);
+                            }
+                        },
+                        error: function () { response([]); }
+                    });
+                },
+                minLength: 0,
+                delay: 200,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    try {
+                        // Rellenar datos del cliente si vienen
+                        app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
+
+                        // Decodificar arrays y prellenar el primer equipo como referencia
+                        const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
+                        const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+                        const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+                        const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+                        if (numeros_serie.length > 0) {
+                            app.garantia.num_serie = numeros_serie[0] || '';
+                            app.garantia.marc = marcas_nombres[0] || '';
+                            app.garantia.model = modelos_nombres[0] || '';
+                            app.garantia.equipo = equipos_nombres[0] || '';
+                        }
+
+                        $(this).val(ui.item.numero_registro || ui.item.value || '');
+                        $(this).blur();
+                    } catch (e) {
+                        console.error('Error al seleccionar número:', e);
+                    }
+                },
+                open: function(){
+                    $(this).autocomplete('widget').css({
+                        'max-height':'250px',
+                        'overflow-y':'auto',
+                        'overflow-x':'hidden',
+                        'width': $(this).outerWidth() + 'px'
+                    });
+                }
+            });
+        } else {
+            console.warn('[garantia] No se encontró #input_buscar_numero_garantia');
+        }
         // Establecer fechas por defecto
         const hoy = new Date();
         const unAñoDespues = new Date();
@@ -250,6 +300,7 @@
             data: {
                 garantia: {
                     cliente_nombre: '',
+                    cliente_documento: '',
                     buscar_serie: '',
                     buscar_cliente: '',
                     num_serie: '',
@@ -263,6 +314,63 @@
                 series_seleccionadas: [] // Array para almacenar múltiples series seleccionadas
             }
         });
+
+        // Re-inicializar autocomplete de N° Registro DESPUÉS de crear Vue (mismo patrón que pre-alerta)
+        function initAutocompleteNumeroRegistro() {
+            const $inp = $("#input_buscar_numero_garantia");
+            if ($inp.length === 0) return;
+            if ($inp.hasClass("ui-autocomplete-input")) {
+                try { $inp.autocomplete("destroy"); } catch (e) {}
+            }
+            $inp
+                .off("focus.autocomplete click.autocomplete")
+                .on("focus.autocomplete click.autocomplete", function () {
+                    $(this).autocomplete("search", "");
+                })
+                .autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: _URL + "/ajs/prealerta/buscar/numero/datos",
+                            type: "GET",
+                            data: { term: request.term },
+                            success: function (data) {
+                                try { response(JSON.parse(data)); } catch { response([]); }
+                            },
+                            error: function () { response([]); }
+                        });
+                    },
+                    minLength: 0,
+                    delay: 200,
+                    select: function (event, ui) {
+                        event.preventDefault();
+                        try {
+                            app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
+                            const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
+                            const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+                            const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+                            const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
+                            if (numeros_serie.length > 0) {
+                                app.garantia.num_serie = numeros_serie[0] || '';
+                                app.garantia.marc = marcas_nombres[0] || '';
+                                app.garantia.model = modelos_nombres[0] || '';
+                                app.garantia.equipo = equipos_nombres[0] || '';
+                            }
+                            $(this).val(ui.item.numero_registro || ui.item.value || '');
+                            $(this).blur();
+                        } catch (e) {}
+                    },
+                    open: function () {
+                        $(this).autocomplete("widget").css({
+                            "max-height": "250px",
+                            "overflow-y": "auto",
+                            "overflow-x": "hidden",
+                            "width": $(this).outerWidth() + "px"
+                        });
+                    }
+                });
+        }
+        // Ejecutar tras crear Vue
+        setTimeout(initAutocompleteNumeroRegistro, 0);
 
         // Configuración del autocompletado
         $("#input_buscar_Dataseries")
@@ -295,14 +403,27 @@
                     });
                 },
                 minLength: 0, // Importante: permite mostrar todos los resultados sin escribir nada
-                select: function (event, ui) {
+                               select: function (event, ui) {
                     event.preventDefault();
-                    app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
+                    const clienteNombre = ui.item.cliente_ruc_dni || '';
+                    
+                    // <CHANGE> Verificar si hay cliente o está vacío/sin cliente
+                    if (!clienteNombre || clienteNombre === 'Sin Cliente' || clienteNombre.trim() === '') {
+                        // No hay cliente, mostrar campos de búsqueda
+                        app.garantia.cliente_nombre = '';
+                        $('#grupo_documento_cliente').show();
+                        inicializarBusquedaClienteManual();
+                    } else {
+                        // Hay cliente, llenar el campo y ocultar búsqueda
+                        app.garantia.cliente_nombre = clienteNombre;
+                        $('#grupo_documento_cliente').hide();
+                    }
+                    
                     app.garantia.num_serie = ui.item.label || '';
-                    app.garantia.marc = ui.item.marca_nombre || ''; // Usar el nombre de la marca
-                    app.garantia.model = ui.item.modelo_nombre || ''; // Usar el nombre del modelo
+                    app.garantia.marc = ui.item.marca_nombre || '';
+                    app.garantia.model = ui.item.modelo_nombre || '';
                     app.garantia.equipo = ui.item.equipo_nombre || '';
-                    app.garantia.buscar_serie = ''; // Limpiar el campo de búsqueda
+                    app.garantia.buscar_serie = '';
 
                     // Cerrar el autocompletado después de seleccionar
                     $(this).autocomplete("close");
@@ -691,13 +812,15 @@
                 }
             });
 
-            // Preparar los datos para enviar
-            let data = {
-                cliente_nombre: app.garantia.cliente_nombre,
-                guia_remision: app.garantia.guiaRemision,
-                fecha_inicio: app.garantia.fechaInicio,
-                fecha_caducidad: app.garantia.fechaCaducidad
-            };
+          
+          // Preparar los datos para enviar
+let data = {
+    cliente_nombre: app.garantia.cliente_nombre,
+    cliente_documento: app.garantia.cliente_documento || '', // <CHANGE> Agregar cliente_documento
+    guia_remision: app.garantia.guiaRemision,
+    fecha_inicio: app.garantia.fechaInicio,
+    fecha_caducidad: app.garantia.fechaCaducidad
+};
 
             // Si hay múltiples series seleccionadas, enviarlas como un array
             if (app.series_seleccionadas.length > 1) {
@@ -770,5 +893,67 @@
                 }
             });
         });
+                // <CHANGE> Función para inicializar búsqueda de cliente manual
+        function inicializarBusquedaClienteManual() {
+            // Autocompletado para el campo de documento
+            $("#cliente_documento_manual").autocomplete({
+                source: _URL + "/ajs/buscar/cliente/datos",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    app.garantia.cliente_nombre = ui.item.datos;
+                    app.garantia.cliente_documento = ui.item.documento;
+                    $("#cliente_documento_manual").val(ui.item.documento);
+                    // Ocultar campos de búsqueda después de seleccionar
+                    $('#grupo_documento_cliente').hide();
+                }
+            });
+
+            // Búsqueda por botón usando prealerta
+            $("#btn_buscar_cliente_manual").off('click').on('click', function() {
+                const docNum = app.garantia.cliente_documento.trim();
+                const docLength = docNum.length;
+
+                if (docLength === 8 || docLength === 11) {
+                    $.ajax({
+                        url: _URL + "/ajs/prealerta/doc/cliente",
+                        type: "POST",
+                        data: { doc: docNum },
+                        success: function (resp) {
+                            // <CHANGE> Parsear la respuesta JSON antes de usarla
+                            const data = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                            
+                            if (docLength === 8) {
+                                // DNI - construir nombre completo
+                                if (data.success) {
+                                    const nombreCompleto = data.nombres + ' ' +
+                                        (data.apellidoPaterno ? data.apellidoPaterno : '') + ' ' +
+                                        (data.apellidoMaterno ? data.apellidoMaterno : '');
+                                    app.garantia.cliente_nombre = nombreCompleto.trim();
+                                    // Ocultar campos de búsqueda después de encontrar cliente
+                                    $('#grupo_documento_cliente').hide();
+                                } else {
+                                    Swal.fire("Advertencia", "Documento no encontrado", "warning");
+                                }
+                            } else if (docLength === 11) {
+                                // RUC - usar razón social
+                                if (data.razonSocial) {
+                                    app.garantia.cliente_nombre = data.razonSocial;
+                                    // Ocultar campos de búsqueda después de encontrar cliente
+                                    $('#grupo_documento_cliente').hide();
+                                } else {
+                                    Swal.fire("Advertencia", "RUC no encontrado", "warning");
+                                }
+                            }
+                        },
+                        error: function () {
+                            Swal.fire("Error", "Error al buscar cliente", "error");
+                        }
+                    });
+                } else {
+                    Swal.fire("Advertencia", "Documento: DNI es 8 dígitos y RUC 11 dígitos", "warning");
+                }
+            });
+        }
     });
 </script>

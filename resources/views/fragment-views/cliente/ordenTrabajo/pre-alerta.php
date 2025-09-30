@@ -217,28 +217,16 @@
                                                     </label>
                                                     <div class="row">
                                                         <div class="col-8">
-                                                            <!-- Campo de búsqueda por serie (visible por defecto) -->
-                                                            <div id="grupo_buscar_serie_prealerta"
-                                                                class="form-group mb-0">
-                                                                <input id="input_buscar_serie" type="text"
-                                                                    placeholder="Ingrese número de serie"
-                                                                    class="form-control">
-                                                            </div>
-
-                                                            <!-- Campo de búsqueda por cliente (oculto inicialmente) -->
-                                                            <div id="grupo_buscar_cliente_prealerta"
-                                                                class="form-group mb-0" style="display: none;">
-                                                                <input id="input_buscar_cliente_prealerta" type="text"
-                                                                    placeholder="Ingrese nombre del cliente"
-                                                                    class="form-control">
-                                                            </div>
+                                                          <!-- Campo de búsqueda por número de registro -->
+<div id="grupo_buscar_numero_prealerta" class="form-group mb-0">
+    <input id="input_buscar_numero" type="text" placeholder="Ingrese número de registro (NS-01, NS-02, etc.)" class="form-control">
+</div>
                                                         </div>
-                                                        <div class="col-4">
-                                                            <select id="metodo_busqueda_select" class="form-select">
-                                                                <option value="serie" selected>N° Serie</option>
-                                                                <option value="cliente">Cliente</option>
-                                                            </select>
-                                                        </div>
+                                                      <div class="col-4">
+    <select id="metodo_busqueda_select" class="form-select">
+        <option value="numero" selected>N° Registro</option>
+    </select>
+</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -561,6 +549,63 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Estilos normales para autocomplete - PATRÓN EXACTO DE COTIZACIONES */
+.ui-autocomplete {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9999 !important;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.ui-autocomplete .ui-menu-item {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
+    padding: 8px 12px !important;
+    border: none !important;
+    background: transparent !important;
+    color: inherit !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Hover para autocomplete - PATRÓN EXACTO DE COTIZACIONES */
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+    background: #f8f9fa !important;
+    color: #CA3438 !important;
+    border-left: 3px solid #CA3438 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Estilos para registros internos en la tabla */
+.registro-interno-row {
+    background-color: #e8f4fd !important;
+    border-left: 4px solid #0066cc !important;
+}
+
+.registro-interno-row:hover {
+    background-color: #d4edfa !important;
+}
+
+.registro-interno-text {
+    color: #0066cc !important;
+    font-weight: 600 !important;
+    font-style: italic !important;
+}
+</style>
 
 <script>
     // Make the current sucursal (warehouse/store ID) available globally for JavaScript

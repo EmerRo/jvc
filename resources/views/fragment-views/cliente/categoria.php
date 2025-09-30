@@ -25,7 +25,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         <!--   <button type="button" data-bs-toggle="modal" data-bs-target="#editarModal" class="btn btn-warning">Editar</button> -->
                     </div>
                     <div class="col-md-6 text-end">
-                        <a href="/jvc/almacen/productos" class="btn border-rojo text-rojo bg-white"><i class="fa fa-arrow-left"></i> Regresar</a>
+                        <a href="/almacen/productos" class="btn border-rojo text-rojo bg-white"><i class="fa fa-arrow-left"></i> Regresar</a>
                     </div>
                 </div>
             </div>

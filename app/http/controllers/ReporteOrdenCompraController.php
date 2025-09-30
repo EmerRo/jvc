@@ -181,7 +181,7 @@ class ReporteOrdenCompraController extends Controller
         $this->mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
-            'margin_left' => 15,
+            'margin_left' => 0,
             'margin_right' => 0,
             'margin_top' => 30,
             'margin_bottom' => 35,
@@ -197,7 +197,7 @@ class ReporteOrdenCompraController extends Controller
         // Configurar el header con el logo de la empresa
         $headerHTML = "
        <div style='width: 100%; margin: 0; padding: 0;'>
-       <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
+       <img style='width: auto; height: auto; display: block; margin-left: 10px;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
        </div>";
 
         $this->mpdf->SetHTMLHeader($headerHTML);
@@ -219,9 +219,9 @@ class ReporteOrdenCompraController extends Controller
          </div>';
         $this->mpdf->SetHTMLFooter($footerHTML);
 
-        // CORREGIDO: Título con formato mejorado
-        $htmlCuadroHead = "<div style='width: auto; text-align: center; margin-bottom: 10px; margin-top:30px'>
-             <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e; margin-left: 65px;'>
+        // CORREGIDO: Título con formato mejorado y centrado
+        $htmlCuadroHead = "<div style='width: 100%; text-align: center; margin-bottom: 10px; margin-top:30px'>
+             <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e;'>
                <span style='font-size: 14px; font-weight: bold;'>ORDEN DE COMPRA DE J.V.C. S.A.C. - OC° {$numeroOrden}</span>
              </div>
          </div>";
@@ -270,8 +270,8 @@ class ReporteOrdenCompraController extends Controller
         $html = "
     <div style='width: 100%;'>
       " . $htmlCuadroHead . "
-      
-      <div style='width: 100%; max-width: 1000px; margin: 0 auto;'>
+
+      <div style='width: 100%; max-width: 1000px; margin: 0 40px;'>
         <div>
           <table style='width:100%; border-collapse: collapse; margin-bottom: 5px;'>
             <tr>
@@ -284,7 +284,7 @@ class ReporteOrdenCompraController extends Controller
               <td style='font-size: 11px; text-align: left;'>Dirección:</td>
             </tr>
             <tr>
-              <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>{$compra['direccion_proveedor']}</td>
+              <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . (!empty($compra['direccion_proveedor']) ? $compra['direccion_proveedor'] : 'No hay dirección registrada') . "</td>
             </tr>
           </table>
         </div>
@@ -297,10 +297,12 @@ class ReporteOrdenCompraController extends Controller
               </tr>
             </table>
           </div>
+        </div>
+      </div>
           
-    <!-- Tabla de productos centrada -->
-    <div style='margin-top: 15px; text-align: center;'>
-        <table style='width:80%; border-collapse: collapse; margin: 0 auto;' cellpadding='0' cellspacing='0'>
+      <!-- Tabla de productos centrada (fuera del contenedor con márgenes) -->
+      <div style='margin-top: 15px; text-align: center; width: 100%;'>
+        <table style='width:75%; border-collapse: collapse; margin: 15px auto 0; margin-left: auto; margin-right: auto;' cellpadding='0' cellspacing='0'>
               <thead>
                 <tr style='background-color: #CA3438;'>
                   <th style='width: 10%; font-size: 10px; text-align: center; color: white; border: 1px solid #CA3438; padding: 8px;'>ITEM</th>
@@ -315,7 +317,7 @@ class ReporteOrdenCompraController extends Controller
             </table>
             
             <!-- Tabla separada para totales alineada con las columnas de la tabla principal -->
-            <table style='width:80%; border-collapse: collapse; margin: 0 auto;' cellpadding='0' cellspacing='0'>
+            <table style='width:75%; border-collapse: collapse; margin: 5px auto 0; margin-left: auto; margin-right: auto;' cellpadding='0' cellspacing='0'>
               <tr>
                 <td style='width: 70%; border: none;'></td>
                 <td style='width: 15%; font-size: 10px; text-align: left; border-left: 1px solid #CA3438; padding: 6px; white-space: nowrap; overflow: hidden;'>
@@ -344,19 +346,20 @@ class ReporteOrdenCompraController extends Controller
                 </td>
               </tr>
             </table>
-          </div>
+      </div>
          
-          <!-- Tabla de detalle de pago -->
+      <!-- Tabla de detalle de pago -->
       {$tablaPagosHtml}
 
-          <!-- Sección de observaciones -->
-          {$observacionesFormateadas}
+      <!-- Contenido final con márgenes -->
+      <div style='width: 100%; max-width: 1000px; margin: 40px;'>
+        <!-- Sección de observaciones -->
+        {$observacionesFormateadas}
 
-          <!-- Sección de contactos -->
-          {$contactosHtml}
-        </div>
-        
+        <!-- Sección de contactos -->
+        {$contactosHtml}
       </div>
+        
     </div>
     ";
 

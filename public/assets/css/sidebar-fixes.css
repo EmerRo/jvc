@@ -90,3 +90,19 @@
   .collapsed .jvc-sidebar-item:hover {
     z-index: 1001;
   }
+
+  /* Forzar colapso en tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .jvc-sidebar {
+    transform: translateX(-100%) !important;
+    width: 260px !important;
+  }
+  
+  .jvc-sidebar.show-mobile {
+    transform: translateX(0) !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+}

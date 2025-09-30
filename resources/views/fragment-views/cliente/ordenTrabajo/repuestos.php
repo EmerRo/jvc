@@ -286,12 +286,12 @@ $almacenRepuesto = 1;
 
                             <!-- Tercera fila - Precios y Cantidad -->
                             <div class="col-md-4 mb-2">
-                                <label><span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Venta</label>
                                 <input v-model="reg.precio" @keypress="onlyNumber" type="text" class="form-control"
                                     required>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-money-bill me-1"></i>Costo</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Costo</label>
                                 <input v-model="reg.costo" @keypress="onlyNumber" type="text" class="form-control"
                                     required>
                             </div>
@@ -307,6 +307,14 @@ $almacenRepuesto = 1;
                                 <select v-model="reg.unidad" class="form-control" required>
                                     <option value="" disabled>Seleccione una unidad</option>
                                     <option v-for="unidad in unidades" :value="unidad.id">{{ unidad.nombre }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label><i class="fa fa-dollar-sign me-1"></i>Moneda</label>
+                                <select v-model="reg.moneda" class="form-control" required>
+                                    <option value="" disabled>Seleccione una moneda</option>
+                                    <option value="PEN">PEN - Soles</option>
+                                    <option value="USD">USD - Dólares</option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-2">
@@ -332,11 +340,11 @@ $almacenRepuesto = 1;
                                 </select>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Distribuidor</label>
                                 <input v-model="reg.precio1" @keypress="onlyNumber" type="text" class="form-control">
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-store-alt me-1"></i>Precio Mayorista</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Mayorista</label>
                                 <input v-model="reg.precio2" @keypress="onlyNumber" type="text" class="form-control">
                             </div>
 
@@ -500,12 +508,12 @@ $almacenRepuesto = 1;
 
                             <!-- Tercera fila - Precios y Cantidad -->
                             <div class="col-md-4 mb-2">
-                                <label><span class="me-1" style="font-weight: bold;">S/</span>Precio Venta</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Venta</label>
                                 <input v-model="edt.precio" @keypress="onlyNumber" type="text" class="form-control"
                                     required>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-money-bill me-1"></i>Costo</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Costo</label>
                                 <input v-model="edt.costo" @keypress="onlyNumber" type="text" class="form-control"
                                     required>
                             </div>
@@ -521,6 +529,14 @@ $almacenRepuesto = 1;
                                 <select v-model="edt.unidad" class="form-control" required>
                                     <option value="" disabled>Seleccione una unidad</option>
                                     <option v-for="unidad in unidades" :value="unidad.id">{{ unidad.nombre }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label><i class="fa fa-dollar-sign me-1"></i>Moneda</label>
+                                <select v-model="edt.moneda" class="form-control" required>
+                                    <option value="" disabled>Seleccione una moneda</option>
+                                    <option value="PEN">PEN - Soles</option>
+                                    <option value="USD">USD - Dólares</option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-2">
@@ -546,12 +562,12 @@ $almacenRepuesto = 1;
                                 </select>
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-store me-1"></i>Precio Distribuidor</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Distribuidor</label>
                                 <input v-model="edt.precioMayor" @keypress="onlyNumber" type="text"
                                     class="form-control">
                             </div>
                             <div class="col-md-4 mb-2">
-                                <label><i class="fa fa-store-alt me-1"></i>Precio Mayorista</label>
+                                <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Mayorista</label>
                                 <input v-model="edt.precioMenor" @keypress="onlyNumber" type="text"
                                     class="form-control">
                             </div>
@@ -1102,6 +1118,7 @@ $almacenRepuesto = 1;
                         almacen: 1,
                         unidad: '',
                         subcategoria: '',
+                        moneda: 'PEN',
                         usar_multiprecio: false,
                         usar_barra: '0', // AGREGADO: Campo para usar código de barras
                     },
@@ -1129,6 +1146,7 @@ $almacenRepuesto = 1;
                         unidad: '',
                         categoria: '',
                         subcategoria: '',
+                        moneda: 'PEN',
                         usar_multiprecio: false,
                     },
                     listaIdsss: [],
@@ -1138,6 +1156,16 @@ $almacenRepuesto = 1;
                         cantidad_ingresar: '',
                         repuesto_nombre: ''
                     },
+                },
+                computed: {
+                    // Símbolos de moneda para el formulario de agregar
+                    simboloMonedaReg() {
+                        return this.reg.moneda === 'USD' ? '$' : 'S/';
+                    },
+                    // Símbolos de moneda para el formulario de editar
+                    simboloMonedaEdt() {
+                        return this.edt.moneda === 'USD' ? '$' : 'S/';
+                    }
                 },
 
                 methods: {
@@ -1320,6 +1348,16 @@ $almacenRepuesto = 1;
                                     "targets": 0,
                                     "render": function (data, type, row, meta) {
                                         return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
+                                    }
+                                },
+                                {
+                                    "targets": [3],
+                                    "className": "text-center",
+                                    "render": function (data, type, row, meta) {
+                                        // La moneda está en row[7] (índice 7 del array de columnas)
+                                        const moneda = row[7] || 'PEN';
+                                        const simbolo = moneda === 'USD' ? '$' : 'S/';
+                                        return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
                                     }
                                 },
                                 {
@@ -1525,6 +1563,7 @@ $almacenRepuesto = 1;
                         formData.append('detalle', this.edt.detalle);
                         formData.append('categoria', this.edt.categoria);
                         formData.append('unidad', this.edt.unidad);
+                        formData.append('moneda', this.edt.moneda);
                         formData.append('precio', this.edt.precio);
                         formData.append('costo', this.edt.costo);
                         formData.append('almacen', this.edt.almacen);
@@ -1601,6 +1640,7 @@ $almacenRepuesto = 1;
                         formData.append('subcategoria', this.reg.subcategoria);
                         formData.append('almacen', this.reg.almacen);
                         formData.append('unidad', this.reg.unidad);
+                        formData.append('moneda', this.reg.moneda);
                         formData.append('usar_multiprecio', this.reg.usar_multiprecio ? '1' : '0');
                         formData.append('usar_barra', this.reg.usar_barra); // AGREGADO
 
@@ -1666,6 +1706,7 @@ $almacenRepuesto = 1;
                         this.edt.almacen = data.almacen;
                         this.edt.unidad = data.unidad;
                         this.edt.categoria = data.categoria;
+                        this.edt.moneda = data.moneda;
                         this.cargarSubcategoriasEdit();
 
                         console.log("DEBUG - usar_barra recibido:", data.usar_barra);
@@ -1838,6 +1879,16 @@ $almacenRepuesto = 1;
                         "targets": 0,
                         "render": function (data, type, row, meta) {
                             return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
+                        }
+                    },
+                    {
+                        "targets": [3],
+                        "className": "text-center",
+                        "render": function (data, type, row, meta) {
+                            // La moneda está en row[7] (índice 7 del array de columnas)
+                            const moneda = row[7] || 'PEN';
+                            const simbolo = moneda === 'USD' ? '$' : 'S/';
+                            return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
                         }
                     },
                     {

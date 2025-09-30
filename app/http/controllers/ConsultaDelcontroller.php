@@ -33,6 +33,8 @@ class ConsultaDelcontroller extends Controller
             "cotizacion_id",
             "cotizacion_id",
             "cotizacion_id",
+            "aplicar_igv",
+            "moneda"
         ], $user_id);
     }
    public function generarBarCode2() {
@@ -181,12 +183,14 @@ public function getDataTallerCotizacionSS() {
     $table_data = new TableData();
     
     $user_id = "";
-    $table_data->get("view_taller_cotizaciones", "cotizacion_id", [
+    $table_data->getTallerCotizaciones("view_taller_cotizaciones", "cotizacion_id", [
         "numero",
         "fecha", 
         "documento",
         "vendedor",
-        "tipo_origen",  // ✅ AGREGAR ESTA LÍNEA
+        "tipo_origen",
+        "estado",
+        "guia_numero",
         "cotizacion_id",
         "cotizacion_id"
     ], $user_id);

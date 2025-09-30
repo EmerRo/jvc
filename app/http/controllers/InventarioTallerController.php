@@ -80,9 +80,9 @@ class InventarioTallerController extends Controller
             }
             
             // Obtener datos de la cotización
-            $sql = "SELECT tc.*, ct.documento, ct.datos, ct.direccion, ct.atencion
+            $sql = "SELECT tc.*, c.documento, c.datos, c.direccion, c.direccion2 as atencion
                     FROM taller_cotizaciones tc
-                    LEFT JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+                    LEFT JOIN clientes c ON tc.id_cliente = c.id_cliente
                     WHERE tc.id_cotizacion = ?";
 
             $stmt = $this->conexion->prepare($sql);
@@ -337,9 +337,9 @@ class InventarioTallerController extends Controller
             }
             
             // Obtener datos de la cotización
-            $sql = "SELECT tc.*, ct.documento, ct.datos, ct.direccion, ct.atencion
+            $sql = "SELECT tc.*, c.documento, c.datos, c.direccion, c.direccion2 as atencion
                     FROM taller_cotizaciones tc
-                    LEFT JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+                    LEFT JOIN clientes c ON tc.id_cliente = c.id_cliente
                     WHERE tc.id_cotizacion = ?";
 
             $stmt = $this->conexion->prepare($sql);

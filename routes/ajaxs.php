@@ -50,7 +50,10 @@ Route::post('/ajs/consulta/prod/coti',"ConsultasController@buscarProdId")->Middl
 Route::get('/ajs/buscar/cliente/datos',"ConsultasController@buscarDataCliente")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/prealerta/buscar/serie/datos',"ConsultasController@buscarDataSeriePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/ajs/prealerta/buscar/cliente/serie", "ConsultasController@buscarClienteSeriePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
-Route::get("/ajs/prealerta/buscar/series/cliente", "ConsultasController@buscarSeriesPorClientePreAlerta")->Middleware([ValidarTokenMiddleware::class]);
+
+Route::get("/ajs/prealerta/buscar/ns", "ConsultasController@buscarPreAlertaPorNS")->Middleware([ValidarTokenMiddleware::class]);
+
+Route::get('/ajs/prealerta/buscar/numero/datos',"ConsultasController@buscarDataNumeroPreAlerta")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::post('/ajs/consulta/buscar/producto',"ConsultasController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
 
@@ -111,9 +114,21 @@ Route::post("/ajs/usuarios/render","UsuariosController@render")->Middleware([Val
 Route::post("/ajs/usuarios/getOne","UsuariosController@getOne")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/editar","UsuariosController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/usuarios/borrar","UsuariosController@borrar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/add/users","UsuariosController@insertar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getModulosYSubmodulos", "UsuariosController@getModulosYSubmodulos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getRolPermisos", "UsuariosController@getRolPermisos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/verificar-permiso", "UsuariosController@verificarPermiso")->Middleware([ValidarTokenMiddleware::class]);
+
+// ================  NotificacionController ===================================
+Route::post("/ajs/notificaciones/no-leidas", "NotificacionController@obtenerNoLeidas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/contar", "NotificacionController@contarNoLeidas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/marcar-leida", "NotificacionController@marcarComoLeida")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/marcar-todas-leidas", "NotificacionController@marcarTodasComoLeidas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/obtener-todas", "NotificacionController@obtenerTodas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/crear", "NotificacionController@crear")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/limpiar-antiguas", "NotificacionController@limpiarAntiguas")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/notificaciones/usuarios-online", "NotificacionController@obtenerUsuariosOnline")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/stream/notificaciones", "NotificacionController@streamNotificaciones")->Middleware([ValidarTokenMiddleware::class]);
 // ================  RolesController ===================================
 Route::post("/ajs/roles/render", "RolesController@render")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/roles/getOne", "RolesController@getOne")->Middleware([ValidarTokenMiddleware::class]);
@@ -146,6 +161,7 @@ Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Mi
 Route::post("/ajs/fichas-tecnicas/listar", "FichasTecnicasController@listarFichas")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/guardar", "FichasTecnicasController@guardarFicha")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/obtener", "FichasTecnicasController@obtenerFicha")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/fichas-tecnicas/info-completa/:id_ficha", "FichasTecnicasController@obtenerInfoCompleta")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/eliminar", "FichasTecnicasController@eliminarFicha")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/compartir-whatsapp", "FichasTecnicasController@compartirWhatsApp")->Middleware([ValidarTokenMiddleware::class]);
 
@@ -157,6 +173,7 @@ Route::post( "/ajs/informe/insertar",  "InformeController@insertar")->Middleware
 Route::post( "/ajs/informe/editar",  "InformeController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/informe/borrar",  "InformeController@borrar")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/generarPDF",  "InformeController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
+Route::get( "/ajs/informe/generarPDFBase64",  "InformeController@generarPDFBase64")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/obtener-template",  "InformeController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/informe/guardar-template",  "InformeController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/informe/vista-previa",  "InformeController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
@@ -166,6 +183,7 @@ Route::get("/ajs/informe/obtener-tipos-informe", "InformeController@obtenerTipos
 Route::post("/ajs/informe/insertar-tipo-informe", "InformeController@insertarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/informe/editar-tipo-informe", "InformeController@editarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/informe/eliminar-tipo-informe", "InformeController@eliminarTipoInforme")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/informe/compartir-whatsapp", "InformeController@compartirWhatsApp")->Middleware([ValidarTokenMiddleware::class]);
 
 // Registrar rutas para cartas
 DocumentRouteGenerator::registerRoutes('carta', 'CartaController');
@@ -173,45 +191,8 @@ DocumentRouteGenerator::registerRoutes('carta', 'CartaController');
 // Registrar rutas para constancias  
 DocumentRouteGenerator::registerRoutes('constancia', 'ConstanciaController', );
 
-
-// Rutas para archivos internos
-Route::get( "/ajs/archivo-interno/render",  "ArchivoInternoController@render")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/getOne",  "ArchivoInternoController@getOne")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/insertar",  "ArchivoInternoController@insertar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/editar",  "ArchivoInternoController@editar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/borrar",  "ArchivoInternoController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/archivo-interno/generarPDF",  "ArchivoInternoController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/archivo-interno/obtener-template",  "ArchivoInternoController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/guardar-template",  "ArchivoInternoController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/vista-previa",  "ArchivoInternoController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/archivo-interno/getTipos",  "ArchivoInternoController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/archivo-interno/obtener-tipos-archivos",  "ArchivoInternoController@obtenerTiposArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/insertar-tipo-archivo",  "ArchivoInternoController@insertarTipoArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/editar-tipo-archivo",  "ArchivoInternoController@editarTipoArchivo")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/eliminar-tipo-archivo",  "ArchivoInternoController@eliminarTipoArchivo")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/archivo-interno/obtener-membretes",  "ArchivoInternoController@obtenerMembretes")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/archivo-interno/guardar-membretes",  "ArchivoInternoController@guardarMembretes")->Middleware([ValidarTokenMiddleware::class]);
-
-
-// Rutas para otros archivos
-Route::get( "/ajs/otro-archivo/render",  "OtroArchivoController@render")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/getOne",  "OtroArchivoController@getOne")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/insertar",  "OtroArchivoController@insertar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/editar",  "OtroArchivoController@editar")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/borrar",  "OtroArchivoController@borrar")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/generarPDF",  "OtroArchivoController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/obtener-template",  "OtroArchivoController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/guardar-template",  "OtroArchivoController@guardarTemplate")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/vista-previa",  "OtroArchivoController@vistaPreviaPDF")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/getTipos",  "OtroArchivoController@getTipos")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/getMotivos",  "OtroArchivoController@getMotivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/compartir-whatsapp",  "OtroArchivoController@compartirWhatsApp")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/obtener-tipos-archivos",  "OtroArchivoController@obtenerTiposOtrosArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/insertar-tipo-archivo",  "OtroArchivoController@insertarTipoOtrosArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/editar-tipo-archivo",  "OtroArchivoController@editarTipoOtrosArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/eliminar-tipo-archivo",  "OtroArchivoController@eliminarTipoOtrosArchivos")->Middleware([ValidarTokenMiddleware::class]);
-Route::get( "/ajs/otro-archivo/obtener-membretes",  "OtroArchivoController@obtenerMembretes")->Middleware([ValidarTokenMiddleware::class]);
-Route::post( "/ajs/otro-archivo/guardar-membretes",  "OtroArchivoController@guardarMembretes")->Middleware([ValidarTokenMiddleware::class]);
+DocumentRouteGenerator::registerRoutes('archivoInterno', 'ArchivoInternoController', );
+DocumentRouteGenerator::registerRoutes('otroArchivo', 'OtroArchivoController', );
 
 
 

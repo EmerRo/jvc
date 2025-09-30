@@ -58,8 +58,10 @@
                                                         <button id="btn-scan-qr" @click="encenderCamara" class="btn btn-primary" >Escanear QR</button> -->
 
                                                     <!-- Canvas para mostrar la vista de la cámara -->
-                                                    <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
-                                                        style="width: 300px;"></canvas>
+                                                    <canvas id="qr-canvas" v-show="scanning"
+                                                        style="width: 300px; display: none;"></canvas>
+
+
                                                     <div class="row">
 
 
@@ -108,9 +110,10 @@
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-lg-2">
-                                                                        <button id="btn-scan-qr" @click="toggleCamara"
+                                                                        <button type="button" id="btn-scan-qr"
+                                                                            @click.prevent="toggleCamara"
                                                                             class="btn bg-rojo text-white w-100">
-                                                                            Escanear QR
+                                                                            <i class="fas fa-qrcode"></i> Escanear QR
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -143,7 +146,7 @@
                                                                             v-model="producto.cantidad">
                                                                     </div>
                                                                     <label
-                                                                        class="col-lg-1 control-label d-flex align-items-center h-100">Precio</label>
+                                                                        class="col-lg-1 control-label d-flex align-items-center h-100">Costo</label>
                                                                     <div class="col-lg-2">
                                                                         <input @keypress="onlyNumber"
                                                                             class="form-control text-end" type="text"
@@ -322,14 +325,16 @@
                                                                                 <label
                                                                                     class="form-label w-100">Serie</label>
                                                                                 <input v-model="venta.serie" type="text"
-                                                                                    class="form-control text-center" readonly>
+                                                                                    class="form-control text-center"
+                                                                                    readonly>
                                                                             </div>
                                                                             <div class="col-md-6 text-center">
                                                                                 <label
                                                                                     class="form-label w-100">Numero</label>
                                                                                 <input v-model="venta.numero"
                                                                                     type="text"
-                                                                                    class="form-control text-center" readonly>
+                                                                                    class="form-control text-center"
+                                                                                    readonly>
                                                                             </div>
                                                                         </div>
                                                                         <div class="row mt-2">
@@ -936,17 +941,48 @@
                     this.venta.fechaVen = this.formatDate(tomorrow);
                 },
                 toggleCamara() {
-                    if (!app.scanning) {
-                        app.encenderCamara();
+                    if (!this.scanning) {
+                        this.encenderCamara();
                     } else {
-                        app.cerrarCamara();
+                        this.cerrarCamara();
                     }
                 },
                 encenderCamara() {
-                    navigator.mediaDevices
-                        .getUserMedia({ video: { facingMode: "environment" } })
-                        .then(function (stream) {
-                            app.scanning = true; // Actualiza el estado de escaneo
+                    // Verificar compatibilidad del navegador
+                    if (!navigator.mediaDevices && !navigator.getUserMedia && !navigator.webkitGetUserMedia && !navigator.mozGetUserMedia) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Tu navegador no soporta acceso a la cámara. Intenta con Chrome, Firefox o Edge.',
+                            confirmButtonText: 'Cerrar'
+                        });
+                        return;
+                    }
+
+                    // Función para obtener acceso a la cámara con compatibilidad
+                    const getUserMedia = (constraints) => {
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            return navigator.mediaDevices.getUserMedia(constraints);
+                        } else if (navigator.getUserMedia) {
+                            return new Promise((resolve, reject) => {
+                                navigator.getUserMedia(constraints, resolve, reject);
+                            });
+                        } else if (navigator.webkitGetUserMedia) {
+                            return new Promise((resolve, reject) => {
+                                navigator.webkitGetUserMedia(constraints, resolve, reject);
+                            });
+                        } else if (navigator.mozGetUserMedia) {
+                            return new Promise((resolve, reject) => {
+                                navigator.mozGetUserMedia(constraints, resolve, reject);
+                            });
+                        } else {
+                            return Promise.reject(new Error('getUserMedia no está soportado'));
+                        }
+                    };
+
+                    getUserMedia({ video: { facingMode: "environment" } })
+                        .then((stream) => {
+                            this.scanning = true;
                             // Configuración de la cámara y la lógica de escaneo
                             document.getElementById("btn-scan-qr").textContent = "Apagar Cámara";
                             document.getElementById("btn-scan-qr").classList.remove("btn-primary");
@@ -960,24 +996,33 @@
                             video.srcObject = stream;
                             video.play();
 
+                            const self = this; // Referencia al contexto de Vue
+
                             function tick() {
                                 canvasElement.height = video.videoHeight;
                                 canvasElement.width = video.videoWidth;
                                 canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
 
-                                app.scanning && requestAnimationFrame(tick);
+                                self.scanning && requestAnimationFrame(tick);
                             }
 
                             function scan() {
                                 try {
-                                    qrcode.decode();
+                                    if (typeof qrcode !== 'undefined') {
+                                        qrcode.decode();
+                                    } else {
+                                        console.error('Librería QR no disponible');
+                                        setTimeout(scan, 500);
+                                    }
                                 } catch (e) {
                                     setTimeout(scan, 500);
                                 }
                             }
 
-                            video.addEventListener("loadeddata", function () {
-                                canvasElement.hidden = false;
+                            // Mostrar el canvas
+                            canvasElement.style.display = "block";
+
+                            video.addEventListener("loadeddata", () => {
 
                                 tick();
                                 scan();
@@ -1010,9 +1055,9 @@
                                                     icon: 'success',
                                                     confirmButtonText: 'Cerrar'
                                                 });
-                                                app.addProductQR(id, descripcion, precio, codigo);
-                                                app.scanning = false;
-                                                app.cerrarCamara();
+                                                self.addProductQR(id, descripcion, precio, codigo);
+                                                self.scanning = false;
+                                                self.cerrarCamara();
                                             } else {
                                                 // alert("el producto no existe");
                                                 $("#descripcionBuscar").val('');
@@ -1023,8 +1068,8 @@
                                                     text: 'No se encontró ningun producto',
                                                     confirmButtonText: 'Cerrar'
                                                 });
-                                                app.scanning = false;
-                                                app.cerrarCamara();
+                                                self.scanning = false;
+                                                self.cerrarCamara();
                                             }
                                         },
                                         error: function () {
@@ -1044,26 +1089,98 @@
                                 }
 
                             };
+                        })
+                        .catch((error) => {
+                            console.error('Error al acceder a la cámara:', error);
+                            let mensaje = 'No se pudo acceder a la cámara.';
+
+                            if (error.name === 'NotAllowedError') {
+                                mensaje = 'Permiso denegado para acceder a la cámara. Verifica los permisos del navegador.';
+                            } else if (error.name === 'NotFoundError') {
+                                mensaje = 'No se encontró ninguna cámara en tu dispositivo.';
+                            } else if (error.name === 'NotSupportedError') {
+                                mensaje = 'Tu navegador no soporta acceso a la cámara.';
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de Cámara',
+                                text: mensaje,
+                                confirmButtonText: 'Cerrar'
+                            });
                         });
                 },
                 cerrarCamara() {
                     // Lógica para apagar la cámara
-                    //this.camaraEncendida = false;
-                    app.scanning = false; // Actualiza el estado de escaneo
+                    this.scanning = false;
                     const video = document.querySelector("video");
                     const canvasElement = document.getElementById("qr-canvas");
                     const canvas = canvasElement.getContext("2d");
-                    document.getElementById("btn-scan-qr").textContent = "Escanear QR";
-                    document.getElementById("btn-scan-qr").classList.remove("btn-danger");
-                    document.getElementById("btn-scan-qr").classList.add("btn-primary");
+
+                    const btnScanQR = document.getElementById("btn-scan-qr");
+                    btnScanQR.textContent = "Escanear QR";
+                    btnScanQR.classList.remove("btn-danger");
+                    btnScanQR.classList.add("bg-rojo", "text-white");
+
                     if (video && video.srcObject) {
                         video.srcObject.getTracks().forEach((track) => {
                             track.stop();
                         });
                     }
-                    canvasElement.hidden = true;
+                    if (canvasElement) {
+                        canvasElement.style.display = "none";
+                    }
                 },
                 // Otros métodos que puedas necesitar
+
+                buscarProductoPorCodigo(codigo) {
+                    // Limpiar campo de búsqueda
+                    this.producto.productoBusca = codigo;
+
+                    // Buscar el producto
+                    $.ajax({
+                        type: "post",
+                        url: _URL + '/ajs/compra/buscar/producto',
+                        data: {
+                            producto: codigo
+                        },
+                        success: (response) => {
+                            console.log(response);
+                            let data = JSON.parse(response);
+
+                            if (data.res == true) {
+                                let descripcion = data.data[0].descripcion;
+                                let precio = data.data[0].precio;
+                                let id = data.data[0].id_producto;
+                                let codigo = data.data[0].codigo;
+
+                                Swal.fire({
+                                    title: 'Producto encontrado',
+                                    text: `Se agregó: ${descripcion}`,
+                                    icon: 'success',
+                                    confirmButtonText: 'Cerrar'
+                                });
+
+                                this.addProductQR(id, descripcion, precio, codigo);
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Advertencia',
+                                    text: 'No se encontró ningún producto con ese código',
+                                    confirmButtonText: 'Cerrar'
+                                });
+                            }
+                        },
+                        error: () => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error al buscar el producto',
+                                confirmButtonText: 'Cerrar'
+                            });
+                        }
+                    });
+                },
 
                 agregarLista(id, producto, stock, $event) {
 
@@ -1355,7 +1472,7 @@
                     let cantidad = 1;
                     if (descripcion.length > 0 && precio.length > 0) {
                         const prod = {
-                            value: codigo + "|" + descripcion + "| P.Venta S/:" + precio + "|Stock:" + cantidad,
+                            value: codigo + "|" + descripcion + "| Costo S/:" + precio + "|Stock:" + cantidad,
                             ...this.productos
                         }
                         prod.cantidad = cantidad;
@@ -1429,9 +1546,11 @@
                     // Determinar URL según el tipo
                     let sourceUrl = '';
                     if (this.producto.tipo === 'producto') {
-                        sourceUrl = _URL + `/ajs/cargar/productos/${this.producto.almacen}`;
+                        // Para compras, usar el endpoint específico que muestra costo
+                        sourceUrl = _URL + `/ajs/cargar/productos/compra/${this.producto.almacen}`;
                     } else if (this.producto.tipo === 'repuesto') {
-                        sourceUrl = _URL + `/ajs/cargar/repuestos/${this.producto.almacen}`;
+                        // Para repuestos en compras, usar el endpoint específico que muestra costo
+                        sourceUrl = _URL + `/ajs/cargar/repuestos/compra/${this.producto.almacen}`;
                     }
 
                     // Destruir y recrear autocomplete
@@ -1485,11 +1604,12 @@
                 }
             }
         })
-     
+
 
         $("#descripcionBuscar").autocomplete({
 
-            source: _URL + `/ajs/cargar/productos/${app.producto.almacen}`,
+            // Cambiar la URL para usar el endpoint específico de compras
+            source: _URL + `/ajs/cargar/productos/compra/${app.producto.almacen}`,
             minLength: 1,
             select: function (event, ui) {
                 event.preventDefault();

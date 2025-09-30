@@ -1,0 +1,58 @@
+{
+"cotizacion_id": 52,
+"numero": 3,
+"id_tido": 1,
+"id_tipo_pago": 1,
+"fecha": "2025-09-24",
+"dias_pagos": "",
+"direccion": "1",
+"id_cliente": 28,
+"total": 222,
+"estado": "0",
+"id_empresa": 12,
+"sucursal": 1,
+"usar_precio": 1,
+"moneda": 2,
+"cm_tc": "3.509",
+"id_usuario": 60,
+"descuento": "0.00",
+"aplicar_igv": 0,
+"id_asunto": null,
+"asunto_nombre": null,
+"asunto": null,
+"cuotas": [
+{
+"cuotaid": 42,
+"fecha": "2025-09-24",
+"monto": 0
+}
+],
+"cliente_doc": "77425200",
+"cliente_nom": "EMER RODRIGO YARLEQUE ZAPATA",
+"cliente_dir1": "",
+"productos": [
+{
+"codigo_pp": "jvc-002",
+"productoid": 19,
+"descripcion": "LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23" - MARCA: CRIS-TAURO ",
+"nombre": "LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23" - MARCA: CRIS-TAURO ",
+"nom_prod": "LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23" - MARCA: CRIS-TAURO ",
+"cantidad": 1,
+"stock": 0,
+"precioVenta": "222.00",
+"precio": "222.00",
+"precio2": "111.00",
+"precio3": "0.00",
+"precio4": "0.00",
+"precio_unidad": "222.00",
+"codigo": "jvc-002",
+"codsunat": "",
+"costo": "211.00",
+"precio_usado": 1,
+"edicion": false,
+"tipo": "producto",
+"precioEspecial": "0.00",
+"detalle": "dbfdbfgdbfgdbfdgbfd"
+}
+]
+}

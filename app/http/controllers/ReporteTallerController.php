@@ -2,7 +2,6 @@
 
 require_once 'utils/lib/mpdf/vendor/autoload.php';
 require_once 'utils/lib/vendor/autoload.php';
-require_once "app/models/Garantia.php";
 
 class ReporteTallerController extends Controller
 {
@@ -43,15 +42,25 @@ class ReporteTallerController extends Controller
     public function generateReport($id_cotizacion)
     {
         try {
+            // Evitar que notices/warnings rompan la salida del PDF
+            if (function_exists('ini_set')) {
+                @ini_set('display_errors', '0');
+                @ini_set('html_errors', '0');
+                @ini_set('zlib.output_compression', '0');
+            }
+            // Iniciar buffer de salida para capturar cualquier salida previa
+            if (!ob_get_level()) {
+                ob_start();
+            }
             // Verificar permisos
             $permisos = $this->verificarPermisos();
             $puedeVerPrecios = $permisos['puedeVerPrecios'];
             $esRolOrdenTrabajo = $permisos['esRolOrdenTrabajo'];
 
             // Obtener datos de la cotización y cliente
-            $sql = "SELECT tc.*, ct.documento, ct.datos, ct.direccion, ct.atencion
+            $sql = "SELECT tc.*, c.documento, c.datos, c.direccion, c.direccion2 as atencion
                     FROM taller_cotizaciones tc
-                    LEFT JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+                    LEFT JOIN clientes c ON tc.id_cliente = c.id_cliente
                     WHERE tc.id_cotizacion = ?";
 
             $stmt = $this->conexion->prepare($sql);
@@ -86,10 +95,23 @@ class ReporteTallerController extends Controller
             $equipos = $stmtEquipos->get_result()->fetch_all(MYSQLI_ASSOC);
 
             // En la consulta SQL, asegúrate de que seleccionas la columna como COALESCE para manejar valores NULL
-            $sqlRepuestos = "SELECT trc.*, r.nombre, COALESCE(r.codigo, 'Sin Código') as codigo 
-                FROM taller_repuestos_cotis trc 
-                INNER JOIN repuestos r ON trc.id_repuesto = r.id_repuesto 
-                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?";
+          $sqlRepuestos = "SELECT 
+    trc.*,
+    CASE 
+        WHEN trc.tipo_item = 'producto' THEN p.nombre
+        WHEN trc.tipo_item = 'repuesto' THEN r.nombre
+        ELSE 'Sin nombre'
+    END as nombre,
+    CASE 
+        WHEN trc.tipo_item = 'producto' THEN COALESCE(p.codigo, 'Sin Código')
+        WHEN trc.tipo_item = 'repuesto' THEN COALESCE(r.codigo, 'Sin Código')
+        ELSE 'Sin Código'
+    END as codigo
+    FROM taller_repuestos_cotis trc 
+    LEFT JOIN repuestos r ON trc.id_repuesto = r.id_repuesto AND trc.tipo_item = 'repuesto'
+    LEFT JOIN productos p ON trc.id_producto = p.id_producto AND trc.tipo_item = 'producto'
+    WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?";
+
             $stmtRepuestos = $this->conexion->prepare($sqlRepuestos);
             if ($stmtRepuestos === false) {
                 throw new Exception("Error al preparar la consulta de repuestos: " . $this->conexion->error);
@@ -297,6 +319,11 @@ class ReporteTallerController extends Controller
             }
 
             // Generar PDF
+            // Limpiar cualquier salida previa antes de enviar el PDF
+            if (ob_get_length()) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/pdf');
             $mpdf->Output("Cotizacion_Taller_JVC_{$id_cotizacion}.pdf", 'I');
 
 
@@ -335,46 +362,51 @@ class ReporteTallerController extends Controller
             }
         }
 
-        foreach ($repuestos as $index => $repuesto) {
-            $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
-            $total += $subtotal;
+     foreach ($repuestos as $index => $repuesto) {
+    $subtotal = floatval($repuesto['cantidad']) * floatval($repuesto['precio']);
+    $total += $subtotal;
 
-            // Alternar colores de fondo
-            $bgColor = ($colorAlternado % 2 == 0) ? $colorCrema : $colorBlanco;
-            $colorAlternado++;
+    // Alternar colores de fondo
+    $bgColor = ($colorAlternado % 2 == 0) ? $colorCrema : $colorBlanco;
+    $colorAlternado++;
 
-            if ($puedeVerPrecios) {
-                $repuestosHtml .= "
+    // Determinar el tipo de item para mostrar
+    $tipoItem = isset($repuesto['tipo_item']) ? $repuesto['tipo_item'] : 'repuesto';
+    $nombreItem = $repuesto['nombre'] ?? 'Sin nombre';
+    $codigoItem = $repuesto['codigo'] ?? 'Sin código';
+
+    if ($puedeVerPrecios) {
+        $repuestosHtml .= "
         <tr style='margin:0; padding:0; background-color: {$bgColor};'>
             <td style='border-right: 1px solid #C43438;border-left: 1px solid #C43438; padding: 1px; text-align: center'>" . ($index + 1) . "</td>
-            <td style='border-right: 1px solid #C43438;  font-weight: bold;'>{$repuesto['nombre']}</td>
-            <td style='border-right: 1px solid #C43438;  text-align: center'>{$repuesto['cantidad']}</td>
-            <td style='border-right: 1px solid #C43438;  text-align: right'>S/ " . number_format($repuesto['precio'], 2) . "</td>
+            <td style='border-right: 1px solid #C43438; font-weight: bold;'>{$nombreItem}</td>
+            <td style='border-right: 1px solid #C43438; text-align: center'>{$repuesto['cantidad']}</td>
+            <td style='border-right: 1px solid #C43438; text-align: right'>S/ " . number_format($repuesto['precio'], 2) . "</td>
             <td style='border-right: 1px solid #C43438; text-align: right'>S/ " . number_format($subtotal, 2) . "</td>
         </tr>";
-
-            } else {
-                // Versión sin precios
-                if ($esOrdenTrabajo) {
-                    // Para rol ORDEN TRABAJO - incluir columna CÓDIGO
-                    $repuestosHtml .= "
-                    <tr style='margin:0; padding:0; '>
-                        <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438;  text-align: center'>" . ($index + 1) . "</td>
-                        <td style='border-right: 1px solid #C43438; text-align: center;'>" . ($repuesto['codigo'] ?: 'Sin Código') . "</td>
-                        <td style='border-right: 1px solid #C43438; '>{$repuesto['nombre']}</td>
-                        <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438;  text-align: center'>{$repuesto['cantidad']}</td>
-                    </tr>";
-                } else {
-                    // Para otros roles sin precios - sin columna CÓDIGO
-                    $repuestosHtml .= "
-                    <tr style='margin:0; padding:0;'>
-                        <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; padding: 5px; text-align: center'>" . ($index + 1) . "</td>
-                        <td style='border-right: 1px solid #C43438; padding: 5px;'>{$repuesto['nombre']}</td>
-                        <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; padding: 5px; text-align: center'>{$repuesto['cantidad']}</td>
-                    </tr>";
-                }
-            }
+    } else {
+        // Versión sin precios
+        if ($esOrdenTrabajo) {
+            // Para rol ORDEN TRABAJO - incluir columna CÓDIGO
+            $repuestosHtml .= "
+            <tr style='margin:0; padding:0;'>
+                <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; text-align: center'>" . ($index + 1) . "</td>
+                <td style='border-right: 1px solid #C43438; text-align: center;'>{$codigoItem}</td>
+                <td style='border-right: 1px solid #C43438;'>{$nombreItem}</td>
+                <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; text-align: center'>{$repuesto['cantidad']}</td>
+            </tr>";
+        } else {
+            // Para otros roles sin precios - sin columna CÓDIGO
+            $repuestosHtml .= "
+            <tr style='margin:0; padding:0;'>
+                <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; padding: 5px; text-align: center'>" . ($index + 1) . "</td>
+                <td style='border-right: 1px solid #C43438; padding: 5px;'>{$nombreItem}</td>
+                <td style='border-right: 1px solid #C43438; border-left: 1px solid #C43438; padding: 5px; text-align: center'>{$repuesto['cantidad']}</td>
+            </tr>";
         }
+    }
+}
+
 
 
         if (empty($repuestosHtml)) {
@@ -843,10 +875,11 @@ class ReporteTallerController extends Controller
         }
 
         // Por defecto, asumimos que tiene permisos
-        $permisos = [
-            'puedeVerPrecios' => true,
-            'esRolOrdenTrabajo' => false
-        ];
+     $permisos = [
+    'puedeVerPrecios' => true,
+    'esRolOrdenTrabajo' => false,
+    'esRolTaller' => false  // AGREGAR ESTA LÍNEA
+];
 
         // Verificar permisos específicos según el rol
         if (isset($_SESSION['id_rol'])) {
@@ -873,9 +906,10 @@ class ReporteTallerController extends Controller
                 } else if ($nombreRol === 'SERVICIO') {
                     $permisos['puedeVerPrecios'] = false;
 
-                } else if ($nombreRol === 'TALLER') {
-                    $permisos['esRolTaller'] = true;  // ⭐ AGREGAR ESTAS LÍNEAS
-                }
+               } else if ($nombreRol === 'TALLER') {
+    $permisos['esRolTaller'] = true;
+}
+
             }
 
             // Para otros roles, verificar permiso para ver precios

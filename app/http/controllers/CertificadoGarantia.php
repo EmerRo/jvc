@@ -23,7 +23,7 @@ class CertificadoGarantia extends Controller
             'margin_header' => 0,
             'margin_footer' => 0
         ]);
-        $this->conexion = (new Conexion())->getConexion();
+        $this->conexion = (new Conexion())->getConexion();  
     }
     
 public function garantiaCertificado($id_garantia)
@@ -139,7 +139,7 @@ public function garantiaCertificado($id_garantia)
                     <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>MODELO:</strong> ' . $garantia->getModeloNombre() . '</span>
                 </div>
                 <div style="min-width: 250px; margin-bottom: 8px;">
-                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>SERIE:</strong> ' . $garantia->getNumeroSerie() . '</span>
+                    <span style="-webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;" unselectable="on" class="unselectable"><strong>SERIE:</strong> ' . $garantia->getNumeroSerieFormateado() . '</span>
                 </div>
             </div>';
         } else {

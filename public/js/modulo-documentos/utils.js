@@ -10,7 +10,7 @@ if (window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
 class DocumentosUtils {
     constructor(config) {
         this.config = {
-            tipo: config.tipo, // 'carta', 'constancia', 'informe', 'archivo-interno', 'otro-archivo'
+            tipo: config.tipo, // 'carta', 'constancia', 'informe', 'archivoInterno', 'otro-archivo'
             urls: config.urls,
             elementos: config.elementos,
             ...config
@@ -320,6 +320,9 @@ class DocumentosUtils {
                                     <li><a class="dropdown-item ${this.config.tipo}-editar"  data-id="${documento[idField]}">
                                         <i class="fas fa-edit me-2"></i> Editar
                                     </a></li>
+                                    <li><a class="dropdown-item ${this.config.tipo}-whatsapp" data-id="${documento[idField]}">
+                                        <i class="fab fa-whatsapp me-2 text-success"></i> Compartir por WhatsApp
+                                    </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" 
                                            data-bs-target="${this.config.elementos.modalEliminar}" data-id="${documento[idField]}">
@@ -345,9 +348,14 @@ class DocumentosUtils {
                                 <a href="${this.config.urls.generarPDF}?id=${documento[idField]}" class="btn btn-sm btn-outline-primary" target="_blank">
                                     <i class="fas fa-file-pdf me-1"></i> Ver PDF
                                 </a>
-                                <button class="btn btn-sm text-rojo ${this.config.tipo}-editar" data-id="${documento[idField]}">
-                                    <i class="fas fa-edit me-1"></i> Editar
-                                </button>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-success ${this.config.tipo}-whatsapp" data-id="${documento[idField]}">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                    <button class="btn btn-sm text-rojo ${this.config.tipo}-editar" data-id="${documento[idField]}">
+                                        <i class="fas fa-edit me-1"></i> Editar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -362,6 +370,17 @@ class DocumentosUtils {
         $(`.${this.config.tipo}-editar`).on("click", (e) => {
             const id = $(e.currentTarget).data('id');
             this.editarDocumento(id);
+        });
+
+        // Agregar eventos a los botones de WhatsApp
+        $(`.${this.config.tipo}-whatsapp`).on("click", (e) => {
+            const id = $(e.currentTarget).data('id');
+            const funcionWhatsApp = `compartirWhatsApp${this.config.tipo.charAt(0).toUpperCase() + this.config.tipo.slice(1)}`;
+            if (typeof window[funcionWhatsApp] === 'function') {
+                window[funcionWhatsApp](id);
+            } else {
+                console.error(`Función ${funcionWhatsApp} no está definida`);
+            }
         });
 
         // Inicializar la carga de PDFs
@@ -1474,7 +1493,15 @@ class DocumentosUtils {
                     document.getElementById('membrete_footer_image_data').value = membretes.footer_image || '';
 
                     if (membretes.header_image_url) {
-                        document.getElementById('membrete-header-preview').src = membretes.header_image_url;
+                        // Construir URL absoluta si es una ruta relativa
+                        let headerUrl = membretes.header_image_url;
+                        if (headerUrl && !headerUrl.startsWith('http') && !headerUrl.startsWith('data:')) {
+                            // Extraer solo el dominio de _URL: http://indus.jvc/documentos/cartas -> http://indus.jvc
+                            const urlParts = _URL.split('/');
+                            const baseUrl = urlParts[0] + '//' + urlParts[2]; // http://indus.jvc
+                            headerUrl = baseUrl + '/' + headerUrl.replace(/^\/+/, '');
+                        }
+                        document.getElementById('membrete-header-preview').src = headerUrl;
                         document.getElementById('membrete-header-preview').style.display = 'block';
                         document.getElementById('header-placeholder-membrete').style.display = 'none';
                     } else {
@@ -1483,7 +1510,15 @@ class DocumentosUtils {
                     }
 
                     if (membretes.footer_image_url) {
-                        document.getElementById('membrete-footer-preview').src = membretes.footer_image_url;
+                        // Construir URL absoluta si es una ruta relativa
+                        let footerUrl = membretes.footer_image_url;
+                        if (footerUrl && !footerUrl.startsWith('http') && !footerUrl.startsWith('data:')) {
+                            // Extraer solo el dominio de _URL: http://indus.jvc/documentos/cartas -> http://indus.jvc
+                            const urlParts = _URL.split('/');
+                            const baseUrl = urlParts[0] + '//' + urlParts[2]; // http://indus.jvc
+                            footerUrl = baseUrl + '/' + footerUrl.replace(/^\/+/, '');
+                        }
+                        document.getElementById('membrete-footer-preview').src = footerUrl;
                         document.getElementById('membrete-footer-preview').style.display = 'block';
                         document.getElementById('footer-placeholder-membrete').style.display = 'none';
                     } else {
@@ -1868,6 +1903,63 @@ class DocumentosUtils {
 
         const blob = new Blob(byteArrays, { type: contentType });
         return blob;
+    }
+
+    /**
+     * Limpia el módulo y resetea el estado
+     */
+    cleanup() {
+        console.log(`Limpiando módulo ${this.config.tipo}...`);
+        
+        // Destruir editores
+        this.destruirEditor();
+        this.destruirEditorPlantilla();
+        
+        // Limpiar formularios
+        this.limpiarFormulario();
+        
+        // Resetear arrays
+        this.documentos = [];
+        this.filtroActual = '';
+        
+        // Limpiar objetos actuales
+        this.documentoActual = null;
+        this.plantillaActual = null;
+        
+        // Limpiar PDFs renderizados
+        if (this.pdfsRenderizados) {
+            this.pdfsRenderizados.clear();
+        }
+        
+        // Ocultar modales
+        $('.modal').modal('hide');
+        
+        // Limpiar previews de imágenes
+        $('.imagen-preview').attr('src', '').hide();
+        $('.imagen-placeholder').show();
+        
+        // Resetear inputs de archivos
+        $('input[type="file"]').val('');
+        
+        console.log(`Módulo ${this.config.tipo} limpiado`);
+    }
+
+    /**
+     * Reinicia completamente el módulo
+     */
+    reiniciar() {
+        console.log(`Reiniciando módulo ${this.config.tipo}...`);
+        
+        // Limpiar módulo
+        this.cleanup();
+        
+        // Mostrar vista lista
+        this.mostrarVistaLista();
+        
+        // Recargar documentos
+        this.cargarDocumentos();
+        
+        console.log(`Módulo ${this.config.tipo} reiniciado exitosamente`);
     }
 }
 

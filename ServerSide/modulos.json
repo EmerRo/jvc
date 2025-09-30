@@ -182,23 +182,7 @@
       "ruta": "/taller/coti/view",
       "submodulos": []
     },
-    {
-      "id": "clientes",
-      "nombre": "CLIENTES",
-      "descripcion": "Gestión de clientes",
-      "icono": "ri-team-line",
-      "ruta": "/clientes",
-      "submodulos": []
-    },
-    {
-      "id": "usuarios",
-      "nombre": "USUARIOS",
-      "descripcion": "Gestión de usuarios",
-      "icono": "ri-user-settings-line",
-      "ruta": "/usuarios",
-      "submodulos": []
-    },
-    {
+     {
       "id": "documentos",
       "nombre": "DOCUMENTOS",
       "descripcion": "Gestión de documentos del sistema",
@@ -242,6 +226,23 @@
           "ruta": "/documentos/otros"
         }
       ]
+    },
+    {
+      "id": "clientes",
+      "nombre": "CLIENTES",
+      "descripcion": "Gestión de clientes",
+      "icono": "ri-team-line",
+      "ruta": "/clientes",
+      "submodulos": []
+    },
+    {
+      "id": "usuarios",
+      "nombre": "USUARIOS",
+      "descripcion": "Gestión de usuarios",
+      "icono": "ri-user-settings-line",
+      "ruta": "/usuarios",
+      "submodulos": []
     }
+   
   ]
 }

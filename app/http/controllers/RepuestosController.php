@@ -51,7 +51,8 @@ class RepuestosController extends Controller
                 "precio_unidad",
                 "cantidad",
                 "id_repuesto",
-                "id_repuesto"
+                "id_repuesto",
+                "moneda"
             ],
             false,
             "",
@@ -109,6 +110,7 @@ class RepuestosController extends Controller
                 $precioUnidad = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
                 $costo = isset($item['costo']) ? floatval($item['costo']) : 0;
                 $cantidad = isset($item['cantidad']) ? intval($item['cantidad']) : 0;
+                $moneda = isset($item['moneda']) ? $item['moneda'] : 'PEN';
 
                 $sqlRepuesto = "SELECT * FROM repuestos WHERE codigo = ?";
                 $stmt = $this->conexion->prepare($sqlRepuesto);
@@ -119,7 +121,7 @@ class RepuestosController extends Controller
                 $stmt->close();
 
                 if ($repuesto) {
-                    $updateRepuesto = "UPDATE repuestos SET 
+                    $updateRepuesto = "UPDATE repuestos SET
                         nombre = ?,
                         detalle = ?,
                         precio = ?,
@@ -127,7 +129,8 @@ class RepuestosController extends Controller
                         almacen = ?,
                         precio_unidad = ?,
                         costo = ?,
-                        cantidad = ?
+                        cantidad = ?,
+                        moneda = ?
                         WHERE codigo = ?";
 
                     $stmt = $this->conexion->prepare($updateRepuesto);
@@ -136,7 +139,7 @@ class RepuestosController extends Controller
                     }
 
                     $stmt->bind_param(
-                        'ssddsddds',
+                        'ssddsdddss',
                         $nombre,
                         $descripcion,
                         $precio,
@@ -145,15 +148,16 @@ class RepuestosController extends Controller
                         $precioUnidad,
                         $costo,
                         $cantidad,
+                        $moneda,
                         $codigoRep
                     );
                 } else {
                     $sql = "INSERT INTO repuestos (
-                        nombre, detalle, precio, precio2, almacen, 
-                        precio_unidad, costo, cantidad, iscbp, 
+                        nombre, detalle, precio, precio2, almacen,
+                        precio_unidad, costo, cantidad, iscbp,
                         id_empresa, sucursal, codigo, ultima_salida,
-                        codsunat
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        codsunat, moneda
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                     $stmt = $this->conexion->prepare($sql);
                     if (!$stmt) {
@@ -162,7 +166,7 @@ class RepuestosController extends Controller
 
                     $ultimaSalida = '1000-01-01';
                     $stmt->bind_param(
-                        'ssddsdddsissss',
+                        'ssddsdddsisssss',
                         $nombre,
                         $descripcion,
                         $precio,
@@ -176,7 +180,8 @@ class RepuestosController extends Controller
                         $_SESSION['sucursal'],
                         $codigoRep,
                         $ultimaSalida,
-                        $codsunat
+                        $codsunat,
+                        $moneda
                     );
                 }
 
@@ -322,9 +327,10 @@ class RepuestosController extends Controller
                 razon_social = '{$_POST['razon']}', 
                 ruc = '{$_POST['ruc']}', 
                 detalle= '{$_POST['detalle']}',
-                categoria= '{$_POST['categoria']}',  
+                categoria= '{$_POST['categoria']}',
                 subcategoria= '{$_POST['subcategoria']}',
                 unidad= '{$_POST['unidad']}',
+                moneda= '{$_POST['moneda']}',
                 usar_multiprecio = '{$usar_multiprecio}',
                 usar_barra = '" . (isset($_POST['usar_barra']) ? $_POST['usar_barra'] : '0') . "',
                 cod_barra = " . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
@@ -404,6 +410,7 @@ class RepuestosController extends Controller
                      precio_mayor={$_POST['precioMayor']},precio_menor={$_POST['precioMenor']},
                      precio2={$_POST['precioMenor']},precio3={$_POST['precio3']},precio4={$_POST['precio4']},precio_unidad={$_POST['precio']},
                      razon_social='{$_POST['razon']}',ruc='{$_POST['ruc']}',detalle='{$_POST['detalle']}',
+                     moneda='{$_POST['moneda']}',
                      codigo=?
                      where descripcion=? and almacen='$almacenTemp'";
                 $stmt = $this->conexion->prepare($sql);
@@ -441,6 +448,7 @@ class RepuestosController extends Controller
                  precio2={$_POST['precioMenor']},precio3={$_POST['precio3']},precio4={$_POST['precio4']},precio_unidad={$_POST['precio']},
                  detalle='{$_POST['detalle']}',
                  razon_social='{$_POST['razon']}',ruc='{$_POST['ruc']}',
+                 moneda='{$_POST['moneda']}',
                  codigo=?
                  where id_repuesto='{$_POST['cod']}'";
 

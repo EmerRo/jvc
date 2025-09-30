@@ -87,6 +87,292 @@
             font-size: 1rem;
         }
     }
+    
+    /* NUEVOS ESTILOS PARA EL MODAL */
+    
+    /* Modal más ancho para mejor visualización */
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    /* Estilos para las imágenes en el modal */
+    .modal .img-fluid {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .modal .img-fluid:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Estilos para los botones de acción */
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem !important;
+        border-bottom-left-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
+    }
+    
+    /* Estilos para la lista de adjuntos */
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Estilos para el contador de archivos */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Estilos para las imágenes con sombra */
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    /* Estilos para el iframe del PDF */
+    .ratio iframe {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    /* Estilos para el modal de imagen ampliada */
+    .swal-wide {
+        max-width: 90vw !important;
+    }
+    
+    .swal-wide .swal2-popup {
+        max-width: none !important;
+    }
+    
+    /* NUEVOS ESTILOS PARA IMÁGENES */
+    
+    /* Efecto hover en imágenes */
+    .img-fluid[onclick*="ampliarImagen"] {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .img-fluid[onclick*="ampliarImagen"]:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        z-index: 10;
+        position: relative;
+    }
+    
+    /* Indicador visual de que la imagen es clickeable */
+    .img-fluid[onclick*="ampliarImagen"]::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.1);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+    
+    .img-fluid[onclick*="ampliarImagen"]:hover::after {
+        opacity: 1;
+    }
+    
+    /* Estilos para el modal de imagen */
+    .modal .img-fluid {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .modal .img-fluid:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Estilos para los botones de acción */
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem !important;
+        border-bottom-left-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
+    }
+    
+    /* Estilos para la lista de adjuntos */
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Estilos para el contador de archivos */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Estilos para las imágenes con sombra */
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    /* Estilos para el iframe del PDF */
+    .ratio iframe {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    /* NUEVO: Quitar hover rojo en lista de adjuntos */
+    
+    /* Quitar hover rojo en list-group-item */
+    .list-group-item:hover {
+        background-color: #f8f9fa !important;
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en botones de la lista */
+    .list-group-item .btn:hover {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: white !important;
+    }
+    
+    /* Quitar hover rojo en enlaces de la lista */
+    .list-group-item a:hover {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+    
+    /* Quitar hover rojo en iconos de la lista */
+    .list-group-item i:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en spans de la lista */
+    .list-group-item span:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos pequeños de la lista */
+    .list-group-item small:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de texto de la lista */
+    .list-group-item p:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos div de la lista */
+    .list-group-item div:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos con clase bg-light */
+    .list-group-item.bg-light:hover {
+        background-color: #f8f9fa !important;
+        color: #6c757d !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases personalizadas */
+    .list-group-item[class*="bg-"]:hover {
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de color */
+    .list-group-item[class*="text-"]:hover {
+        color: inherit !important;
+    }
+    
+    /* NUEVO: Estilos más específicos para quitar hover rojo */
+    
+    /* Quitar hover rojo en toda la lista de adjuntos del modal */
+    #verArchivoModal .list-group-item:hover {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    /* Quitar hover rojo en elementos específicos de la lista */
+    #verArchivoModal .list-group-item .btn-outline-primary:hover {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+    }
+    
+    #verArchivoModal .list-group-item .btn-outline-success:hover {
+        background-color: #198754 !important;
+        border-color: #198754 !important;
+        color: white !important;
+    }
+    
+    #verArchivoModal .list-group-item .btn-outline-danger:hover {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: white !important;
+    }
+    
+    /* Quitar hover rojo en iconos específicos */
+    #verArchivoModal .list-group-item .fas:hover,
+    #verArchivoModal .list-group-item .fab:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de texto */
+    #verArchivoModal .list-group-item .text-muted:hover {
+        color: #6c757d !important;
+    }
+    
+    #verArchivoModal .list-group-item .text-info:hover {
+        color: #0dcaf0 !important;
+    }
+    
+    /* Quitar hover rojo en elementos con clases específicas */
+    #verArchivoModal .list-group-item .text-truncate:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de Bootstrap */
+    #verArchivoModal .list-group-item.list-group-item-action:hover {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de color personalizadas */
+    #verArchivoModal .list-group-item[class*="bg-"]:hover {
+        background-color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de texto personalizadas */
+    #verArchivoModal .list-group-item[class*="text-"]:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de borde personalizadas */
+    #verArchivoModal .list-group-item[class*="border-"]:hover {
+        border-color: inherit !important;
+    }
 </style>
 <div class="tab-content" id="fichasTabsContent">
     <!-- Navegación entre Lista y Nueva Ficha -->
@@ -96,6 +382,9 @@
         </button>
         <button class="btn bg-rojo text-white" onclick="$('#nueva-ficha').addClass('show active'); $('#lista-fichas').removeClass('show active');">
             <i class="fas fa-plus me-2"></i>Subir Nueva
+        </button>
+        <button class="btn bg-rojo hover:bg-white" onclick="reiniciarModuloFichas()">
+            <i class="fas fa-sync me-2"></i>Reiniciar Módulo
         </button>
     </div>
 
@@ -140,7 +429,6 @@
     
     // Verificar si el módulo ya está inicializado
     if (window.ModuloFichasTecnicas && window.ModuloFichasTecnicas.inicializado) {
-        console.log('Módulo de Fichas Técnicas ya inicializado, omitiendo reinicialización');
         return;
     }
     
@@ -323,29 +611,51 @@ function renderizarFichas(fichas) {
 }
 
 function getPreviewHTML(ficha) {
-    if (ficha.tipo_adjunto === 'youtube') {
-        return `<div class="ratio ratio-16x9">
-            <iframe src="${getYouTubeEmbedUrl(ficha.ruta_adjunto)}" allowfullscreen></iframe>
-        </div>`;
-    } else if (ficha.tipo_adjunto === 'pdf') {
-        // Generar un ID único para el canvas
+    // NUEVO: Usar la nueva estructura de adjuntos
+    const adjuntos = ficha.adjuntos || {};
+    
+    // Si hay PDF, mostrarlo como principal
+    if (adjuntos.pdf && adjuntos.pdf.url) {
         const canvasId = `pdf-preview-${ficha.id_archivo}`;
         
         // Inicializar la carga del PDF después de que se renderice el HTML
-        // Aumentar el delay para evitar renderizados múltiples
-     setTimeout(() => {
-    renderPdfPreview(ficha.ruta_adjunto, canvasId);
-}, 100);
-
+        setTimeout(() => {
+            renderPdfPreview(adjuntos.pdf.url, canvasId);
+        }, 100);
         
         return `<div class="document-preview">
             <canvas id="${canvasId}" class="pdf-preview-canvas"></canvas>
         </div>`;
-    } else if (ficha.tipo_adjunto === 'imagen') {
+    }
+    
+    // Si hay imágenes, mostrar la primera como preview
+    if (adjuntos.imagenes && adjuntos.imagenes.length > 0) {
         return `<div class="document-preview">
-            <img src="${ficha.ruta_adjunto}" class="img-fluid" alt="${ficha.adjunto_principal || 'Vista previa'}" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${adjuntos.imagenes[0].url}" class="img-fluid" alt="${adjuntos.imagenes[0].nombre || 'Vista previa'}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
     }
+    
+    // Si hay archivo editable, mostrar icono
+    if (adjuntos.editable && adjuntos.editable.url) {
+        return `<div class="document-preview d-flex align-items-center justify-content-center">
+            <div class="text-center">
+                <i class="fas fa-file-word fa-4x text-primary"></i>
+                <p class="mt-2">Archivo editable</p>
+            </div>
+        </div>`;
+    }
+    
+    // Si hay YouTube, mostrar preview del video
+    if (adjuntos.youtube && adjuntos.youtube.url) {
+        return `<div class="document-preview d-flex align-items-center justify-content-center">
+            <div class="text-center">
+                <i class="fab fa-youtube fa-4x text-danger"></i>
+                <p class="mt-2">Video de YouTube</p>
+            </div>
+        </div>`;
+    }
+    
+    // Vista por defecto
     return `<div class="document-preview d-flex align-items-center justify-content-center">
         <div class="text-center">
             <i class="fas fa-file-alt fa-4x text-primary"></i>
@@ -529,8 +839,15 @@ function verFicha(id) {
         data: { id_archivo: id },
         dataType: 'json',
         success: function(data) {
+            // NUEVO: Log para debug
+
+            
             if (data.res) {
-                mostrarModalFicha(data.ficha, data.adjuntos);
+                // NUEVO: Log para debug
+
+                
+                // CORREGIDO: Pasar los adjuntos que están dentro de ficha
+                mostrarModalFicha(data.ficha, data.ficha.adjuntos);
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -541,6 +858,7 @@ function verFicha(id) {
             }
         },
         error: function(xhr, status, error) {
+            console.error('Error AJAX:', xhr, status, error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -553,12 +871,25 @@ function verFicha(id) {
 
 // Función para mostrar el modal de ficha técnica
 function mostrarModalFicha(ficha, adjuntos) {
+    // NUEVO: Log para debug
+    
+    
     const modal = $('#verArchivoModal');
     const modalTitle = modal.find('.modal-title');
     const modalBody = $('#verArchivoModalBody');
     const descargarBtn = $('#descargarArchivoBtn');
     
     modalTitle.text(ficha.titulo || 'Ficha Técnica');
+    
+    // NUEVO: Validar que adjuntos exista y tenga la estructura correcta
+    if (!adjuntos || typeof adjuntos !== 'object') {
+        console.warn('Adjuntos no válidos, intentando obtener desde ficha:', adjuntos);
+        // Intentar obtener adjuntos desde ficha si no se pasaron directamente
+        adjuntos = ficha.adjuntos || {};
+    }
+    
+    // NUEVO: Log después de la validación
+    
     
     let html = `
         <div class="row">
@@ -571,13 +902,13 @@ function mostrarModalFicha(ficha, adjuntos) {
                         <h5 class="card-title mb-0">Información</h5>
                     </div>
                     <div class="card-body">
-                    <!--    <p><strong>Versión:</strong> ${ficha.version || '1.0'}</p> -->
-                        <p><strong>Fecha:</strong> ${formatDate(ficha.fecha_actualizacion)}</p>
+                        <p><strong>Fecha:</strong> ${formatDate(ficha.fecha_creacion || ficha.fecha_actualizacion)}</p>
                         ${ficha.nombre_producto ? `<p><strong>Producto:</strong> ${ficha.nombre_producto}</p>` : ''}
+                        ${ficha.version ? `<p><strong>Versión:</strong> ${ficha.version}</p>` : ''}
                     </div>
                 </div>
                 
-                <div class="card mt-0">
+                <div class="card mt-3">
                     <div class="card-header">
                         <h5 class="card-title mb-0">Archivos Adjuntos</h5>
                     </div>
@@ -591,13 +922,15 @@ function mostrarModalFicha(ficha, adjuntos) {
         </div>
     `;
     
+    // NUEVO: Log del HTML generado
+    
+    
     modalBody.html(html);
     
     // Configurar botón de descarga
-    const pdfAdjunto = adjuntos.find(adj => adj.tipo_adjunto === 'pdf');
-    if (pdfAdjunto) {
+    if (adjuntos && adjuntos.pdf && adjuntos.pdf.url) {
         descargarBtn.on('click', function() {
-            window.open(pdfAdjunto.ruta_adjunto, '_blank');
+            window.open(adjuntos.pdf.url, '_blank');
         });
         descargarBtn.show();
     } else {
@@ -610,47 +943,125 @@ function mostrarModalFicha(ficha, adjuntos) {
 
 // Función para obtener el contenido principal
 function getContenidoPrincipal(ficha, adjuntos) {
-    // Buscar el adjunto principal
-    const principal = adjuntos.find(adj => adj.es_principal === '1');
+    // NUEVO: Log para debug
     
-    if (principal) {
-        if (principal.tipo_adjunto === 'pdf') {
-            return `
-                <div class="ratio ratio-16x9">
-                    <iframe src="${principal.ruta_adjunto}" allowfullscreen></iframe>
-                </div>
-            `;
-        } else if (principal.tipo_adjunto === 'youtube') {
-            return `
-                <div class="ratio ratio-16x9">
-                    <iframe src="${getYouTubeEmbedUrl(principal.ruta_adjunto)}" allowfullscreen></iframe>
-                </div>
-            `;
-        } else if (principal.tipo_adjunto === 'imagen') {
-            // NUEVO: Si el principal es imagen, mostrar todas las imágenes
-            return getGaleriaImagenes(adjuntos);
-        }
+    
+    // NUEVO: Validar que adjuntos exista
+    if (!adjuntos || typeof adjuntos !== 'object') {
+        console.warn('Adjuntos no válidos en getContenidoPrincipal:', adjuntos);
+        return `
+            <div class="text-center p-5 bg-light rounded">
+                <i class="fas fa-exclamation-triangle fa-5x text-warning mb-3"></i>
+                <h4>Error en los datos</h4>
+                <p class="text-muted">No se pudieron cargar los archivos adjuntos</p>
+                <small class="text-muted">Debug: adjuntos = ${JSON.stringify(adjuntos)}</small>
+                <br><small class="text-muted">Tipo: ${typeof adjuntos}</small>
+            </div>
+        `;
     }
     
-    // NUEVO: Si no hay adjunto principal pero hay imágenes, mostrar galería
-    const imagenes = adjuntos.filter(adj => adj.tipo_adjunto === 'imagen');
-    if (imagenes.length > 0) {
-        return getGaleriaImagenes(adjuntos);
+    // NUEVO: Log de las propiedades disponibles
+    
+    
+    // NUEVO: Mostrar PDF como contenido principal si existe
+    if (adjuntos.pdf && adjuntos.pdf.url) {
+        
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                        Documento PDF
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="${adjuntos.pdf.url}" allowfullscreen style="border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
+    // NUEVO: Si hay imágenes, mostrar galería como contenido principal
+    if (adjuntos.imagenes && Array.isArray(adjuntos.imagenes) && adjuntos.imagenes.length > 0) {
+        
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-images text-info me-2"></i>
+                        Galería de Imágenes (${adjuntos.imagenes.length})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    ${getGaleriaImagenes(adjuntos.imagenes)}
+                </div>
+            </div>
+        `;
+    }
+    
+    // NUEVO: Si hay archivo editable, mostrarlo como contenido principal
+    if (adjuntos.editable && adjuntos.editable.url) {
+        
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-word text-primary me-2"></i>
+                        Archivo Editable
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-file-word fa-5x text-primary mb-3"></i>
+                    <h4>${adjuntos.editable.nombre || 'Archivo editable'}</h4>
+                    <p class="text-muted">Archivo disponible para descarga</p>
+                    <a href="${adjuntos.editable.url}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-download me-2"></i>Descargar
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // NUEVO: Si hay YouTube, mostrar video como contenido principal
+    if (adjuntos.youtube && adjuntos.youtube.url) {
+        
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fab fa-youtube text-danger me-2"></i>
+                        Video de YouTube
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="${getYouTubeEmbedUrl(adjuntos.youtube.url)}" allowfullscreen style="border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // NUEVO: Log si no se encontró ningún contenido
+    
+    
+    // Vista por defecto si no hay adjuntos
     return `
         <div class="text-center p-5 bg-light rounded">
-            <i class="fas fa-file-alt fa-5x text-primary mb-3"></i>
+            <i class="fas fa-file-alt fa-5x text-muted mb-3"></i>
             <h4>Ficha Técnica</h4>
-            <p class="text-muted">No hay vista previa disponible</p>
+            <p class="text-muted">No hay archivos adjuntos para mostrar</p>
+            <small class="text-muted">Debug: adjuntos = ${JSON.stringify(adjuntos)}</small>
+            <br><small class="text-muted">Tipo: ${typeof adjuntos}</small>
+            <br><small class="text-muted">Propiedades: ${Object.keys(adjuntos).join(', ')}</small>
         </div>
     `;
 }
 // NUEVA: Función para mostrar galería de imágenes (máximo 3)
-function getGaleriaImagenes(adjuntos) {
-    const imagenes = adjuntos.filter(adj => adj.tipo_adjunto === 'imagen');
-    
-    if (imagenes.length === 0) {
+function getGaleriaImagenes(imagenes) {
+    if (!imagenes || imagenes.length === 0) {
         return `
             <div class="text-center p-5 bg-light rounded">
                 <i class="fas fa-image fa-5x text-muted mb-3"></i>
@@ -663,24 +1074,36 @@ function getGaleriaImagenes(adjuntos) {
         // Una sola imagen - mostrar grande
         return `
             <div class="text-center">
-                <img src="${imagenes[0].ruta_adjunto}" 
-                     class="img-fluid rounded" 
-                     alt="${imagenes[0].nombre_adjunto || 'Imagen'}"
-                     style="max-height: 400px; cursor: pointer;"
-                     onclick="ampliarImagen('${imagenes[0].ruta_adjunto}', '${escapeHtml(imagenes[0].nombre_adjunto || 'Imagen')}')">
+                <img src="${imagenes[0].url}" 
+                     class="img-fluid rounded shadow-sm" 
+                     alt="${imagenes[0].nombre || 'Imagen'}"
+                     style="max-height: 400px; cursor: pointer; border: 2px solid #e9ecef;"
+                     onclick="ampliarImagen('${imagenes[0].url}', '${escapeHtml(imagenes[0].nombre || 'Imagen')}')"
+                     title="Haz clic para ampliar">
+                <div class="mt-2">
+                    <small class="text-muted">${imagenes[0].nombre || 'Imagen'}</small>
+                    <br><small class="text-info"><i class="fas fa-mouse-pointer me-1"></i>Haz clic para ampliar</small>
+                </div>
             </div>
         `;
     } else if (imagenes.length === 2) {
         // Dos imágenes - mostrar en columnas
         return `
-            <div class="row g-2">
-                ${imagenes.map(img => `
+            <div class="row g-3">
+                ${imagenes.map((img, index) => `
                     <div class="col-6">
-                        <img src="${img.ruta_adjunto}" 
-                             class="img-fluid rounded" 
-                             alt="${img.nombre_adjunto || 'Imagen'}"
-                             style="height: 200px; width: 100%; object-fit: cover; cursor: pointer;"
-                             onclick="ampliarImagen('${img.ruta_adjunto}', '${escapeHtml(img.nombre_adjunto || 'Imagen')}')">
+                        <div class="text-center">
+                            <img src="${img.url}" 
+                                 class="img-fluid rounded shadow-sm" 
+                                 alt="${img.nombre || `Imagen ${index + 1}`}"
+                                 style="height: 200px; width: 100%; object-fit: cover; cursor: pointer; border: 2px solid #e9ecef;"
+                                 onclick="ampliarImagen('${img.url}', '${escapeHtml(img.nombre || `Imagen ${index + 1}`)}')"
+                                 title="Haz clic para ampliar">
+                            <div class="mt-2">
+                                <small class="text-muted">${img.nombre || `Imagen ${index + 1}`}</small>
+                                <br><small class="text-info"><i class="fas fa-mouse-pointer me-1"></i>Haz clic para ampliar</small>
+                            </div>
+                        </div>
                     </div>
                 `).join('')}
             </div>
@@ -688,29 +1111,50 @@ function getGaleriaImagenes(adjuntos) {
     } else {
         // Tres imágenes - mostrar en grid especial
         return `
-            <div class="row g-2">
+            <div class="row g-3">
                 <div class="col-6">
-                    <img src="${imagenes[0].ruta_adjunto}" 
-                         class="img-fluid rounded" 
-                         alt="${imagenes[0].nombre_adjunto || 'Imagen'}"
-                         style="height: 250px; width: 100%; object-fit: cover; cursor: pointer;"
-                         onclick="ampliarImagen('${imagenes[0].ruta_adjunto}', '${escapeHtml(imagenes[0].nombre_adjunto || 'Imagen')}')">
+                    <div class="text-center">
+                        <img src="${imagenes[0].url}" 
+                             class="img-fluid rounded shadow-sm" 
+                             alt="${imagenes[0].nombre || 'Imagen 1'}"
+                             style="height: 250px; width: 100%; object-fit: cover; cursor: pointer; border: 2px solid #e9ecef;"
+                             onclick="ampliarImagen('${imagenes[0].url}', '${escapeHtml(imagenes[0].nombre || 'Imagen 1')}')"
+                             title="Haz clic para ampliar">
+                        <div class="mt-2">
+                            <small class="text-muted">${imagenes[0].nombre || 'Imagen 1'}</small>
+                            <br><small class="text-info"><i class="fas fa-mouse-pointer me-1"></i>Haz clic para ampliar</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-6">
-                    <div class="row g-2">
+                    <div class="row g-3">
                         <div class="col-12">
-                            <img src="${imagenes[1].ruta_adjunto}" 
-                                 class="img-fluid rounded" 
-                                 alt="${imagenes[1].nombre_adjunto || 'Imagen'}"
-                                 style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
-                                 onclick="ampliarImagen('${imagenes[1].ruta_adjunto}', '${escapeHtml(imagenes[1].nombre_adjunto || 'Imagen')}')">
+                            <div class="text-center">
+                                <img src="${imagenes[1].url}" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     alt="${imagenes[1].nombre || 'Imagen 2'}"
+                                     style="height: 120px; width: 100%; object-fit: cover; cursor: pointer; border: 2px solid #e9ecef;"
+                                     onclick="ampliarImagen('${imagenes[1].url}', '${escapeHtml(imagenes[1].nombre || 'Imagen 2')}')"
+                                     title="Haz clic para ampliar">
+                                <div class="mt-2">
+                                    <small class="text-muted">${imagenes[1].nombre || 'Imagen 2'}</small>
+                                    <br><small class="text-info"><i class="fas fa-mouse-pointer me-1"></i>Haz clic para ampliar</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
-                            <img src="${imagenes[2].ruta_adjunto}" 
-                                 class="img-fluid rounded" 
-                                 alt="${imagenes[2].nombre_adjunto || 'Imagen'}"
-                                 style="height: 120px; width: 100%; object-fit: cover; cursor: pointer;"
-                                 onclick="ampliarImagen('${imagenes[2].ruta_adjunto}', '${escapeHtml(imagenes[2].nombre_adjunto || 'Imagen')}')">
+                            <div class="text-center">
+                                <img src="${imagenes[2].url}" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     alt="${imagenes[2].nombre || 'Imagen 3'}"
+                                     style="height: 120px; width: 100%; object-fit: cover; cursor: pointer; border: 2px solid #e9ecef;"
+                                     onclick="ampliarImagen('${imagenes[2].url}', '${escapeHtml(imagenes[2].nombre || 'Imagen 3')}')"
+                                     title="Haz clic para ampliar">
+                                <div class="mt-2">
+                                    <small class="text-muted">${imagenes[2].nombre || 'Imagen 3'}</small>
+                                    <br><small class="text-info"><i class="fas fa-mouse-pointer me-1"></i>Haz clic para ampliar</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -721,66 +1165,232 @@ function getGaleriaImagenes(adjuntos) {
 
 // NUEVA: Función para ampliar imagen en modal
 function ampliarImagen(rutaImagen, nombreImagen) {
+    // Validar parámetros
+    if (!rutaImagen) {
+        console.error('ampliarImagen: rutaImagen es requerida');
+        return;
+    }
+    
+    const nombre = nombreImagen || 'Imagen';
+    
     Swal.fire({
-        title: nombreImagen,
-        html: `<img src="${rutaImagen}" class="img-fluid" alt="${nombreImagen}" style="max-width: 100%; max-height: 70vh;">`,
+        title: nombre,
+        html: `
+            <div class="text-center">
+                <img src="${rutaImagen}" 
+                     class="img-fluid" 
+                     alt="${nombre}" 
+                     style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            </div>
+        `,
         showCloseButton: true,
         showConfirmButton: false,
         width: 'auto',
         customClass: {
             popup: 'swal-wide'
+        },
+        didOpen: () => {
+            // Agregar botón de descarga
+            const swalContainer = Swal.getContainer();
+            if (swalContainer) {
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'btn btn-success mt-3';
+                downloadBtn.innerHTML = '<i class="fas fa-download me-2"></i>Descargar';
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = rutaImagen;
+                    link.download = nombre;
+                    link.click();
+                };
+                swalContainer.querySelector('.swal2-html-container').appendChild(downloadBtn);
+            }
         }
     });
 }
 
+// NUEVA: Función para ampliar imagen en modal (versión alternativa)
+function ampliarImagenAlternativa(rutaImagen, nombreImagen) {
+    // Crear modal personalizado con Bootstrap
+    const modalHtml = `
+        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">${nombreImagen || 'Imagen'}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${rutaImagen}" 
+                             class="img-fluid" 
+                             alt="${nombreImagen || 'Imagen'}" 
+                             style="max-width: 100%; max-height: 60vh; border-radius: 8px;">
+                    </div>
+                    <div class="modal-footer">
+                        <a href="${rutaImagen}" 
+                           class="btn btn-success" 
+                           download="${nombreImagen || 'imagen'}" 
+                           target="_blank">
+                            <i class="fas fa-download me-2"></i>Descargar
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    const modalAnterior = document.getElementById('imagenAmpliadaModal');
+    if (modalAnterior) {
+        modalAnterior.remove();
+    }
+    
+    // Agregar nuevo modal al body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+    modal.show();
+    
+    // Limpiar modal cuando se cierre
+    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
 
 // Función para obtener la lista de adjuntos
 function getListaAdjuntos(adjuntos) {
-    if (!adjuntos || adjuntos.length === 0) {
-        return '<li class="list-group-item">No hay archivos adjuntos</li>';
+    // NUEVO: Validar que adjuntos exista
+    if (!adjuntos || typeof adjuntos !== 'object' || Object.keys(adjuntos).length === 0) {
+        return '<li class="list-group-item text-center text-muted">No hay archivos adjuntos</li>';
     }
     
     let html = '';
+    let totalAdjuntos = 0;
     
-    // Agrupar adjuntos por tipo
+    // NUEVO: Definir grupos de adjuntos con iconos y títulos
     const grupos = {
-        pdf: { icon: 'fas fa-file-pdf text-danger', title: 'PDF' },
-        editable: { icon: 'fas fa-file-image text-primary', title: 'Archivo Editable' },
-        imagen: { icon: 'fas fa-image text-info', title: 'Imagen' },
-        youtube: { icon: 'fab fa-youtube text-danger', title: 'Video de YouTube' }
+        pdf: { 
+            icon: 'fas fa-file-pdf text-danger', 
+            title: 'Documento PDF',
+            tipo: 'pdf'
+        },
+        editable: { 
+            icon: 'fas fa-file-word text-primary', 
+            title: 'Archivo Editable',
+            tipo: 'editable'
+        },
+        imagenes: { 
+            icon: 'fas fa-images text-info', 
+            title: 'Imágenes',
+            tipo: 'imagenes'
+        },
+        youtube: { 
+            icon: 'fab fa-youtube text-danger', 
+            title: 'Video de YouTube',
+            tipo: 'youtube'
+        }
     };
     
+    // NUEVO: Procesar cada tipo de adjunto
     Object.keys(grupos).forEach(tipo => {
-        const tipoAdjuntos = adjuntos.filter(adj => adj.tipo_adjunto === tipo);
+        const grupo = grupos[tipo];
         
-        if (tipoAdjuntos.length > 0) {
-            tipoAdjuntos.forEach(adj => {
-                // Determinar el icono del botón según el tipo
-                const iconoBoton = adj.tipo_adjunto === 'youtube' ? 'fas fa-eye' : 'fas fa-download';
-                const tituloBoton = adj.tipo_adjunto === 'youtube' ? 'Ver video' : 'Descargar';
-                
-                // Truncar nombre si es muy largo (especialmente para URLs de YouTube)
-                let nombreMostrar = adj.nombre_adjunto || 'Archivo';
-                if (adj.tipo_adjunto === 'youtube' && nombreMostrar.length > 50) {
-                    nombreMostrar = nombreMostrar.substring(0, 47) + '...';
+        if (tipo === 'imagenes' && adjuntos[tipo] && Array.isArray(adjuntos[tipo]) && adjuntos[tipo].length > 0) {
+            // Manejar imágenes como array
+            adjuntos[tipo].forEach((img, index) => {
+                if (img && img.url) {
+                    totalAdjuntos++;
+                    html += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1 me-2" style="min-width: 0;">
+                                <i class="${grupo.icon} me-2"></i>
+                                <span class="text-truncate d-inline-block" style="max-width: 200px;" title="${escapeHtml(img.nombre || `Imagen ${index + 1}`)}">
+                                    ${escapeHtml(img.nombre || `Imagen ${index + 1}`)}
+                                </span>
+                                <small class="text-muted d-block">${grupo.title}</small>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="ampliarImagen('${img.url}', '${escapeHtml(img.nombre || `Imagen ${index + 1}`)}')" title="Ver imagen">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="${img.url}" class="btn btn-sm btn-outline-success" target="_blank" title="Descargar imagen">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </li>
+                    `;
                 }
-                
-                html += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="flex-grow-1 me-2" style="min-width: 0;">
-                            <i class="${grupos[tipo].icon} me-2"></i>
-                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="${escapeHtml(adj.nombre_adjunto || 'Archivo')}">${escapeHtml(nombreMostrar)}</span>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm btn-outline-primary" onclick="window.open('${adj.ruta_adjunto}', '_blank')" title="${tituloBoton}">
-                                <i class="${iconoBoton}"></i>
-                            </button>
-                        </div>
-                    </li>
-                `;
             });
+        } else if (adjuntos[tipo] && adjuntos[tipo].url) {
+            // Manejar otros tipos como objetos individuales
+            const adjunto = adjuntos[tipo];
+            totalAdjuntos++;
+            
+            // Determinar el nombre a mostrar
+            let nombreMostrar = adjunto.nombre || grupo.title;
+            if (tipo === 'youtube' && nombreMostrar.length > 50) {
+                nombreMostrar = nombreMostrar.substring(0, 47) + '...';
+            }
+            
+            // Determinar botones según el tipo
+            let botones = '';
+            if (tipo === 'youtube') {
+                botones = `
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.open('${adjunto.url}', '_blank')" title="Ver video">
+                        <i class="fab fa-youtube"></i>
+                    </button>
+                `;
+            } else if (tipo === 'pdf') {
+                botones = `
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="window.open('${adjunto.url}', '_blank')" title="Ver PDF">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="${adjunto.url}" class="btn btn-sm btn-outline-success" target="_blank" title="Descargar PDF">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                `;
+            } else {
+                botones = `
+                    <a href="${adjunto.url}" class="btn btn-sm btn-outline-success" target="_blank" title="Descargar archivo">
+                        <i class="fas fa-download"></i>
+                    </a>
+                `;
+            }
+            
+            html += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 me-2" style="min-width: 0;">
+                        <i class="${grupo.icon} me-2"></i>
+                        <span class="text-truncate d-inline-block" style="max-width: 200px;" title="${escapeHtml(nombreMostrar)}">
+                            ${escapeHtml(nombreMostrar)}
+                        </span>
+                        <small class="text-muted d-block">${grupo.title}</small>
+                    </div>
+                    <div>
+                        ${botones}
+                    </div>
+                </li>
+            `;
         }
     });
+    
+    // NUEVO: Si no hay adjuntos válidos
+    if (totalAdjuntos === 0) {
+        return '<li class="list-group-item text-center text-muted">No hay archivos adjuntos válidos</li>';
+    }
+    
+    // NUEVO: Agregar contador total
+    html = `
+        <li class="list-group-item bg-light">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Total: ${totalAdjuntos} archivo${totalAdjuntos !== 1 ? 's' : ''} adjunto${totalAdjuntos !== 1 ? 's' : ''}
+            </small>
+        </li>
+    ` + html;
     
     return html;
 }
@@ -789,6 +1399,16 @@ function getListaAdjuntos(adjuntos) {
 function compartirWhatsApp(id) {
     $('#id_archivo_compartir').val(id);
     $('#compartirWhatsAppModal').modal('show');
+}
+
+// Función para marcar todos los archivos
+function marcarTodosArchivos() {
+    $('#check_pdf, #check_editable, #check_imagenes, #check_youtube').prop('checked', true);
+}
+
+// Función para desmarcar todos los archivos
+function desmarcarTodosArchivos() {
+    $('#check_pdf, #check_editable, #check_imagenes, #check_youtube').prop('checked', false);
 }
 
 // Función para enviar por WhatsApp
@@ -806,12 +1426,22 @@ function enviarWhatsApp() {
         return;
     }
     
+    // Obtener selecciones de archivos
+    const incluirPDF = $('#check_pdf').is(':checked');
+    const incluirEditable = $('#check_editable').is(':checked');
+    const incluirImagenes = $('#check_imagenes').is(':checked');
+    const incluirYouTube = $('#check_youtube').is(':checked');
+
     $.ajax({
         url: _URL + '/ajs/fichas-tecnicas/compartir-whatsapp',
         type: 'POST',
         data: {
             id_archivo: id_archivo,
-            telefono: telefono
+            telefono: telefono,
+            incluir_pdf: incluirPDF,
+            incluir_editable: incluirEditable,
+            incluir_imagenes: incluirImagenes,
+            incluir_youtube: incluirYouTube
         },
         dataType: 'json',
         success: function(data) {
@@ -845,12 +1475,12 @@ function enviarWhatsApp() {
 function eliminarFicha(id) {
     Swal.fire({
         title: '¿Está seguro?',
-        text: "Esta acción no se puede revertir",
+        text: "Esta acción eliminará COMPLETAMENTE la ficha técnica y todos sus archivos. Esta acción NO se puede deshacer.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: 'Sí, eliminar todo',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -861,26 +1491,25 @@ function eliminarFicha(id) {
                 dataType: 'json',
                 success: function(data) {
                     if (data.res) {
-                        Swal.fire(
-                            '¡Eliminado!',
-                            'La ficha técnica ha sido eliminada.',
-                            'success'
-                        );
+                        let mensaje = `¡Eliminado completamente! ${data.mensaje}`;
+                        if (data.adjuntos_eliminados > 0) {
+                            mensaje += `\n\nSe eliminaron ${data.adjuntos_eliminados} registros de adjuntos de la base de datos.`;
+                        }
+                        if (data.archivos_eliminados > 0) {
+                            mensaje += `\n\nSe eliminaron ${data.archivos_eliminados} archivos del servidor.`;
+                        }
+                        if (data.advertencias && data.advertencias.length > 0) {
+                            mensaje += `\n\nAdvertencias: ${data.advertencias.join(', ')}`;
+                        }
+                        
+                        Swal.fire('¡Eliminado!', mensaje, 'success');
                         cargarFichas();
                     } else {
-                        Swal.fire(
-                            'Error',
-                            'Error al eliminar la ficha técnica: ' + (data.error || 'Error desconocido'),
-                            'error'
-                        );
+                        Swal.fire('Error', 'Error al eliminar: ' + (data.error || 'Error desconocido'), 'error');
                     }
                 },
                 error: function(xhr, status, error) {
-                    Swal.fire(
-                        'Error',
-                        'Error al eliminar la ficha técnica. Intente nuevamente.',
-                        'error'
-                    );
+                    Swal.fire('Error', 'Error al eliminar la ficha técnica. Intente nuevamente.', 'error');
                 }
             });
         }
@@ -1162,7 +1791,7 @@ function manejarSeleccionImagenes(input, preview) {
     // Actualizar el input con todas las imágenes acumuladas
     actualizarInputImagenes(input[0], imagenesAcumuladas);
     
-    // Mostrar preview de todas las imágenes
+    // Mostrar preview de todas las imágenes acumuladas
     mostrarPreviewImagenesAcumuladas(imagenesAcumuladas, preview);
 }
 
@@ -1187,64 +1816,79 @@ function mostrarPreviewImagenesAcumuladas(imagenes, preview) {
         return;
     }
     
+    // NUEVO: Crear un array para almacenar las promesas de FileReader
+    const promesasImagenes = [];
+    
+    // NUEVO: Crear el HTML base primero
     let html = '<div class="row g-2 mt-2">';
     
+    // NUEVO: Agregar placeholders para todas las imágenes
+    imagenes.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+            html += `
+                <div class="col-4" id="imagen-preview-${index}">
+                    <div class="position-relative">
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                             style="height: 80px; width: 100%;">
+                            <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
+                        </div>
+                        <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
+                            ${index + 1}
+                        </div>
+                        <button type="button" 
+                                class="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-1" 
+                                style="width: 25px; height: 25px; font-size: 0.7rem; line-height: 1;"
+                                onclick="eliminarImagenSeleccionada(${index})"
+                                title="Eliminar imagen">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                </div>
+            `;
+        }
+    });
+    
+    html += '</div>';
+    
+    // NUEVO: Agregar información adicional
+    html += `
+        <div class="mt-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    ${imagenes.length} de 3 imágenes seleccionadas
+                </small>
+                <button type="button" 
+                        class="btn btn-outline-secondary btn-sm" 
+                        onclick="limpiarTodasLasImagenes()">
+                    <i class="fas fa-trash me-1"></i>Limpiar todo
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // NUEVO: Mostrar el HTML base inmediatamente
+    preview.html(html);
+    preview.show();
+    
+    // NUEVO: Ahora cargar las imágenes una por una
     imagenes.forEach((file, index) => {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
+            
             reader.onload = function(e) {
-                const imgHtml = `
-                    <div class="col-4" id="imagen-preview-${index}">
-                        <div class="position-relative">
-                            <img src="${e.target.result}" 
-                                 class="img-fluid rounded" 
-                                 style="height: 80px; width: 100%; object-fit: cover;">
-                            <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
-                                ${index + 1}
-                            </div>
-                            <button type="button" 
-                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-1" 
-                                    style="width: 25px; height: 25px; font-size: 0.7rem; line-height: 1;"
-                                    onclick="eliminarImagenSeleccionada(${index})"
-                                    title="Eliminar imagen">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
-                    </div>
-                `;
-                
-                // Agregar la imagen al HTML
-                if (index === 0) {
-                    html = '<div class="row g-2 mt-2">' + imgHtml;
-                } else {
-                    html += imgHtml;
-                }
-                
-                // Si es la última imagen, cerrar el HTML y mostrarlo
-                if (index === imagenes.length - 1) {
-                    html += '</div>';
-                    
-                    // Agregar información adicional
-                    html += `
-                        <div class="mt-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    ${imagenes.length} de 3 imágenes seleccionadas
-                                </small>
-                                <button type="button" 
-                                        class="btn btn-outline-secondary btn-sm" 
-                                        onclick="limpiarTodasLasImagenes()">
-                                    <i class="fas fa-trash me-1"></i>Limpiar todo
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    preview.html(html);
-                    preview.show();
+                // NUEVO: Actualizar solo la imagen específica sin tocar el resto del HTML
+                const imagenContainer = $(`#imagen-preview-${index}`);
+                if (imagenContainer.length > 0) {
+                    const imgElement = imagenContainer.find('.bg-light');
+                    imgElement.html(`
+                        <img src="${e.target.result}" 
+                             class="img-fluid rounded" 
+                             style="height: 80px; width: 100%; object-fit: cover;">
+                    `);
                 }
             };
+            
             reader.readAsDataURL(file);
         }
     });
@@ -1276,6 +1920,7 @@ function limpiarTodasLasImagenes() {
     const preview = $('#imagenes_file').closest('.file-upload-container').find('.selected-files');
     preview.hide();
 }
+
 
 
 // Función para inicializar búsqueda de productos
@@ -1379,7 +2024,7 @@ function escapeHtml(text) {
 // Función para seleccionar un producto
 function seleccionarProducto(id, nombre) {
     try {
-        console.log('Seleccionando producto:', id, nombre);
+
         
         // Establecer el ID en el campo oculto
         $('#id_producto').val(id);
@@ -1448,8 +2093,8 @@ function guardarFicha(form) {
     text: 'Ficha técnica guardada correctamente',
     confirmButtonColor: '#3085d6'
 }).then(() => {
-    form.reset();
-    limpiarFormularioImagenes(); // NUEVO: Limpiar imágenes acumuladas
+    // NUEVO: Limpiar completamente el formulario
+    limpiarFormularioCompleto();
     
     // Cambiar a la pestaña de lista
     $('#nueva-ficha').removeClass('show active');
@@ -1534,7 +2179,7 @@ function aplicarFiltros() {
 
 // Función para validar link de YouTube
 function validarYouTubeLink() {
-    const url = $('#youtube_link').val().trim();
+    const url = $('#youtube').val().trim();
     if (!url) {
         Swal.fire({
             icon: 'error',
@@ -1595,15 +2240,78 @@ function limpiarFormularioImagenes() {
     preview.hide();
 }
 
+// NUEVA: Función para limpiar completamente el formulario
+function limpiarFormularioCompleto() {
+    // 1. Limpiar campos de texto
+    $('#titulo').val('');
+    $('#buscar_producto').val('');
+    $('#id_producto').val('');
+    $('#youtube').val('');
+    
+    // 2. Limpiar campos de archivos
+    $('#pdf_file').val('');
+    $('#editable_file').val('');
+    $('#imagenes_file').val('');
+    
+    // 3. Limpiar previews de archivos
+    $('.selected-files').hide();
+    $('.selected-files').html('');
+    
+    // 4. Limpiar imágenes acumuladas
+    imagenesAcumuladas = [];
+    
+    // 5. Limpiar contenedores de archivos
+    $('.file-upload-container').removeClass('border-primary');
+    
+    // 6. Resetear el formulario HTML
+    $('#nuevaFichaForm')[0].reset();
+    
+    // 7. Limpiar resultados de búsqueda de productos
+    $('#resultados_productos').hide();
+    
+    
+}
 
 window.verFicha = verFicha;
 window.compartirWhatsApp = compartirWhatsApp;
+window.enviarWhatsApp = enviarWhatsApp;
+window.marcarTodosArchivos = marcarTodosArchivos;
+window.desmarcarTodosArchivos = desmarcarTodosArchivos;
 window.eliminarFicha = eliminarFicha;
 window.cargarFichas = cargarFichas;
 window.aplicarFiltros = aplicarFiltros;
 window.validarYouTubeLink = validarYouTubeLink;
 window.seleccionarProducto = seleccionarProducto;
 window.buscarProductos = buscarProductos;
+window.eliminarImagenSeleccionada = eliminarImagenSeleccionada;
+window.limpiarTodasLasImagenes = limpiarTodasLasImagenes;
+window.limpiarFormularioCompleto = limpiarFormularioCompleto;
+// NUEVO: Agregar funciones de ampliar imagen al scope global
+window.ampliarImagen = ampliarImagen;
+window.ampliarImagenAlternativa = ampliarImagenAlternativa;
+
+// Función para reiniciar el módulo de fichas técnicas
+window.reiniciarModuloFichas = function() {
+    console.log('Reiniciando módulo de fichas técnicas...');
+    
+    // Limpiar formulario completo
+    limpiarFormularioCompleto();
+    
+    // Limpiar eventos duplicados
+    limpiarEventosDuplicados();
+    
+    // Limpiar contenedores de archivos
+    $('.selected-files').hide().html('');
+    $('.file-upload-container').removeClass('border-primary');
+    
+    // Resetear vista a lista de fichas
+    $('#nueva-ficha').removeClass('show active');
+    $('#lista-fichas').addClass('show active');
+    
+    // Recargar fichas
+    cargarFichas();
+};
+
 })();
 
 </script>

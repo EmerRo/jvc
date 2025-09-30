@@ -24,7 +24,7 @@ class RolesController extends Controller
     $sql = "SELECT rol_id, nombre, ver_precios, puede_eliminar FROM roles WHERE rol_id = {$_POST['id']}";
     $fila = mysqli_query($this->conectar, $sql);
     $rol = mysqli_fetch_assoc($fila);
-    
+
     // Obtener permisos del rol
     $sql = "SELECT modulo_id, submodulo_id FROM rol_permisos WHERE rol_id = {$_POST['id']}";
     $fila = mysqli_query($this->conectar, $sql);
@@ -38,13 +38,13 @@ class RolesController extends Controller
             $submodulos[] = $row['modulo_id'] . '|' . $row['submodulo_id'];
         }
     }
-    
+
     $respuesta = [
         'rol' => $rol,
         'modulos' => $modulos,
         'submodulos' => $submodulos
     ];
-    
+
     return json_encode($respuesta);
 }
 

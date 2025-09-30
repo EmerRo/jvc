@@ -1,0 +1,20 @@
+Venta: 2, fecha: 2025-08-20
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('2', '2', '1', '110.00', '135.00', '1', '42', '110.00') - false 
+Data too long for column 'precio_usado' at row 1
+
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('11', '2', '1', '212.00', '1230.00', '2', '43', '212.00') - false 
+Data too long for column 'precio_usado' at row 1
+
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('2', '2', '1', '110.00', '135.00', '3', '44', '110.00') - false 
+Data too long for column 'precio_usado' at row 1
+
+

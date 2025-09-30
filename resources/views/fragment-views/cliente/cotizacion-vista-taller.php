@@ -16,6 +16,70 @@
     display: inline-block !important;
     text-align: center !important;
 }
+
+/* Estilos para dropdown personalizado en tabla (copiado de taller.php) */
+.action-button {
+    background: #0d6efd;
+    border: 1px solid #0d6efd;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.action-button:hover {
+    background-color: #0a58ca;
+    border-color: #0a58ca;
+    color: white;
+}
+
+.dropdown-actions {
+    position: fixed;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    min-width: 180px;
+    max-width: 250px;
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-actions a {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-actions a:hover {
+    background-color: #f3f4f6;
+}
+
+.dropdown-actions i {
+    width: 16px;
+}
+
+.dropdown-actions .divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+/* Muestra el menú cuando tiene la clase show */
+.action-menu.show .dropdown-actions {
+    display: block;
+}
 </style>
 
 <div class="page-title-box">
@@ -78,6 +142,41 @@
     </div>
 </div>
 
+<!-- Modal WhatsApp -->
+<div class="modal fade" id="modal-whatsapp" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="whatsappModalLabel">
+                    <i class="fab fa-whatsapp me-2"></i>Enviar por WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="whatsapp-telefono" class="form-label">Número de teléfono</label>
+                    <input type="text" class="form-control" id="whatsapp-telefono"
+                           placeholder="Ej: 51987654321 (incluir código de país)"
+                           maxlength="15">
+                    <div class="form-text">
+                        <i class="fas fa-info-circle"></i>
+                        Incluir código de país. Ej: 51987654321 para Perú
+                    </div>
+                </div>
+                <input type="hidden" id="whatsapp-cotizacion-id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" onclick="enviarWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
@@ -99,7 +198,7 @@
                 "url": "ServerSide/Spanish.json"
             },
             order: [
-                [1, "desc"] // Ordenar por fecha (columna 1)
+                [0, "desc"]  // Ordenar por número (columna 0) descendente - más recientes primero
             ],
             
             columnDefs: [
@@ -167,36 +266,70 @@
                         }
                     }
                 },
-                // Columna vender - índice 6 (data[5] - primer cotizacion_id)
+                // Columna vender - índice 6 (data[7] - primer cotizacion_id)
                 {
                     targets: 6,
                     render: function (data, type, row, meta) {
-                        return `<a href="/ventas/productos?coti-taller=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
+                        // Usar data[7] que contiene cotizacion_id
+                        var cotizacion_id = row[7];
+                        return `<a href="/ventas/productos?coti-taller=${cotizacion_id}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
                     }
                 },
-                // Columna guía - índice 7 (data[6] - segundo cotizacion_id)
+                // Columna guía - índice 7 (data[7] - segundo cotizacion_id)
                 {
                     targets: 7,
                     render: function (data, type, row, meta) {
-                        return `<a href="/guia/remision/registrar?coti-taller=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
+                        // data[6] contiene guia_numero, data[7] contiene cotizacion_id
+                        var guia_numero = row[6];
+                        var cotizacion_id = row[7];
+                        
+                        if (guia_numero && guia_numero !== '' && guia_numero !== null) {
+                            // Ya tiene guía - mostrar ícono verde con tooltip
+                            return `<button class="btn btn-success btn-sm" title="Ya tiene Guía de Remisión: ${guia_numero}" disabled>
+                                        <i class="fa fa-clipboard"></i>
+                                    </button>`;
+                        } else {
+                            // No tiene guía - mostrar botón normal para crear
+                            return `<a href="/guia/remision/registrar?coti-taller=${cotizacion_id}" class="btn btn-primary btn-sm button-link" title="Crear Guía de Remisión">
+                                        <i class="fa fa-clipboard"></i>
+                                    </a>`;
+                        }
                     }
                 },
-                // Columna de acciones - índice 8 (usar data[5] o data[6] ya que ambos son cotizacion_id)
+                // Columna de acciones - índice 8 (usa la primera columna cotizacion_id en posición 7)
                 {
                     targets: 8,
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row, meta) {
-                        // Usar el cotizacion_id que viene en data[5] o data[6]
-                        var cotizacionId = row[5]; // Usar el primer cotizacion_id
+                        // Con el dataset actual, el cotizacion_id está en row[7]
+                        var cotizacionId = row[7];
                         return `
                             <div class="btn-group" role="group">
                                 <a href="/edt/coti/taller?id=${cotizacionId}" class="btn btn-sm btn-primary" title="Editar">
                                     <i class="fa fa-edit"></i>
                                 </a>
-                                <a href="${_URL + '/r/taller/reporte/' + cotizacionId}" target="_blank" class="btn btn-sm btn-info" title="Ver reporte">
-                                    <i class="fa fa-file"></i>
-                                </a>
+                                <div class="action-menu">
+                                    <button type="button" class="action-button" title="Reportes">
+                                        <i class="fas fa-file-alt"></i>
+                                    </button>
+                                    <div class="dropdown-actions">
+                                        <a href="${_URL + '/r/taller/reporte/' + cotizacionId}" target="_blank">
+                                            <i class="fas fa-file-pdf text-danger"></i> PDF A4
+                                        </a>
+                                        <div class="divider"></div>
+                                        <a href="javascript:void(0)" onclick="abrirModalWhatsApp(${cotizacionId})">
+                                            <i class="fab fa-whatsapp text-success"></i> Enviar WhatsApp
+                                        </a>
+                                        <div class="divider"></div>
+                                        <a href="javascript:void(0)" onclick="generarReporteInventarioPdf(${cotizacionId})">
+                                            <i class="fas fa-file-pdf text-danger"></i> Reporte Inventario PDF
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="generarReporteInventarioExcel(${cotizacionId})">
+                                            <i class="fas fa-file-excel text-success"></i> Reporte Inventario Excel
+                                        </a>
+                                    </div>
+                                </div>
                                 <button onclick="eliminarCotizacion(${cotizacionId})" type="button" class="btn btn-danger btn-sm" title="Eliminar">
                                     <i class="fa fa-times"></i>
                                 </button>
@@ -297,6 +430,141 @@
             }
         });
     }
+
+    // Función para abrir modal de WhatsApp
+    function abrirModalWhatsApp(cotizacionId) {
+        $('#whatsapp-cotizacion-id').val(cotizacionId);
+        $('#modal-whatsapp').modal('show');
+    }
+
+    // Función para enviar por WhatsApp
+    function enviarWhatsApp() {
+        const telefono = $('#whatsapp-telefono').val().trim();
+        const cotizacionId = $('#whatsapp-cotizacion-id').val();
+
+        if (!telefono) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Teléfono requerido',
+                text: 'Por favor ingrese un número de teléfono'
+            });
+            return;
+        }
+
+        // Construir URL del PDF
+        const pdfUrl = `${_URL}/r/taller/reporte/${cotizacionId}`;
+
+        // Construir mensaje de WhatsApp
+        const mensaje = `Cotización N° ${cotizacionId}%0A${encodeURIComponent(pdfUrl)}`;
+        const whatsappUrl = `https://wa.me/${telefono}?text=${mensaje}`;
+
+        // Abrir WhatsApp
+        window.open(whatsappUrl, '_blank');
+
+        // Cerrar modal
+        $('#modal-whatsapp').modal('hide');
+
+        // Limpiar campo
+        $('#whatsapp-telefono').val('');
+    }
+
+    // Función para generar reporte inventario PDF
+    function generarReporteInventarioPdf(cotizacionId) {
+        const url = `${_URL}/r/taller/inventario/${cotizacionId}`;
+        window.open(url, '_blank');
+    }
+
+    // Función para generar reporte inventario Excel
+    function generarReporteInventarioExcel(cotizacionId) {
+        // Mostrar loading
+        Swal.fire({
+            title: 'Generando reporte...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Generar y descargar Excel
+        const url = `${_URL}/r/taller/inventario/excel/${cotizacionId}`;
+
+        // Crear enlace temporal para descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_inventario_${cotizacionId}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Cerrar loading después de un momento
+        setTimeout(() => {
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'Reporte generado',
+                text: 'El archivo Excel se ha descargado correctamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }, 1500);
+    }
+
+    // Sistema de dropdown personalizado (copiado de taller.php)
+    $(document).on("click", ".action-button", function (e) {
+        e.stopPropagation();
+        const button = $(this);
+        const menu = button.closest(".action-menu");
+        const dropdown = menu.find(".dropdown-actions");
+
+        // Cerrar otros menús
+        $(".action-menu").not(menu).removeClass("show");
+
+        if (menu.hasClass("show")) {
+            menu.removeClass("show");
+        } else {
+            // Calcular posición para position: fixed
+            const buttonOffset = button.offset();
+            const buttonHeight = button.outerHeight();
+            const buttonWidth = button.outerWidth();
+            const dropdownWidth = 180; // min-width definido en CSS
+
+            // Posición por defecto (debajo del botón, alineado a la derecha)
+            let top = buttonOffset.top + buttonHeight + 5;
+            let left = buttonOffset.left + buttonWidth - dropdownWidth;
+
+            // Verificar si se sale por la derecha de la pantalla
+            if (left < 10) {
+                left = buttonOffset.left; // Alinear a la izquierda del botón
+            }
+
+            // Verificar si se sale por abajo de la pantalla
+            const dropdownHeight = 250; // altura estimada
+            if (top + dropdownHeight > $(window).height()) {
+                top = buttonOffset.top - dropdownHeight - 5; // Mostrar arriba del botón
+            }
+
+            // Aplicar posición
+            dropdown.css({
+                'top': top + 'px',
+                'left': left + 'px'
+            });
+
+            menu.addClass("show");
+        }
+    });
+
+    // Cerrar dropdown al hacer click en una opción
+    $(document).on("click", ".dropdown-actions a", function () {
+        $(this).closest(".action-menu").removeClass("show");
+    });
+
+    // Cerrar dropdown al hacer click fuera
+    $(document).on("click", function (e) {
+        if (!$(e.target).closest(".action-menu").length) {
+            $(".action-menu").removeClass("show");
+        }
+    });
 </script>
 
 <script src="<?= URL::to('public/js/dataTables.spanish.js') ?>?v=<?= time() ?>"></script>

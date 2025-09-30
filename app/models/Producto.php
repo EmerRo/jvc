@@ -10,6 +10,7 @@ class Producto
     private $id_empresa;
     private $ultima_salida;
     private $codsunat;
+    private $moneda;
     private $conectar;
 
     /**
@@ -148,6 +149,22 @@ class Producto
         $this->codsunat = $codsunat;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getMoneda()
+    {
+        return $this->moneda;
+    }
+
+    /**
+     * @param mixed $moneda
+     */
+    public function setMoneda($moneda)
+    {
+        $this->moneda = $moneda;
+    }
+
     public function insertar()
     {
         $sql = "insert into productos 
@@ -188,6 +205,7 @@ class Producto
         $this->id_empresa = $fila['id_empresa'];
         $this->ultima_salida = $fila['ultima_salida'];
         $this->codsunat = $fila['codsunat'];
+        $this->moneda = $fila['moneda'];
     }
 
     // public function verFilas($almacen)

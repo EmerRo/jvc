@@ -31,6 +31,53 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="id_archivo_compartir">
+                
+                <!-- Selección de archivos a compartir -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <label class="form-label text-negro fw-bold mb-0">Archivos a compartir:</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="marcarTodosArchivos()">
+                                <i class="fas fa-check-square me-1"></i>Marcar todo
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="desmarcarTodosArchivos()">
+                                <i class="fas fa-square me-1"></i>Desmarcar todo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="check_pdf" checked>
+                                <label class="form-check-label" for="check_pdf">
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>PDF
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="check_editable" checked>
+                                <label class="form-check-label" for="check_editable">
+                                    <i class="fas fa-file-word text-primary me-2"></i>Archivo Editable
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="check_imagenes" checked>
+                                <label class="form-label" for="check_imagenes">
+                                    <i class="fas fa-image text-success me-2"></i>Imágenes (3)
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="check_youtube" checked>
+                                <label class="form-check-label" for="check_youtube">
+                                    <i class="fab fa-youtube text-danger me-2"></i>Enlace de YouTube
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Número de teléfono -->
                 <div class="mb-3">
                     <label for="telefono" class="form-label text-negro">Número de teléfono</label>
                     <div class="input-group">

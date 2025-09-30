@@ -7,6 +7,7 @@ require_once "app/models/ProductoVenta.php";
 require_once "app/models/DocumentoEmpresa.php";
 require_once "app/clases/SunatApi.php";
 require_once "app/clases/EnvioEmail.php";
+require_once "app/helpers/ThumbnailHelper.php";
 
 class ConsultasController extends Controller
 {
@@ -606,7 +607,9 @@ WHERE id_venta='{$_POST['idVenta']}'";
         $array_resultado = array();
         foreach ($resultados as $value) {
             $fila = array();
-            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | P.Venta S/ : " . $value['precio'] . " | Stock: " . $value['cantidad'];
+            // Formatear precio con moneda
+            $simboloMoneda = ($value['moneda'] === 'USD') ? '$' : 'S/';
+            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | P.Venta {$simboloMoneda} : " . $value['precio'] . " | Stock: " . $value['cantidad'];
             $fila['codigo'] = $value['id_producto'];
             $fila['codigo_pp'] = $value['codigo'];
             $fila['detalle'] = $value['detalle'];
@@ -616,6 +619,9 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $fila['costo'] = $value['costo'];
             $fila['precio_mayor'] = $value['precio_mayor'];
             $fila['precio_menor'] = $value['precio_menor'];
+            $thumbnail = ThumbnailHelper::ensureThumbnailExists($value['imagen']);
+            $fila['imagen'] = $thumbnail ? $thumbnail : $value['imagen'];
+            $fila['moneda'] = $value['moneda'];
             // $fila['precio2'] = $value['precio2'];
             // $fila['precio3'] = $value['precio3'];
             // $fila['precio4'] = $value['precio4'];
@@ -722,7 +728,9 @@ WHERE id_venta='{$_POST['idVenta']}'";
         $array_resultado = array();
         foreach ($resultados as $value) {
             $fila = array();
-            $fila['value'] = $value['codigo'] . ' | ' . $value['descripcion'] . " | P.Venta S/ : " . $value['precio'] . " | Stock: " . $value['cantidad'] . " - Almacen " . $value['almacen'];
+            // Formatear precio con moneda
+            $simboloMoneda = ($value['moneda'] === 'USD') ? '$' : 'S/';
+            $fila['value'] = $value['codigo'] . ' | ' . $value['descripcion'] . " | P.Venta {$simboloMoneda} : " . $value['precio'] . " | Stock: " . $value['cantidad'] . " - Almacen " . $value['almacen'];
             $fila['codigo'] = $value['id_producto'];
             $fila['codigo_pp'] = $value['codigo'];
             $fila['descripcion'] = $value['descripcion'];
@@ -733,6 +741,8 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $fila['precio2'] = $value['precio2'];
             $fila['precio3'] = $value['precio3'];
             $fila['almacen'] = $value['almacen'];
+            $fila['imagen'] = $value['imagen'];
+            $fila['moneda'] = $value['moneda'];
             $fila['precio4'] = $value['precio4'];
             $fila['precio_unidad'] = $value['precio_unidad'];
             array_push($array_resultado, $fila);
@@ -768,6 +778,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
         // Verificar si rotativo existe en $_POST, si no, asignar 0 por defecto
         $rotativo = isset($_POST["rotativo"]) ? $_POST["rotativo"] : 0;
+        $tienda = isset($_POST["tienda"]) ? $_POST["tienda"] : 1;
 
         $sql = "INSERT INTO usuarios SET 
             id_empresa='{$_SESSION["id_empresa"]}',
@@ -778,8 +789,8 @@ WHERE id_venta='{$_POST['idVenta']}'";
             clave='$clave',
             email='{$_POST["email"]}',
             telefono='{$_POST["telefono"]}',
-            sucursal={$_POST["tienda"]},
-            rotativo={$rotativo}";
+            sucursal='$tienda',
+            rotativo='$rotativo'";
 
 
         if ($this->consulta->exeSQL($sql)) {
@@ -995,5 +1006,197 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
         return json_encode($array_resultado);
     }
+    public function buscarDataNumeroPreAlerta()
+{
+    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+
+    error_log("=== DEBUGGING BUSCAR NUMERO ===");
+    error_log("Search term: " . ($searchTerm ?? 'NULL'));
+
+    if (empty($searchTerm)) {
+        error_log("Buscando números disponibles (sin término)");
+        $resultados = $this->consulta->obtenerNumerosDisponiblesPreAlerta();
+    } else {
+        error_log("Buscando número específico: " . $searchTerm);
+        $resultados = $this->consulta->buscarNumeroDisponiblePreAlerta($searchTerm);
+    }
+
+    error_log("Tipo de resultado: " . gettype($resultados));
+    if (is_object($resultados)) {
+        error_log("Número de filas: " . $resultados->num_rows);
+    }
+
+    if (empty($resultados) || !is_object($resultados)) {
+        error_log("Resultados vacíos o no es objeto");
+        echo json_encode([]);
+        return;
+    }
+
+    $array_resultado = array();
+    while ($value = $resultados->fetch_assoc()) {
+        error_log("Fila encontrada: " . print_r($value, true));
+        $ns = "NS-" . str_pad($value['numero'], 2, '0', STR_PAD_LEFT);
+        $cliente = isset($value['cliente_ruc_dni']) ? trim($value['cliente_ruc_dni']) : '';
+        $clienteTexto = $cliente !== '' ? $cliente : 'Registro Interno (JVC)';
+
+        $fila = array();
+        // Mostrar en el dropdown: NS-XX - Cliente | o Sin Cliente
+        $fila['label'] = $ns . ' - ' . $clienteTexto;
+        // Insertar en el input solo el NS-XX; y mantener un campo numero_registro limpio
+        $fila['value'] = $ns;
+        $fila['numero_registro'] = $ns;
+        $fila['cliente_ruc_dni'] = $value['cliente_ruc_dni'];
+        $fila['cliente_documento'] = $value['cliente_documento'] ?? '';
+        $fila['numero_serie'] = $value['numero_serie'];
+        $fila['modelo'] = $value['modelo'];
+        $fila['modelo_nombre'] = $value['modelo_nombre'];
+        $fila['marca'] = $value['marca'];
+        $fila['marca_nombre'] = $value['marca_nombre'];
+        $fila['equipo'] = $value['equipo'];
+        $fila['equipo_nombre'] = $value['equipo_nombre'];
+        array_push($array_resultado, $fila);
+    }
+
+    error_log("Array resultado final: " . print_r($array_resultado, true));
+    echo json_encode($array_resultado);
+}
+
+// Nuevo método específico para productos en compras que muestra COSTO en lugar de P.Venta
+function buscarProductoCompra($almacen)
+{
+    // Verificar si el usuario tiene permiso para ver precios
+    $puedeVerPrecios = true; // Por defecto, puede ver precios
+
+    // Consultar permisos específicos del rol
+    if (isset($_SESSION['id_rol'])) {
+        $rolId = $_SESSION['id_rol'];
+        $conexion = (new Conexion())->getConexion();
+        $sql = "SELECT ver_precios FROM roles WHERE rol_id = ?";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("i", $rolId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $puedeVerPrecios = (bool) $row['ver_precios'];
+        }
+
+        // Verificar si es rol orden trabajo
+        $sqlRol = "SELECT nombre FROM roles WHERE rol_id = ?";
+        $stmtRol = $conexion->prepare($sqlRol);
+        $stmtRol->bind_param("i", $rolId);
+        $stmtRol->execute();
+        $resultRol = $stmtRol->get_result();
+        if ($rowRol = $resultRol->fetch_assoc()) {
+            if (strtoupper($rowRol['nombre']) === 'ORDEN TRABAJO') {
+                $puedeVerPrecios = false;
+            }
+        }
+    }
+
+    $searchTerm = filter_input(INPUT_GET, 'term');
+    $resultados = $this->consulta->buscarProducto($_SESSION['id_empresa'], $searchTerm, $almacen);
+
+    $array_resultado = array();
+    foreach ($resultados as $value) {
+        $fila = array();
+
+        // Para compras, mostrar COSTO en lugar de P.Venta
+        if ($puedeVerPrecios) {
+            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | Costo S/ : " . $value['costo'] . " | Stock: " . $value['cantidad'];
+        } else {
+            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | Stock: " . $value['cantidad'];
+        }
+
+        $fila['codigo'] = $value['id_producto'];
+        $fila['codigo_pp'] = $value['codigo'];
+        $fila['detalle'] = $value['detalle'];
+        $fila['nombre'] = $value['nombre'];
+        $fila['precio'] = $value['precio'];
+        $fila['cnt'] = $value['cantidad'];
+        $fila['costo'] = $value['costo'];
+        $fila['precio_mayor'] = $value['precio_mayor'];
+        $fila['precio_menor'] = $value['precio_menor'];
+        $fila['usar_multiprecio'] = $value['usar_multiprecio'];
+        $fila['unidad_id'] = $value['unidad'];
+        array_push($array_resultado, $fila);
+    }
+
+    return json_encode($array_resultado);
+}
+
+// Nuevo método específico para repuestos en compras que muestra COSTO en lugar de P.Venta
+function buscarRepuestoCompra($almacen)
+{
+    // Verificar si el usuario tiene permiso para ver precios
+    $puedeVerPrecios = true; // Por defecto, puede ver precios
+
+    // Consultar permisos específicos del rol
+    if (isset($_SESSION['id_rol'])) {
+        $rolId = $_SESSION['id_rol'];
+        $conexion = (new Conexion())->getConexion();
+        $sql = "SELECT ver_precios FROM roles WHERE rol_id = ?";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("i", $rolId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $puedeVerPrecios = (bool) $row['ver_precios'];
+        }
+
+        // Verificar si es rol orden trabajo
+        $sqlRol = "SELECT nombre FROM roles WHERE rol_id = ?";
+        $stmtRol = $conexion->prepare($sqlRol);
+        $stmtRol->bind_param("i", $rolId);
+        $stmtRol->execute();
+        $resultRol = $stmtRol->get_result();
+        if ($rowRol = $resultRol->fetch_assoc()) {
+            if (strtoupper($rowRol['nombre']) === 'ORDEN TRABAJO') {
+                $puedeVerPrecios = false;
+            }
+        }
+    }
+
+    $searchTerm = filter_input(INPUT_GET, 'term');
+    $resultados = $this->consulta->buscarRepuesto($_SESSION['id_empresa'], $searchTerm, $almacen);
+
+    $array_resultado = array();
+    foreach ($resultados as $value) {
+        $fila = array();
+
+        // Para compras de repuestos, mostrar COSTO en lugar de P.Venta
+        if ($puedeVerPrecios) {
+            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | Costo S/ : " . $value['costo'] . " | Stock: " . $value['cantidad'];
+        } else {
+            $fila['value'] = $value['codigo'] . ' | ' . $value['nombre'] . " | Stock: " . $value['cantidad'];
+        }
+
+        $fila['codigo'] = $value['id_repuesto'];
+        $fila['codigo_pp'] = $value['codigo'];
+        $fila['descripcion'] = $value['detalle'];
+        $fila['nombre'] = $value['nombre'];
+
+        // Incluir o no los precios según los permisos
+        if ($puedeVerPrecios) {
+            $fila['precio'] = $value['precio'];
+            $fila['precio_mayor'] = $value['precio_mayor'];
+            $fila['precio_menor'] = $value['precio_menor'];
+            $fila['usar_multiprecio'] = $value['usar_multiprecio'];
+        } else {
+            // Si no puede ver precios, establecer valores en 0 o vacíos
+            $fila['precio'] = '0';
+            $fila['precio_mayor'] = '0';
+            $fila['precio_menor'] = '0';
+            $fila['usar_multiprecio'] = '0';
+        }
+
+        $fila['cnt'] = $value['cantidad'];
+        $fila['costo'] = $puedeVerPrecios ? $value['costo'] : '0';
+        $fila['unidad_id'] = $value['unidad'];
+
+        array_push($array_resultado, $fila);
+    }
+
+    return json_encode($array_resultado);
+}
 
 }

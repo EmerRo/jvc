@@ -72,3 +72,29 @@ $('#btn_buscar_cliente_u').click(function () {
         alertAdvertencia("Documento, DNI es 8 dígitos y RUC 11 dígitos");
     }
 });
+
+// Autocompletado para el campo de agregar cliente
+$("#input_datos_cliente").autocomplete({
+    source: _URL + "/ajs/buscar/cliente/datos",
+    minLength: 2,
+    select: function (event, ui) {
+        event.preventDefault();
+        console.log(ui.item);
+        $('#cliente_ruc_dni').val(ui.item.datos);
+        $('#cliente_documento').val(ui.item.documento);
+        $('#input_datos_cliente').val(ui.item.documento);
+    }
+});
+
+// Autocompletado para el campo de editar cliente
+$("#input_datos_cliente_u").autocomplete({
+    source: _URL + "/ajs/buscar/cliente/datos",
+    minLength: 2,
+    select: function (event, ui) {
+        event.preventDefault();
+        console.log(ui.item);
+        $('#cliente_ruc_dni_u').val(ui.item.datos);
+        $('#cliente_documento_u').val(ui.item.documento);
+        $('#input_datos_cliente_u').val(ui.item.documento);
+    }
+});

@@ -482,6 +482,47 @@ public function setDocReferencia($doc_referencia): void
                 $totalVenta += $depro['cantidad'] * $depro['monto'];
                 $row["detalles"][] = $depro;
             }
+
+            // Si es una venta proveniente de cotización de taller, armar estructura por equipos
+            $equiposVenta = [];
+            $sqlEq = "SELECT * FROM ventas_equipos WHERE id_venta = " . $this->id_venta . " ORDER BY id_venta_equipo";
+            $resEq = $this->conectar->query($sqlEq);
+            if ($resEq && $resEq->num_rows > 0) {
+                while ($eq = $resEq->fetch_assoc()) {
+                    $idVe = $eq['id_venta_equipo'];
+                    $items = [];
+                    $sqlItems = "SELECT pv.*, p.nombre, p.codigo
+                                 FROM productos_ventas pv
+                                 JOIN productos p ON p.id_producto = pv.id_producto
+                                 WHERE pv.id_venta = {$this->id_venta} AND pv.id_venta_equipo = {$idVe}";
+                    $resItems = $this->conectar->query($sqlItems);
+                    $subtotalEquipo = 0;
+                    foreach ($resItems as $it) {
+                        $items[] = $it;
+                        $subtotalEquipo += $it['cantidad'] * $it['precio'];
+                    }
+                    // Fallback: si no hay items vinculados por id_venta_equipo (ventas anteriores),
+                    // intentar recuperar por id_cotizacion_equipo
+                    if (empty($items) && !empty($eq['id_cotizacion_equipo'])) {
+                        $idCotiEq = intval($eq['id_cotizacion_equipo']);
+                        $sqlItems2 = "SELECT pv.*, p.nombre, p.codigo
+                                      FROM productos_ventas pv
+                                      JOIN productos p ON p.id_producto = pv.id_producto
+                                      WHERE pv.id_venta = {$this->id_venta} AND pv.id_cotizacion_equipo = {$idCotiEq}";
+                        $resItems2 = $this->conectar->query($sqlItems2);
+                        foreach ($resItems2 as $it2) {
+                            $items[] = $it2;
+                            $subtotalEquipo += $it2['cantidad'] * $it2['precio'];
+                        }
+                    }
+                    $eq['items'] = $items;
+                    $eq['subtotal'] = number_format($subtotalEquipo, 2, '.', '');
+                    $equiposVenta[] = $eq;
+                }
+                $row['equipos'] = $equiposVenta;
+            } else {
+                $row['equipos'] = [];
+            }
             $row["montoTotal"] = number_format($totalVenta, 2, '.', '');
             $respuesta['res'] = true;
             $respuesta['data'] = $row;

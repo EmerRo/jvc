@@ -1,21 +1,18 @@
+<!-- resources\views\fragment-views\cliente\caja-registros.php -->
 <?php
 $conexion = (new Conexion())->getConexion();
 
-$sql="select * from caja_empresa where sucursal='{$_SESSION['sucursal']}' and id_empresa='{$_SESSION['id_empresa']}' ORDER BY fecha DESC";
-
-$listaC = $conexion->query($sql);
+$sql = "SELECT * FROM caja_empresa WHERE sucursal = ? AND id_empresa = ? ORDER BY caja_id DESC";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("ii", $_SESSION['sucursal'], $_SESSION['id_empresa']);
+$stmt->execute();
+$listaC = $stmt->get_result();
+$stmt->close();
 
 ?>
 <div class="page-title-box">
     <div class="row align-items-center">
-            <!-- <div class="col-md-8">
-                <h6 class="page-title">Ventas</h6>
-                <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Facturacion</a></li>
-                    <li class="breadcrumb-item"><a href="/ventas" class="button-link">Ventas</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Productos</li>
-                </ol>
-            </div> -->
+          
         <div class="clearfix">
             <h6 class="page-title text-center">REGISTRO DE CAJAS</h6>
             <ol class="breadcrumb m-0 float-start">
@@ -36,7 +33,9 @@ $listaC = $conexion->query($sql);
         <div class="card" style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body">
 
-                <h4 class="card-title">Registros de Caja</h4>
+                <h4 class="card-title">Registros de Caja
+                    <a href="<?= URL::to('/reporte/cajas/general/excel') ?>" class="btn btn-success float-end"><i class="fas fa-file-excel"></i> Descargar Registro</a>
+                </h4>
 
                 <div class="card-title-desc">
 
@@ -46,9 +45,10 @@ $listaC = $conexion->query($sql);
 
                         <thead>
                         <tr>
-                            <th></th>
+                            <th>Código</th>
                             <th>Detalle</th>
-                            <th>Fecha</th>
+                            <th>Apertura</th>
+                            <th>Cierre</th>
                             <th>Entrada</th>
                             <th>Salida</th>
                             <th>Total</th>
@@ -61,9 +61,11 @@ $listaC = $conexion->query($sql);
                             $contador++;
                             ?>
                             <tr>
-                                <td><?=$contador?></td>
+                             <td><?=$row['numero'] ?: '-'?></td>
+
                                 <td><?=$row['detalle']?></td>
                                 <td><?=Tools::formatoFechaVisual($row['fecha'])?></td>
+                                <td><?= $row['fecha_cierre'] ? (new DateTime($row['fecha_cierre']))->format('d/m/Y h:i A') : '<span class="badge bg-success">Abierta</span>' ?></td>
                                 <td><?=$row['entrada']?></td>
                                 <td><?=$row['salida']?></td>
                                 <td>
@@ -83,7 +85,9 @@ $listaC = $conexion->query($sql);
 </div>
 <script>
     $(document).ready(function(){
-        $("#datatable").DataTable({})
+        $("#datatable").DataTable({
+            "order": [[ 0, "desc" ]]
+        })
     })
 </script>
 <script src="<?= URL::to('public/js/dataTables.spanish.js') ?>?v=<?= time() ?>"></script>

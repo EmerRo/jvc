@@ -11,6 +11,221 @@
 <!-- Incluir Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
+<style>
+/* Estilos para el autocomplete de productos únicamente */
+#input_buscar_productos + .ui-autocomplete {
+    max-height: 300px;
+    overflow-y: auto;
+    background: white !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 9999 !important;
+    /* Adaptar al ancho del input */
+    width: auto !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item {
+    border: none !important;
+    margin: 2px !important;
+    border-radius: 6px !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 50px !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: inherit !important;
+    border-radius: 6px !important;
+    height: auto !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+    background: #f8f9fa !important;
+    border: 1px solid #CA3438 !important;
+    color: #CA3438 !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item img {
+    transition: transform 0.2s ease;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item:hover img {
+    transform: scale(1.05);
+}
+
+/* Controlar el contenido del texto - solo para autocomplete de productos */
+#input_buscar_productos + .ui-autocomplete .ui-menu-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+#input_buscar_productos + .ui-autocomplete .ui-menu-item .producto-info {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Asegurar que el contenido no se desborde - solo para autocomplete de productos */
+#input_buscar_productos + .ui-autocomplete .ui-menu-item {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Estilos normales para autocomplete de clientes */
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    z-index: 9999 !important;
+}
+
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper {
+    padding: 8px 12px !important;
+    border: none !important;
+    background: transparent !important;
+    color: inherit !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Hover para autocomplete de clientes */
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper:hover,
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper.ui-state-active,
+.ui-autocomplete:not(#input_buscar_productos + .ui-autocomplete) .ui-menu-item .ui-menu-item-wrapper.ui-state-focus {
+    background: #f8f9fa !important;
+    color: #CA3438 !important;
+    border-left: 3px solid #CA3438 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Estilos para tabla responsive */
+.tabla-productos {
+    min-width: 100%;
+    table-layout: auto !important;
+}
+
+/* Anchos en pantallas grandes (desktop) */
+@media (min-width: 992px) {
+    .tabla-productos th:nth-child(1) { width: 60px; white-space: nowrap; text-align: center; }     /* Item */
+    .tabla-productos th:nth-child(2) { width: 100px; white-space: nowrap; }    /* Código */
+    .tabla-productos th:nth-child(3) { width: auto; }     /* Producto */
+    .tabla-productos th:nth-child(4) { width: 70px; white-space: nowrap; text-align: center; }     /* Cant */
+    .tabla-productos th:nth-child(5) { width: 120px; white-space: nowrap; text-align: center; }    /* P. Unit. */
+    .tabla-productos th:nth-child(6) { width: 120px; white-space: nowrap; text-align: center; }    /* Parcial */
+    .tabla-productos th:nth-child(7) { width: 80px; white-space: nowrap; text-align: center; }     /* P.Esp. */
+    .tabla-productos th:nth-child(8) { width: 100px; white-space: nowrap; text-align: center; }    /* Acciones */
+
+    .tabla-productos td:nth-child(1) {
+        width: 60px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tabla-productos td:nth-child(2) {
+        width: 100px;
+        word-wrap: break-word;
+        max-width: 100px;
+        overflow: hidden;
+    }
+    .tabla-productos td:nth-child(3) {
+        width: auto;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+    .tabla-productos td:nth-child(4) {
+        width: 70px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tabla-productos td:nth-child(5) {
+        width: 120px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tabla-productos td:nth-child(6) {
+        width: 120px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tabla-productos td:nth-child(7) {
+        width: 80px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .tabla-productos td:nth-child(8) {
+        width: 100px;
+        text-align: center;
+        white-space: nowrap;
+    }
+}
+
+/* Anchos en pantallas medianas (tablets) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .tabla-productos th:nth-child(1) { width: 50px; font-size: 12px; }     /* Item */
+    .tabla-productos th:nth-child(2) { width: 80px; font-size: 12px; }     /* Código */
+    .tabla-productos th:nth-child(3) { width: auto; font-size: 12px; }     /* Producto */
+    .tabla-productos th:nth-child(4) { width: 60px; font-size: 12px; }     /* Cant */
+    .tabla-productos th:nth-child(5) { width: 90px; font-size: 12px; }     /* P. Unit. */
+    .tabla-productos th:nth-child(6) { width: 90px; font-size: 12px; }     /* Parcial */
+    .tabla-productos th:nth-child(7) { width: 70px; font-size: 12px; }     /* P.Esp. */
+    .tabla-productos th:nth-child(8) { width: 80px; font-size: 12px; }     /* Acciones */
+
+    .tabla-productos td {
+        font-size: 12px;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .tabla-productos td:nth-child(3) {
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: left;
+    }
+}
+
+/* Anchos en pantallas pequeñas (móviles) */
+@media (max-width: 767px) {
+    .tabla-productos {
+        font-size: 11px;
+    }
+    .tabla-productos th,
+    .tabla-productos td {
+        padding: 4px 2px;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .tabla-productos th:nth-child(3),
+    .tabla-productos td:nth-child(3) {
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: left;
+        min-width: 120px;
+    }
+}
+</style>
+
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -23,7 +238,13 @@
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
+                <button type="button" onclick="$('#btn_finalizar_pedido').click()"
+                    class="btn bg-rojo text-white">
+                    <i class="fa fa-plus "></i> Guardar Cotización
+                </button>
 
+                <a id="backbuttonvp" style="margin-left:25px;" href="/cotizaciones"
+                    class="btn border-rojo text-rojo button-link"><i class="fa fa-arrow-left"></i> Regresar</a>
             </div>
         </div>
     </div>
@@ -38,15 +259,7 @@
                 <h4 class="card-title"></h4>
 
                 <div class="card-title-desc">
-                    <div class="col-lg-12 text-end">
-                        <button type="button" onclick="$('#btn_finalizar_pedido').click()"
-                            class="btn bg-rojo text-white">
-                            <i class="fa fa-plus "></i> Guardar Cotización
-                        </button>
 
-                        <a id="backbuttonvp" style="margin-left:25px;" href="/cotizaciones"
-                            class="btn border-rojo text-rojo button-link"><i class="fa fa-arrow-left"></i> Regresar</a>
-                    </div>
                 </div>
                 <div class="row" id="container-vue">
                     <div class="col-12 row">
@@ -101,33 +314,25 @@
 
 
                                                 <div class="form-group row mb-3">
-                                                    <!-- Primera fila con Stock Actual, Cantidad y Precio -->
-                                                    <div class="col-lg-10">
-                                                        <div class="row">
-                                                            <!-- Campo Stock Actual -->
-                                                            <div class="col-lg-3">
-                                                                <label for="stock-actual" class="col-form-label">Stock
-                                                                    Actual</label>
-                                                                <input id="stock-actual" disabled
-                                                                    v-model="producto.stock"
-                                                                    class="form-control text-center" type="text"
-                                                                    placeholder="0" style="height: 38px;">
-                                                            </div>
+                                                    <!-- Primera fila: 3 columnas -->
+                                                    <div class="col-lg-4">
+                                                        <label for="stock-actual" class="col-form-label">Stock Actual</label>
+                                                        <input id="stock-actual" disabled
+                                                            v-model="producto.stock"
+                                                            class="form-control text-center" type="text"
+                                                            placeholder="0" style="height: 38px;">
+                                                    </div>
 
-                                                            <!-- Campo Cantidad -->
-                                                            <div class="col-lg-3">
-                                                                <label for="cantidad-input"
-                                                                    class="col-form-label">Cantidad</label>
-                                                                <input id="cantidad-input" @keypress="onlyNumber"
-                                                                    required v-model="producto.cantidad"
-                                                                    class="form-control text-center" type="text"
-                                                                    placeholder="0" style="height: 38px;">
-                                                            </div>
+                                                    <div class="col-lg-4">
+                                                        <label for="cantidad-input" class="col-form-label">Cantidad</label>
+                                                        <input id="cantidad-input" @keypress="onlyNumber"
+                                                            required v-model="producto.cantidad"
+                                                            class="form-control text-center" type="text"
+                                                            placeholder="0" style="height: 38px;">
+                                                    </div>
 
-                                                            <!-- Campo Precio -->
-                                                            <div class="col-lg-3">
-                                                                <label for="precio-input"
-                                                                    class="col-form-label">Precio</label>
+                                                    <div class="col-lg-4">
+                                                        <label for="precio-input" class="col-form-label">Precio ({{simboloMonedaProducto}})</label>
                                                                 <div class="input-group" style="height: 38px;">
                                                                     <input id="precio-input" type="text"
                                                                         class="form-control"
@@ -152,7 +357,7 @@
                                                                                     style="width: 150px; display: inline-block;">Precio
                                                                                     Venta:</span>
                                                                                 <span
-                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{monedaSibol}}
                                                                                     {{ producto.precioVenta }}</span>
                                                                             </a>
                                                                         </li>
@@ -163,7 +368,7 @@
                                                                                 <span
                                                                                     style="width: 150px; display: inline-block;">Costo:</span>
                                                                                 <span
-                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{monedaSibol}}
                                                                                     {{ producto.costo }}</span>
                                                                             </a>
                                                                         </li> -->
@@ -175,7 +380,7 @@
                                                                                     style="width: 150px; display: inline-block;">Precio
                                                                                     Mayorista:</span>
                                                                                 <span
-                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{monedaSibol}}
                                                                                     {{ producto.precio_mayor }}</span>
                                                                             </a>
                                                                         </li>
@@ -187,7 +392,7 @@
                                                                                     style="width: 150px; display: inline-block;">Precio
                                                                                     Menorista:</span>
                                                                                 <span
-                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                                    style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{monedaSibol}}
                                                                                     {{ producto.precio_menor }}</span>
                                                                             </a>
                                                                         </li>
@@ -213,53 +418,60 @@
                                                                                         style="width: 150px; display: inline-block;">{{
                                                                                         value.nombre }}:</span>
                                                                                     <span
-                                                                                        style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">S/
+                                                                                        style="background-color: #4CAF50; color: white; padding: 2px 8px; border-radius: 15px; font-size: 13px; margin-left: auto;">{{monedaSibol}}
                                                                                         {{ value.precio }}</span>
                                                                                 </a>
                                                                             </li>
                                                                         </ul>
                                                                     </div>
                                                                 </div>
+                                                    </div>
+
+                                                    <!-- Segunda fila: 3 columnas -->
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label for="precio-especial" class="col-form-label me-2">Precio Especial ({{simboloMonedaProducto}})</label>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                    onclick="toggleInput(this)"
+                                                                    style="width: 2em; height: 1em;">
+                                                                <label class="form-check-label ms-1">Activar</label>
                                                             </div>
                                                         </div>
+                                                        <input id="precio-especial"
+                                                            class="form-control text-center precio-input"
+                                                            @keypress="onlyNumber"
+                                                            v-model="producto.precioEspecial" type="text"
+                                                            placeholder="0.00" disabled
+                                                            style="height: 38px;">
+                                                    </div>
 
-                                                        <!-- Segunda fila con Precio Especial (P.Esp.) y Botón Agregar -->
-                                                        <div class="row mt-3">
-                                                            <!-- Campo Precio Especial -->
-                                                            <div class="col-lg-4 d-flex align-items-center">
-                                                                <label for="precio-especial"
-                                                                    class="col-form-label mb-0 me-2">Precio
-                                                                    Especial</label>
-                                                                <input type="checkbox" class="toggle-checkbox me-2"
-                                                                    onclick="toggleInput(this)">
-                                                                <input id="precio-especial"
-                                                                    class="form-control text-center precio-input"
-                                                                    @keypress="onlyNumber"
-                                                                    v-model="producto.precioEspecial" type="text"
-                                                                    placeholder="0" disabled
-                                                                    style="width: 80px; height: 38px;">
-                                                            </div>
-                                                            <div class="col-lg-4 d-flex align-items-center">
-                                                                <label for="descuento"
-                                                                    class="col-form-label mb-0 me-2">Descuento %</label>
-                                                                <input type="checkbox" class="toggle-checkbox me-2"
-                                                                    onclick="toggleInput(this)">
-                                                                <input id="descuento"
-                                                                    class="form-control text-center precio-input"
-                                                                    @keypress="onlyNumber" v-model="descuentoGeneral"
-                                                                    type="text" placeholder="0" disabled
-                                                                    style="width: 80px; height: 38px;">
-                                                            </div>
-
-                                                            <!-- Botón Agregar -->
-                                                            <div class="col-lg-4 d-flex align-items-center">
-                                                                <button id="submit-a-product" type="submit"
-                                                                    class="btn bg-rojo text-white w-100"
-                                                                    style="height: 38px;">
-                                                                    <i class="fa fa-check me-2"></i> Agregar
-                                                                </button>
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label for="descuento" class="col-form-label me-2">Descuento General</label>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox"
+                                                                    onclick="toggleInput(this)"
+                                                                    style="width: 2em; height: 1em;">
+                                                                <label class="form-check-label ms-1">Activar</label>
                                                             </div>
                                                         </div>
+                                                        <input id="descuento"
+                                                            class="form-control text-center precio-input"
+                                                            @keypress="onlyNumber" v-model="descuentoGeneral"
+                                                            type="text" placeholder="0" disabled
+                                                            style="height: 38px;">
+                                                    </div>
+
+                                                    <div class="col-lg-4">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <label class="col-form-label">&nbsp;</label>
+                                                        </div>
+                                                        <button id="submit-a-product" type="submit"
+                                                            class="btn bg-rojo text-white w-100"
+                                                            style="height: 38px;">
+                                                            <i class="fa fa-plus me-1"></i> Agregar
+                                                        </button>
                                                     </div>
                                                 </div>
 
@@ -271,17 +483,18 @@
                                         <div class="col-md-12 mt-5" style="overflow-x: auto;">
                                             <div class="row">
                                                 <div class="text-left col-md-9">
-                                                    <h4>Producto</h4>
+                                                    <h4>Detalle Producto</h4>
                                                 </div>
 
                                             </div>
-                                            <table class="table" style="width: 100%; ">
-                                                <thead>
+                                            <div class="table-responsive">
+                                                <table class="table tabla-productos" style="width: 100%;">
+                                                    <thead>
                                                     <tr>
                                                         <th>Item</th>
                                                         <th>Codigo</th>
                                                         <th>Producto</th>
-                                                        <th>Cantidad</th>
+                                                        <th>Cant</th>
                                                         <th>P. Unit.</th>
                                                         <th>Parcial</th>
                                                         <th>P.Esp.</th>
@@ -290,15 +503,15 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr v-for="(item,index) in productos">
-                                                        <td>{{index+1}}</td>
+                                                        <td class="text-center">{{index+1}}</td>
                                                         <td>{{item.codigo_pp || item.codigo || ''}}</td>
                                                         <td>{{item.descripcion}}</td>
                                                         <td><span v-if="!item.editable">{{item.cantidad}}</span><input
                                                                 v-if="item.editable" v-model="item.cantidad"></td>
-                                                        <td><span
-                                                                v-if="!item.editable">{{item.precioVenta}}</span><input
+                                                        <td style="white-space: nowrap;"><span
+                                                                v-if="!item.editable">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + item.precioVenta}}</span><input
                                                                 v-if="item.editable" v-model="item.precioVenta"></td>
-                                                        <td>{{(item.precioVenta*item.cantidad).toFixed(2)}}</td>
+                                                        <td style="white-space: nowrap;">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + (item.precioVenta*item.cantidad).toFixed(2)}}</td>
                                                         <td>{{item.precioEspecial}}</td>
                                                         <td>
                                                             <div class="d-flex gap-2 justify-content-center">
@@ -317,6 +530,7 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -369,8 +583,17 @@
                                                     <div v-if="venta.tipo_pago=='2'" class="form-group ">
                                                         <label class="control-label">Días de pago</label>
                                                         <div class="col-lg-12">
-                                                            <input @focus="focusDiasPagos" v-model="venta.dias_pago"
-                                                                type="text" class="form-control text-center">
+                                                            <div class="input-group">
+                                                                <input @focus="focusDiasPagos" v-model="venta.dias_pago"
+                                                                    type="text" class="form-control text-center"
+                                                                    placeholder="Haga clic para configurar fechas de pago"
+                                                                    readonly style="cursor: pointer; background-color: #f8f9fa;">
+                                                                <button @click="focusDiasPagos" class="btn bg-rojo text-white" type="button"
+                                                                    title="Configurar fechas de pago">
+                                                                    <i class="fa fa-calendar"></i> Configurar
+                                                                </button>
+                                                            </div>
+                                                            <small class="text-muted">Haga clic en el campo o botón para configurar las fechas de pago</small>
                                                         </div>
                                                     </div>
 
@@ -417,15 +640,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div v-if="venta.tipo_pago=='2'" class="form-group ">
-                                                        <label class="control-label">Días de pago</label>
-                                                        <div class="col-lg-12">
-                                                            <input @focus="focusDiasPagos" v-model="venta.dias_pago"
-                                                                type="text" class="form-control text-center">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="form-group  mb-3">
+                                                    <div class="form-group mb-3">
                                                         <label class="col-lg-4 control-label"> </label>
                                                         <div class="col-lg-12">
                                                             <div class="row">
@@ -441,17 +656,37 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-6" v-if="venta.moneda == '2'">
+                                                                <div class="col-md-6">
                                                                     <div class="form-group">
-                                                                        <label class="control-label">Tasa de
-                                                                            cambio</label>
+                                                                        <label class="control-label">Aplicar IGV</label>
                                                                         <div class="col-lg-12">
-                                                                            <input v-model="venta.tc" type="text"
-                                                                                style="outline: none;  border: 1px solid #a49c9c; padding: 5px; width: 100px; border-radius: 5px; ">
+                                                                            <select v-model="venta.aplicar_igv" 
+                                                                                class="form-control">
+                                                                                <option value="1">SÍ</option>
+                                                                                <option value="0">NO</option>
+                                                                            </select>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                    <div v-if="venta.moneda == '2'" class="form-group mb-3">
+                                                        <label class="control-label">Tasa de cambio</label>
+                                                        <div class="col-lg-12">
+                                                            <div class="input-group">
+                                                                <input v-model="venta.tc" type="text"
+                                                                    class="form-control text-center"
+                                                                    placeholder="Ingresa la tasa de cambio">
+                                                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                                        @click="actualizarTasaCambio"
+                                                                        :disabled="cargandoTasa"
+                                                                        title="Actualizar tasa de cambio desde SUNAT">
+                                                                    <i v-if="cargandoTasa" class="fa fa-spinner fa-spin"></i>
+                                                                    <i v-else class="fas fa-sync-alt"></i>
+                                                                </button>
+                                                            </div>
+                                                            <small class="text-muted" v-if="fechaTasa">Tasa SUNAT del {{ fechaTasa }}</small>
                                                         </div>
                                                     </div>
 
@@ -673,7 +908,7 @@
                                                     <i class="fa fa-money-bill me-1"></i> Precio
                                                 </label>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text">S/</span>
+                                                    <span class="input-group-text">{{simboloMonedaEdicion}}</span>
                                                     <input type="text" class="form-control dropdown-toggle"
                                                         data-bs-toggle="dropdown" aria-expanded="false"
                                                         data-bs-auto-close="outside"
@@ -690,7 +925,7 @@
                                                                     <span><i class="fa fa-tag me-2"></i>Precio
                                                                         Venta:</span>
                                                                     <span
-                                                                        class="badge bg-info text-white rounded-pill">S/
+                                                                        class="badge bg-info text-white rounded-pill">{{simboloMonedaEdicion}}
                                                                         {{ productoEdit.precioVenta }}</span>
                                                                 </div>
                                                             </a>
@@ -702,7 +937,7 @@
                                                                     class="d-flex justify-content-between align-items-center">
                                                                     <span><i class="fa fa-box me-2"></i>Costo:</span>
                                                                     <span
-                                                                        class="badge bg-info text-white rounded-pill">S/
+                                                                        class="badge bg-info text-white rounded-pill">{{simboloMonedaEdicion}}
                                                                         {{ productoEdit.costo }}</span>
                                                                 </div>
                                                             </a>
@@ -715,7 +950,7 @@
                                                                     <span><i class="fa fa-warehouse me-2"></i>Precio
                                                                         Mayorista:</span>
                                                                     <span
-                                                                        class="badge bg-info text-white rounded-pill">S/
+                                                                        class="badge bg-info text-white rounded-pill">{{simboloMonedaEdicion}}
                                                                         {{ productoEdit.precio_mayor }}</span>
                                                                 </div>
                                                             </a>
@@ -728,7 +963,7 @@
                                                                     <span><i class="fa fa-store me-2"></i>Precio
                                                                         Minorista:</span>
                                                                     <span
-                                                                        class="badge bg-info text-white rounded-pill">S/
+                                                                        class="badge bg-info text-white rounded-pill">{{simboloMonedaEdicion}}
                                                                         {{ productoEdit.precio_menor }}</span>
                                                                 </div>
                                                             </a>
@@ -754,7 +989,7 @@
                                                                         <span><i class="fa fa-tag me-2"></i>{{
                                                                             value.nombre }}:</span>
                                                                         <span
-                                                                            class="badge bg-info text-white rounded-pill">S/
+                                                                            class="badge bg-info text-white rounded-pill">{{simboloMonedaEdicion}}
                                                                             {{ value.precio }}</span>
                                                                     </div>
                                                                 </a>
@@ -816,7 +1051,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="input-group input-group-sm mt-1">
-                                                    <span class="input-group-text">S/</span>
+                                                    <span class="input-group-text">{{simboloMonedaEdicion}}</span>
                                                     <input type="number" class="form-control"
                                                         v-model="productoEdit.precioEspecial"
                                                         :disabled="!usarPrecioEspecial"
@@ -875,7 +1110,7 @@
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="'S/ '+venta.total" disabled type="text"
+                                                <input :value="monedaSibol+' '+venta.total" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -894,7 +1129,7 @@
                                                 </label>
                                         </div>
                                         <div v-if="venta.tiene_inicial" class="input-group">
-                                            <span class="input-group-text">S/</span>
+                                            <span class="input-group-text">{{monedaSibol}}</span>
                                             <input type="number" class="form-control" v-model="venta.monto_inicial"
                                                 placeholder="Monto inicial" @input="calcularCuotasRestantes">
                                             <span class="input-group-text">o</span>
@@ -933,7 +1168,7 @@
                                                             <td>0</td>
                                                             <td>Inicial</td>
                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
-                                                            <td>S/ {{formatoDecimal(venta.monto_inicial)}}</td>
+                                                            <td>{{monedaSibol}} {{formatoDecimal(venta.monto_inicial)}}</td>
                                                         </tr>
                                                         <!-- Mostrar cuotas con fechas seleccionables -->
                                                         <tr v-for="(cuota, index) in cuotas" :key="index">
@@ -945,7 +1180,7 @@
                                                             </td>
                                                             <td>
                                                                 <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text">S/</span>
+                                                                    <span class="input-group-text">{{monedaSibol}}</span>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         v-model="cuota.monto"
@@ -1091,7 +1326,23 @@
 </div>
 
 <script>
+    // Hacer que todos los autocompletes se adapten al ancho del input
+    if ($.ui && $.ui.autocomplete) {
+        $.ui.autocomplete.prototype._resizeMenu = function () {
+            var ul = this.menu.element;
+            ul.outerWidth(this.element.outerWidth());
+        };
+
+        // También sobrescribir el método _suggest para forzar el redimensionado
+        var _suggest = $.ui.autocomplete.prototype._suggest;
+        $.ui.autocomplete.prototype._suggest = function(items) {
+            _suggest.call(this, items);
+            this.menu.element.outerWidth(this.element.outerWidth());
+        };
+    }
+
     $(document).ready(function () {
+        
         const app = new Vue({
             el: "#container-vue",
             data: {
@@ -1121,7 +1372,8 @@
                     precioVenta: '',
                     tipo_precio: 'PV',
                     precio_mostrado: '',
-                    precio_usado: 1
+                    precio_usado: 1,
+                    moneda: null
                 },
                 productoEdit: {
                     index: -1,
@@ -1163,7 +1415,8 @@
                     tiene_inicial: false,
                     monto_inicial: 0,
                     porcentaje_inicial: 0,
-                    asunto: ''
+                    asunto: '',
+                    aplicar_igv: '0'
 
                 },
                 dataKey: '',
@@ -1176,6 +1429,8 @@
                 usarPrecioEspecial: false,
                 preciosAdicionales: [],
                 productoPreciosCache: {},
+                cargandoTasa: false,
+                fechaTasa: null,
             },
             mounted() {
                 this.calcularProximoNumero();
@@ -1190,6 +1445,14 @@
                             this.descuentoGeneral = '100';
                         }
                         // El total se actualizará automáticamente por el computed property
+                    }
+                },
+                'venta.moneda': function (newValue, oldValue) {
+                    // Cargar automáticamente la tasa de cambio cuando se selecciona USD
+                    if (newValue === '2' && oldValue !== '2') {
+                        this.$nextTick(() => {
+                            this.actualizarTasaCambio();
+                        });
                     }
                 }
             },
@@ -1371,6 +1634,7 @@
                         nombre: producto.nombre || producto.descripcion,
                         nom_prod: producto.nombre || producto.descripcion,
                         detalle: producto.detalle || "",
+                        moneda: producto.moneda || 'PEN',
                         cantidad: producto.cantidad,
                         precio_mostrado: producto.precio || producto.precioVenta || "0.00",
                         precioVenta: producto.precioVenta || producto.precio || "0.00",
@@ -1620,6 +1884,37 @@
                     canvasElement.hidden = true;
                 },
                 agregarProducto2Ps() {
+                    // Validación para evitar mezclar monedas diferentes en búsqueda múltiple
+                    if (this.productos.length > 0 && this.itemsLista.length > 0) {
+                        const primeraMoneda = this.productos[0].moneda;
+                        const nuevasMonedas = this.itemsLista.map(item => item.moneda);
+                        const hayConflicto = nuevasMonedas.some(moneda => moneda && primeraMoneda && moneda !== primeraMoneda);
+
+                        if (hayConflicto) {
+                            const simboloPrimera = primeraMoneda === 'USD' ? 'Dólar' : 'Soles';
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Monedas incompatibles',
+                                text: `No se pueden agregar estos productos porque ya agregó productos con precio en ${simboloPrimera}. Algunos de los productos seleccionados tienen diferentes monedas.`,
+                                confirmButtonColor: '#CA3438'
+                            });
+                            return; // Salir sin agregar los productos
+                        }
+                    }
+
+                    // Detectar automáticamente la moneda si es la primera adición
+                    if (this.productos.length === 0 && this.itemsLista.length > 0) {
+                        // Usar la moneda del primer producto de la lista
+                        const primerProducto = this.itemsLista[0];
+                        if (primerProducto.moneda === 'USD') {
+                            this.venta.moneda = '2'; // Dólares
+                            console.log('Cotización automáticamente configurada en dólares (búsqueda múltiple)');
+                        } else {
+                            this.venta.moneda = '1'; // Soles
+                            console.log('Cotización automáticamente configurada en soles (búsqueda múltiple)');
+                        }
+                    }
+
                     this.pointSel = 1
                     this.productos = this.productos.concat(this.itemsLista.map(e => {
                         e.precioVenta = e.precio_unidad
@@ -1709,7 +2004,59 @@
 
                     $("#input_buscar_productos").autocomplete({
                         source: _URL + `/ajs/cargar/productos/${self.producto.almacen}`,
-                        minLength: 1,
+                        minLength: 2,
+                        position: {
+                            my: "left top",
+                            at: "left bottom",
+                            collision: "flip"
+                        },
+                        open: function() {
+                            var inputWidth = $(this).outerWidth();
+                            $(this).autocomplete("widget").css({
+                                'width': inputWidth + 'px',
+                                'max-width': inputWidth + 'px'
+                            });
+                        },
+                        response: function(event, ui) {
+                            setTimeout(() => {
+                                var inputWidth = $(this).outerWidth();
+                                $(this).autocomplete("widget").css({
+                                    'width': inputWidth + 'px',
+                                    'max-width': inputWidth + 'px'
+                                });
+                            }, 10);
+                        },
+                        create: function () {
+                            $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                                // HTML personalizado - con o sin imagen
+                                let html = '';
+                                if (item.imagen) {
+                                    // Con imagen
+                                    html = `
+                                        <div style="display: flex; align-items: flex-start; padding: 8px; max-width: 100%;">
+                                            <img src="${_URL}/public/img/productos/${item.imagen}"
+                                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0; margin-top: 2px;"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none';" />
+                                            <div class="producto-info">
+                                                <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // Sin imagen - solo texto
+                                    html = `
+                                        <div style="padding: 8px; max-width: 100%;">
+                                            <div class="producto-info">
+                                                <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+
+                                return $('<li>').data('item.autocomplete', item).html(html).appendTo(ul);
+                            };
+                        },
                         select: function (event, ui) {
                             event.preventDefault();
                             console.log("Producto seleccionado:", ui.item);
@@ -1800,6 +2147,12 @@
                 },
                 eliminarItemPro(index) {
                     this.productos.splice(index, 1)
+
+                    // Si se eliminan todos los productos, resetear la moneda a soles
+                    if (this.productos.length === 0) {
+                        this.venta.moneda = '1'; // Resetear a soles
+                        console.log('Todos los productos eliminados - moneda reseteada a soles');
+                    }
                 },
                 buscarDocumentSS() {
                     if (this.venta.num_doc.length == 8 || this.venta.num_doc.length == 11) {
@@ -2020,7 +2373,8 @@
                         precioVenta: '',
                         tipo_precio: 'PV',
                         precio_mostrado: '',
-                        precio_usado: 1
+                        precio_usado: 1,
+                        moneda: null
                     }
                     this.precioProductos = [];
                 },
@@ -2060,6 +2414,25 @@
                 },
                 addProduct() {
                     if (this.producto.descripcion.length > 0) {
+                        // Validación para evitar mezclar monedas diferentes
+                        if (this.productos.length > 0) {
+                            const primeraMoneda = this.productos[0].moneda;
+                            const monedaActual = this.producto.moneda;
+
+                            if (primeraMoneda && monedaActual && primeraMoneda !== monedaActual) {
+                                const simboloPrimera = primeraMoneda === 'USD' ? 'Dólar' : 'Soles';
+                                const simboloActual = monedaActual === 'USD' ? 'Dólar' : 'Soles';
+
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Moneda incompatible',
+                                    text: `No se puede agregar este producto porque ya agregó un producto con precio en ${simboloPrimera}. Este producto tiene precio en ${simboloActual}.`,
+                                    confirmButtonColor: '#CA3438'
+                                });
+                                return; // Salir sin agregar el producto
+                            }
+                        }
+
                         // Creamos una copia del producto actual
                         const prod = {
                             ...this.producto,
@@ -2079,6 +2452,18 @@
                         prod.precio = parseFloat(prod.precio).toFixed(2)
                         prod.precio2 = parseFloat(prod.precio2).toFixed(2)
                         prod.precio_unidad = parseFloat(prod.precio_unidad).toFixed(2)
+
+                        // Detectar automáticamente la moneda de la cotización basada en el producto
+                        if (this.productos.length === 0) {
+                            // Si es el primer producto, usar su moneda para toda la cotización
+                            if (prod.moneda === 'USD') {
+                                this.venta.moneda = '2'; // Dólares
+                                console.log('Cotización automáticamente configurada en dólares');
+                            } else {
+                                this.venta.moneda = '1'; // Soles
+                                console.log('Cotización automáticamente configurada en soles');
+                            }
+                        }
 
                         // Agregamos el producto al array de productos
                         this.productos.push(prod)
@@ -2174,6 +2559,23 @@
                     return (this.venta.moneda == 1 ? 'S/' : '$')
                 },
 
+                simboloMonedaProducto() {
+                    // Si hay un producto seleccionado, usar su moneda
+                    if (this.producto.moneda) {
+                        return (this.producto.moneda === 'USD') ? '$' : 'S/';
+                    }
+                    // Si no hay producto, usar la moneda de la cotización
+                    return this.monedaSibol;
+                },
+
+                simboloMonedaEdicion() {
+                    // Símbolo de moneda para el producto en edición
+                    if (this.productoEdit && this.productoEdit.moneda) {
+                        return (this.productoEdit.moneda === 'USD') ? '$' : 'S/';
+                    }
+                    return 'S/';
+                },
+
                 totalValorCuotas() {
                     let total = 0;
 
@@ -2187,27 +2589,33 @@
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return "S/ " + total.toFixed(2);
+                    return this.monedaSibol + " " + total.toFixed(2);
                 },
                 isDirreccionCont() {
                     return this.venta.dir2_cli.length > 0;
                 },
                 totalProdustos() {
-                    // Primero calculamos el total sin descuento
-                    let total = 0;
+                    // Primero calculamos el total sin descuento (base imponible)
+                    let totalBase = 0;
                     this.productos.forEach((prod) => {
-                        total += parseFloat(prod.precioVenta) * parseFloat(prod.cantidad);
+                        totalBase += parseFloat(prod.precioVenta) * parseFloat(prod.cantidad);
                     });
 
-                    // Aplicamos el descuento si existe
+                    // Aplicamos el descuento general si existe
                     if (this.descuentoGeneral && this.descuentoGeneral !== '') {
                         const descuento = parseFloat(this.descuentoGeneral) / 100;
-                        total = total * (1 - descuento);
+                        totalBase = totalBase * (1 - descuento);
+                    }
+
+                    // Calculamos el total final según si aplica IGV
+                    let totalFinal = totalBase;
+                    if (this.venta.aplicar_igv == '1') {
+                        totalFinal = totalBase * 1.18; // Agregamos IGV del 18%
                     }
 
                     // Actualizamos el total en venta y retornamos con 2 decimales
-                    this.venta.total = total;
-                    return total.toFixed(2);
+                    this.venta.total = totalFinal;
+                    return totalFinal.toFixed(2);
                 },
                 totalValorCuotas() {
                     let total = 0;
@@ -2222,7 +2630,32 @@
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return "S/ " + total.toFixed(2);
+                    return this.monedaSibol + " " + total.toFixed(2);
+                },
+                async actualizarTasaCambio() {
+                    this.cargandoTasa = true;
+                    this.fechaTasa = null;
+
+                    try {
+                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
+                        const result = await response.json();
+
+                        if (result.success && result.data && result.data.venta) {
+                            this.venta.tc = result.data.venta.toString();
+                            this.fechaTasa = result.data.fecha;
+                        } else {
+                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
+                        }
+                    } catch (error) {
+                        console.error('Error al obtener tasa de cambio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
+                        });
+                    } finally {
+                        this.cargandoTasa = false;
+                    }
                 }
             }
         });
@@ -2313,11 +2746,64 @@
                     productos = productos.map(p => ({ ...p, tipo: 'producto' }));
                     repuestos = repuestos.map(r => ({ ...r, tipo: 'repuesto' }));
 
-                    // Combinamos y enviamos los resultados
-                    response([...productos, ...repuestos]);
+                    // Combinamos y limitamos los resultados a 15 elementos para mejorar rendimiento
+                    const resultados = [...productos, ...repuestos].slice(0, 15);
+                    response(resultados);
                 });
             },
-            minLength: 1,
+            minLength: 2,
+            position: {
+                my: "left top",
+                at: "left bottom",
+                collision: "flip"
+            },
+            open: function() {
+                var inputWidth = $(this).outerWidth();
+                $(this).autocomplete("widget").css({
+                    'width': inputWidth + 'px',
+                    'max-width': inputWidth + 'px'
+                });
+            },
+            response: function(event, ui) {
+                setTimeout(() => {
+                    var inputWidth = $(this).outerWidth();
+                    $(this).autocomplete("widget").css({
+                        'width': inputWidth + 'px',
+                        'max-width': inputWidth + 'px'
+                    });
+                }, 10);
+            },
+            create: function () {
+                $(this).data('ui-autocomplete')._renderItem = function (ul, item) {
+                    // HTML personalizado - con o sin imagen
+                    let html = '';
+                    if (item.imagen) {
+                        // Con imagen
+                        html = `
+                            <div style="display: flex; align-items: flex-start; padding: 8px; max-width: 100%;">
+                                <img src="${_URL}/public/img/productos/${item.imagen}"
+                                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0; margin-top: 2px;"
+                                     loading="lazy"
+                                     onerror="this.style.display='none';" />
+                                <div class="producto-info">
+                                    <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Sin imagen - solo texto
+                        html = `
+                            <div style="padding: 8px; max-width: 100%;">
+                                <div class="producto-info">
+                                    <div style="font-weight: 500; color: #333; font-size: 13px; line-height: 1.4; white-space: normal; word-wrap: break-word;">${item.value}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return $('<li>').data('item.autocomplete', item).html(html).appendTo(ul);
+                };
+            },
             select: function (event, ui) {
                 event.preventDefault();
 
@@ -2349,6 +2835,7 @@
                 app.producto.codigo = ui.item.codigo;
                 app.producto.usar_multiprecio = ui.item.usar_multiprecio;
                 app.producto.tipo_precio = 'PV'; // Establecer tipo inicial como PV
+                app.producto.moneda = ui.item.moneda; // Asignar la moneda del producto
 
                 // Cargar los precios adicionales de producto_precios
                 cargarPreciosAdicionales(ui.item.codigo, ui.item.tipo);
@@ -2396,9 +2883,12 @@
 <script src="<?= URL::to('public/js/cotizaciones/condiciones-terminos.js') ?>?v=<?= time() ?>"> </script>
 <script>
     function toggleInput(checkbox) {
-        // Busca el input relacionado a la clase 'precio-input' dentro del mismo contenedor
-        const input = checkbox.parentElement.querySelector('.precio-input');
-        input.disabled = !checkbox.checked;  // Habilita el input si la casilla está marcada
+        // Busca el input relacionado a la clase 'precio-input' dentro del mismo contenedor padre
+        const container = checkbox.closest('[class*="col-lg-"]');
+        const input = container.querySelector('.precio-input');
+        if (input) {
+            input.disabled = !checkbox.checked;  // Habilita el input si la casilla está marcada
+        }
     }
 
     function onlyNumber(event) {

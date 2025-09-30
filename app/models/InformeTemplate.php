@@ -70,7 +70,12 @@ class InformeTemplate
  public function getHeaderImageUrl()
 {
     if ($this->header_image) {
-        return $this->header_image;
+        // Si ya es una URL completa (base64 o http), devolverla tal como está
+        if (strpos($this->header_image, 'data:image/') === 0 || strpos($this->header_image, 'http') === 0) {
+            return $this->header_image;
+        }
+        // Si es una ruta de archivo, convertir a URL absoluta
+        return URL::to($this->header_image);
     }
     return URL::to('public/img/garantia/header.png'); // Imagen por defecto
 }
@@ -78,7 +83,12 @@ class InformeTemplate
 public function getFooterImageUrl()
 {
     if ($this->footer_image) {
-        return $this->footer_image;
+        // Si ya es una URL completa (base64 o http), devolverla tal como está
+        if (strpos($this->footer_image, 'data:image/') === 0 || strpos($this->footer_image, 'http') === 0) {
+            return $this->footer_image;
+        }
+        // Si es una ruta de archivo, convertir a URL absoluta
+        return URL::to($this->footer_image);
     }
     return URL::to('public/img/garantia/footer.png'); // Imagen por defecto
 }

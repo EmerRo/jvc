@@ -53,7 +53,7 @@ public function render()
     }
 }
 
-    // Método para obtener un informe específico
+    // Método para obtener un informe específico CON imágenes (para edición)
     public function getOne()
     {
         if (isset($_POST['id_informe'])) {
@@ -66,8 +66,8 @@ public function render()
                     'tipo' => $this->informe->getTipo(),
                     'titulo' => $this->informe->getTitulo(),
                     'contenido' => $this->informe->getContenido(),
-                    'header_image' => $this->informe->getHeaderImage(),
-                    'footer_image' => $this->informe->getFooterImage(),
+                    'imagen1' => $this->informe->getImagen1Url(), // Usar URL en lugar de base64 para web
+                    'imagen2' => $this->informe->getImagen2Url(), // Usar URL en lugar de base64 para web
                     'cliente_id' => $this->informe->getClienteId(),
                     'persona_entregar' => $this->informe->getPersonaEntregar(),
                     'cliente_nombre' => $this->informe->getClienteNombre(),
@@ -99,28 +99,31 @@ public function render()
                     throw new Exception("Todos los campos obligatorios deben ser completados");
                 }
                 
+                // Validar que el cliente sea requerido
+                $this->informe->validarClienteRequerido($cliente_id);
+                
                 // Procesar imágenes si se proporcionan
-                $header_image = null;
-                $footer_image = null;
+                $imagen1 = null;
+                $imagen2 = null;
                 
-                if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagen($_FILES['header_image']);
-                } else if (isset($_POST['header_image_base64']) && !empty($_POST['header_image_base64'])) {
-                    $header_image = $_POST['header_image_base64'];
+                if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
+                    $imagen1 = $this->procesarImagen($_FILES['imagen1']);
+                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
+                    $imagen1 = $_POST['imagen1_base64'];
                 }
-                
-                if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagen($_FILES['footer_image']);
-                } else if (isset($_POST['footer_image_base64']) && !empty($_POST['footer_image_base64'])) {
-                    $footer_image = $_POST['footer_image_base64'];
+
+                if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
+                    $imagen2 = $this->procesarImagen($_FILES['imagen2']);
+                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
+                    $imagen2 = $_POST['imagen2_base64'];
                 }
                 
                 // Configurar el objeto informe
                 $this->informe->setTipo($tipo);
                 $this->informe->setTitulo($titulo);
                 $this->informe->setContenido($contenido);
-                $this->informe->setHeaderImage($header_image);
-                $this->informe->setFooterImage($footer_image);
+                $this->informe->setImagen1($imagen1);
+                $this->informe->setImagen2($imagen2);
                 $this->informe->setClienteId($cliente_id);
                 $this->informe->setPersonaEntregar($persona_entregar);
                 $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
@@ -162,6 +165,9 @@ public function render()
                     throw new Exception("Todos los campos obligatorios deben ser completados");
                 }
                 
+                // Validar que el cliente sea requerido
+                $this->informe->validarClienteRequerido($cliente_id);
+                
                 // Obtener el informe actual
                 $this->informe->setIdInforme($id_informe);
                 if (!$this->informe->obtenerInforme()) {
@@ -169,27 +175,27 @@ public function render()
                 }
                 
                 // Procesar imágenes si se proporcionan
-                $header_image = $this->informe->getHeaderImage();
-                $footer_image = $this->informe->getFooterImage();
+                $imagen1 = $this->informe->getImagen1();
+                $imagen2 = $this->informe->getImagen2();
                 
-                if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagen($_FILES['header_image']);
-                } else if (isset($_POST['header_image_base64']) && !empty($_POST['header_image_base64'])) {
-                    $header_image = $_POST['header_image_base64'];
+                if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
+                    $imagen1 = $this->procesarImagen($_FILES['imagen1']);
+                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
+                    $imagen1 = $_POST['imagen1_base64'];
                 }
                 
-                if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagen($_FILES['footer_image']);
-                } else if (isset($_POST['footer_image_base64']) && !empty($_POST['footer_image_base64'])) {
-                    $footer_image = $_POST['footer_image_base64'];
+                if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
+                    $imagen2 = $this->procesarImagen($_FILES['imagen2']);
+                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
+                    $imagen2 = $_POST['imagen2_base64'];
                 }
                 
                 // Configurar el objeto informe
                 $this->informe->setTipo($tipo);
                 $this->informe->setTitulo($titulo);
                 $this->informe->setContenido($contenido);
-                $this->informe->setHeaderImage($header_image);
-                $this->informe->setFooterImage($footer_image);
+                $this->informe->setImagen1($imagen1);
+                $this->informe->setImagen2($imagen2);
                 $this->informe->setClienteId($cliente_id);
                 $this->informe->setPersonaEntregar($persona_entregar);
                 $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
@@ -240,6 +246,28 @@ public function render()
         }
     }
 
+    // Método para generar PDF como base64 (para vista previa)
+    public function generarPDFBase64()
+    {
+        if (isset($_GET['id'])) {
+            $id_informe = intval($_GET['id']);
+            $pdfBase64 = $this->informePDF->generarInformePDFBase64($id_informe);
+            
+            // Devolver como JSON
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'pdfBase64' => $pdfBase64
+            ]);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'error' => 'ID de informe no proporcionado'
+            ]);
+        }
+    }
+
     // Método para obtener la plantilla actual
     public function obtenerTemplate()
     {
@@ -282,11 +310,15 @@ public function render()
                 $footer_image = $this->informeTemplate->getFooterImage();
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagen($_FILES['header_image']);
+                    // Eliminar imagen anterior si existe
+                    $this->eliminarImagenAnterior($header_image);
+                    $header_image = $this->procesarImagenMembrete($_FILES['header_image']);
                 }
                 
                 if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagen($_FILES['footer_image']);
+                    // Eliminar imagen anterior si existe  
+                    $this->eliminarImagenAnterior($footer_image);
+                    $footer_image = $this->procesarImagenMembrete($_FILES['footer_image']);
                 }
                 
                 // Configurar el objeto template
@@ -329,7 +361,7 @@ public function render()
                 $footer_image = null;
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagen($_FILES['header_image']);
+                    $header_image = $this->procesarImagenMembrete($_FILES['header_image']);
                 } else if (isset($_POST['header_image_base64']) && !empty($_POST['header_image_base64'])) {
                     $header_image = $_POST['header_image_base64'];
                 } else {
@@ -339,7 +371,7 @@ public function render()
                 }
                 
                 if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagen($_FILES['footer_image']);
+                    $footer_image = $this->procesarImagenMembrete($_FILES['footer_image']);
                 } else if (isset($_POST['footer_image_base64']) && !empty($_POST['footer_image_base64'])) {
                     $footer_image = $_POST['footer_image_base64'];
                 } else {
@@ -377,19 +409,166 @@ public function render()
         }
     }
 
-    // Método auxiliar para procesar imágenes
+    // Método auxiliar para procesar imágenes (usado para imágenes del informe)
     private function procesarImagen($file)
+    {
+        return $this->procesarImagenEnDirectorio($file, 'files/informes/');
+    }
+    
+    // Método auxiliar para procesar imágenes de membretes
+    private function procesarImagenMembrete($file)
+    {
+        return $this->procesarImagenEnDirectorio($file, 'files/informes/membretes/');
+    }
+    
+    // Método genérico para procesar imágenes en cualquier directorio
+    private function procesarImagenEnDirectorio($file, $uploadDir)
     {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         if (!in_array($file['type'], $allowedTypes)) {
             throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, PNG y GIF.");
         }
         
-        // Leer el archivo y convertirlo a base64
-        $imageData = file_get_contents($file['tmp_name']);
-        $base64 = 'data:' . $file['type'] . ';base64,' . base64_encode($imageData);
+        // Verificar tamaño del archivo (máximo 10MB)
+        if ($file['size'] > 10 * 1024 * 1024) {
+            throw new Exception("El archivo es demasiado grande. El tamaño máximo permitido es 10MB.");
+        }
         
-        return $base64;
+        // Crear directorio si no existe
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception("No se pudo crear el directorio de imágenes: $uploadDir");
+            }
+        }
+        
+        // Generar nombre único para el archivo
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
+        $rutaCompleta = $uploadDir . $nombreArchivo;
+        
+        // Optimizar y guardar la imagen
+        $imagenOptimizada = $this->optimizarImagenInforme($file);
+        
+        // Guardar la imagen optimizada
+        if (!file_put_contents($rutaCompleta, $imagenOptimizada)) {
+            throw new Exception("No se pudo guardar la imagen.");
+        }
+        
+        // Retornar solo la ruta relativa
+        return $rutaCompleta;
+    }
+    
+    /**
+     * Elimina una imagen anterior del sistema de archivos
+     */
+    private function eliminarImagenAnterior($rutaImagen)
+    {
+        if (!$rutaImagen) {
+            return;
+        }
+        
+        // No eliminar si es una imagen base64 o URL externa
+        if (strpos($rutaImagen, 'data:image/') === 0 || strpos($rutaImagen, 'http') === 0) {
+            return;
+        }
+        
+        // No eliminar imágenes por defecto del sistema
+        if (strpos($rutaImagen, 'public/img/garantia/') !== false) {
+            return;
+        }
+        
+        // Eliminar solo si es un archivo en la carpeta de membretes o informes
+        if (strpos($rutaImagen, 'files/informes/') === 0 && file_exists($rutaImagen)) {
+            try {
+                unlink($rutaImagen);
+            } catch (Exception $e) {
+                error_log("Error al eliminar imagen anterior: " . $e->getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Optimiza una imagen para informes manteniendo buena calidad
+     */
+    private function optimizarImagenInforme($file)
+    {
+        // Leer y analizar la imagen
+        $imageData = file_get_contents($file['tmp_name']);
+        $image = imagecreatefromstring($imageData);
+        
+        if ($image === false) {
+            throw new Exception("No se pudo procesar la imagen.");
+        }
+        
+        // Aplicar mejoras de calidad
+        $image = $this->aplicarFiltrosCalidadInforme($image);
+        
+        // Obtener dimensiones
+        $width = imagesx($image);
+        $height = imagesy($image);
+        
+        // Redimensionar solo si es muy grande (para informes puede ser más grande)
+        $maxWidth = 1000;
+        $maxHeight = 800;
+        
+        if ($width > $maxWidth || $height > $maxHeight) {
+            // Calcular ratio manteniendo proporción
+            $ratioW = $maxWidth / $width;
+            $ratioH = $maxHeight / $height;
+            $ratio = min($ratioW, $ratioH);
+            
+            $newWidth = intval($width * $ratio);
+            $newHeight = intval($height * $ratio);
+            
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+            imagealphablending($resizedImage, false);
+            imagesavealpha($resizedImage, true);
+            
+            // Mantener transparencia para PNG
+            if ($file['type'] === 'image/png') {
+                $transparent = imagecolorallocatealpha($resizedImage, 255, 255, 255, 127);
+                imagefill($resizedImage, 0, 0, $transparent);
+            } else {
+                $white = imagecolorallocate($resizedImage, 255, 255, 255);
+                imagefill($resizedImage, 0, 0, $white);
+            }
+            
+            imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($image);
+            $image = $resizedImage;
+        }
+        
+        // Generar imagen optimizada
+        ob_start();
+        if ($file['type'] === 'image/png') {
+            imagepng($image, null, 6); // Compresión PNG nivel 6
+        } else {
+            imagejpeg($image, null, 88); // Alta calidad JPEG
+        }
+        $optimizedData = ob_get_clean();
+        
+        imagedestroy($image);
+        
+        return $optimizedData;
+    }
+    
+    /**
+     * Aplica filtros para mejorar la calidad de la imagen
+     */
+    private function aplicarFiltrosCalidadInforme($image)
+    {
+        // Aplicar filtro de nitidez muy suave para informes
+        $sharpenMatrix = array(
+            array(0, -0.3, 0),
+            array(-0.3, 2.2, -0.3),
+            array(0, -0.3, 0)
+        );
+        imageconvolution($image, $sharpenMatrix, 1, 0);
+        
+        // Mejorar contraste muy sutilmente
+        imagefilter($image, IMG_FILTER_CONTRAST, -2);
+        
+        return $image;
     }
     // Nuevos métodos para gestionar tipos de informe
 public function obtenerTiposInforme()
@@ -425,51 +604,134 @@ public function insertarTipoInforme()
             echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
         }
     }
-}
 
-public function editarTipoInforme()
-{
-    if (!empty($_POST)) {
-        try {
-            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-            $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
-            $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
-            
-            if (empty($id) || empty($nombre)) {
-                throw new Exception("ID y nombre son obligatorios");
+
+}
+    public function editarTipoInforme()
+    {
+        if (!empty($_POST)) {
+            try {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+                $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+                $descripcion = isset($_POST['descripcion']) ? trim($_POST['descripcion']) : '';
+                
+                if (empty($id) || empty($nombre)) {
+                    throw new Exception("ID y nombre son obligatorios");
+                }
+                
+                $this->tipoInforme->setId($id);
+                $this->tipoInforme->setNombre($nombre);
+                // $this->tipoInforme->setDescripcion($descripcion);
+                
+                if ($this->tipoInforme->actualizar()) {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de informe actualizado correctamente']);
+                } else {
+                    throw new Exception("Error al actualizar el tipo de informe");
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
             }
-            
-            $this->tipoInforme->setId($id);
-            $this->tipoInforme->setNombre($nombre);
-            // $this->tipoInforme->setDescripcion($descripcion);
-            
-            if ($this->tipoInforme->actualizar()) {
-                echo json_encode(['success' => true, 'msg' => 'Tipo de informe actualizado correctamente']);
-            } else {
-                throw new Exception("Error al actualizar el tipo de informe");
-            }
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
         }
     }
-}
 
-public function eliminarTipoInforme()
-{
-    if (isset($_POST['id'])) {
-        try {
-            $id = intval($_POST['id']);
-            $this->tipoInforme->setId($id);
-            
-            if ($this->tipoInforme->eliminar()) {
-                echo json_encode(['success' => true, 'msg' => 'Tipo de informe eliminado correctamente']);
-            } else {
-                throw new Exception("Error al eliminar el tipo de informe");
+    public function eliminarTipoInforme()
+    {
+        if (isset($_POST['id'])) {
+            try {
+                $id = intval($_POST['id']);
+                $this->tipoInforme->setId($id);
+                
+                if ($this->tipoInforme->eliminar()) {
+                    echo json_encode(['success' => true, 'msg' => 'Tipo de informe eliminado correctamente']);
+                } else {
+                    throw new Exception("Error al eliminar el tipo de informe");
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
             }
-        } catch (Exception $e) {
-            echo json_encode(['success' => false, 'msg' => $e->getMessage()]);
         }
     }
-}
 
+    public function compartirWhatsApp()
+    {
+        // Limpiar cualquier salida previa y establecer headers
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        $respuesta = ["res" => false];
+
+        try {
+            // Validar que lleguen los parámetros necesarios
+            if (!isset($_POST['id']) && !isset($_POST['id_informe'])) {
+                throw new Exception("ID de informe no proporcionado");
+            }
+            
+            // El frontend envía 'numero' no 'telefono'
+            if (!isset($_POST['numero'])) {
+                throw new Exception("Número de teléfono no proporcionado");
+            }
+
+            $id_informe = $_POST['id_informe'] ?? $_POST['id'];
+            $telefono = $_POST['numero']; // Cambié de 'telefono' a 'numero'
+
+            // Validar el número de teléfono
+            if (!preg_match('/^[0-9]{9}$/', $telefono)) {
+                throw new Exception("Número de teléfono inválido");
+            }
+
+            // Obtener el informe usando consulta directa con la conexión heredada
+            $sql = "SELECT i.*, c.datos as cliente_nombre, c.documento as cliente_documento 
+                    FROM informes i 
+                    LEFT JOIN clientes c ON i.cliente_id = c.id_cliente 
+                    WHERE i.id_informe = ?";
+            
+            $stmt = $this->conectar->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Error al preparar consulta: " . $this->conectar->error);
+            }
+            
+            $stmt->bind_param("i", $id_informe);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            $informe = $resultado->fetch_assoc();
+            $stmt->close();
+
+            if (!$informe) {
+                throw new Exception("Informe no encontrado");
+            }
+
+            // Generar URL del PDF del informe
+            $urlPDF = URL::to("ajs/informe/generarPDF?id=$id_informe");
+
+            // Construir mensaje de WhatsApp
+            $mensaje = "📋 *INFORME TÉCNICO*\n\n";
+            $mensaje .= "📄 *" . $informe['titulo'] . "*\n\n";
+            $mensaje .= "🗂️ *Tipo:* " . ($informe['tipo'] ?: 'General') . "\n\n";
+            
+            if ($informe['cliente_id']) {
+                $mensaje .= "👤 *Cliente:* " . ($informe['cliente_nombre'] ?: 'Cliente') . "\n\n";
+            }
+            
+            $mensaje .= "📅 *Fecha:* " . date('d/m/Y', strtotime($informe['fecha_creacion'])) . "\n\n";
+            $mensaje .= "📄 *Ver PDF:* " . $urlPDF . "\n\n";
+            $mensaje .= "📱 *Compartido desde JVC*\n";
+            $mensaje .= "🌐 " . $_SERVER['HTTP_HOST'];
+
+            // Generar URL de WhatsApp
+            $mensajeCodificado = urlencode($mensaje);
+            $urlWhatsApp = "https://wa.me/51$telefono?text=$mensajeCodificado";
+
+            $respuesta = [
+                "res" => true,
+                "whatsapp_url" => $urlWhatsApp,
+                "mensaje" => $mensaje
+            ];
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        echo json_encode($respuesta);
+    }
 }

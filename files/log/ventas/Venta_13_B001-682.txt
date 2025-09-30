@@ -1,0 +1,5 @@
+Venta: 13, fecha: 2025-09-02
+
+Prod: insert into productos_ventas 
+        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
+        values ('2', '13', '1', '110.00', '135.00', NULL, NULL, '5') - true

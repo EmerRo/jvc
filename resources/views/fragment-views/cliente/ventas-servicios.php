@@ -1673,6 +1673,12 @@ if (isset($_GET["guia"])) {
                 },
 
                 cargarDatosGuia() {
+                    // DESHABILITADO: ventas-servicios no debe manejar guías
+                    // Esta función está causando conflictos con ventas-productos
+                    console.log("🚫 cargarDatosGuia() en ventas-servicios DESHABILITADO");
+                    return;
+                    
+                    /* CÓDIGO ORIGINAL COMENTADO
                     const vue = this;
                     const guiaId = $("#guia").val();
 
@@ -1683,6 +1689,7 @@ if (isset($_GET["guia"])) {
                     _post("/ajs/guia/remision/info", {
                         guia: guiaId
                     }, function (resp) {
+                    */
                         if (resp.res) {
                             if (Array.isArray(resp.productos) && resp.productos.length > 0) {
                                 vue.productos = resp.productos;
@@ -1717,7 +1724,8 @@ if (isset($_GET["guia"])) {
             created() {
                 const guiaId = $("#guia").val();
                 if (guiaId) {
-                    this.cargarDatosGuia();
+                    console.log("🚫 Llamada a cargarDatosGuia() en ventas-servicios BLOQUEADA");
+                    // this.cargarDatosGuia(); // DESHABILITADO: Causa conflictos con ventas-productos
                 }
 
                 const cotiId = $("#cotizacion").val();

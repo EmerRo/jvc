@@ -110,22 +110,47 @@ class ReportesVentaController extends Controller
            WHERE pc.id_coti = '$coti' 
            ORDER BY codigo ASC
        ");
+    $sql = "select *, aplicar_igv from cotizaciones where cotizacion_id=" . $coti;
 
-    $sql = "select * from cotizaciones where cotizacion_id=" . $coti;
     $datoVenta = $this->conexion->query($sql)->fetch_assoc();
-    //obtener el asusnto
+
+    // Verificar que se obtuvo la cotización
+    if (!$datoVenta) {
+      throw new Exception("No se encontró la cotización con ID: " . $coti);
+    }
+
+    // Definir el símbolo de moneda al inicio
+    $simbolfff22 = $datoVenta['moneda'] == 1 ? 'S/' : '$';
+
+    //obtener el asunto
     $asunto = 'No especificado';
-    if (!empty($datoVenta['id_asunto'])) {
-      $resultAsunto = $this->conexion->query("SELECT nombre FROM asuntos_coti WHERE id_asunto = " . $datoVenta['id_asunto']);
-      if ($resultAsunto && $resultAsunto->num_rows > 0) {
-        $asuntoData = $resultAsunto->fetch_assoc();
-        $asunto = $asuntoData['nombre'];
+    if (!empty($datoVenta['id_asunto']) && is_numeric($datoVenta['id_asunto'])) {
+      $stmt = $this->conexion->prepare("SELECT nombre FROM asuntos_coti WHERE id_asunto = ?");
+      if ($stmt) {
+        $stmt->bind_param("i", $datoVenta['id_asunto']);
+        $stmt->execute();
+        $resultAsunto = $stmt->get_result();
+        if ($resultAsunto && $resultAsunto->num_rows > 0) {
+          $asuntoData = $resultAsunto->fetch_assoc();
+          $asunto = $asuntoData['nombre'];
+        }
+        $stmt->close();
       }
     }
-    $sql_empresa = "SELECT e.* FROM empresas e 
-       INNER JOIN cotizaciones c ON c.id_empresa = e.id_empresa 
-       WHERE c.cotizacion_id = " . $coti;
-    $datoEmpresa = $this->conexion->query($sql_empresa)->fetch_assoc();
+    $stmt_empresa = $this->conexion->prepare("SELECT e.* FROM empresas e
+       INNER JOIN cotizaciones c ON c.id_empresa = e.id_empresa
+       WHERE c.cotizacion_id = ?");
+    $stmt_empresa->bind_param("i", $coti);
+    $stmt_empresa->execute();
+    $result_empresa = $stmt_empresa->get_result();
+    $datoEmpresa = $result_empresa->fetch_assoc();
+    $stmt_empresa->close();
+
+    // Verificar que id_cliente no sea null
+    if (empty($datoVenta['id_cliente'])) {
+      throw new Exception("La cotización no tiene un cliente asignado");
+    }
+
     $resultC = $this->conexion->query("select * from clientes where id_cliente = " . $datoVenta['id_cliente'])->fetch_assoc();
 
     if (!$datoEmpresa) {
@@ -137,13 +162,13 @@ class ReportesVentaController extends Controller
     error_log('SESSION: ' . print_r($_SESSION, true));
 
     $usuario_actual = [];
-    $query = "SELECT 
+    $query = "SELECT
                    u.nombres,
                    u.telefono,
                    r.nombre as rol
                  FROM usuarios u
                  INNER JOIN roles r ON r.rol_id = u.id_rol
-                 WHERE u.usuario_id = 40";
+                 WHERE u.usuario_id = " . $datoVenta['id_usuario'];
 
     error_log('QUERY: ' . $query);
     $result = $this->conexion->query($query);
@@ -186,7 +211,7 @@ class ReportesVentaController extends Controller
        <tr style=''>
            <td style='padding: 3px; text-align: center;'>Cuota $tempNum</td>
            <td style='padding: 3px; text-align: center;'>$tempFecha</td>
-           <td style='padding: 3px; text-align: center;'>S/ $tempMonto</td>
+           <td style='padding: 3px; text-align: center;'>$simbolfff22 $tempMonto</td>
        </tr>
    ";
       }
@@ -236,9 +261,11 @@ class ReportesVentaController extends Controller
     $lastItemHTML = '';
     $lastItemIndex = mysqli_num_rows($listaProd1);
 
-    // Verificar si algún producto tiene precio especial
+    // Verificar si algún producto tiene precio especial O si hay descuento general
     $hasSpecialPrices = false;
     $descuentoEspecialTotal = 0;
+    $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
+    $hasGeneralDiscount = $descuentoGeneral > 0;
 
     // Primero verificamos si algún producto tiene precio especial
     foreach ($listaProd1 as $prod) {
@@ -248,22 +275,28 @@ class ReportesVentaController extends Controller
       }
     }
 
+    // Mostrar columna COSTO C/DESC si hay precios especiales O descuento general
+    $showDiscountColumn = $hasSpecialPrices || $hasGeneralDiscount;
+
     // Modificar el encabezado de la tabla según si hay precios especiales o no
     // Modificar el encabezado de la tabla para establecer anchos consistentes
     $tableHeader = "
     <tr style='border-collapse: collapse;'>
         <td style='width: 30px; font-size: 10px; font-family: Arial, Helvetica, sans-serif;text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>ITEM</strong></td>
-        <td style='font-family: Arial, Helvetica, sans-serif; width: " . ($hasSpecialPrices ? "240px" : "300px") . "; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>DESCRIPCIÓN</strong></td>
+        <td style='font-family: Arial, Helvetica, sans-serif; width: " . ($showDiscountColumn ? "240px" : "300px") . "; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>DESCRIPCIÓN</strong></td>
         <td style='font-family: Arial, Helvetica, sans-serif;width: 30px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>CANT</strong></td>
-        <td style='font-family: Arial, Helvetica, sans-serif;width: 80px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>UNIT. SIN<br>I.G.V.</strong></td>";
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>UNIT. SIN<br>I.G.V.</strong></td>";
 
-    if ($hasSpecialPrices) {
+    if ($showDiscountColumn) {
       $tableHeader .= "
-        <td style='font-family: Arial, Helvetica, sans-serif;width: 80px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>C/DESC.</strong></td>";
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>C/DESC.</strong></td>";
     }
 
     $tableHeader .= "
-        <td style='font-family: Arial, Helvetica, sans-serif;width: 80px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>TOTAL. SIN<br>I.G.V.</strong></td>
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>TOTAL. " . ($datoVenta['aplicar_igv'] == 1 ? 'CON' : 'SIN') . "<br>I.G.V.</strong>
+</td>";
+
+    $tableHeader .= "
         <td style='font-family: Arial, Helvetica, sans-serif;width: 80px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>IMAGEN<br>REFERENCIAL</strong></td>
     </tr>";
 
@@ -276,25 +309,52 @@ class ReportesVentaController extends Controller
       $precio = $prod['precio'];
       $precioEspecial = !empty($prod['precioEspecial']) && $prod['precioEspecial'] > 0 ? $prod['precioEspecial'] : $precio;
 
+      // Calcular precio con descuento general (si aplica)
+      $precioConDescuentoGeneral = $precioEspecial;
+      if ($hasGeneralDiscount) {
+        $descuentoUnitario = ($precioEspecial * $descuentoGeneral) / 100;
+        $precioConDescuentoGeneral = $precioEspecial - $descuentoUnitario;
+      }
+
       // Calcular el descuento por precio especial
       if ($precioEspecial < $precio) {
         $descuentoEspecialTotal += ($precio - $precioEspecial) * $prod['cantidad'];
       }
 
-      // Usar el precio especial para el cálculo del importe si existe
-      $importe = $precioEspecial * $prod['cantidad'];
-      $total += $importe;
+      // Usar el precio con descuento para el cálculo del importe final
+      $importeBase = $precioConDescuentoGeneral * $prod['cantidad']; // Sin IGV
+      $total += $importeBase;
       $totalDescuentoEspecial = 0;
       $tempDescuento = 0;
-      $importe -= $tempDescuento;
-      $totalDescuento += $tempDescuento;
-
+      
+      // Los precios por ítem siempre se muestran sin IGV en la tabla
+      // porque el IGV se calcula al final en el resumen
       $precioFormateado = number_format($precio, 2, '.', ',');
       $precioEspecialFormateado = number_format($precioEspecial, 2, '.', ',');
-      $importe = number_format($importe, 2, '.', ',');
+      $precioConDescuentoGeneralFormateado = number_format($precioConDescuentoGeneral, 2, '.', ',');
+      $importe = number_format($importeBase, 2, '.', ',');
       $tempDescuento = number_format($tempDescuento, 2, '.', ',');
       $prod['codigo'] = trim($prod['codigo']);
       $detalle = nl2br($prod['descripcion']);
+      
+      // Agregar información del equipo si está disponible
+      if (!empty($prod['marca']) || !empty($prod['equipo']) || !empty($prod['modelo']) || !empty($prod['numero_serie'])) {
+        $equipoInfo = '';
+        if (!empty($prod['equipo'])) {
+          $equipoInfo = 'EQUIPO: ';
+          if (!empty($prod['marca'])) {
+            $equipoInfo .= $prod['marca'] . ' ';
+          }
+          $equipoInfo .= $prod['equipo'];
+          if (!empty($prod['modelo'])) {
+            $equipoInfo .= ' - Modelo: ' . $prod['modelo'];
+          }
+          if (!empty($prod['numero_serie'])) {
+            $equipoInfo .= ' - Serie: ' . $prod['numero_serie'];
+          }
+          $detalle .= '<br>' . $equipoInfo;
+        }
+      }
 
       // Mejorar la detección de líneas contando tanto \n como <br>
       $numLines = substr_count($prod['descripcion'], "\n") +
@@ -313,19 +373,34 @@ class ReportesVentaController extends Controller
           $lastItemHTML = "
 <tr>
     <td style='width: 30px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$contador</td>
-    <td style='width: " . ($hasSpecialPrices ? "240px" : "300px") . "; font-size: 10px; text-align: left; border: 1px solid #CA3438;'><strong>{$prod['nombre']}</strong><br>{$detalle}</td>
+    <td style='width: " . ($showDiscountColumn ? "240px" : "300px") . "; font-size: 10px; text-align: left; border: 1px solid #CA3438;'><strong>{$prod['nombre']}</strong><br>{$detalle}</td>
     <td style='width: 30px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>{$prod['cantidad']}</td>
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>S/ $precioFormateado</td>";
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $precioFormateado</td>
+";
 
-          if ($hasSpecialPrices) {
+          if ($showDiscountColumn) {
+            // Determinar qué precio mostrar y si aplicar fondo
+            $precioDescuento = '';
+            $aplicarFondo = false;
+            
+            if ($hasSpecialPrices && $precioEspecial < $precio) {
+              // Si hay precio especial, mostrar el precio especial
+              $precioDescuento = "$simbolfff22 $precioEspecialFormateado";
+              $aplicarFondo = true;
+            } elseif ($hasGeneralDiscount) {
+              // Si hay descuento general, mostrar el precio con descuento general
+              $precioDescuento = "$simbolfff22 $precioConDescuentoGeneralFormateado";
+              $aplicarFondo = true;
+            }
+            
             $lastItemHTML .= "
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438; " .
-              ($precioEspecial < $precio ? "background-color: #FFFDE7;" : "") . "'>" .
-              ($precioEspecial < $precio ? "S/ $precioEspecialFormateado" : "") . "</td>";
+              ($aplicarFondo ? "background-color: #FFFDE7;" : "") . "'>" .
+              $precioDescuento . "</td>";
           }
 
           $lastItemHTML .= "
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>S/ $importe</td>
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importe</td>
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>";
 
           try {
@@ -357,19 +432,34 @@ class ReportesVentaController extends Controller
         $rowHTML .= "
 <tr>
     <td style='width: 30px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$contador</td>
-    <td style='width: " . ($hasSpecialPrices ? "240px" : "300px") . "; font-size: 10px; text-align: left; border: 1px solid #CA3438;'><strong>{$prod['nombre']}</strong><br>{$detalle}</td>
+    <td style='width: " . ($showDiscountColumn ? "240px" : "300px") . "; font-size: 10px; text-align: left; border: 1px solid #CA3438;'><strong>{$prod['nombre']}</strong><br>{$detalle}</td>
     <td style='width: 30px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>{$prod['cantidad']}</td>
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>S/ $precioFormateado</td>";
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $precioFormateado</td>
+";
 
-        if ($hasSpecialPrices) {
+        if ($showDiscountColumn) {
+          // Determinar qué precio mostrar y si aplicar fondo
+          $precioDescuento = '';
+          $aplicarFondo = false;
+          
+          if ($hasSpecialPrices && $precioEspecial < $precio) {
+            // Si hay precio especial, mostrar el precio especial
+            $precioDescuento = "S/ $precioEspecialFormateado";
+            $aplicarFondo = true;
+          } elseif ($hasGeneralDiscount) {
+            // Si hay descuento general, mostrar el precio con descuento general
+            $precioDescuento = "S/ $precioConDescuentoGeneralFormateado";
+            $aplicarFondo = true;
+          }
+          
           $rowHTML .= "
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438; " .
-            ($precioEspecial < $precio ? "background-color: #FFFDE7;" : "") . "'>" .
-            ($precioEspecial < $precio ? "S/ $precioEspecialFormateado" : "") . "</td>";
+            ($aplicarFondo ? "background-color: #FFFDE7;" : "") . "'>" .
+            $precioDescuento . "</td>";
         }
 
         $rowHTML .= "
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>S/ $importe</td>
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importe</td>
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>";
 
         try {
@@ -394,20 +484,60 @@ class ReportesVentaController extends Controller
       }
     }
 
-    // Calcular el descuento general
-    $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
-    $montoDescuento = ($total * $descuentoGeneral) / 100;
-    $totalConDescuento = $total - $montoDescuento;
+    // El total guardado en BD incluye descuentos ya aplicados
+    // y también incluye IGV si aplicar_igv = 1
+    $totalGuardado = $total;
+    
+    // Extraer información según si aplica IGV
+    if ($datoVenta['aplicar_igv'] == 1) {
+      // Total guardado incluye IGV, extraer base
+      $totalConDescuento = $totalGuardado; // Total final con IGV
+      $baseGravable = $totalGuardado / 1.18; // Base sin IGV
+      $igvCalculado = $totalGuardado - $baseGravable; // IGV
+      
+      // Calcular descuento (sobre la base sin IGV)
+      $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
+      if ($descuentoGeneral > 0) {
+        $baseSinDescuento = $baseGravable / (1 - ($descuentoGeneral / 100));
+        $montoDescuento = $baseSinDescuento - $baseGravable;
+      } else {
+        $montoDescuento = 0;
+      }
+    } else {
+      // Total guardado no incluye IGV
+      $totalConDescuento = $totalGuardado;
+      $baseGravable = $totalGuardado;
+      $igvCalculado = 0;
+      
+      // Calcular descuento
+      $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
+      if ($descuentoGeneral > 0) {
+        $totalSinDescuento = $totalGuardado / (1 - ($descuentoGeneral / 100));
+        $montoDescuento = $totalSinDescuento - $totalGuardado;
+      } else {
+        $montoDescuento = 0;
+      }
+    }
 
-    $igv = $totalConDescuento / 1.18 * 0.18;
-    $totalOpgravado = $totalConDescuento - $igv;
-    $total = number_format($totalConDescuento, 2, '.', ',');
+    // Calcular subtotal correcto para mostrar
+    if ($datoVenta['aplicar_igv'] == 1) {
+      // Para IGV: mostrar base gravable + descuento
+      $subtotalMostrar = $baseGravable + $montoDescuento;
+    } else {
+      // Para sin IGV: mostrar total + descuento  
+      $subtotalMostrar = $totalGuardado + $montoDescuento;
+    }
+
+    // Asignar variables para mostrar en el reporte
+    $totalOpgravado = $baseGravable;
+    $igv = $igvCalculado;
+    $total = number_format($totalConDescuento, 2, '.', ','); // Total final
+    $totalFinal = $total; // Para compatibilidad
     $igv = number_format($igv, 2, '.', ',');
     $totalOpgravado = number_format($totalOpgravado, 2, '.', ',');
+    $subtotalParaReporte = number_format($subtotalMostrar, 2, '.', ',');
     $montoDescuento = number_format($montoDescuento, 2, '.', ',');
     $descuentoEspecialTotal = number_format($descuentoEspecialTotal, 2, '.', ',');
-
-    $simbolfff22 = $datoVenta['moneda'] == 1 ? 'S/' : '$';
 
     // Tabla de resumen de precios (ahora integrada directamente en la tabla principal)
     // Asegurar que el resumen de precios tenga el ancho correcto en la columna de descripción
@@ -415,9 +545,20 @@ class ReportesVentaController extends Controller
 
     $resumenPrecios = "
      <tr class='price-summary'>
-         <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
-         <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Gravada:</td>
-         <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $totalOpgravado</td>
+         <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+         
+    if ($showDiscountColumn) {
+      $resumenPrecios .= "
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>";
+    } else {
+      $resumenPrecios .= "
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>
+       <td style='border: none;'></td>";
+    }
+    
+    $resumenPrecios .= "
        </tr>";
 
 
@@ -425,34 +566,75 @@ class ReportesVentaController extends Controller
     if ($hasSpecialPrices && floatval(str_replace(',', '', $descuentoEspecialTotal)) > 0) {
       $resumenPrecios .= "
        <tr>
-         <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
+         <td colspan='" . ($showDiscountColumn ? '3' : '5') . "' style='border: none;'></td>";
+         
+      if ($showDiscountColumn) {
+        $resumenPrecios .= "
          <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #FFFDE7;'>Descuento Total:</td>
-         <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #FFFDE7;'>S/ $descuentoEspecialTotal</td>
+         <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #FFFDE7;'>$simbolfff22 $descuentoEspecialTotal</td>";
+      } else {
+        $resumenPrecios .= "
+         <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #FFFDE7;'>Descuento Total: $simbolfff22 $descuentoEspecialTotal</td>";
+      }
+      
+      $resumenPrecios .= "
        </tr>";
     }
 
-    $resumenPrecios .= "
+    // Solo agregar fila de IGV si se aplica IGV
+    if ($datoVenta['aplicar_igv'] == 1) {
+      $resumenPrecios .= "
      <tr>
-       <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
+       <td colspan='3' style='border: none;'></td>";
+       
+      if ($showDiscountColumn) {
+        $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>IGV (18.00%):</td>
-       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $igv</td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $igv</td>";
+      } else {
+        $resumenPrecios .= "
+       <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>IGV (18.00%): $simbolfff22 $igv</td>";
+      }
+      
+      $resumenPrecios .= "
      </tr>";
+    }
 
     // Mostrar el descuento general si existe
     if (floatval(str_replace(',', '', $montoDescuento)) > 0) {
       $resumenPrecios .= "
      <tr>
-       <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
-       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento General  " . intval($descuentoGeneral) . "%:</td>
-       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $montoDescuento</td>
+       <td colspan='3' style='border: none;'></td>";
+       
+      if ($showDiscountColumn) {
+        $resumenPrecios .= "
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento<br>General " . intval($descuentoGeneral) . "%:</td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $montoDescuento</td>";
+      } else {
+        $resumenPrecios .= "
+       <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>Descuento General " . intval($descuentoGeneral) . "%: $simbolfff22 $montoDescuento</td>";
+      }
+      
+      $resumenPrecios .= "
      </tr>";
     }
 
     $resumenPrecios .= "
      <tr>
-       <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
+       <td colspan='3' style='border: none;'></td>";
+       
+    if ($showDiscountColumn) {
+      $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
-       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $total</strong></td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>";
+    } else {
+      $resumenPrecios .= "
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
+       <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>
+       <td style='border: none;'></td>";
+    }
+    
+    $resumenPrecios .= "
      </tr>";
 
     // Agregar conversión a dólares si es necesario
@@ -465,9 +647,18 @@ class ReportesVentaController extends Controller
       $simbolfff = $datoVenta['moneda'] == 2 ? 'S/' : '$';
       $resumenPrecios .= "
        <tr>
-         <td colspan='" . ($hasSpecialPrices ? "5" : "4") . "' style='border: none;'></td>
-         <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>Total a Pagar</td>
-         <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>$simbolfff $totalDolar</td>
+         <td colspan='" . ($showDiscountColumn ? '4' : '5') . "' style='border: none;'></td>";
+         
+      if ($showDiscountColumn) {
+        $resumenPrecios .= "
+         <td style='border: 1px solid #363636; font-size: 12px; text-align: left;'>Total a Pagar</td>
+         <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>$simbolfff $totalDolar</td>";
+      } else {
+        $resumenPrecios .= "
+         <td colspan='2' style='border: 1px solid #363636; font-size: 12px; text-align: center;'>Total a Pagar: $simbolfff $totalDolar</td>";
+      }
+      
+      $resumenPrecios .= "
        </tr>";
     }
 
@@ -501,7 +692,7 @@ class ReportesVentaController extends Controller
 
     // Establecer el header y configurarlo para todas las páginas
     $this->mpdf->SetHTMLHeader($headerHTML);
-    $this->mpdf->WriteHTML('<div style="position: fixed; top: 0; right: 95px; z-index: 1000; margin: botoom 20px;">
+    $this->mpdf->WriteHTML('<div style="position: fixed; top: 0; right: 95px; z-index: 1000; margin: bottom 20px;">
      <span style="font-size: 11px; color: #000;">Lima, ' . $fecha_emision . '</span>
      </div>');
     $this->mpdf->SetTopMargin(40);
@@ -598,7 +789,7 @@ class ReportesVentaController extends Controller
                  <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . ($resultC['direccion'] ?? 'No especificada') . "</td>
                </tr>
                <tr>
-                 <td style='font-size: 11px; text-align: left;'>Asunto:
+                 <td style='font-size: 11px; text-align: left;'>Asunto:</td>
                </tr>
                <tr>
                  <td style='font-size: 11px; font-weight: bold; padding-left: 40px;'>" . $asunto . "</td>
@@ -619,11 +810,11 @@ class ReportesVentaController extends Controller
         <table style='width:100%; border-collapse: collapse; margin-right:35px; table-layout: fixed;' class='products-table'>
        <colgroup>
     <col style='width: 30px'>                                <!-- ITEM -->
-    <col style='width: " . ($hasSpecialPrices ? "240px" : "300px") . "'> <!-- DESCRIPCIÓN -->
+    <col style='width: " . ($showDiscountColumn ? "240px" : "300px") . "'> <!-- DESCRIPCIÓN -->
     <col style='width: 30px'>                               <!-- CANT -->
-    <col style='width: 80px'>                               <!-- COSTO UNIT. SIN I.G.V. -->
-    " . ($hasSpecialPrices ? "<col style='width: 80px'>" : "") . " <!-- COSTO C/DESC. (condicional) -->
-    <col style='width: 80px'>                               <!-- COSTO TOTAL. SIN I.G.V. -->
+    <col style='width: 75px'>                               <!-- COSTO UNIT. SIN I.G.V. -->
+    " . ($showDiscountColumn ? "<col style='width: 75px'>" : "") . " <!-- COSTO C/DESC. (condicional) -->
+    <col style='width: 75px'>                               <!-- COSTO TOTAL. SIN I.G.V. -->
     <col style='width: 80px'>                               <!-- IMAGEN REFERENCIAL -->
 </colgroup>
          <thead>
@@ -633,48 +824,95 @@ class ReportesVentaController extends Controller
              $rowHTML
              $lastItemHTML
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Gravada:</td>
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $totalOpgravado</td>
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+               
+    if ($showDiscountColumn) {
+      $html .= "
+               <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
+               <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>";
+    } else {
+      $html .= "
+               <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
+               <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>
+               <td style='border: none;'></td>";
+    }
+    
+    $html .= "
              </tr>";
 
     // Mostrar el descuento por precio especial si existe
     if ($hasSpecialPrices && floatval(str_replace(',', '', $descuentoEspecialTotal)) > 0) {
       $html .= "
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+                 
+      if ($showDiscountColumn) {
+        $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #FFFDE7;'>Descuento Total:</td>
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #FFFDE7;'>S/ $descuentoEspecialTotal</td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #FFFDE7;'>$simbolfff22 $descuentoEspecialTotal</td>";
+      } else {
+        $html .= "
+                 <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #FFFDE7;'>Descuento Total: $simbolfff22 $descuentoEspecialTotal</td>";
+      }
+      
+      $html .= "
              </tr>";
     }
 
-    $html .= "
+    // Solo agregar fila de IGV si se aplica IGV
+    if ($datoVenta['aplicar_igv'] == 1) {
+      $html .= "
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+                 
+      if ($showDiscountColumn) {
+        $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>IGV (18.00%):</td>
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $igv</td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $igv</td>";
+      } else {
+        $html .= "
+                 <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>IGV (18.00%): $simbolfff22 $igv</td>";
+      }
+      
+      $html .= "
              </tr>";
+    }
 
     // Mostrar el descuento general si existe
     if (floatval(str_replace(',', '', $montoDescuento)) > 0) {
       $html .= "
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento General " . intval($descuentoGeneral) . "%:</td>
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>S/ $montoDescuento</td>
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+                 
+      if ($showDiscountColumn) {
+        $html .= "
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento<br>General " . intval($descuentoGeneral) . "%:</td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $montoDescuento</td>";
+      } else {
+        $html .= "
+                 <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>Descuento General " . intval($descuentoGeneral) . "%: $simbolfff22 $montoDescuento</td>";
+      }
+      
+      $html .= "
              </tr>";
     }
 
     $html .= "
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+                 
+    if ($showDiscountColumn) {
+      $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
-                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $total</strong></td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>";
+    } else {
+      $html .= "
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>
+                 <td style='border: none;'></td>";
+    }
+    
+    $html .= "
              </tr>";
 
     // Agregar conversión a dólares si es necesario
@@ -687,10 +925,18 @@ class ReportesVentaController extends Controller
       $simbolfff = $datoVenta['moneda'] == 2 ? 'S/' : '$';
       $html .= "
              <tr>
-                 <td colspan='3' style='border: none;'></td>
-                 " . ($hasSpecialPrices ? "<td style='border: none;'></td>" : "") . "
+                 <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
+                 
+      if ($showDiscountColumn) {
+        $html .= "
                  <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>Total a Pagar</td>
-                 <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>$simbolfff $totalDolar</td>
+                 <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>$simbolfff $totalDolar</td>";
+      } else {
+        $html .= "
+                 <td colspan='2' style='border: 1px solid #363636; font-size: 12px; text-align: center;'>Total a Pagar: $simbolfff $totalDolar</td>";
+      }
+      
+      $html .= "
              </tr>";
     }
 
@@ -868,16 +1114,16 @@ class ReportesVentaController extends Controller
         </div>
     </div>
     ";
-    
+
     // Escribir el HTML al documento
     $this->mpdf->WriteHTML($html);
-    
+
     // Generar el PDF
     $this->mpdf->Output();
   }
 
 
- 
+
 
   public function reporteCliente($id)
   {
@@ -1488,10 +1734,26 @@ class ReportesVentaController extends Controller
           $nombreCliente = $datoVenta['datos'];
           $numDoc = strlen($datoVenta["documento"]) > 7 ? $datoVenta["documento"] : '';
         }
+      } elseif ($datosGuia['id_cotizacion_taller']) {
+        // ✅ NUEVO: Para guías de cotización taller
+        $sql = "SELECT tc.*, c.* 
+                      FROM taller_cotizaciones tc 
+                      JOIN clientes c ON tc.id_cliente = c.id_cliente 
+                      WHERE tc.id_cotizacion = " . $datosGuia['id_cotizacion_taller'];
+        $datoTaller = $this->conexion->query($sql)->fetch_assoc();
+
+        if ($datoTaller) {
+          $nombreCliente = $datoTaller['datos'] ?: $datoTaller['nombre'];
+          $numDoc = strlen($datoTaller["documento"]) > 7 ? $datoTaller["documento"] : '';
+        } else {
+          // Fallback: usar datos directos de la guía
+          $nombreCliente = $datosGuia['destinatario_nombre'];
+          $numDoc = $datosGuia['destinatario_documento'];
+        }
       } else {
         // Para guías manuales
-        $nombreCliente = $datosGuia['destinatario_nombre'];
-        $numDoc = $datosGuia['destinatario_documento'];
+        $nombreCliente = $datosGuia['destinatario_nombre'] ?: 'N/A';
+        $numDoc = $datosGuia['destinatario_documento'] ?: '';
       }
       // Obtener datos SUNAT para QR y Hash
       $sql_sunat = "SELECT * FROM guia_sunat WHERE id_guia = " . $guia;
@@ -1566,10 +1828,44 @@ class ReportesVentaController extends Controller
         }
       }
 
-      $query = "SELECT gd.*, p.nombre,  p.codigo
-                FROM guia_detalles gd
-                LEFT JOIN productos p ON gd.id_producto = p.$idColumnName
-                WHERE gd.id_guia = ?";
+      // ✅ CONSULTA CORREGIDA: Verificar si tiene equipos en la tabla guia_equipos
+      $consultaEquipos = "SELECT COUNT(*) as total FROM guia_equipos WHERE id_guia = " . $guia;
+      $resultadoEquipos = $this->conexion->query($consultaEquipos);
+      $tieneEquipos = $resultadoEquipos->fetch_assoc()['total'] > 0;
+      
+      if ($tieneEquipos) {
+        // Guía de cotización de taller - incluir información de equipos
+        $query = "SELECT gd.*,
+                    CASE 
+                      WHEN gd.id_producto IS NOT NULL THEN p.nombre 
+                      WHEN gd.id_repuesto IS NOT NULL THEN r.nombre 
+                      ELSE gd.detalles
+                    END as nombre,
+                    CASE 
+                      WHEN gd.id_producto IS NOT NULL THEN p.codigo 
+                      WHEN gd.id_repuesto IS NOT NULL THEN r.codigo 
+                      ELSE ''
+                    END as codigo,
+                    gd.tipo_item,
+                    -- Información del equipo asociado CORREGIDO
+                    ge.marca as equipo_marca,
+                    ge.equipo as equipo_nombre,
+                    ge.modelo as equipo_modelo,
+                    ge.numero_serie as equipo_serie,
+                    ge.id_guia_equipo
+                  FROM guia_detalles gd
+                  LEFT JOIN productos p ON gd.id_producto = p.$idColumnName
+                  LEFT JOIN repuestos r ON gd.id_repuesto = r.id_repuesto
+                  LEFT JOIN guia_equipos ge ON gd.id_guia_equipo = ge.id_guia_equipo
+                  WHERE gd.id_guia = ?
+                  ORDER BY ge.id_guia_equipo, gd.guia_detalle_id";
+      } else {
+        // Guía normal - comportamiento original
+        $query = "SELECT gd.*, p.nombre, p.codigo, 'producto' as tipo_item
+                  FROM guia_detalles gd
+                  LEFT JOIN productos p ON gd.id_producto = p.$idColumnName
+                  WHERE gd.id_guia = ?";
+      }
 
       $stmt = $this->conexion->prepare($query);
 
@@ -1616,29 +1912,91 @@ class ReportesVentaController extends Controller
 
       // Escribir encabezado de la empresa
       $this->escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHead);
-      // Generar filas de productos
+      // ✅ NUEVA LÓGICA: Generar filas de productos con equipos para guías de taller
       $rowHTML = '';
       $conradorRow = 1;
-      while ($itemProd = $listaProductos->fetch_assoc()) {
-        $rowHTML .= "
-              <tr >
-                    <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
-                      $conradorRow 
-                    </td>
-                    <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
-                      {$itemProd['codigo']} 
-                    </td>
-                    <td style='width: 71%; padding: 10px;  border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
-                      <strong >{$itemProd['detalles']} </strong>
-                    </td>
-                    <td style='width: 8%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
-                      {$itemProd['unidad']} 
-                    </td>
-                    <td style='width: 6%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
-                      {$itemProd['cantidad']} 
-                    </td>
-                  </tr>";
-        $conradorRow++;
+      
+      if ($tieneEquipos) {
+        // Guía de taller - agrupar por equipos usando id_guia_equipo
+        $equiposYaImpresos = [];
+        
+        while ($itemProd = $listaProductos->fetch_assoc()) {
+          // ✅ PRIMERO: Mostrar el producto/repuesto
+          $descripcionProducto = $itemProd['detalles'];
+          
+          $rowHTML .= "
+                <tr>
+                      <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        $conradorRow
+                      </td>
+                      <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['codigo']} 
+                      </td>
+                      <td style='width: 71%; padding: 10px; text-align: left; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        <strong>$descripcionProducto</strong>
+                      </td>
+                      <td style='width: 8%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['unidad']} 
+                      </td>
+                      <td style='width: 6%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['cantidad']} 
+                      </td>
+                    </tr>";
+          
+          $conradorRow++;
+          
+          // ✅ SEGUNDO: Mostrar el equipo asociado (si existe y no se ha mostrado ya)
+          $equipoId = $itemProd['id_guia_equipo'];
+          
+          if ($itemProd['equipo_marca'] && !in_array($equipoId, $equiposYaImpresos)) {
+            // Mostrar fila del equipo después del producto
+            $equipoInfo = " EQUIPO: {$itemProd['equipo_marca']} {$itemProd['equipo_nombre']} - Modelo: {$itemProd['equipo_modelo']} - Serie: {$itemProd['equipo_serie']}";
+            
+            $rowHTML .= "
+                  <tr style='background-color: #f8f9fa;'>
+                        <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; font-weight: bold;'>
+                          
+                        </td>
+                        <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; font-weight: bold;'>
+                          
+                        </td>
+                        <td style='width: 71%; padding: 10px; text-align: left; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; font-weight: bold; color: #666666;'>
+                            $equipoInfo
+                        </td>
+                        <td style='width: 8%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                          
+                        </td>
+                        <td style='width: 6%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                          
+                        </td>
+                      </tr>";
+            
+            $equiposYaImpresos[] = $equipoId;
+          }
+        }
+      } else {
+        // Guía normal - comportamiento original
+        while ($itemProd = $listaProductos->fetch_assoc()) {
+          $rowHTML .= "
+                <tr >
+                      <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; '>
+                        $conradorRow 
+                      </td>
+                      <td style='width: 10%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['codigo']} 
+                      </td>
+                      <td style='width: 71%; padding: 10px;  border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        <strong >{$itemProd['detalles']} </strong>
+                      </td>
+                      <td style='width: 8%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['unidad']} 
+                      </td>
+                      <td style='width: 6%; padding: 10px; text-align: center; border-left: 1px solid #ffffff; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
+                        {$itemProd['cantidad']} 
+                      </td>
+                    </tr>";
+          $conradorRow++;
+        }
       }
 
       // Generar HTML principal
@@ -1855,7 +2213,7 @@ class ReportesVentaController extends Controller
 
 
 
-    $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.descripcion,p.codigo FROM productos_ventas join productos p on p.id_producto = productos_ventas.id_producto WHERE id_venta=" . $venta);
+    $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.descripcion,p.codigo,ve.marca,ve.equipo,ve.modelo,ve.numero_serie FROM productos_ventas join productos p on p.id_producto = productos_ventas.id_producto LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo WHERE productos_ventas.id_venta=" . $venta);
     $listaProd2 = $this->conexion->query("SELECT * FROM ventas_servicios WHERE id_venta=" . $venta);
     $ventaSunat = $this->conexion->query("SELECT * FROM ventas_sunat WHERE id_venta=" . $venta)->fetch_assoc();
     $guiaRealionada = '';
@@ -2189,6 +2547,16 @@ class ReportesVentaController extends Controller
         
         ";
     $dominio = DOMINIO . 'buscador';
+    // Si la venta proviene de taller (con equipos), no renderizamos la página agregada general
+    $esVentaConEquipos = false;
+    try {
+      $equiposVentaCheck = $this->conexion->query("SELECT 1 FROM ventas_equipos WHERE id_venta = " . intval($venta) . " LIMIT 1");
+      $esVentaConEquipos = ($equiposVentaCheck && $equiposVentaCheck->num_rows > 0);
+    } catch (\Throwable $e) {
+      $esVentaConEquipos = false;
+    }
+
+    // Renderizar SIEMPRE la primera página (cabecera y bancario) y mover el detalle por equipo a páginas siguientes
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
     /*$this->mpdf->SetHTMLFooter("<div style=' width: 100%;'>
@@ -2299,8 +2667,8 @@ class ReportesVentaController extends Controller
 
     $guiaRealionada = '';
 
-    $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.detalle as descripcion, p.imagen,p.nombre,p.codigo FROM productos_ventas 
-      join productos p on p.id_producto = productos_ventas.id_producto WHERE id_venta=" . $venta);
+    $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.detalle as descripcion, p.imagen,p.nombre,p.codigo,ve.marca,ve.equipo,ve.modelo,ve.numero_serie FROM productos_ventas 
+      join productos p on p.id_producto = productos_ventas.id_producto LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo WHERE productos_ventas.id_venta=" . $venta);
     $listaProd2 = $this->conexion->query("SELECT * FROM ventas_servicios WHERE id_venta=" . $venta);
     $ventaSunat = $this->conexion->query("SELECT * FROM ventas_sunat WHERE id_venta=" . $venta)->fetch_assoc();
 
@@ -2445,6 +2813,29 @@ class ReportesVentaController extends Controller
       $importe = number_format($importe, 2, '.', ',');
       $tempDescuento = number_format($tempDescuento, 2, '.', ',');
       $detalle = nl2br($prod['descripcion']);
+      
+      // Construir información del producto y equipo
+      $productoInfo = "<strong>{$prod['nombre']}</strong>";
+      
+      // Agregar información del equipo si está disponible
+      if (!empty($prod['marca']) || !empty($prod['equipo']) || !empty($prod['modelo']) || !empty($prod['numero_serie'])) {
+        $equipoInfo = '';
+        if (!empty($prod['equipo'])) {
+          $equipoInfo = 'EQUIPO: ';
+          if (!empty($prod['marca'])) {
+            $equipoInfo .= $prod['marca'] . ' ';
+          }
+          $equipoInfo .= $prod['equipo'];
+          if (!empty($prod['modelo'])) {
+            $equipoInfo .= ' - Modelo: ' . $prod['modelo'];
+          }
+          if (!empty($prod['numero_serie'])) {
+            $equipoInfo .= ' - Serie: ' . $prod['numero_serie'];
+          }
+          $productoInfo .= '<br>' . $equipoInfo;
+        }
+      }
+      
       $afectIgv = "Gravado";
 
       $rowHTML = $rowHTML . "
@@ -2453,7 +2844,7 @@ class ReportesVentaController extends Controller
         <td style='width: 10%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; padding-top: 6px; padding-bottom: 6px;'>{$prod['codigo']}</td>
         <td style='width: 6%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; padding-top: 6px; padding-bottom: 6px;'>{$prod['cantidad']}</td>
         <td style='width: 8%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; padding-top: 6px; padding-bottom: 6px;'>UNIDAD</td>
-        <td style='width: 40%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: left; padding-top: 6px; padding-bottom: 6px;'><strong>{$prod['nombre']}</strong></td>
+        <td style='width: 40%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: left; padding-top: 6px; padding-bottom: 6px;'>{$productoInfo}</td>
         <td style='width: 8%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; padding-top: 6px; padding-bottom: 6px;'>{$afectIgv}</td>
         <td style='width: 11.5%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; padding-top: 6px; padding-bottom: 6px;'>S/ {$precio}</td>
         <td style='width: 11.5%; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10px; text-align: center; border-right: 1px solid #CA3438; padding-top: 6px; padding-bottom: 6px;'>S/ {$importe}</td>
@@ -2793,6 +3184,83 @@ class ReportesVentaController extends Controller
     </div>
     ');
 
+    // ====== COMENTADO: Anexo por equipo (ahora se muestra en tabla principal) ======
+    /* COMENTADO: Ya no necesitamos páginas separadas por equipo
+    try {
+      $equiposVenta = $this->conexion->query("SELECT * FROM ventas_equipos WHERE id_venta = " . intval($venta));
+      if ($equiposVenta && $equiposVenta->num_rows > 0) {
+        $equiposArray = [];
+        while ($eq = $equiposVenta->fetch_assoc()) {
+          $equiposArray[] = $eq;
+        }
+        $numEquipos = count($equiposArray);
+
+        foreach ($equiposArray as $indexEq => $eq) {
+          $idVe = intval($eq['id_venta_equipo']);
+          $idCotiEq = isset($eq['id_cotizacion_equipo']) ? intval($eq['id_cotizacion_equipo']) : 0;
+
+          // Obtener items por id_venta_equipo; si no hay, fallback a id_cotizacion_equipo
+          $sqlItemsEq = "SELECT pv.*, p.detalle as descripcion, p.nombre, p.codigo\n                          FROM productos_ventas pv\n                          JOIN productos p ON p.id_producto = pv.id_producto\n                          WHERE pv.id_venta = " . intval($venta) . " AND pv.id_venta_equipo = " . $idVe;
+          $itemsEq = $this->conexion->query($sqlItemsEq);
+          if (!$itemsEq || $itemsEq->num_rows === 0) {
+            if ($idCotiEq > 0) {
+              $sqlItemsEq = "SELECT pv.*, p.detalle as descripcion, p.nombre, p.codigo\n                              FROM productos_ventas pv\n                              JOIN productos p ON p.id_producto = pv.id_producto\n                              WHERE pv.id_venta = " . intval($venta) . " AND pv.id_cotizacion_equipo = " . $idCotiEq;
+              $itemsEq = $this->conexion->query($sqlItemsEq);
+            }
+          }
+
+          // Preparar tabla por equipo
+          $rowsHTML = '';
+          $contadorLocal = 1;
+          $totalEquipo = 0;
+          if ($itemsEq) {
+            while ($it = $itemsEq->fetch_assoc()) {
+              $cantidad = floatval($it['cantidad']);
+              $precio = floatval($it['precio']);
+              $importe = $cantidad * $precio;
+              $totalEquipo += $importe;
+              $rowsHTML .= "<tr>\n                <td style='font-size: 10px; text-align: center; border-left: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'>" . $contadorLocal . "</td>\n                <td style='font-size: 10px; text-align: center; border-left: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'>" . htmlspecialchars($it['codigo']) . "</td>\n                <td style='font-size: 10px; text-align: center; border-left: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'>" . number_format($cantidad, 2, '.', ',') . "</td>\n                <td style='font-size: 10px; text-align: left;   border-left: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'><strong>" . htmlspecialchars($it['nombre']) . "</strong><br>" . nl2br(htmlspecialchars($it['descripcion'])) . "</td>\n                <td style='font-size: 10px; text-align: center; border-left: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'>S/ " . number_format($precio, 2, '.', ',') . "</td>\n                <td style='font-size: 10px; text-align: center; border-left: 1px solid #CA3438; border-right: 1px solid #CA3438; border-bottom: 1px solid #CA3438;'>S/ " . number_format($importe, 2, '.', ',') . "</td>\n              </tr>";
+              $contadorLocal++;
+            }
+          }
+
+          $igvSel = floatval($igv_venta_sel);
+          $igvEquipo = $totalEquipo / ($igvSel + 1) * $igvSel;
+          $opGravadaEq = $totalEquipo - $igvEquipo;
+
+          // Nueva página para CADA equipo (inicia desde la segunda hoja)
+          $this->mpdf->AddPageByArray([
+            'margin_top' => 45,
+            'resetpagenum' => 0,
+            'suppress' => 'off'
+          ]);
+          // margen de separación bajo el encabezado gráfico
+          $this->mpdf->WriteHTML("<div style='height: 120px;'></div>");
+
+          // Encabezado de empresa y cuadro del documento reutilizando la misma cabecera visual
+          $S_N_local = $datoVenta['serie'] . '-' . Tools::numeroParaDocumento($datoVenta['numero'], 6);
+          $tipoDocLocal = ($datoVenta['id_tido'] == 1 ? 'BOLETA' : ($datoVenta['id_tido'] == 2 ? 'FACTURA' : 'NOTA DE VENTA')) . ' ELECTRÓNICA';
+          $htmlCuadroHeadEq = "<div style='width: 38%;text-align: center; background-color: #ffffff; float: right;font-family: Calibri, Helvetica Neue, sans-serif; font-size: 12px;'>\n                <div style='width: 100%; height: 100px;border-radius:10px; border: 1px solid #1e1e1e' >\n                    <div style='margin-top:10px'></div>\n                    <span> <strong> R.U.C: " . $datoEmpresa['ruc'] . " </strong></span><br>\n                    <div style='margin-top: 10px '></div>\n                    <div style='background-color: #CA3438; color:white; margin:0 ; padding: 15px;width: 100%;'>\n                    <span ><strong>" . $tipoDocLocal . "</strong></span>\n                    </div>\n                    <br>\n                    <span style='display: block; text-align: center; font-size: 14px'>Nro. " . $S_N_local . "</span>\n                    <div style='margin-top:10px'></div>\n                </div>\n            </div>";
+          $this->escribirEncabezadoEmpresa($datoEmpresa, $htmlCuadroHeadEq);
+          // Separador amplio para no chocar con encabezado ni bloque bancario del footer
+          $this->mpdf->WriteHTML("<div style='height: 140px;'></div>");
+
+          $tituloEq = "<div style='width:100%; margin-top: 0; margin-bottom: 10px;'>\n              <div style='text-align:center; font-weight:bold; border:1px solid #1e1e1e; padding:6px;'>DETALLE POR EQUIPO " . ($indexEq + 1) . " de " . $numEquipos . "</div>\n            </div>";
+
+          $cabEquipo = "<table style='width:100%; border-collapse: collapse; margin-bottom: 10px;'>\n              <tr>\n                <td style='font-size: 10px; border: 1px solid #CA3438; padding: 5px;'><strong>Equipo:</strong> " . htmlspecialchars($eq['equipo']) . "</td>\n                <td style='font-size: 10px; border: 1px solid #CA3438; padding: 5px;'><strong>Marca:</strong> " . htmlspecialchars($eq['marca']) . "</td>\n                <td style='font-size: 10px; border: 1px solid #CA3438; padding: 5px;'><strong>Modelo:</strong> " . htmlspecialchars($eq['modelo']) . "</td>\n                <td style='font-size: 10px; border: 1px solid #CA3438; padding: 5px;'><strong>Serie:</strong> " . htmlspecialchars($eq['numero_serie']) . "</td>\n              </tr>\n            </table>";
+
+          $tablaEq = "<table style='width:100%; border-collapse: collapse;'>\n            <tr style='background-color:#CA3438; color:#fff;'>\n              <td style='width:5%;  padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>ITEM</strong></td>\n              <td style='width:10%; padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>CÓDIGO</strong></td>\n              <td style='width:6%;  padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>CANT</strong></td>\n              <td style='width:45%; padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>DESCRIPCIÓN</strong></td>\n              <td style='width:16%; padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>P.UNIT</strong></td>\n              <td style='width:18%; padding:4px; border:1px solid #CA3438; text-align:center; font-size:10px'><strong>TOTAL</strong></td>\n            </tr>" . $rowsHTML . "</table>";
+
+          $totalesEq = "<table style='width:100%; border-collapse: collapse; margin-top: 6px;'>\n              <tr>\n                <td style='width:70%'></td>\n                <td style='width:15%; border:1px solid #CA3438; padding:4px; font-size:10px'>Gravada:</td>\n                <td style='width:15%; border:1px solid #CA3438; padding:4px; font-size:10px; text-align:right'>S/ " . number_format($opGravadaEq, 2, '.', ',') . "</td>\n              </tr>\n              <tr>\n                <td></td>\n                <td style='border:1px solid #CA3438; padding:4px; font-size:10px'>IGV:</td>\n                <td style='border:1px solid #CA3438; padding:4px; font-size:10px; text-align:right'>S/ " . number_format($igvEquipo, 2, '.', ',') . "</td>\n              </tr>\n              <tr>\n                <td></td>\n                <td style='border:1px solid #CA3438; padding:4px; font-size:10px; background-color:#CA3438; color:#fff'><strong>Total:</strong></td>\n                <td style='border:1px solid #CA3438; padding:4px; font-size:10px; text-align:right; background-color:#CA3438; color:#fff'><strong>S/ " . number_format($totalEquipo, 2, '.', ',') . "</strong></td>\n              </tr>\n            </table>";
+
+          $this->mpdf->WriteHTML($tituloEq . $cabEquipo . $tablaEq . $totalesEq, \Mpdf\HTMLParserMode::HTML_BODY);
+        }
+      }
+    } catch (\Throwable $e) {
+      // No interrumpir la generación si falla el anexo; registrar y continuar
+      error_log('PDF venta - anexo por equipos: ' . $e->getMessage());
+    }
+    */ // FIN COMENTARIO - Sección de páginas separadas por equipo
 
 
     if ($dist == 'I') {
@@ -3483,13 +3951,13 @@ class ReportesVentaController extends Controller
 
     // Obtener datos del usuario
     $usuario_actual = [];
-    $query = "SELECT 
+    $query = "SELECT
                 u.nombres,
                 u.telefono,
                 r.nombre as rol
               FROM usuarios u
               INNER JOIN roles r ON r.rol_id = u.id_rol
-              WHERE u.usuario_id = 40";
+              WHERE u.usuario_id = " . $datoVenta['id_usuario'];
 
     $result = $this->conexion->query($query);
     if ($result && $result->num_rows > 0) {

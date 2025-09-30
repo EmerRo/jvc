@@ -74,12 +74,12 @@
 
                     <!-- Archivo Editable Upload -->
                     <div class="col-md-6 mb-4">
-                        <label class="form-label d-block fw-medium text-negro">Archivo Editable (Excel, Corel,
+                        <label class="form-label d-block fw-medium text-negro">Archivo Editable (Excel, Word, Corel,
                             Photoshop)</label>
 
                         <div class="file-upload-container p-4 border border-2 border-dashed rounded bg-light text-center position-relative cursor-pointer mb-2"
                             style="transition: all 0.2s ease;">
-                            <input type="file" class="d-none" name="editable" accept=".xlsx,.xls,.cdr,.psd,.ai"
+                            <input type="file" class="d-none" name="editable" accept=".xlsx,.xls,.doc,.docx,.cdr,.psd,.ai"
                                 id="editable_file">
 
                             <div>
@@ -95,7 +95,7 @@
                             </div>
                             <div class="selected-files mt-3" style="display: none;"></div>
                         </div>
-                        <div class="form-text text-gris small">Tamaño máximo: 4MB | Formatos: .xlsx, .xls, .cdr, .psd,
+                        <div class="form-text text-gris small">Tamaño máximo: 4MB | Formatos: .xlsx, .xls, .doc, .docx, .cdr, .psd,
                             .ai</div>
 
                     </div>
@@ -112,7 +112,7 @@
                         <label class="form-label d-block fw-medium text-negro">Imágenes del Producto</label>
                         <div class="file-upload-container p-4 border border-2 border-dashed rounded bg-light text-center position-relative cursor-pointer mb-2"
                             style="transition: all 0.2s ease;">
-                         <input type="file" class="d-none" name="imagenes[]" accept=".jpg,.jpeg,.png,.gif" multiple id="imagenes_file">
+                         <input type="file" class="d-none" name="imagenes[]" accept=".jpg,.jpeg,.png,.gif" multiple id="imagenes_file" onchange="filtrarImagenesLigeras(this)">
 
 
                             <div>
@@ -131,17 +131,16 @@
                         <div class="form-text text-gris small">Máximo 3 imágenes, 2MB c/u (se comprimen automáticamente)
                             | Formatos: .jpg, .jpeg, .png, .gif</div>
 
-
                     </div>
 
                     <!-- Link de YouTube -->
                     <div class="col-md-6 mb-4">
-                        <label for="youtube_link" class="form-label fw-medium text-negro">Link de YouTube</label>
+                        <label for="youtube" class="form-label fw-medium text-negro">Link de YouTube</label>
                         <div class="input-group">
                             <span class="input-group-text" style="background-color: #CA3438; color: white;">
                                 <i class="fab fa-youtube"></i>
                             </span>
-                            <input type="url" class="form-control border" id="youtube_link" name="youtube_link"
+                            <input type="url" class="form-control border" id="youtube" name="youtube"
                                 placeholder="https://youtube.com/watch?v=...">
                             <button class="btn text-white" type="button" onclick="validarYouTubeLink()"
                                 style="background-color: #CA3438; border-color: #CA3438;">
@@ -155,13 +154,18 @@
             </div>
 
             <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-outline-secondary"
+                <button type="button" class="btn border-rojo"
                     onclick="$('#lista-fichas').addClass('show active'); $('#nueva-ficha').removeClass('show active');">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </button>
-                <button type="submit" class="btn text-white" style="background-color: #CA3438; border-color: #CA3438;">
-                    <i class="fas fa-save me-2"></i>Guardar Ficha Técnica
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormularioCompleto()">
+                        <i class="fas fa-eraser me-2"></i>Limpiar
+                    </button>
+                    <button type="submit" class="btn text-white" style="background-color: #CA3438; border-color: #CA3438;">
+                        <i class="fas fa-save me-2"></i>Guardar Ficha Técnica
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -169,6 +173,40 @@
 
 
 <script>
+    // NUEVA: Función para filtrar imágenes ligeras (máximo 2MB)
+    function filtrarImagenesLigeras(input) {
+        const maxSize = 2 * 1024 * 1024; // 2MB en bytes
+        const files = Array.from(input.files);
+        const imagenesValidas = [];
+        const imagenesRechazadas = [];
+        
+        files.forEach(file => {
+            if (file.size <= maxSize) {
+                imagenesValidas.push(file);
+            } else {
+                imagenesRechazadas.push(file);
+            }
+        });
+        
+        // Mostrar advertencia si hay imágenes muy pesadas
+        if (imagenesRechazadas.length > 0) {
+            const nombresRechazados = imagenesRechazadas.map(f => f.name).join(', ');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Imágenes muy pesadas',
+                html: `Las siguientes imágenes exceden el límite de 2MB y serán comprimidas automáticamente:<br><br><strong>${nombresRechazados}</strong>`,
+                confirmButtonColor: '#3085d6'
+            });
+        }
+        
+        // Actualizar el input con solo las imágenes válidas
+        if (imagenesValidas.length > 0) {
+            const dataTransfer = new DataTransfer();
+            imagenesValidas.forEach(file => dataTransfer.items.add(file));
+            input.files = dataTransfer.files;
+        }
+    }
+
     // Función para buscar productos
     function buscarProductos() {
         const termino = $('#buscar_producto').val().trim();
@@ -255,6 +293,101 @@
         // Ocultar los resultados
         $('#resultados_productos').hide();
     }
+
+    // NUEVA: Función para limpiar completamente el formulario
+    function limpiarFormularioCompleto() {
+        // Limpiar campos de texto
+        $('#titulo').val('');
+        $('#buscar_producto').val('');
+        $('#id_producto').val('');
+        $('#youtube').val('');
+        
+        // Limpiar archivos
+        $('#pdf_file').val('');
+        $('#editable_file').val('');
+        $('#imagenes_file').val('');
+        
+        // Limpiar previews
+        $('.selected-files').hide().html('');
+        
+        // Limpiar resultados de búsqueda
+        $('#resultados_productos').hide().html('');
+        
+        // Limpiar array de imágenes acumuladas (si existe)
+        if (typeof imagenesAcumuladas !== 'undefined') {
+            imagenesAcumuladas = [];
+        }
+        
+        // Mostrar confirmación
+        Swal.fire({
+            icon: 'success',
+            title: 'Formulario limpiado',
+            text: 'Todos los campos han sido limpiados correctamente',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    // NUEVA: Función para mostrar preview de imágenes
+    function mostrarPreviewImagenes(files, preview) {
+        if (files.length === 0) {
+            preview.hide();
+            return;
+        }
+        
+        let html = '<div class="row g-2 mt-2">';
+        let imagenesProcessadas = 0;
+        const maxImagenes = Math.min(files.length, 3);
+        
+        for (let i = 0; i < maxImagenes; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgHtml = `
+                        <div class="col-4">
+                            <div class="position-relative">
+                                <img src="${e.target.result}" 
+                                     class="img-fluid rounded" 
+                                     style="height: 80px; width: 100%; object-fit: cover;">
+                                <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
+                                    ${i + 1}
+                                </div>
+                            </div>
+                            <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                        </div>
+                    `;
+                    
+                    if (imagenesProcessadas === 0) {
+                        html = '<div class="row g-2 mt-2">' + imgHtml;
+                    } else {
+                        html += imgHtml;
+                    }
+                    
+                    imagenesProcessadas++;
+                    
+                    if (imagenesProcessadas === maxImagenes) {
+                        html += '</div>';
+                        
+                        if (files.length > 3) {
+                            html += `
+                                <div class="alert alert-warning mb-0 small mt-2">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Solo se procesarán las primeras 3 imágenes (${files.length} seleccionadas)
+                                </div>
+                            `;
+                        }
+                        
+                        preview.html(html);
+                        preview.show();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    // Función para validar archivos - MEJORADA
     function validarArchivos() {
         // Validar PDF (REQUERIDO)
         const pdfInput = document.getElementById('pdf_file');
@@ -269,18 +402,33 @@
             return false;
         }
 
-        // Validar imágenes
+        // Validar imágenes - VALIDACIÓN MEJORADA
         const imagenesInput = document.getElementById('imagenes_file');
         if (imagenesInput.files.length > 0) {
-            // NUEVO: Validar máximo 3 imágenes
+            // Validar máximo 3 imágenes
             if (imagenesInput.files.length > 3) {
                 Swal.fire('Error', 'Solo se pueden subir máximo 3 imágenes', 'error');
                 return false;
             }
 
+            // NUEVO: Validar cada imagen individualmente
             for (let i = 0; i < imagenesInput.files.length; i++) {
                 const imagen = imagenesInput.files[i];
-                if (imagen.size > 10 * 1024 * 1024) { // 10MB antes de compresión
+                
+                // Verificar que el archivo sea válido
+                if (!imagen || imagen.size === 0) {
+                    Swal.fire('Error', `La imagen ${imagen.name} está corrupta o vacía`, 'error');
+                    return false;
+                }
+                
+                // Validar tipo de archivo
+                if (!imagen.type.startsWith('image/')) {
+                    Swal.fire('Error', `El archivo ${imagen.name} no es una imagen válida`, 'error');
+                    return false;
+                }
+                
+                // Validar tamaño (10MB antes de compresión)
+                if (imagen.size > 10 * 1024 * 1024) {
                     Swal.fire('Error', `La imagen ${imagen.name} es demasiado grande (máximo 10MB antes de compresión)`, 'error');
                     return false;
                 }
@@ -298,13 +446,52 @@
 
             // Validar extensión
             const extension = editableFile.name.split('.').pop().toLowerCase();
-            const extensionesPermitidas = ['xlsx', 'xls', 'cdr', 'psd', 'ai'];
+            const extensionesPermitidas = ['xlsx', 'xls', 'doc', 'docx', 'cdr', 'psd', 'ai'];
             if (!extensionesPermitidas.includes(extension)) {
-                Swal.fire('Error', 'Formato de archivo no permitido. Solo: Excel (.xlsx, .xls), Corel (.cdr), Photoshop (.psd), Illustrator (.ai)', 'error');
+                Swal.fire('Error', 'Formato de archivo no permitido. Solo: Excel (.xlsx, .xls), Word (.doc, .docx), Corel (.cdr), Photoshop (.psd), Illustrator (.ai)', 'error');
                 return false;
             }
         }
 
         return true;
+    }
+
+    // Función para validar el enlace de YouTube
+    function validarYouTubeLink() {
+        const youtubeInput = $('#youtube');
+        const url = youtubeInput.val().trim();
+        
+        if (!url) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo vacío',
+                text: 'Por favor, ingrese un enlace de YouTube',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+        
+        // Patrón para validar URLs de YouTube
+        const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+        
+        if (!youtubePattern.test(url)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Enlace inválido',
+                text: 'Por favor, ingrese un enlace válido de YouTube',
+                confirmButtonColor: '#3085d6'
+            });
+            youtubeInput.focus();
+            return;
+        }
+        
+        // Si es válido, mostrar confirmación
+        Swal.fire({
+            icon: 'success',
+            title: 'Enlace válido',
+            text: 'El enlace de YouTube ha sido validado correctamente',
+            timer: 1500,
+            showConfirmButton: false
+        });
     }
 </script>

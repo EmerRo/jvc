@@ -420,24 +420,37 @@ $c_ubigeo = new Ubigeo();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item,index) in productos">
-                                        <td>{{index+1}}</td>
-                                        <td class="text-start">{{item.nombre}}</td>
-                                        <td>{{item.cantidad}}</td>
-                                        <!-- <td>{{parseFloat(item.precio).toFixed(2)}}</td> -->
-                                        <!-- <td>{{subTotalPro(item.cantidad,item.precio)}}</td> -->
+                               <tr v-for="(item,index) in productos" 
+    :style="item.esEquipo ? 'background-color: #e3f2fd; font-weight: bold;' : 'background-color: white;'">
+                                        <td>
+                                            <!-- Mostrar numeración solo para productos, no para equipos -->
+                                            <span v-if="!item.esEquipo">{{getProductoIndex(index)}}</span>
+                                            <span v-else><i class="fas fa-cog text-primary"></i></span>
+                                        </td>
+                                        <td class="text-start">
+                                            <!-- Estilo diferente para equipos vs productos -->
+                                            <span v-if="item.esEquipo" class="fw-bold text-primary">{{item.nombre}}</span>
+                                            <span v-else>{{item.nombre}}</span>
+                                        </td>
+                                        <td>
+                                            <!-- Solo mostrar cantidad para productos -->
+                                            <span v-if="!item.esEquipo">{{item.cantidad}}</span>
+                                        </td>
                                         <td>
                                             <div class="d-flex gap-2 justify-content-center">
-                                                <!-- Botón Editar -->
-                                                <button @click="editarProducto(index)" class="btn btn-warning btn-sm"
-                                                    title="Editar">
-                                                    <i class="fa fa-edit text-white"></i>
-                                                </button>
-                                                <!-- Botón Eliminar (el que ya existe) -->
-                                                <button @click="eliminarProducto(index)" class="btn btn-danger btn-sm"
-                                                    title="Eliminar">
-                                                    <i class="fa fa-times"></i>
-                                                </button>
+                                                <!-- Solo mostrar botones para productos, no para equipos -->
+                                                <template v-if="!item.esEquipo">
+                                                    <!-- Botón Editar -->
+                                                    <button @click="editarProducto(index)" class="btn btn-warning btn-sm"
+                                                        title="Editar">
+                                                        <i class="fa fa-edit text-white"></i>
+                                                    </button>
+                                                    <!-- Botón Eliminar -->
+                                                    <button @click="eliminarProducto(index)" class="btn btn-danger btn-sm"
+                                                        title="Eliminar">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </template>
                                             </div>
                                         </td>
                                     </tr>
@@ -1089,6 +1102,8 @@ $c_ubigeo = new Ubigeo();
                             fecha_emision: $("#input_fecha").val(),
                             chofer_datos: this.transporte.chofer_datos,
                             cotizacion: cotizacion,
+                            // ✅ NUEVO: Agregar tipo_cotizacion para equipos de taller
+                            tipo_cotizacion: document.getElementById('tipo_cotizacion').value,
                             // ✅ NUEVO: Agregar tipo_doc para manejar ref_orden_compra
                             tipo_doc: this.guia.tipo_doc
                         };
@@ -1100,7 +1115,7 @@ $c_ubigeo = new Ubigeo();
                                 if (resp.res) {
                                     alertExito("Guía de Remisión Registrada")
                                         .then(() => {
-                                            $("#backbuttonvp").click();
+                                            window.location.href = "/guias/remision";
                                         });
                                 } else {
                                     alertAdvertencia(resp.msg || "No se pudo completar el registro de la GUIA");
@@ -1292,78 +1307,129 @@ $c_ubigeo = new Ubigeo();
                         );
                     },
                     loadCotizacionTallerData(cotiId) {
-                        $("#loader-menor").show();
+                    $("#loader-menor").show();
 
-                        // Cargar productos de taller
-                        _ajax("/ajs/guia/remision/coti/taller/" + cotiId, "POST", { cod: cotiId },
-                            (resp) => {
-                                console.log('Productos taller:', resp);
-                                this.productos = resp;
-                                $("#loader-menor").hide();
-                            }
-                        );
-
-                        // Cargar datos del cliente de taller
-                        _ajax("/ajs/guia/remision/coti/taller/cliente/" + cotiId, "POST", { cod: cotiId },
-                            (resp) => {
-                                console.log('Cliente taller:', resp);
-
-                                if (resp.error) {
-                                    console.log(resp.error);
-                                    return;
-                                }
-
-                                this.guia.nom_cli = resp.datos;
-                                this.guia.dir_cli = resp.direccion;
-                                this.guia.doc_cli = resp.documento;
-
-                                // Autocompletar ubigeo si existe
-                                if (resp.ubigeo) {
-                                    // Misma lógica que el método normal
-                                    $("#select_departamento").val(resp.departamento.padStart(2, '0'));
-
-                                    $.ajax({
-                                        data: { "departamento": resp.departamento.padStart(2, '0') },
-                                        url: _URL + '/ajs/consulta/lista/provincias',
-                                        type: 'post',
-                                        success: (response) => {
-                                            const provincias = JSON.parse(response);
-                                            const select_provincia = $("#select_provincia");
-                                            select_provincia.empty();
-
-                                            provincias.forEach(v => {
-                                                select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
-                                            });
-
-                                            const provinciaCode = resp.ubigeo.substring(2, 4);
-                                            select_provincia.val(provinciaCode);
-
-                                            $.ajax({
-                                                data: {
-                                                    "departamento": resp.departamento.padStart(2, '0'),
-                                                    "provincia": provinciaCode
-                                                },
-                                                url: _URL + '/ajs/consulta/lista/distrito',
-                                                type: 'post',
-                                                success: (response) => {
-                                                    const distritos = JSON.parse(response);
-                                                    const select_distrito = $("#select_distrito");
-                                                    select_distrito.empty();
-
-                                                    distritos.forEach(v => {
-                                                        select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
-                                                    });
-
-                                                    select_distrito.val(resp.ubigeo);
-                                                }
-                                            });
-                                        }
+                    // Cargar productos de taller
+                    _ajax("/ajs/guia/remision/coti/taller/" + cotiId, "POST", { cod: cotiId },
+                        (resp) => {
+                            console.log('Productos taller:', resp);
+                            
+                            if (resp.res && resp.productos && resp.equipos) {
+                                // Crear estructura agrupada por equipos
+                                const equiposConProductos = [];
+                                
+                                // Agrupar productos por equipo
+                                resp.equipos.forEach(equipo => {
+                                    const productosDelEquipo = resp.productos.filter(producto => 
+                                        producto.id_cotizacion_equipo === equipo.id_cotizacion_equipo
+                                    );
+                                    
+                                    // Agregar encabezado del equipo
+                                    equiposConProductos.push({
+                                        esEquipo: true,
+                                        nombre: `EQUIPO: ${equipo.marca} ${equipo.equipo} - Modelo: ${equipo.modelo} - Serie: ${equipo.numero_serie}`,
+                                        cantidad: '',
+                                        id_cotizacion_equipo: equipo.id_cotizacion_equipo,
+                                        // Propiedades para que no cause errores en la tabla
+                                        precio: 0,
+                                        costo: 0,
+                                        codigo: '',
+                                        detalle: `Equipo: ${equipo.marca} ${equipo.equipo}`
                                     });
-                                }
+                                    
+                                    // Agregar productos del equipo
+                                    productosDelEquipo.forEach(producto => {
+                                        equiposConProductos.push({
+                                            ...producto,
+                                            esProducto: true,
+                                            nombre: `   ${producto.nombre}`, // Indentación visual
+                                            detalle: producto.detalle || producto.nombre,
+                                            codigo_pp: producto.codigo,
+                                            nom_prod: producto.nombre
+                                        });
+                                    });
+                                });
+                                
+                                this.productos = equiposConProductos;
+                            } else {
+                                // Fallback para estructura antigua
+                                this.productos = resp;
                             }
-                        );
-                    },
+                            
+                            $("#loader-menor").hide();
+                        }
+                    );
 
+                    // Cargar datos del cliente de taller
+                    _ajax("/ajs/guia/remision/coti/taller/cliente/" + cotiId, "POST", { cod: cotiId },
+                        (resp) => {
+                            console.log('Cliente taller:', resp);
+
+                            if (resp.error) {
+                                console.log(resp.error);
+                                return;
+                            }
+
+                            this.guia.nom_cli = resp.datos;
+                            this.guia.dir_cli = resp.direccion;
+                            this.guia.doc_cli = resp.documento;
+
+                            // Autocompletar ubigeo si existe
+                            if (resp.ubigeo) {
+                                // Misma lógica que el método normal
+                                $("#select_departamento").val(resp.departamento.padStart(2, '0'));
+
+                                $.ajax({
+                                    data: { "departamento": resp.departamento.padStart(2, '0') },
+                                    url: _URL + '/ajs/consulta/lista/provincias',
+                                    type: 'post',
+                                    success: (response) => {
+                                        const provincias = JSON.parse(response);
+                                        const select_provincia = $("#select_provincia");
+                                        select_provincia.empty();
+
+                                        provincias.forEach(v => {
+                                            select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
+                                        });
+
+                                        const provinciaCode = resp.ubigeo.substring(2, 4);
+                                        select_provincia.val(provinciaCode);
+
+                                        $.ajax({
+                                            data: {
+                                                "departamento": resp.departamento.padStart(2, '0'),
+                                                "provincia": provinciaCode
+                                            },
+                                            url: _URL + '/ajs/consulta/lista/distrito',
+                                            type: 'post',
+                                            success: (response) => {
+                                                const distritos = JSON.parse(response);
+                                                const select_distrito = $("#select_distrito");
+                                                select_distrito.empty();
+
+                                                distritos.forEach(v => {
+                                                    select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
+                                                });
+
+                                                select_distrito.val(resp.ubigeo);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    );
+                },
+
+                getProductoIndex(index) {
+                    let productoCount = 0;
+                    for (let i = 0; i <= index; i++) {
+                        if (!this.productos[i].esEquipo) {
+                            productoCount++;
+                        }
+                    }
+                    return productoCount;
+                },
 
                 }
             });

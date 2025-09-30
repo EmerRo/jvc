@@ -1,81 +1,109 @@
 /* public\js\series\cargar-selects.js 
 Función para cargar las marcas en los selects */
-function cargarSelectMarcas() {
-  $.ajax({
-    url: _URL + "/ajs/get/marcas",
-    type: "GET",
-    dataType: "json",
-    success: function (data) {
-      let options = '<option value="">Seleccionar Marca</option>';
-      if (typeof data === "string") {
-        data = JSON.parse(data);
-      }
-      data.forEach(function (marca) {
-        options += `<option value="${marca.id}">${marca.nombre}</option>`;
-      });
-      // Cargar en todos los selects de marca, incluyendo los de equipos existentes
-      $('select[name$="[marca]"]').html(options);
-
-      //tambien carga en los selects comunes
-      $("#marca_comun, #marca_comun_u").html(options);
-    },
-    error: function (xhr, status, error) {
-      console.error("Error al cargar marcas:", error);
-    },
-  });
+function cargarSelectMarcas(targetSelect = null) {
+    $.ajax({
+        url: _URL + "/ajs/get/marcas",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            let options = '<option value="">Seleccionar Marca</option>';
+            if (typeof data === "string") {
+                data = JSON.parse(data);
+            }
+            data.forEach(function (marca) {
+                options += `<option value="${marca.id}">${marca.nombre}</option>`;
+            });
+            
+            // Si se especifica un select específico, solo cargar en ese
+            if (targetSelect) {
+                targetSelect.html(options);
+            } else {
+                // Cargar solo en selects vacíos (nuevos)
+                $('select[name$="[marca]"]').each(function() {
+                    if ($(this).find('option').length <= 1) {
+                        $(this).html(options);
+                    }
+                });
+            }
+            
+            // También carga en los selects comunes
+            $("#marca_comun, #marca_comun_u").html(options);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error al cargar marcas:", error);
+        },
+    });
 }
 
-// Haz lo mismo para las otras funciones (cargarSelectModelos y cargarSelectEquipos)
-function cargarSelectModelos() {
-  $.ajax({
-    url: _URL + "/ajs/get/modelos",
-    type: "GET",
-    dataType: "json",
-    success: function (data) {
-      let options = '<option value="">Seleccionar Modelo</option>';
-      if (typeof data === "string") {
-        data = JSON.parse(data);
-      }
-      data.forEach(function (modelo) {
-        options += `<option value="${modelo.id}">${modelo.nombre}</option>`;
-      });
-      // Cargar en todos los selects de modelo
-      $('select[name$="[modelo]"]').html(options);
-
-      //tambien carga en los selects comunes
-      $("#modelo_comun, #modelo_comun_u").html(options);
-    },
-    error: function (xhr, status, error) {
-      console.error("Error al cargar modelos:", error);
-    },
-  });
+function cargarSelectModelos(targetSelect = null) {
+    $.ajax({
+        url: _URL + "/ajs/get/modelos",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            let options = '<option value="">Seleccionar Modelo</option>';
+            if (typeof data === "string") {
+                data = JSON.parse(data);
+            }
+            data.forEach(function (modelo) {
+                options += `<option value="${modelo.id}">${modelo.nombre}</option>`;
+            });
+            
+            // Si se especifica un select específico, solo cargar en ese
+            if (targetSelect) {
+                targetSelect.html(options);
+            } else {
+                // Cargar solo en selects vacíos (nuevos)
+                $('select[name$="[modelo]"]').each(function() {
+                    if ($(this).find('option').length <= 1) {
+                        $(this).html(options);
+                    }
+                });
+            }
+            
+            // También carga en los selects comunes
+            $("#modelo_comun, #modelo_comun_u").html(options);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error al cargar modelos:", error);
+        },
+    });
 }
 
-function cargarSelectEquipos() {
-  $.ajax({
-    url: _URL + "/ajs/get/equipos",
-    type: "GET",
-    dataType: "json",
-    success: function (data) {
-      let options = '<option value="">Seleccionar Equipo</option>';
-      if (typeof data === "string") {
-        data = JSON.parse(data);
-      }
-      data.forEach(function (equipo) {
-        options += `<option value="${equipo.id}">${equipo.nombre}</option>`;
-      });
-      // Cargar en todos los selects de equipo
-      $('select[name$="[equipo]"]').html(options);
-
-      //tambien carga en los selects comunes
-      $("#equipo_comun, #equipo_comun_u").html(options);
-    },
-    error: function (xhr, status, error) {
-      console.error("Error al cargar equipos:", error);
-    },
-  });
+function cargarSelectEquipos(targetSelect = null) {
+    $.ajax({
+        url: _URL + "/ajs/get/equipos",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            let options = '<option value="">Seleccionar Equipo</option>';
+            if (typeof data === "string") {
+                data = JSON.parse(data);
+            }
+            data.forEach(function (equipo) {
+                options += `<option value="${equipo.id}">${equipo.nombre}</option>`;
+            });
+            
+            // Si se especifica un select específico, solo cargar en ese
+            if (targetSelect) {
+                targetSelect.html(options);
+            } else {
+                // Cargar solo en selects vacíos (nuevos)
+                $('select[name$="[equipo]"]').each(function() {
+                    if ($(this).find('option').length <= 1) {
+                        $(this).html(options);
+                    }
+                });
+            }
+            
+            // También carga en los selects comunes
+            $("#equipo_comun, #equipo_comun_u").html(options);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error al cargar equipos:", error);
+        },
+    });
 }
-
 // Llamar a las funciones cuando se carga la página
 $(document).ready(function () {
   cargarSelectMarcas();
@@ -171,10 +199,11 @@ $("#agregar_equipo_diferente").click(function () {
       </div>
     `);
 
-  // Cargar datos en los selects
-  cargarSelectMarcas();
-  cargarSelectModelos();
-  cargarSelectEquipos();
+  // Cargar datos solo en los selects del nuevo equipo
+const nuevoEquipo = $("#equipos_container .equipo-item").last();
+cargarSelectMarcas(nuevoEquipo.find('select[name$="[marca]"]'));
+cargarSelectModelos(nuevoEquipo.find('select[name$="[modelo]"]'));
+cargarSelectEquipos(nuevoEquipo.find('select[name$="[equipo]"]'));
 
   // Actualizar contador
   $("#contador_equipos").text(index + 1);

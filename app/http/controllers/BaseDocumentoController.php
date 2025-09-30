@@ -8,7 +8,7 @@ abstract class BaseDocumentoController extends Controller
     protected $pdfGenerator;
     protected $tipoModelo;
     protected $conectar;
-    protected $documentType; // 'carta' o 'constancia'
+    protected $documentType; // 'carta' o 'constancia', archivos internos
 
     public function __construct()
     {
@@ -561,18 +561,239 @@ abstract class BaseDocumentoController extends Controller
         }
     }
 
-    // Método auxiliar para procesar imágenes
+    // Método auxiliar para procesar imágenes y guardarlas como archivos
     protected function procesarImagen($file)
     {
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        return $this->procesarImagenEnDirectorio($file, 'files/' . $this->documentType . 's/');
+    }
+    
+    // Método genérico para procesar imágenes en cualquier directorio (similar a InformeController)
+    protected function procesarImagenEnDirectorio($file, $uploadDir)
+    {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!in_array($file['type'], $allowedTypes)) {
-            throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, PNG y GIF.");
+            throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, PNG, GIF y WebP.");
         }
         
-        // Leer el archivo y convertirlo a base64
-        $imageData = file_get_contents($file['tmp_name']);
-        $base64 = 'data:' . $file['type'] . ';base64,' . base64_encode($imageData);
+        // Verificar tamaño del archivo (máximo 10MB)
+        if ($file['size'] > 10 * 1024 * 1024) {
+            throw new Exception("El archivo es demasiado grande. El tamaño máximo permitido es 10MB.");
+        }
         
-        return $base64;
+        // Crear directorio si no existe
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception("No se pudo crear el directorio de imágenes: $uploadDir");
+            }
+        }
+        
+        // Generar nombre único para el archivo
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
+        $rutaCompleta = $uploadDir . $nombreArchivo;
+        
+        // Optimizar y guardar la imagen
+        $imagenOptimizada = $this->optimizarImagenDocumento($file);
+        
+        // Guardar la imagen optimizada
+        if (!file_put_contents($rutaCompleta, $imagenOptimizada)) {
+            throw new Exception("No se pudo guardar la imagen.");
+        }
+        
+        // Retornar solo la ruta relativa
+        return $rutaCompleta;
+    }
+    
+    /**
+     * Optimiza una imagen para documentos manteniendo buena calidad
+     */
+    protected function optimizarImagenDocumento($file)
+    {
+        // Leer y analizar la imagen
+        $imageData = file_get_contents($file['tmp_name']);
+        $image = imagecreatefromstring($imageData);
+        
+        if ($image === false) {
+            throw new Exception("No se pudo procesar la imagen.");
+        }
+        
+        // Aplicar mejoras de calidad
+        $image = $this->aplicarFiltrosCalidad($image);
+        
+        // Obtener dimensiones
+        $width = imagesx($image);
+        $height = imagesy($image);
+        
+        // Redimensionar solo si es muy grande
+        $maxWidth = 1200;
+        $maxHeight = 800;
+        
+        if ($width > $maxWidth || $height > $maxHeight) {
+            // Calcular ratio manteniendo proporción
+            $ratioW = $maxWidth / $width;
+            $ratioH = $maxHeight / $height;
+            $ratio = min($ratioW, $ratioH);
+            
+            $newWidth = intval($width * $ratio);
+            $newHeight = intval($height * $ratio);
+            
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+            imagealphablending($resizedImage, false);
+            imagesavealpha($resizedImage, true);
+            
+            // Mantener transparencia para PNG
+            if ($file['type'] === 'image/png') {
+                $transparent = imagecolorallocatealpha($resizedImage, 255, 255, 255, 127);
+                imagefill($resizedImage, 0, 0, $transparent);
+            } else {
+                $white = imagecolorallocate($resizedImage, 255, 255, 255);
+                imagefill($resizedImage, 0, 0, $white);
+            }
+            
+            imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($image);
+            $image = $resizedImage;
+        }
+        
+        // Generar imagen optimizada
+        ob_start();
+        if ($file['type'] === 'image/png') {
+            imagepng($image, null, 6); // Compresión PNG nivel 6
+        } else {
+            imagejpeg($image, null, 88); // Alta calidad JPEG
+        }
+        $optimizedData = ob_get_clean();
+        
+        imagedestroy($image);
+        
+        return $optimizedData;
+    }
+    
+    /**
+     * Aplica filtros para mejorar la calidad de la imagen
+     */
+    protected function aplicarFiltrosCalidad($image)
+    {
+        // Aplicar filtro de nitidez muy suave
+        $sharpenMatrix = array(
+            array(0, -0.3, 0),
+            array(-0.3, 2.2, -0.3),
+            array(0, -0.3, 0)
+        );
+        imageconvolution($image, $sharpenMatrix, 1, 0);
+        
+        // Mejorar contraste muy sutilmente
+        imagefilter($image, IMG_FILTER_CONTRAST, -2);
+        
+        return $image;
+    }
+
+    // Método para generar PDF como base64 (para vista previa)
+    public function generarPDFBase64()
+    {
+        if (isset($_GET['id'])) {
+            $id = intval($_GET['id']);
+            $methodName = 'generar' . ucfirst($this->documentType) . 'PDFBase64';
+            $pdfBase64 = $this->pdfGenerator->$methodName($id);
+            
+            // Devolver como JSON
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'pdfBase64' => $pdfBase64
+            ]);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'error' => 'ID de ' . $this->documentType . ' no proporcionado'
+            ]);
+        }
+    }
+
+    // Método genérico para compartir por WhatsApp
+    public function compartirWhatsApp()
+    {
+        // Limpiar cualquier salida previa y establecer headers
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        $respuesta = ["res" => false];
+
+        try {
+            // Validar que lleguen los parámetros necesarios
+            $idKey = 'id_' . $this->documentType;
+            if (!isset($_POST['id']) && !isset($_POST[$idKey])) {
+                throw new Exception("ID de " . $this->documentType . " no proporcionado");
+            }
+            
+            if (!isset($_POST['numero'])) {
+                throw new Exception("Número de teléfono no proporcionado");
+            }
+
+            $id_documento = $_POST[$idKey] ?? $_POST['id'];
+            $telefono = $_POST['numero'];
+
+            // Validar el número de teléfono
+            if (!preg_match('/^[0-9]{9}$/', $telefono)) {
+                throw new Exception("Número de teléfono inválido");
+            }
+
+            // Obtener el documento usando consulta directa
+            $tabla = $this->documentType . 's';
+            $sql = "SELECT d.*, c.datos as cliente_nombre, c.documento as cliente_documento 
+                    FROM {$tabla} d 
+                    LEFT JOIN clientes c ON d.id_cliente = c.id_cliente 
+                    WHERE d.id = ?";
+            
+            $stmt = $this->conectar->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Error al preparar consulta: " . $this->conectar->error);
+            }
+            
+            $stmt->bind_param("i", $id_documento);
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+            $documento = $resultado->fetch_assoc();
+            $stmt->close();
+
+            if (!$documento) {
+                throw new Exception(ucfirst($this->documentType) . " no encontrado");
+            }
+
+            // Generar URL del PDF del documento
+            $urlPDF = URL::to("ajs/{$this->documentType}/generarPDF?id=$id_documento");
+
+            // Construir mensaje de WhatsApp
+            $tipoDocumento = strtoupper($this->documentType);
+            $mensaje = "📋 *" . $tipoDocumento . "*\n\n";
+            $mensaje .= "📄 *" . $documento['titulo'] . "*\n\n";
+            $mensaje .= "🗂️ *Tipo:* " . ($documento['tipo'] ?: 'General') . "\n\n";
+            
+            if ($documento['id_cliente']) {
+                $mensaje .= "👤 *Cliente:* " . ($documento['cliente_nombre'] ?: 'Cliente') . "\n\n";
+            }
+            
+            $mensaje .= "📅 *Fecha:* " . date('d/m/Y', strtotime($documento['fecha_creacion'])) . "\n\n";
+            $mensaje .= "📄 *Ver PDF:* " . $urlPDF . "\n\n";
+            $mensaje .= "📱 *Compartido desde JVC*\n";
+            $mensaje .= "🌐 " . $_SERVER['HTTP_HOST'];
+
+            // Generar URL de WhatsApp
+            $mensajeCodificado = urlencode($mensaje);
+            $urlWhatsApp = "https://wa.me/51$telefono?text=$mensajeCodificado";
+
+            $respuesta = [
+                "res" => true,
+                "whatsapp_url" => $urlWhatsApp,
+                "mensaje" => $mensaje
+            ];
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        echo json_encode($respuesta);
     }
 }

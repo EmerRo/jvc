@@ -30,6 +30,9 @@ class DocumentRouteGenerator
             // Rutas para membretes
             ['method' => 'GET', 'path' => "/ajs/{$documentType}/obtener-membretes", 'action' => 'obtenerMembretes'],
             ['method' => 'POST', 'path' => "/ajs/{$documentType}/guardar-membretes", 'action' => 'guardarMembretes'],
+            
+            // Ruta para compartir por WhatsApp
+            ['method' => 'POST', 'path' => "/ajs/{$documentType}/compartir-whatsapp", 'action' => 'compartirWhatsApp'],
         ];
         
         // Rutas específicas para tipos de documentos

@@ -5,6 +5,8 @@
 // let maquinasActuales = [];
 // let repuestosActuales = [];
 
+let isSelectingSerie = false; // Nueva bandera para controlar el autocompletado después de la selección
+
 // ===== FUNCIONES GLOBALES PARA MANEJO DE REPUESTOS =====
 function abrirModalAgregarRepuesto() {
   if (!ordenTrabajoActual) {
@@ -136,20 +138,23 @@ function cargarMaquinasEnModal() {
                     this.style.textDecoration='none'; /* Quitar subrayado */
                   }
                 "
-                onclick="
-                  // Remover 'active' y resetear estilos de todas las pestañas
-                  document.querySelectorAll('#tabsList .nav-link').forEach(btn => {
-                    btn.classList.remove('active');
-                    btn.style.backgroundColor = 'transparent';
-                    btn.style.color = '#6c757d';
-                    btn.style.textDecoration = 'none';
-                  });
-                  // Activar esta pestaña y aplicar sus estilos
-                  this.classList.add('active');
-                  this.style.backgroundColor = '#dc3545'; /* Fondo rojo para activo */
-                  this.style.color = 'white'; /* Texto blanco para activo */
-                  this.style.textDecoration = 'none'; /* Sin subrayado para activo */
-                ">
+               onclick="
+ 
+              document.querySelectorAll('#tabsList .nav-link').forEach(btn => {
+              btn.classList.remove('active');
+              btn.style.backgroundColor = 'transparent';
+              btn.style.color = '#6c757d';
+              btn.style.textDecoration = 'none';
+                });
+ 
+                this.classList.add('active');
+                this.style.backgroundColor = '#dc3545';
+                this.style.color = 'white';
+                this.style.textDecoration = 'none';
+
+
+                cargarProductosExistentesMaquina(${maquina.id_detalle});
+              ">
           Equipo ${index + 1}
         </button>
       `;
@@ -217,6 +222,13 @@ function cargarMaquinasEnModal() {
     // Configurar ancho de las pestañas
     const tabWidth = 100 / Math.min(maquinasActuales.length, tabsPerPage);
     tabsList.style.width = `${(maquinasActuales.length / tabsPerPage) * 100}%`;
+
+        // NUEVO: Cargar productos existentes para la primera máquina (pestaña activa)
+    if (maquinasActuales.length > 0) {
+      setTimeout(() => {
+        cargarProductosExistentesMaquina(maquinasActuales[0].id_detalle);
+      }, 500); // Pequeño delay para asegurar que el DOM esté listo
+    }
 
     Array.from(tabsList.children).forEach((tab) => {
       tab.style.width = `${100 / maquinasActuales.length}%`;
@@ -410,74 +422,91 @@ function inicializarBusquedaRepuestos() {
   });
 }
 function agregarRepuestoAMaquina(maquinaId) {
-    const repuestoId = $(`#repuestoId-${maquinaId}`).val();
-    const repuestoNombre = $(`#repuestoNombre-${maquinaId}`).val();
-    const repuestoCodigo = $(`#repuestoCodigo-${maquinaId}`).val();
-    const cantidad = parseInt($(`#cantidad-${maquinaId}`).val());
-    const precioUnitario = parseFloat($(`#precio-${maquinaId}`).val());
-    
-    // Determinar el tipo basado en el código o una marca específica
-    const tipoItem = repuestoCodigo && repuestoCodigo.startsWith('REP-') ? 'repuesto' : 'producto';
+  const repuestoId = $(`#repuestoId-${maquinaId}`).val();
+  const repuestoNombre = $(`#repuestoNombre-${maquinaId}`).val();
+  const repuestoCodigo = $(`#repuestoCodigo-${maquinaId}`).val();
+  const cantidad = parseInt($(`#cantidad-${maquinaId}`).val());
+  const precioUnitario = parseFloat($(`#precio-${maquinaId}`).val());
 
-    // Validaciones existentes...
-    if (!repuestoId || !repuestoNombre) {
-        Swal.fire("Error", "Debe seleccionar un producto", "error");
-        return;
-    }
+  // Determinar el tipo basado en el código o una marca específica
+  const tipoItem =
+    repuestoCodigo && repuestoCodigo.startsWith("REP-")
+      ? "repuesto"
+      : "producto";
 
-    if (!cantidad || cantidad <= 0) {
-        Swal.fire("Error", "La cantidad debe ser mayor a 0", "error");
-        return;
-    }
+  // --- DEBUGGING ---
+  console.log("Datos del item a agregar:", {
+    maquinaId: maquinaId,
+    repuestoId: repuestoId,
+    repuestoNombre: repuestoNombre,
+    repuestoCodigo: repuestoCodigo,
+    cantidad: cantidad,
+    precioUnitario: precioUnitario,
+    tipoItem: tipoItem,
+    ordenTrabajoActual: ordenTrabajoActual
+  });
+  // --- FIN DEBUGGING ---
 
-    if (!precioUnitario || precioUnitario <= 0) {
-        Swal.fire("Error", "El precio debe ser mayor a 0", "error");
-        return;
-    }
+  // Validaciones existentes...
+  if (!repuestoId || !repuestoNombre) {
+    Swal.fire("Error", "Debe seleccionar un producto", "error");
+    return;
+  }
 
-    // Enviar al servidor
-    $.ajax({
-        url: _URL + "/ajs/orden-trabajo/repuestos/agregar",
-        type: "POST",
-        data: {
-            id_orden_trabajo: ordenTrabajoActual,
-            id_detalle_maquina: maquinaId,
-            id_repuesto: repuestoId,
-            tipo_item: tipoItem, // NUEVO CAMPO
-            codigo_repuesto: repuestoCodigo,
-            nombre_repuesto: repuestoNombre,
-            cantidad: cantidad,
-            precio_unitario: precioUnitario,
-        },
-        success: function (response) {
-            try {
-                const result = JSON.parse(response);
-                if (result.success) {
-                    Swal.fire("Éxito", "Producto agregado correctamente", "success");
-                    
-                    // Limpiar formulario
-                    $(`#repuestoSearch-${maquinaId}`).val("");
-                    $(`#repuestoId-${maquinaId}`).val("");
-                    $(`#repuestoCodigo-${maquinaId}`).val("");
-                    $(`#repuestoNombre-${maquinaId}`).val("");
-                    $(`#cantidad-${maquinaId}`).val("1");
-                    $(`#precio-${maquinaId}`).val("");
+  if (!cantidad || cantidad <= 0) {
+    Swal.fire("Error", "La cantidad debe ser mayor a 0", "error");
+    return;
+  }
 
-                    // Recargar tabla de repuestos
-                    cargarRepuestosParaMaquina(maquinaId);
-                } else {
-                    Swal.fire("Error", result.message || "Error al agregar producto", "error");
-                }
-            } catch (e) {
-                Swal.fire("Error", "Error al procesar la respuesta", "error");
-            }
-        },
-        error: function () {
-            Swal.fire("Error", "Error al comunicarse con el servidor", "error");
-        },
-    });
+  if (precioUnitario === null || precioUnitario < 0) {
+    Swal.fire("Error", "El precio del producto no puede ser negativo", "error");
+    return;
+  }
+
+  // Enviar al servidor
+  $.ajax({
+    url: _URL + "/ajs/orden-trabajo/repuestos/agregar",
+    type: "POST",
+    data: {
+      id_orden_trabajo: ordenTrabajoActual,
+      id_detalle_maquina: maquinaId,
+      id_repuesto: repuestoId, // El backend interpreta esto como el id_item genérico
+      tipo_item: tipoItem,
+      cantidad: cantidad,
+      precio_unitario: precioUnitario,
+    },
+    success: function (response) {
+      try {
+        const result = JSON.parse(response);
+        if (result.success) {
+          Swal.fire("Éxito", "Producto agregado correctamente", "success");
+
+          // Limpiar formulario
+          $(`#repuestoSearch-${maquinaId}`).val("");
+          $(`#repuestoId-${maquinaId}`).val("");
+          $(`#repuestoCodigo-${maquinaId}`).val("");
+          $(`#repuestoNombre-${maquinaId}`).val("");
+          $(`#cantidad-${maquinaId}`).val("1");
+          $(`#precio-${maquinaId}`).val("");
+
+          // Recargar tabla de repuestos
+          cargarRepuestosParaMaquina(maquinaId);
+        } else {
+          Swal.fire(
+            "Error",
+            result.message || "Error al agregar producto",
+            "error"
+          );
+        }
+      } catch (e) {
+        Swal.fire("Error", "Error al procesar la respuesta", "error");
+      }
+    },
+    error: function () {
+      Swal.fire("Error", "Error al comunicarse con el servidor", "error");
+    },
+  });
 }
-
 
 function cargarRepuestosExistentes() {
   if (!ordenTrabajoActual) return;
@@ -566,7 +595,6 @@ function cargarRepuestosEnTabla(maquinaId, repuestos) {
     `);
   });
 }
-
 
 function eliminarRepuesto(idRepuestoOrden) {
   Swal.fire({
@@ -673,8 +701,12 @@ function cargarRepuestosEnTab() {
                 <h6 class="mb-0">
                   <i class="fa fa-laptop me-2"></i>
                   ${grupo.maquina.marca} - ${grupo.maquina.equipo}
-                  <small class="text-muted">(Serie: ${grupo.maquina.numero_serie})</small>
-                  <span class="badge bg-success float-end">Total: S/ ${totalMaquina.toFixed(2)}</span>
+                  <small class="text-muted">(Serie: ${
+                    grupo.maquina.numero_serie
+                  })</small>
+                  <span class="badge bg-success float-end">Total: S/ ${totalMaquina.toFixed(
+                    2
+                  )}</span>
                 </h6>
               </div>
               <div class="card-body">
@@ -694,7 +726,9 @@ function cargarRepuestosEnTab() {
           `;
 
           grupo.repuestos.forEach((repuesto) => {
-            const total = (repuesto.cantidad * repuesto.precio_unitario).toFixed(2);
+            const total = (
+              repuesto.cantidad * repuesto.precio_unitario
+            ).toFixed(2);
             html += `
               <tr>
                 <td>${repuesto.codigo_item || "N/A"}</td>
@@ -704,7 +738,9 @@ function cargarRepuestosEnTab() {
                 <td>S/ ${total}</td>
                 <td>
                   <button type="button" class="btn btn-sm btn-danger" 
-                          onclick="eliminarRepuesto(${repuesto.id_repuesto_orden})"
+                          onclick="eliminarRepuesto(${
+                            repuesto.id_repuesto_orden
+                          })"
                           title="Eliminar repuesto">
                     <i class="fa fa-trash"></i>
                   </button>
@@ -759,7 +795,6 @@ function cargarRepuestosEnTab() {
     },
   });
 }
-
 
 $(document).ready(() => {
   const app = new Vue({
@@ -1000,15 +1035,7 @@ $(document).ready(() => {
           });
           return;
         }
-        // Validar fecha de salida
-        if (!this.editando.fecha_salida) {
-          Swal.fire({
-            icon: "warning",
-            title: "Advertencia",
-            text: "La fecha de salida es requerida",
-          });
-          return;
-        }
+        // Nota: fecha_salida es opcional en la edición
 
         // Validar que fecha_salida sea posterior a fecha_ingreso
         if (this.editando.fecha_ingreso && this.editando.fecha_salida) {
@@ -1049,7 +1076,7 @@ $(document).ready(() => {
           cliente_ruc: this.editando.cliente_ruc,
           atencion_encargado: this.editando.atencion_Encargado,
           fecha_ingreso: this.editando.fecha_ingreso,
-          fecha_salida: this.editando.salida,
+          fecha_salida: this.editando.fecha_salida,
           observaciones: this.editando.observaciones,
           equipos: this.editando.equipos,
         };
@@ -1110,6 +1137,7 @@ $(document).ready(() => {
     responsive: true,
     scrollX: false,
     autoWidth: false,
+    order: [], // No aplicar orden por defecto, respetar el orden del servidor
     dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
     ajax: {
       url: _URL + "/ajs/orden-trabajo/render", // Cambio aquí
@@ -1129,7 +1157,17 @@ $(document).ready(() => {
         data: "numero", // CAMBIO: usar campo numero en lugar de meta.row + 1
         class: "text-center",
       },
-      { data: "cliente_razon_social", class: "text-center" },
+      {
+        data: "cliente_razon_social",
+        class: "text-center",
+        render: function(data, type, row) {
+          // Verificar si es un registro interno
+          if (row.cliente_ruc === "20538381978") {
+            return '<span class="registro-interno-text">Registro Interno (JVC)</span>';
+          }
+          return data;
+        }
+      },
       { data: "cliente_ruc", class: "text-center" },
       { data: "atencion_encargado", class: "text-center" },
       { data: "fecha_ingreso", class: "text-center" },
@@ -1198,6 +1236,12 @@ $(document).ready(() => {
             `,
       },
     ],
+    createdRow: function (row, data, dataIndex) {
+      // Resaltar visualmente los registros internos
+      if (data.cliente_ruc === "20538381978") {
+        $(row).addClass('registro-interno-row');
+      }
+    },
     drawCallback: function () {
       $('[data-bs-toggle="tooltip"]').tooltip();
     },
@@ -1236,7 +1280,7 @@ $(document).ready(() => {
 
           // Guardar las máquinas actuales para el modal de repuestos
           maquinasActuales = detalles.equipos.map((equipo, index) => ({
-            id_detalle: index + 1, // Temporal, necesitarás el ID real de la base de datos
+            id_detalle: equipo.id_detalle, // ID real de la base de datos
             marca: equipo.marca,
             modelo: equipo.modelo,
             equipo: equipo.equipo,
@@ -1476,141 +1520,145 @@ $(document).ready(() => {
     });
   });
 
-  // ===== FUNCIÓN PARA INICIALIZAR AUTOCOMPLETADO =====
-  function inicializarAutocompletadoSeries() {
-    console.log("Inicializando autocompletado de series...");
+ function inicializarAutocompletadoNumeros() {
+    console.log("Inicializando autocompletado de números de registro...");
 
     // Verificar que el elemento existe
-    if ($("#input_buscar_serie").length === 0) {
-      console.error("Elemento #input_buscar_serie no encontrado");
-      return;
+    if ($("#input_buscar_numero").length === 0) {
+        console.error("Elemento #input_buscar_numero no encontrado");
+        return;
     }
 
     // Destruir autocompletado existente si existe
-    if ($("#input_buscar_serie").hasClass("ui-autocomplete-input")) {
-      $("#input_buscar_serie").autocomplete("destroy");
+    if ($("#input_buscar_numero").hasClass("ui-autocomplete-input")) {
+        $("#input_buscar_numero").autocomplete("destroy");
     }
 
-    // Configurar autocompletado para series
-    $("#input_buscar_serie").autocomplete({
-      source: function (request, response) {
-        console.log("Buscando series con término:", request.term);
-        $.ajax({
-          url: _URL + "/ajs/prealerta/buscar/serie/datos",
-          type: "GET",
-          data: { term: request.term },
-          success: function (data) {
-            console.log("Datos recibidos:", data);
-            try {
-              const series = JSON.parse(data);
-              console.log("Series parseadas:", series);
-              response(series);
-            } catch (e) {
-              console.error("Error al parsear datos:", e);
-              response([]);
-            }
-          },
-          error: function (xhr, status, error) {
-            console.error("Error en petición:", error);
-            response([]);
-          },
-        });
-      },
-      minLength: 0,
-      delay: 300,
-      select: function (event, ui) {
-        event.preventDefault();
-        console.log("Serie seleccionada:", ui.item);
-
-        // Llenar datos del cliente si existen
-        if (ui.item.cliente_ruc_dni && ui.item.cliente_ruc_dni !== null) {
-          // Serie con cliente
-          app.prealerta.cliente_Rsocial = ui.item.cliente_ruc_dni || "";
-          app.prealerta.num_doc = ui.item.cliente_documento || "";
-          $("#cliente_nombre_right").val(ui.item.cliente_ruc_dni || "");
-        } else {
-          // Serie sin cliente - limpiar campos del cliente
-          app.prealerta.cliente_Rsocial = "";
-          app.prealerta.num_doc = "";
-          $("#cliente_nombre_right").val("");
-
-          // Mostrar mensaje informativo
-          if (typeof Swal !== "undefined") {
-            Swal.fire({
-              icon: "info",
-              title: "Serie sin cliente",
-              text: "Esta serie no tiene cliente asociado. Se creará un registro interno.",
-              timer: 3000,
-              showConfirmButton: false,
+    // Configurar autocompletado para números de registro
+    $("#input_buscar_numero").autocomplete({
+        source: function (request, response) {
+            console.log("Buscando números de registro con término:", request.term);
+            $.ajax({
+                url: _URL + "/ajs/prealerta/buscar/numero/datos",
+                type: "GET",
+                data: { term: request.term },
+                success: function (data) {
+                    console.log("Datos recibidos:", data);
+                    try {
+                        const numeros = JSON.parse(data);
+                        console.log("Números parseados:", numeros);
+                        response(numeros);
+                    } catch (e) {
+                        console.error("Error al parsear datos:", e);
+                        response([]);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en petición:", error);
+                    response([]);
+                },
             });
-          }
-        }
+        },
+        minLength: 0,
+        delay: 300,
+        select: function (event, ui) {
+            event.preventDefault();
+            console.log("Número de registro seleccionado:", ui.item);
 
-        // SIEMPRE crear equipo con los datos de la serie (independientemente del cliente)
-        // SIEMPRE crear equipo con los datos de la serie (independientemente del cliente)
-        const equipo = {
-          marca: ui.item.marca_nombre || "",
-          modelo: ui.item.modelo_nombre || "",
-          equipo: ui.item.equipo_nombre || "",
-          serie: ui.item.value || "",
-        };
+            isSelectingSerie = true;
 
-        // USAR Vue.set para asegurar reactividad
-        if (app.equipos.length > 0) {
-          // Usar Vue.set para actualizar el primer equipo
-          Vue.set(app.equipos, 0, equipo);
-        } else {
-          app.equipos.push(equipo);
-        }
+            // Llenar datos del cliente si existen
+            if (ui.item.cliente_ruc_dni && ui.item.cliente_ruc_dni !== null) {
+                app.prealerta.cliente_Rsocial = ui.item.cliente_ruc_dni || "";
+                app.prealerta.num_doc = ui.item.cliente_documento || "";
+            } else {
+                // Registro interno - llenar con datos de la empresa
+                app.prealerta.cliente_Rsocial = "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
+                app.prealerta.num_doc = "20538381978";
 
-        // También forzar actualización de la cantidad
-        Vue.set(app, "cantidadEquipos", 1);
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Registro Interno (JVC)",
+                        text: "Este es un registro interno de la empresa. Se han cargado los datos automáticamente.",
+                        timer: 3000,
+                        showConfirmButton: false,
+                    });
+                }
+            }
 
-        // Forzar actualización de Vue
-        app.$forceUpdate();
-        // Limpiar campo
-        $(this).val("");
+console.log("[v0] Datos recibidos del registro:", ui.item);
 
-        // Mostrar mensaje de éxito
-        if (typeof Swal !== "undefined") {
-          Swal.fire({
-            icon: "success",
-            title: "Serie seleccionada",
-            text: `Serie ${ui.item.value} agregada correctamente`,
-            timer: 2000,
-            showConfirmButton: false,
-          });
-        }
-      },
-      open: function () {
-        console.log("Dropdown de autocompletado abierto");
-        $(this)
-          .autocomplete("widget")
-          .css({
-            "max-height": "250px",
-            "overflow-y": "auto",
-            "overflow-x": "hidden",
-            width: $(this).outerWidth() + "px",
-            "z-index": "9999",
-          });
-      },
-      close: function () {
-        console.log("Dropdown de autocompletado cerrado");
-      },
+// Decodificar los arrays JSON del registro seleccionado
+const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
+const modelos_ids = JSON.parse(ui.item.modelo || '[]');
+const marcas_ids = JSON.parse(ui.item.marca || '[]');
+const equipos_ids = JSON.parse(ui.item.equipo || '[]');
+
+console.log("[v0] Arrays parseados:", {
+    numeros_serie,
+    modelos_ids,
+    marcas_ids,
+    equipos_ids
+});
+
+// Obtener los nombres separados por comas (limpiar espacios)
+const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s => s.trim()).filter(s => s);
+const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s => s.trim()).filter(s => s);
+const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s => s.trim()).filter(s => s);
+
+// Limpiar equipos existentes
+app.equipos = [];
+
+// Crear un equipo por cada serie en el registro
+for (let i = 0; i < numeros_serie.length; i++) {
+    const equipo = {
+        marca: marcas_nombres[i] || marcas_nombres[0] || "Sin marca",
+        modelo: modelos_nombres[i] || modelos_nombres[0] || "Sin modelo", 
+        equipo: equipos_nombres[i] || equipos_nombres[0] || "Sin equipo",
+        serie: numeros_serie[i] || "",
+    };
+    
+    console.log("[v0] Equipo creado:", equipo);
+    app.equipos.push(equipo);
+}
+
+
+Vue.set(app, "cantidadEquipos", numeros_serie.length);
+            app.$forceUpdate();
+            
+            $(this).val("");
+
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    icon: "success",
+                    title: "Registro seleccionado",
+                    text: `Registro ${ui.item.numero_registro} agregado correctamente`,
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            }
+        },
+        open: function () {
+            console.log("Dropdown de autocompletado abierto");
+            $(this).autocomplete("widget").css({
+                "max-height": "250px",
+                "overflow-y": "auto",
+                "overflow-x": "hidden",
+            });
+        },
     });
-
-    // Eventos para mostrar dropdown al hacer focus/click
-    $("#input_buscar_serie")
-      .off("focus.autocomplete click.autocomplete")
-      .on("focus.autocomplete click.autocomplete", function () {
-        console.log("Focus/Click en campo de serie");
-        if (!$(this).autocomplete("widget").is(":visible")) {
-          $(this).autocomplete("search", "");
-        }
-      });
-
-    console.log("Autocompletado de series inicializado correctamente");
-  }
+    $("#input_buscar_numero").on('focus click', function() {
+    console.log("Input enfocado - mostrando todos los registros");
+    if (isSelectingSerie) {
+        isSelectingSerie = false;
+        return;
+    }
+    if ($(this).val() === '') {
+        $(this).autocomplete('search', '');
+    }
+});
+}
 
   function inicializarAutocompletadoCliente() {
     console.log("Inicializando autocompletado de cliente...");
@@ -1922,7 +1970,7 @@ $(document).ready(() => {
     $("#fecha_salida").val(nextWeekString);
 
     setTimeout(function () {
-      inicializarAutocompletadoSeries();
+    inicializarAutocompletadoNumeros();
       inicializarAutocompletadoCliente();
     }, 100);
   });
@@ -2266,4 +2314,97 @@ $(document).ready(() => {
       text: mensaje,
     });
   }
+
 });
+// Función para cargar productos existentes de una máquina específica
+function cargarProductosExistentesMaquina(idDetalleMaquina) {
+    if (!ordenTrabajoActual) {
+        console.error('No hay orden de trabajo seleccionada');
+        return;
+    }
+    
+    // Buscar la tabla de productos agregados para esta máquina
+    const tablaBody = document.querySelector(`#tablaRepuestos-${idDetalleMaquina} tbody`);
+    
+    if (!tablaBody) {
+        console.error('No se encontró la tabla de productos para la máquina:', idDetalleMaquina);
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    tablaBody.innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center">
+                <i class="fa fa-spinner fa-spin"></i> Cargando productos...
+            </td>
+        </tr>
+    `;
+    
+    // Hacer petición AJAX
+    $.ajax({
+        url: _URL + "/ajs/orden-trabajo/repuestos/obtener",
+        type: "POST",
+        data: { 
+            id_orden_trabajo: ordenTrabajoActual,
+            id_detalle_maquina: idDetalleMaquina 
+        },
+        success: function(response) {
+            try {
+                const productos = JSON.parse(response);
+                
+                // Limpiar tabla
+                tablaBody.innerHTML = '';
+                
+                if (productos.length === 0) {
+                    tablaBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No hay productos agregados a esta máquina
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Agregar productos a la tabla
+                productos.forEach(producto => {
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td>${producto.codigo_item || 'N/A'}</td>
+                        <td>${producto.nombre_item || 'N/A'}</td>
+                        <td>${producto.cantidad || 0}</td>
+                        <td>S/ ${parseFloat(producto.precio_unitario || 0).toFixed(2)}</td>
+                        <td>S/ ${parseFloat(producto.precio_total || 0).toFixed(2)}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    onclick="eliminarRepuesto(${producto.id_repuesto_orden || 0})">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tablaBody.appendChild(fila);
+                });
+                
+            } catch (error) {
+                console.error('Error al procesar productos:', error);
+                tablaBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">
+                            Error al cargar productos
+                        </td>
+                    </tr>
+                `;
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en petición AJAX:', error);
+            tablaBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error al cargar productos
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}

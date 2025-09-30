@@ -30,6 +30,7 @@ class GuiaRemision
     private $destinatario_nombre;
     private $destinatario_documento;
     private $id_cotizacion;
+    private $id_cotizacion_taller;
     private $conectar;
 
     public function __construct()
@@ -318,6 +319,16 @@ public function setIdCotizacion($id_cotizacion)
     $this->id_cotizacion = $id_cotizacion;
 }
 
+public function getIdCotizacionTaller()
+{
+    return $this->id_cotizacion_taller;
+}
+
+public function setIdCotizacionTaller($id_cotizacion_taller)
+{
+    $this->id_cotizacion_taller = $id_cotizacion_taller;
+}
+
     public function obtenerId()
     {
         $sql = "select ifnull(max(id_guia_remision) + 1, 1) as codigo 
@@ -375,6 +386,7 @@ public function setIdCotizacion($id_cotizacion)
     // Escapar todas las propiedades de cadena para prevenir SQL injection y errores de sintaxis
     $id_venta_escaped = $this->id_venta ? "'" . $this->conectar->real_escape_string($this->id_venta) . "'" : "NULL";
     $id_cotizacion_escaped = $this->id_cotizacion ? "'" . $this->conectar->real_escape_string($this->id_cotizacion) . "'" : "NULL";
+    $id_cotizacion_taller_escaped = $this->id_cotizacion_taller ? "'" . $this->conectar->real_escape_string($this->id_cotizacion_taller) . "'" : "NULL";
     $destinatario_nombre_escaped = $this->destinatario_nombre ? "'" . $this->conectar->real_escape_string($this->destinatario_nombre) . "'" : "NULL";
     $destinatario_documento_escaped = $this->destinatario_documento ? "'" . $this->conectar->real_escape_string($this->destinatario_documento) . "'" : "NULL";
     $fecha_escaped = $this->conectar->real_escape_string($this->fecha);
@@ -401,6 +413,7 @@ public function setIdCotizacion($id_cotizacion)
     $sql = "INSERT INTO guia_remision (
         id_venta,
         id_cotizacion,
+        id_cotizacion_taller,
         destinatario_nombre,
         destinatario_documento,
         fecha_emision,
@@ -430,6 +443,7 @@ public function setIdCotizacion($id_cotizacion)
     ) VALUES (
         $id_venta_escaped,
         $id_cotizacion_escaped,
+        $id_cotizacion_taller_escaped,
         $destinatario_nombre_escaped,
         $destinatario_documento_escaped,
         '$fecha_escaped',
@@ -461,7 +475,6 @@ public function setIdCotizacion($id_cotizacion)
     $result = $this->conectar->query($sql);
     if ($result) {
         $this->id_guia = $this->conectar->insert_id;
-    } else {
     }
     return $result;
 }
@@ -499,12 +512,14 @@ public function verFilas()
         CASE 
             WHEN gr.id_venta IS NOT NULL THEN c_venta.datos
             WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.datos
+            WHEN gr.id_cotizacion_taller IS NOT NULL THEN c_taller.datos
             ELSE gr.destinatario_nombre
         END as datos,
         -- Obtener el documento del cliente para determinar el tipo
         CASE 
             WHEN gr.id_venta IS NOT NULL THEN c_venta.documento
             WHEN gr.id_cotizacion IS NOT NULL THEN c_coti.documento
+            WHEN gr.id_cotizacion_taller IS NOT NULL THEN c_taller.documento
             ELSE gr.destinatario_documento
         END as documento_cliente,
         -- ✅ MEJORADO: Solo mostrar datos de factura cuando realmente hay una venta
@@ -526,6 +541,7 @@ public function verFilas()
         CASE
             WHEN gr.id_venta IS NOT NULL THEN 'facturas'
             WHEN gr.id_cotizacion IS NOT NULL THEN 'cotizaciones'
+            WHEN gr.id_cotizacion_taller IS NOT NULL THEN 'taller'
             ELSE 'manuales'
         END as tipo_guia,
         COALESCE(gs.nombre_xml, '') as nom_guia_xml
@@ -535,6 +551,8 @@ public function verFilas()
     LEFT JOIN clientes c_venta ON v.id_cliente = c_venta.id_cliente 
     LEFT JOIN cotizaciones cot ON gr.id_cotizacion = cot.cotizacion_id
     LEFT JOIN clientes c_coti ON cot.id_cliente = c_coti.id_cliente
+    LEFT JOIN taller_cotizaciones tc ON gr.id_cotizacion_taller = tc.id_cotizacion
+    LEFT JOIN clientes c_taller ON tc.id_cliente = c_taller.id_cliente
     JOIN empresas e ON e.id_empresa = gr.id_empresa
     LEFT JOIN guia_sunat gs ON gr.id_guia_remision = gs.id_guia
     WHERE gr.id_empresa = '$this->id_empresa' 

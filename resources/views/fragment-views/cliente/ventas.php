@@ -1097,20 +1097,75 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                 if (resp.res) {
                     $("#modal_ver_detalle").modal("show")
 
+                    // Encabezado común
+                    let headerHTML = 'Fecha : ' + resp.data.fecha_emision +
+                      '<br>Documento : ' + (resp.data.id_tido == '2' ? 'FT' : 'BT') + ' | ' + resp.data.serie + ' - ' + resp.data.numero +
+                      '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos +
+                      '<br>Total : ' + resp.data.montoTotal + '<br><hr>';
+
+                    // Si hay equipos, renderizar agrupado por equipos (sin pestañas)
+                    if (resp.data.equipos && resp.data.equipos.length > 0) {
+                        let equiposHTML = '<table class="table table-striped">' +
+                            '<thead><tr><th>#</th><th>Cod.</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>' +
+                            '<tbody>';
+                        
+                        let numeroItem = 1;
+                        resp.data.equipos.forEach(function(eq, equipoIdx) {
+                            // Header del equipo
+                            equiposHTML += '<tr class="table-secondary">' +
+                                '<td colspan="6"><strong>EQUIPO: ' + 
+                                (eq.marca || '') + ' ' + (eq.equipo || '') + 
+                                ' - Modelo: ' + (eq.modelo || '') + ' - Serie: ' + (eq.numero_serie || '') +
+                                '</strong></td></tr>';
+                            
+                            // Productos del equipo
+                            if (eq.items && eq.items.length > 0) {
+                                eq.items.forEach(function(item) {
+                                    let parcial = (parseFloat(item.precio) * parseFloat(item.cantidad)).toFixed(2);
+                                    equiposHTML += '<tr>' +
+                                        '<td class="text-center">' + numeroItem + '</td>' +
+                                        '<td>' + (item.codigo || '') + '</td>' +
+                                        '<td>' + (item.nombre || '') + '</td>' +
+                                        '<td class="text-center">' + item.cantidad + '</td>' +
+                                        '<td class="text-end">' + parseFloat(item.precio).toFixed(2) + '</td>' +
+                                        '<td class="text-end">' + parcial + '</td>' +
+                                        '</tr>';
+                                    numeroItem++;
+                                });
+                            } else {
+                                equiposHTML += '<tr><td colspan="6" class="text-center text-muted">Sin items para este equipo</td></tr>';
+                            }
+                            
+                            // Espacio entre equipos (excepto el último)
+                            if (equipoIdx < resp.data.equipos.length - 1) {
+                                equiposHTML += '<tr><td colspan="6" style="padding: 5px;"></td></tr>';
+                            }
+                        });
+                        
+                        equiposHTML += '</tbody>' +
+                            '<tfoot><tr class="table-info"><td colspan="5" class="text-end"><strong>TOTAL VENTA:</strong></td>' +
+                            '<td class="text-end"><strong>' + resp.data.montoTotal + '</strong></td>' +
+                            '</tr></tfoot></table>';
+                        
+                        $("#modal_detalle").html(headerHTML + equiposHTML);
+                        return;
+                    }
+
+                    // Fallback: render plano cuando no hay equipos
                     var rowHTML = '';
-                    resp.data.detalles.forEach(function (elm) {
-                        console.log(elm);
+                    (resp.data.detalles || []).forEach(function (elm) {
+                        let parcial = (parseFloat(elm.precio) * parseFloat(elm.cantidad)).toFixed(2);
+                        let utilidad = ((parseFloat(elm.precio) - parseFloat(elm.costo)) * parseFloat(elm.cantidad)).toFixed(2);
                         rowHTML += '<tr>' +
                             '<td class="text-center">' + elm.cantidad + '</td>' +
-                            '<td>' + elm.codigo + '</td>' +
-                            '<td>' + elm.nombre + '</td>' +
+                            '<td>' + (elm.codigo || '') + '</td>' +
+                            '<td>' + (elm.nombre || '') + '</td>' +
                             '<td class="text-right">' + elm.precio + '</td>' +
-                            '<td class="text-right">' + (elm.precio * elm.cantidad).toFixed(2) + '</td>' +
-                            '<td class="text-right">' + ((elm.precio - elm.costo) * elm.cantidad).toFixed(2) + '</td>' +
+                            '<td class="text-right">' + parcial + '</td>' +
+                            '<td class="text-right">' + utilidad + '</td>' +
                             '</tr>';
                     })
-                    $("#modal_detalle").html('' +
-                        'Fecha : ' + resp.data.fecha_emision + '<br>Documento : FT | ' + resp.data.serie + ' - ' + resp.data.numero + '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos + '<br>Total : ' + resp.data.montoTotal + '<br><hr>' +
+                    $("#modal_detalle").html(headerHTML +
                         '<table class="table table-striped">' +
                         '<thead>' +
                         '<tr>' +
@@ -1131,8 +1186,8 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                         '<td class="text-right"> ' + resp.data.montoTotal + '</td>' +
                         '</tr>' +
                         '</tfoot>' +
-                        '</table>' +
-                        '')
+                        '</table>'
+                    )
                 }
             })
         });

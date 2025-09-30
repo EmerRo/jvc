@@ -83,6 +83,9 @@ class ReporteExcelDashboardController extends Controller
             // Crear el objeto Writer para Excel
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
             
+            // TODO: Habilitar la inclusión de gráficos (desactivado por problemas de compatibilidad)
+            // $writer->setIncludeCharts(true);
+            
             // Configurar headers para descarga
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename="' . $nombreArchivo . '"');
@@ -249,6 +252,21 @@ class ReporteExcelDashboardController extends Controller
         $sheet->setCellValue('C8', number_format($resumen['total_facturas'] ?? 0, 2));
         
         $sheet->getStyle('A6:C8')->applyFromArray($this->getDataStyle());
+
+        // TODO: Gráfico de pastel (temporalmente desactivado por compatibilidad)
+        /*
+        if (($resumen['total_boletas'] > 0) || ($resumen['total_facturas'] > 0)) {
+            $this->crearGraficoPastel(
+                $sheet,
+                'Distribución de Ventas: Boletas vs Facturas',
+                '$A$7:$A$8', // Etiquetas: Boletas, Facturas
+                '$C$7:$C$8', // Datos: Montos totales
+                'E5',        // Posición del gráfico
+                400,         // Ancho
+                300          // Alto
+            );
+        }
+        */
         
         // Para reportes anuales, mostrar ventas por mes - IGUAL QUE EN EL PDF
         $row = 10;
@@ -311,6 +329,21 @@ class ReporteExcelDashboardController extends Controller
             $sheet->setCellValue('C' . $row, number_format($totalVentas, 2));
             $sheet->setCellValue('D' . $row, number_format($promedioGeneral, 2));
             $sheet->getStyle('A' . $row . ':D' . $row)->applyFromArray($this->getTotalStyle());
+            
+            // TODO: Gráfico de barras mensuales (temporalmente desactivado por compatibilidad)
+            /*
+            if ($totalVentas > 0) {
+                $this->crearGraficoBarras(
+                    $sheet,
+                    'Ventas Mensuales - ' . $titulo_periodo,
+                    '$A$12:$A$' . ($row - 1), // Etiquetas: Meses
+                    '$C$12:$C$' . ($row - 1), // Datos: Montos mensuales
+                    'F12',       // Posición del gráfico
+                    500,         // Ancho
+                    350          // Alto
+                );
+            }
+            */
             $row += 2;
         } else {
             // Para reportes por rango, mostrar ventas por día - IGUAL QUE EN EL PDF
@@ -506,6 +539,21 @@ class ReporteExcelDashboardController extends Controller
         $sheet->setCellValue('C' . $row, number_format($totalUnidades, 0));
         $sheet->setCellValue('D' . $row, number_format($totalVentas, 2));
         $sheet->getStyle('A' . $row . ':D' . $row)->applyFromArray($this->getTotalStyle());
+        
+        // TODO: Gráfico de barras productos (temporalmente desactivado por compatibilidad)
+        /*
+        if ($totalVentas > 0 && $row > 6) {
+            $this->crearGraficoBarras(
+                $sheet,
+                'Top Productos Más Vendidos',
+                '$B$6:$B$' . ($row - 1), // Etiquetas: Nombres de productos
+                '$C$6:$C$' . ($row - 1), // Datos: Unidades vendidas
+                'F6',        // Posición del gráfico
+                500,         // Ancho
+                400          // Alto
+            );
+        }
+        */
         
         // Ajustar anchos de columna automáticamente
         foreach (range('A', 'D') as $col) {
@@ -1010,5 +1058,211 @@ class ReporteExcelDashboardController extends Controller
             // Si hay error en alguna hoja, continuar con las demás
             error_log("Error generando hoja del reporte: " . $e->getMessage());
         }
+    }
+
+    private function crearGraficoPastel($sheet, $titulo, $rangoEtiquetas, $rangoDatos, $posicion = 'H5', $ancho = 600, $alto = 400)
+    {
+        try {
+            // Crear serie de datos para el gráfico de pastel
+            $dataSeriesLabels = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_STRING,
+                    $sheet->getTitle() . '!' . $rangoEtiquetas,
+                    null,
+                    null
+                )
+            ];
+
+            $dataSeriesValues = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_NUMBER,
+                    $sheet->getTitle() . '!' . $rangoDatos,
+                    null,
+                    null
+                )
+            ];
+
+            // Crear serie de datos
+            $dataSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_PIECHART,
+                null,
+                range(0, 0),
+                $dataSeriesLabels,
+                $dataSeriesValues
+            );
+
+            // Crear área de gráfico
+            $plotArea = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$dataSeries]);
+
+            // Crear el gráfico
+            $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
+                'chart_' . uniqid(),
+                new \PhpOffice\PhpSpreadsheet\Chart\Title($titulo),
+                null,
+                $plotArea
+            );
+
+            // Configurar posición y tamaño
+            $chart->setTopLeftPosition($posicion);
+            $chart->setBottomRightPosition($this->calcularPosicionFinal($posicion, $ancho, $alto));
+
+            // Agregar el gráfico a la hoja
+            $sheet->addChart($chart);
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error creando gráfico de pastel: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function crearGraficoBarras($sheet, $titulo, $rangoEtiquetas, $rangoDatos, $posicion = 'H5', $ancho = 600, $alto = 400)
+    {
+        try {
+            // Crear serie de datos para el gráfico de barras
+            $dataSeriesLabels = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_STRING,
+                    $sheet->getTitle() . '!' . $rangoEtiquetas,
+                    null,
+                    null
+                )
+            ];
+
+            $dataSeriesValues = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_NUMBER,
+                    $sheet->getTitle() . '!' . $rangoDatos,
+                    null,
+                    null
+                )
+            ];
+
+            // Crear serie de datos
+            $dataSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_BARCHART,
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_CLUSTERED,
+                range(0, 0),
+                $dataSeriesLabels,
+                $dataSeriesValues
+            );
+
+            // Crear área de gráfico
+            $plotArea = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$dataSeries]);
+
+            // Crear el gráfico
+            $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
+                'chart_' . uniqid(),
+                new \PhpOffice\PhpSpreadsheet\Chart\Title($titulo),
+                null,
+                $plotArea
+            );
+
+            // Configurar posición y tamaño
+            $chart->setTopLeftPosition($posicion);
+            $chart->setBottomRightPosition($this->calcularPosicionFinal($posicion, $ancho, $alto));
+
+            // Agregar el gráfico a la hoja
+            $sheet->addChart($chart);
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error creando gráfico de barras: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function crearGraficoLineas($sheet, $titulo, $rangoEtiquetas, $rangoDatos, $posicion = 'H5', $ancho = 600, $alto = 400)
+    {
+        try {
+            // Crear serie de datos para el gráfico de líneas
+            $dataSeriesLabels = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_STRING,
+                    $sheet->getTitle() . '!' . $rangoEtiquetas,
+                    null,
+                    null
+                )
+            ];
+
+            $dataSeriesValues = [
+                new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues(
+                    \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues::DATASERIES_TYPE_NUMBER,
+                    $sheet->getTitle() . '!' . $rangoDatos,
+                    null,
+                    null
+                )
+            ];
+
+            // Crear serie de datos
+            $dataSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_LINECHART,
+                \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_STANDARD,
+                range(0, 0),
+                $dataSeriesLabels,
+                $dataSeriesValues
+            );
+
+            // Crear área de gráfico
+            $plotArea = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$dataSeries]);
+
+            // Crear el gráfico
+            $chart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
+                'chart_' . uniqid(),
+                new \PhpOffice\PhpSpreadsheet\Chart\Title($titulo),
+                null,
+                $plotArea
+            );
+
+            // Configurar posición y tamaño
+            $chart->setTopLeftPosition($posicion);
+            $chart->setBottomRightPosition($this->calcularPosicionFinal($posicion, $ancho, $alto));
+
+            // Agregar el gráfico a la hoja
+            $sheet->addChart($chart);
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error creando gráfico de líneas: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function calcularPosicionFinal($posicionInicial, $ancho, $alto)
+    {
+        // Convertir ancho y alto de píxeles a celdas aproximadamente
+        // Excel: 1 columna ≈ 64 píxeles, 1 fila ≈ 20 píxeles
+        $columnasAdicionales = intval($ancho / 64);
+        $filasAdicionales = intval($alto / 20);
+        
+        // Extraer columna y fila inicial
+        preg_match('/([A-Z]+)(\d+)/', $posicionInicial, $matches);
+        $columnaInicial = $matches[1];
+        $filaInicial = intval($matches[2]);
+        
+        // Calcular posición final
+        $columnaFinal = $this->sumarColumnas($columnaInicial, $columnasAdicionales);
+        $filaFinal = $filaInicial + $filasAdicionales;
+        
+        return $columnaFinal . $filaFinal;
+    }
+
+    private function sumarColumnas($columna, $cantidad)
+    {
+        $numero = 0;
+        for ($i = 0; $i < strlen($columna); $i++) {
+            $numero = $numero * 26 + (ord($columna[$i]) - ord('A') + 1);
+        }
+        
+        $numero += $cantidad;
+        
+        $resultado = '';
+        while ($numero > 0) {
+            $numero--;
+            $resultado = chr(ord('A') + ($numero % 26)) . $resultado;
+            $numero = intval($numero / 26);
+        }
+        
+        return $resultado;
     }
 }

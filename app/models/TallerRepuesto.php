@@ -9,92 +9,231 @@ class TallerRepuesto
         $this->conectar = (new Conexion())->getConexion();
     }
 
-    public function insertar($idCoti, $productos, $equiposIds)
-    {
-        if (empty($productos)) {
-            return;
+public function insertar($idCoti, $productos, $equiposIds)
+{
+    if (empty($productos)) {
+        return;
+    }
+
+    error_log("=== INICIO INSERTAR PRODUCTOS ===");
+    error_log("ID Cotización: " . $idCoti);
+    error_log("Productos recibidos: " . json_encode($productos));
+    error_log("Equipos IDs: " . json_encode($equiposIds));
+
+    // Preparar la consulta para insertar repuestos/productos
+    $sql = "INSERT INTO taller_repuestos_cotis 
+        (id_coti, id_repuesto, id_producto, tipo_item, cantidad, precio, costo, id_cotizacion_equipo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $this->conectar->prepare($sql);
+
+    // Preparar las consultas para actualizar el stock
+    $sqlUpdateStockRepuesto = "UPDATE repuestos 
+                          SET cantidad = cantidad - ? 
+                          WHERE id_repuesto = ? 
+                          AND cantidad >= ?";
+    $stmtUpdateStockRepuesto = $this->conectar->prepare($sqlUpdateStockRepuesto);
+
+    $sqlUpdateStockProducto = "UPDATE productos 
+                          SET cantidad = cantidad - ? 
+                          WHERE id_producto = ? 
+                          AND cantidad >= ?";
+    $stmtUpdateStockProducto = $this->conectar->prepare($sqlUpdateStockProducto);
+
+    foreach ($productos as $index => $producto) {
+        error_log("--- Procesando producto " . ($index + 1) . " ---");
+        error_log("Producto data: " . json_encode($producto));
+
+        // NUEVA LÓGICA: Determinar si es producto o repuesto
+        $esProducto = false;
+        $tipoItem = 'repuesto';
+        $idRepuesto = null;
+        $idProducto = null;
+
+  // 1. Verificar si viene de productos_existentes (tiene tipo_item)
+if (isset($producto['tipo_item'])) {
+    $esProducto = ($producto['tipo_item'] === 'producto');
+    error_log("Tipo detectado por tipo_item: " . $producto['tipo_item']);
+}
+
+error_log("Producto completo recibido: " . json_encode($producto));
+error_log("¿Tiene tipo_item? " . (isset($producto['tipo_item']) ? 'SÍ' : 'NO'));
+if (isset($producto['tipo_item'])) {
+    error_log("Valor de tipo_item: " . $producto['tipo_item']);
+}
+
+
+// 2. Si no tiene tipo_item, verificar en la base de datos directamente
+else {
+    // Buscar primero en productos por ID
+    $sqlCheckProducto = "SELECT id_producto FROM productos WHERE id_producto = ?";
+    $stmtCheckProducto = $this->conectar->prepare($sqlCheckProducto);
+    $stmtCheckProducto->bind_param("i", $producto['productoid']);
+    $stmtCheckProducto->execute();
+    $resultProducto = $stmtCheckProducto->get_result();
+    
+    if ($resultProducto->num_rows > 0) {
+        $esProducto = true;
+        error_log("Tipo detectado por BD: producto (ID " . $producto['productoid'] . " encontrado en tabla productos)");
+    } else {
+        $esProducto = false;
+        error_log("Tipo detectado por BD: repuesto (ID " . $producto['productoid'] . " no encontrado en tabla productos)");
+    }
+}
+
+        // Asignar valores según el tipo
+        if ($esProducto) {
+            $tipoItem = 'producto';
+            $idProducto = $producto['productoid'];
+            $idRepuesto = null;
+        } else {
+            $tipoItem = 'repuesto';
+            $idRepuesto = $producto['productoid'];
+            $idProducto = null;
         }
 
-        // Preparar la consulta para insertar repuestos
-        $sql = "INSERT INTO taller_repuestos_cotis 
-            (id_coti, id_repuesto, cantidad, precio, costo, id_cotizacion_equipo) 
-            VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conectar->prepare($sql);
+        error_log("Tipo final: " . $tipoItem);
+        error_log("ID Producto: " . ($idProducto ?? 'null'));
+        error_log("ID Repuesto: " . ($idRepuesto ?? 'null'));
 
-        // Preparar la consulta para actualizar el stock
-        $sqlUpdateStock = "UPDATE repuestos 
-                      SET cantidad = cantidad - ? 
-                      WHERE id_repuesto = ? 
-                      AND cantidad >= ?";
-        $stmtUpdateStock = $this->conectar->prepare($sqlUpdateStock);
-
-        foreach ($productos as $producto) {
-            // Verificar cantidad antes de la actualización
+        // Verificar stock antes de la actualización
+        if ($esProducto) {
+            $sqlCheckStock = "SELECT cantidad FROM productos WHERE id_producto = ?";
+            $stmtCheckStock = $this->conectar->prepare($sqlCheckStock);
+            $stmtCheckStock->bind_param("i", $idProducto);
+        } else {
             $sqlCheckStock = "SELECT cantidad FROM repuestos WHERE id_repuesto = ?";
             $stmtCheckStock = $this->conectar->prepare($sqlCheckStock);
-            $stmtCheckStock->bind_param("i", $producto['productoid']);
-            $stmtCheckStock->execute();
-            $resultStock = $stmtCheckStock->get_result();
-            $stockActual = $resultStock->fetch_assoc()['cantidad'];
+            $stmtCheckStock->bind_param("i", $idRepuesto);
+        }
+        
+        $stmtCheckStock->execute();
+        $resultStock = $stmtCheckStock->get_result();
+        
+        if ($resultStock->num_rows === 0) {
+            error_log("ERROR: No se encontró el item en la tabla correspondiente");
+            continue; // Saltar este producto
+        }
+        
+        $stockData = $resultStock->fetch_assoc();
+        $stockActual = $stockData['cantidad'];
+        error_log("Stock actual: " . $stockActual);
 
-            // Verificar si hay suficiente cantidad
-            if ($stockActual < $producto['cantidad']) {
-                throw new Exception("Stock insuficiente para el producto: " . $producto['descripcion']);
-            }
-
-            // Obtener el ID del equipo según el índice del equipo activo
-            $idEquipo = null;
-            if (isset($producto['equipoActivo']) && isset($equiposIds[$producto['equipoActivo']])) {
-                $idEquipo = $equiposIds[$producto['equipoActivo']];
-                error_log("Asignando equipo ID: " . $idEquipo . " al producto: " . $producto['descripcion']);
-            }
-
-            // Insertar en taller_repuestos_cotis
-            $stmt->bind_param(
-                "iidddi",
-                $idCoti,
-                $producto['productoid'],
-                $producto['cantidad'],
-                $producto['precioVenta'],
-                $producto['costo'],
-                $idEquipo
-            );
-            $stmt->execute();
-
-            // Actualizar el stock
-            $stmtUpdateStock->bind_param(
-                "dii",
-                $producto['cantidad'],
-                $producto['productoid'],
+        // Verificar si hay suficiente cantidad
+        if ($stockActual < $producto['cantidad']) {
+            $mensajeError = sprintf(
+                "Stock insuficiente para el producto: %s\n" .
+                "Stock disponible: %s\n" .
+                "Cantidad solicitada: %s",
+                $producto['descripcion'],
+                $stockActual,
                 $producto['cantidad']
             );
-            $stmtUpdateStock->execute();
+            throw new Exception($mensajeError);
+        }
 
-            if ($stmtUpdateStock->affected_rows == 0) {
-                throw new Exception("No se pudo actualizar el stock del producto: " . $producto['descripcion']);
+        // Obtener el ID del equipo: preferir id_cotizacion_equipo si viene; si no, usar equipoActivo→equiposIds
+        $idEquipo = null;
+        if (isset($producto['id_cotizacion_equipo']) && !empty($producto['id_cotizacion_equipo'])) {
+            $idEquipo = (int)$producto['id_cotizacion_equipo'];
+            error_log("ID Equipo asignado directamente (id_cotizacion_equipo): " . $idEquipo);
+        } elseif (isset($producto['equipoActivo']) && isset($equiposIds[$producto['equipoActivo']])) {
+            $idEquipo = $equiposIds[$producto['equipoActivo']];
+            error_log("ID Equipo asignado por mapa equipoActivo→equiposIds: " . $idEquipo);
+        } else {
+            error_log("No se pudo asignar equipo. equipoActivo: " . ($producto['equipoActivo'] ?? 'null') . ", id_cotizacion_equipo: " . ($producto['id_cotizacion_equipo'] ?? 'null'));
+        }
+
+        // Insertar en taller_repuestos_cotis
+        error_log("Insertando en taller_repuestos_cotis...");
+        $stmt->bind_param(
+            "iiisdddi",
+            $idCoti,
+            $idRepuesto,
+            $idProducto,
+            $tipoItem,
+            $producto['cantidad'],
+            $producto['precioVenta'],
+            $producto['costo'],
+            $idEquipo
+        );
+        
+        if (!$stmt->execute()) {
+            error_log("ERROR al insertar: " . $stmt->error);
+            throw new Exception("Error al insertar producto: " . $stmt->error);
+        } else {
+            error_log("Producto insertado correctamente");
+        }
+
+        // Actualizar el stock correspondiente
+        if ($esProducto) {
+            error_log("Actualizando stock de producto...");
+            $stmtUpdateStockProducto->bind_param(
+                "dii",
+                $producto['cantidad'],
+                $idProducto,
+                $producto['cantidad']
+            );
+            if (!$stmtUpdateStockProducto->execute()) {
+                error_log("ERROR al actualizar stock producto: " . $stmtUpdateStockProducto->error);
+            } else {
+                error_log("Stock producto actualizado");
+            }
+        } else {
+            error_log("Actualizando stock de repuesto...");
+            $stmtUpdateStockRepuesto->bind_param(
+                "dii",
+                $producto['cantidad'],
+                $idRepuesto,
+                $producto['cantidad']
+            );
+            if (!$stmtUpdateStockRepuesto->execute()) {
+                error_log("ERROR al actualizar stock repuesto: " . $stmtUpdateStockRepuesto->error);
+            } else {
+                error_log("Stock repuesto actualizado");
             }
         }
     }
+    
+    error_log("=== FIN INSERTAR PRODUCTOS ===");
+}
 
-    public function obtenerPorCotizacion($id_cotizacion)
-    {
-        $sql = "SELECT 
-            trc.*,
-            r.codigo as codigo_prod,
-            r.nombre as descripcion,
-            r.precio,
-            r.precio2,
-            r.precio_unidad
-            FROM taller_repuestos_cotis trc
-            JOIN repuestos r ON trc.id_repuesto = r.id_repuesto
-            WHERE trc.id_coti = ?";
 
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("i", $id_cotizacion);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
-    }
+  public function obtenerPorCotizacion($id_cotizacion)
+{
+    $sql = "SELECT 
+        trc.*,
+        CASE 
+            WHEN trc.tipo_item = 'producto' THEN p.codigo
+            WHEN trc.tipo_item = 'repuesto' THEN r.codigo
+        END as codigo_prod,
+        CASE 
+            WHEN trc.tipo_item = 'producto' THEN p.nombre
+            WHEN trc.tipo_item = 'repuesto' THEN r.nombre
+        END as descripcion,
+        CASE 
+            WHEN trc.tipo_item = 'producto' THEN p.precio
+            WHEN trc.tipo_item = 'repuesto' THEN r.precio
+        END as precio_base,
+        CASE 
+            WHEN trc.tipo_item = 'producto' THEN p.precio2
+            WHEN trc.tipo_item = 'repuesto' THEN r.precio2
+        END as precio2,
+        CASE 
+            WHEN trc.tipo_item = 'producto' THEN p.precio_unidad
+            WHEN trc.tipo_item = 'repuesto' THEN r.precio_unidad
+        END as precio_unidad
+        FROM taller_repuestos_cotis trc
+        LEFT JOIN repuestos r ON trc.id_repuesto = r.id_repuesto AND trc.tipo_item = 'repuesto'
+        LEFT JOIN productos p ON trc.id_producto = p.id_producto AND trc.tipo_item = 'producto'
+        WHERE trc.id_coti = ?";
+
+    $stmt = $this->conectar->prepare($sql);
+    $stmt->bind_param("i", $id_cotizacion);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
 
     public function eliminarPorCotizacion($id_cotizacion)
     {

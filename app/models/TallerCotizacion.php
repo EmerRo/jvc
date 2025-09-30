@@ -9,13 +9,14 @@ class TallerCotizacion
         $this->conectar = (new Conexion())->getConexion();
     }
 
-   public function obtenerInfoOrden($ordenId, $tipo)
+ public function obtenerInfoOrden($ordenId, $tipo)
 {
     try {
         error_log("Obteniendo información para ID: " . $ordenId . " y tipo: " . $tipo);
 
         // Determinar qué tabla usar según el tipo
         if ($tipo === 'ORD TRABAJO') {
+            // CAMBIO PRINCIPAL: Quitar GROUP_CONCAT y DISTINCT para mantener el orden
             $query = "SELECT 
                 ot.id_orden_trabajo as id_original,
                 ot.cliente_razon_social,
@@ -23,16 +24,16 @@ class TallerCotizacion
                 ot.direccion,
                 ot.atencion_encargado,
                 ot.fecha_ingreso,
-                GROUP_CONCAT(DISTINCT otd.marca) as marcas,
-                GROUP_CONCAT(DISTINCT otd.equipo) as equipos,
-                GROUP_CONCAT(DISTINCT otd.modelo) as modelos,
-                GROUP_CONCAT(DISTINCT otd.numero_serie) as numeros_serie
+                GROUP_CONCAT(otd.marca ORDER BY otd.id_detalle) as marcas,
+                GROUP_CONCAT(otd.equipo ORDER BY otd.id_detalle) as equipos,
+                GROUP_CONCAT(otd.modelo ORDER BY otd.id_detalle) as modelos,
+                GROUP_CONCAT(otd.numero_serie ORDER BY otd.id_detalle) as numeros_serie
                 FROM orden_trabajo_pre ot
                 LEFT JOIN orden_trabajo_detalles otd ON ot.id_orden_trabajo = otd.id_orden_trabajo
                 WHERE ot.id_orden_trabajo = ?
                 GROUP BY ot.id_orden_trabajo";
         } else {
-            // ORD SERVICIO
+            // ORD SERVICIO - aplicar el mismo cambio
             $query = "SELECT 
                 os.id_orden_servicio as id_original,
                 os.cliente_razon_social,
@@ -40,10 +41,10 @@ class TallerCotizacion
                 os.direccion,
                 os.atencion_encargado,
                 os.fecha_ingreso,
-                GROUP_CONCAT(DISTINCT osd.marca) as marcas,
-                GROUP_CONCAT(DISTINCT osd.equipo) as equipos,
-                GROUP_CONCAT(DISTINCT osd.modelo) as modelos,
-                GROUP_CONCAT(DISTINCT osd.numero_serie) as numeros_serie
+                GROUP_CONCAT(osd.marca ORDER BY osd.id_detalle) as marcas,
+                GROUP_CONCAT(osd.equipo ORDER BY osd.id_detalle) as equipos,
+                GROUP_CONCAT(osd.modelo ORDER BY osd.id_detalle) as modelos,
+                GROUP_CONCAT(osd.numero_serie ORDER BY osd.id_detalle) as numeros_serie
                 FROM orden_servicio_pre os
                 LEFT JOIN orden_servicio_detalles osd ON os.id_orden_servicio = osd.id_orden_servicio
                 WHERE os.id_orden_servicio = ?
@@ -85,11 +86,12 @@ class TallerCotizacion
 }
 
 
+
     public function crear($data, $idCli, $numCoti, $ordenId, $descuento, $tipoOrigen = '')
     {
         $sql = "INSERT INTO taller_cotizaciones (
             id_tido, moneda, cm_tc, id_tipo_pago, fecha, 
-            dias_pagos, direccion, id_cliente_taller, total, 
+            dias_pagos, direccion, id_cliente, total, 
             numero, estado, usar_precio, sucursal, id_empresa, 
             id_usuario, id_prealerta, descuento, tipo_origen
         ) VALUES (
@@ -113,7 +115,7 @@ class TallerCotizacion
             $data['fecha'],           // s - fecha (string)
             $data['dias_pago'],       // s - dias_pagos (string)
             $data['dir_pos'],         // s - direccion (string)
-            $idCli,                   // i - id_cliente_taller (integer)
+            $idCli,                   // i - id_cliente (integer)
             $data['total'],           // i - total (decimal)
             $numCoti,                 // d - numero (integer)
             $estado,                  // s - estado (string)
@@ -174,15 +176,15 @@ class TallerCotizacion
   public function obtenerDetalle($id_cotizacion)
 {
     try {
-        // Consulta principal con JOIN a clientes_taller
+        // Consulta principal con JOIN a clientes
         $sql = "SELECT 
             tc.*,
-            ct.documento as num_doc,
-            ct.datos as nom_cli,
-            ct.direccion as dir_cli,
-            ct.atencion as dir2_cli
+            c.documento as num_doc,
+            c.datos as nom_cli,
+            c.direccion as dir_cli,
+            c.direccion2 as dir2_cli
             FROM taller_cotizaciones tc
-            INNER JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+            INNER JOIN clientes c ON tc.id_cliente = c.id_cliente
             WHERE tc.id_cotizacion = ?";
 
         $stmt = $this->conectar->prepare($sql);
@@ -317,6 +319,12 @@ class TallerCotizacion
             $stmt->bind_param("i", $id_cotizacion);
             $stmt->execute();
 
+            // Delete from taller_cotizaciones_equipos - ✅ AGREGADO
+            $sql = "DELETE FROM taller_cotizaciones_equipos WHERE id_cotizacion = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("i", $id_cotizacion);
+            $stmt->execute();
+
             // Delete condiciones and diagnosticos
             $sql = "DELETE FROM taller_condiciones_cotizacion WHERE id_cotizacion = ?";
             $stmt = $this->conectar->prepare($sql);
@@ -324,6 +332,12 @@ class TallerCotizacion
             $stmt->execute();
 
             $sql = "DELETE FROM taller_diagnosticos_cotizacion WHERE id_cotizacion = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("i", $id_cotizacion);
+            $stmt->execute();
+
+            // Delete from taller_observaciones_cotizacion - ✅ AGREGADO
+            $sql = "DELETE FROM taller_observaciones_cotizacion WHERE id_cotizacion = ?";
             $stmt = $this->conectar->prepare($sql);
             $stmt->bind_param("i", $id_cotizacion);
             $stmt->execute();
@@ -337,7 +351,7 @@ class TallerCotizacion
             // Si todo fue exitoso, eliminar los archivos físicos
             $errores = [];
             foreach ($fotos as $foto) {
-                $rutaFoto = dirname(dirname(__DIR__)) . '/../public/assets/img/cotizaciones/' . $foto;
+              $rutaFoto = $_SERVER['DOCUMENT_ROOT'] . '/public/assets/img/cotizaciones/' . $foto;
                 if (file_exists($rutaFoto)) {
                     if (!unlink($rutaFoto)) {
                         $errores[] = "No se pudo eliminar el archivo: " . $foto;
@@ -364,11 +378,8 @@ class TallerCotizacion
         $productos = [];
         
         if ($tipo === 'ORD TRABAJO') {
-            // Obtener productos de orden_trabajo_repuestos
+            // Consulta corregida para la nueva estructura de BD
             $sql = "SELECT 
-                otr.id_item as productoid,
-                otr.codigo_item as codigo_prod,
-                otr.nombre_item as descripcion,
                 otr.cantidad,
                 otr.precio_unitario as precioVenta,
                 otr.tipo_item,
@@ -377,23 +388,39 @@ class TallerCotizacion
                 otd.equipo,
                 otd.modelo,
                 otd.numero_serie,
+                CASE
+                    WHEN otr.tipo_item = 'producto' THEN otr.id_producto
+                    WHEN otr.tipo_item = 'repuesto' THEN otr.id_repuesto
+                END as productoid,
+                CASE
+                    WHEN otr.tipo_item = 'producto' THEN p.codigo
+                    WHEN otr.tipo_item = 'repuesto' THEN r.codigo
+                END as codigo_prod,
+                CASE
+                    WHEN otr.tipo_item = 'producto' THEN p.nombre
+                    WHEN otr.tipo_item = 'repuesto' THEN r.nombre
+                END as descripcion,
                 CASE 
                     WHEN otr.tipo_item = 'producto' THEN p.costo
                     WHEN otr.tipo_item = 'repuesto' THEN r.costo
                     ELSE 0
                 END as costo
-                FROM orden_trabajo_repuestos otr
-                INNER JOIN orden_trabajo_detalles otd ON otr.id_detalle_maquina = otd.id_detalle
-                LEFT JOIN productos p ON (otr.id_item = p.id_producto AND otr.tipo_item = 'producto')
-                LEFT JOIN repuestos r ON (otr.id_item = r.id_repuesto AND otr.tipo_item = 'repuesto')
-                WHERE otr.id_orden_trabajo = ?
-                ORDER BY otr.id_detalle_maquina, otr.fecha_agregado";
+            FROM orden_trabajo_repuestos otr
+            INNER JOIN orden_trabajo_detalles otd ON otr.id_detalle_maquina = otd.id_detalle
+            LEFT JOIN productos p ON otr.id_producto = p.id_producto AND otr.tipo_item = 'producto'
+            LEFT JOIN repuestos r ON otr.id_repuesto = r.id_repuesto AND otr.tipo_item = 'repuesto'
+            WHERE otr.id_orden_trabajo = ?
+            ORDER BY otr.id_detalle_maquina, otr.fecha_agregado";
         } else {
-            // Para orden de servicio, implementar lógica similar si existe
+            // Para orden de servicio, la lógica se mantiene si no ha cambiado
             return [];
         }
 
         $stmt = $this->conectar->prepare($sql);
+        if ($stmt === false) {
+            throw new Exception('Error al preparar la consulta: ' . $this->conectar->error);
+        }
+
         $stmt->bind_param("i", $ordenId);
         $stmt->execute();
         $result = $stmt->get_result();

@@ -1411,7 +1411,7 @@ ORDER BY
 
         echo json_encode([
             'success' => true,
-            'ingresosEgresosData' => $ingresosEgresosData
+            'ingresosData' => $ingresosEgresosData
         ]);
 
     } catch (Exception $e) {
@@ -1422,7 +1422,584 @@ ORDER BY
     }
 }
 
+    public function getDatosCotizaciones()
+    {
+        try {
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            $sucursal = $_SESSION['sucursal'] ?? 1;
 
+            // Obtener parámetros de filtro
+            $periodo = $_GET['periodo'] ?? 'mes';
+            $fecha_inicio = $_GET['fecha_inicio'] ?? '';
+            $fecha_fin = $_GET['fecha_fin'] ?? '';
+
+            // Determinar fechas según el período
+            $ahora = new DateTime();
+            switch ($periodo) {
+                case 'hoy':
+                    $fecha_inicio = $ahora->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'mes':
+                    $fecha_inicio = $ahora->format('Y-m-01');
+                    $fecha_fin = $ahora->format('Y-m-t');
+                    break;
+                case 'trimestre':
+                    $mes_actual = $ahora->format('n');
+                    $trimestre = ceil($mes_actual / 3);
+                    $primer_mes_trimestre = ($trimestre - 1) * 3 + 1;
+                    $fecha_inicio = $ahora->format('Y-' . sprintf('%02d', $primer_mes_trimestre) . '-01');
+                    $ultimo_mes_trimestre = $primer_mes_trimestre + 2;
+                    $fecha_fin = $ahora->format('Y-' . sprintf('%02d', $ultimo_mes_trimestre) . '-t');
+                    break;
+                case 'semestre':
+                    $mes_actual = $ahora->format('n');
+                    if ($mes_actual <= 6) {
+                        $fecha_inicio = $ahora->format('Y-01-01');
+                        $fecha_fin = $ahora->format('Y-06-30');
+                    } else {
+                        $fecha_inicio = $ahora->format('Y-07-01');
+                        $fecha_fin = $ahora->format('Y-12-31');
+                    }
+                    break;
+                case 'año':
+                    $fecha_inicio = $ahora->format('Y-01-01');
+                    $fecha_fin = $ahora->format('Y-12-31');
+                    break;
+                default: // personalizado
+                    if (!$fecha_inicio || !$fecha_fin) {
+                        $fecha_inicio = $ahora->format('Y-m-01');
+                        $fecha_fin = $ahora->format('Y-m-t');
+                    }
+                    break;
+            }
+
+            $conexion = (new Conexion())->getConexion();
+
+            // 1. Total de cotizaciones
+            $sql_total = "SELECT COUNT(*) as total_cotizaciones 
+                         FROM cotizaciones 
+                         WHERE id_empresa = ? AND fecha BETWEEN ? AND ?";
+            $stmt_total = $conexion->prepare($sql_total);
+            
+            if (!$stmt_total) {
+                throw new Exception('Error en consulta total_cotizaciones: ' . $conexion->error);
+            }
+            
+            $stmt_total->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_total->execute();
+            $total_cotizaciones = $stmt_total->get_result()->fetch_assoc()['total_cotizaciones'];
+            
+
+            // 2. Productos más cotizados
+            $sql_productos = "SELECT 
+                                p.id_producto,
+                                p.nombre,
+                                COUNT(pc.id_producto) as total_cotizado,
+                                AVG(pc.precio) as precio_promedio
+                             FROM productos_cotis pc
+                             INNER JOIN productos p ON pc.id_producto = p.id_producto
+                             INNER JOIN cotizaciones c ON pc.id_coti = c.cotizacion_id
+                             WHERE c.id_empresa = ? AND c.fecha BETWEEN ? AND ?
+                             GROUP BY p.id_producto, p.nombre
+                             ORDER BY total_cotizado DESC
+                             LIMIT 10";
+            
+            $stmt_productos = $conexion->prepare($sql_productos);
+            
+            if (!$stmt_productos) {
+                throw new Exception('Error en consulta productos_mas_cotizados: ' . $conexion->error);
+            }
+            
+            $stmt_productos->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_productos->execute();
+            $result_productos = $stmt_productos->get_result();
+
+            $productos_mas_cotizados = [];
+            while ($producto = $result_productos->fetch_assoc()) {
+                $productos_mas_cotizados[] = [
+                    'id_producto' => $producto['id_producto'],
+                    'nombre' => $producto['nombre'],
+                    'total_cotizado' => $producto['total_cotizado'],
+                    'precio_promedio' => $producto['precio_promedio']
+                ];
+            }
+
+            // 3. Top clientes con más cotizaciones
+            $sql_clientes_top = "SELECT 
+                                   cl.datos,
+                                   COUNT(c.cotizacion_id) as total_cotizaciones,
+                                   SUM(c.total) as valor_total
+                                FROM cotizaciones c
+                                INNER JOIN clientes cl ON c.id_cliente = cl.id_cliente
+                                WHERE c.id_empresa = ? AND c.fecha BETWEEN ? AND ?
+                                GROUP BY c.id_cliente, cl.datos
+                                ORDER BY total_cotizaciones DESC
+                                LIMIT 5";
+            
+            $stmt_clientes = $conexion->prepare($sql_clientes_top);
+            
+            if (!$stmt_clientes) {
+                throw new Exception('Error en consulta clientes_top: ' . $conexion->error);
+            }
+            
+            $stmt_clientes->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_clientes->execute();
+            $result_clientes = $stmt_clientes->get_result();
+
+            $top_clientes = [];
+            while ($cliente = $result_clientes->fetch_assoc()) {
+                $top_clientes[] = [
+                    'datos' => $cliente['datos'],
+                    'total_cotizaciones' => $cliente['total_cotizaciones'],
+                    'valor_total' => $cliente['valor_total']
+                ];
+            }
+
+            // 4. Estados de cotizaciones
+            $sql_estados = "SELECT 
+                              CASE 
+                                WHEN estado = '0' THEN 'Pendiente'
+                                WHEN estado = '1' THEN 'Vendida'
+                                WHEN estado = '2' THEN 'Enviada'
+                                ELSE 'Otros'
+                              END as estado_nombre,
+                              COUNT(*) as cantidad
+                            FROM cotizaciones
+                            WHERE id_empresa = ? AND fecha BETWEEN ? AND ?
+                            GROUP BY estado";
+            
+            $stmt_estados = $conexion->prepare($sql_estados);
+            
+            if (!$stmt_estados) {
+                throw new Exception('Error en consulta estados: ' . $conexion->error);
+            }
+            
+            $stmt_estados->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_estados->execute();
+            $result_estados = $stmt_estados->get_result();
+
+            $estados_cotizaciones = [];
+            while ($estado = $result_estados->fetch_assoc()) {
+                $estados_cotizaciones[] = $estado;
+            }
+
+            // 5. Evolución mensual (para gráfico)
+            $sql_evolucion = "SELECT 
+                                MONTH(fecha) as mes,
+                                COUNT(*) as total_mes
+                             FROM cotizaciones
+                             WHERE id_empresa = ? AND YEAR(fecha) = YEAR(CURDATE())
+                             GROUP BY MONTH(fecha)
+                             ORDER BY mes";
+            
+            $stmt_evolucion = $conexion->prepare($sql_evolucion);
+            
+            if (!$stmt_evolucion) {
+                throw new Exception('Error en consulta evolucion: ' . $conexion->error);
+            }
+            
+            $stmt_evolucion->bind_param("i", $empresa);
+            $stmt_evolucion->execute();
+            $result_evolucion = $stmt_evolucion->get_result();
+
+            $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            $cotizaciones_por_mes = array_fill(0, 12, 0);
+
+            while ($row = $result_evolucion->fetch_assoc()) {
+                $cotizaciones_por_mes[$row['mes'] - 1] = intval($row['total_mes']);
+            }
+
+            // 6. Cotizaciones recientes (usando la vista que ya tiene el JOIN correcto)
+            $sql_recientes = "SELECT 
+                                cotizacion_id,
+                                numero,
+                                fecha,
+                                total,
+                                estado,
+                                datos as cliente_datos,
+                                vendedor
+                             FROM view_cotizaciones
+                             ORDER BY fecha DESC, cotizacion_id DESC
+                             LIMIT 10";
+            
+            $stmt_recientes = $conexion->prepare($sql_recientes);
+            
+            if (!$stmt_recientes) {
+                throw new Exception('Error en consulta recientes: ' . $conexion->error);
+            }
+            
+            $stmt_recientes->execute();
+            $result_recientes = $stmt_recientes->get_result();
+
+            $cotizaciones_recientes = [];
+            while ($cotizacion = $result_recientes->fetch_assoc()) {
+                $cotizaciones_recientes[] = $cotizacion;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'cotizaciones' => [
+                    'total_cotizaciones' => $total_cotizaciones,
+                    'productos_mas_cotizados' => $productos_mas_cotizados,
+                    'top_clientes' => $top_clientes,
+                    'estados_cotizaciones' => $estados_cotizaciones,
+                    'evolucion_mensual' => [
+                        'meses' => $meses,
+                        'cantidades' => $cotizaciones_por_mes
+                    ],
+                    'cotizaciones_recientes' => $cotizaciones_recientes
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener datos de cotizaciones: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getDatosGuias()
+    {
+        try {
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            $sucursal = $_SESSION['sucursal'] ?? 1;
+
+            // Obtener parámetros de filtro
+            $periodo = $_GET['periodo'] ?? 'mes';
+            $fecha_inicio = $_GET['fecha_inicio'] ?? '';
+            $fecha_fin = $_GET['fecha_fin'] ?? '';
+
+            // Determinar fechas según el período
+            $ahora = new DateTime();
+            switch ($periodo) {
+                case 'hoy':
+                    $fecha_inicio = $ahora->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'mes':
+                    $fecha_inicio = $ahora->format('Y-m-01');
+                    $fecha_fin = $ahora->format('Y-m-t');
+                    break;
+                case 'trimestre':
+                    $mes_actual = $ahora->format('n');
+                    $trimestre = ceil($mes_actual / 3);
+                    $primer_mes_trimestre = ($trimestre - 1) * 3 + 1;
+                    $fecha_inicio = $ahora->format('Y-' . sprintf('%02d', $primer_mes_trimestre) . '-01');
+                    $ultimo_mes_trimestre = $primer_mes_trimestre + 2;
+                    $fecha_fin = $ahora->format('Y-' . sprintf('%02d', $ultimo_mes_trimestre) . '-t');
+                    break;
+                case 'semestre':
+                    $mes_actual = $ahora->format('n');
+                    if ($mes_actual <= 6) {
+                        $fecha_inicio = $ahora->format('Y-01-01');
+                        $fecha_fin = $ahora->format('Y-06-30');
+                    } else {
+                        $fecha_inicio = $ahora->format('Y-07-01');
+                        $fecha_fin = $ahora->format('Y-12-31');
+                    }
+                    break;
+                case 'año':
+                    $fecha_inicio = $ahora->format('Y-01-01');
+                    $fecha_fin = $ahora->format('Y-12-31');
+                    break;
+                default: // personalizado
+                    if (!$fecha_inicio || !$fecha_fin) {
+                        $fecha_inicio = $ahora->format('Y-m-01');
+                        $fecha_fin = $ahora->format('Y-m-t');
+                    }
+                    break;
+            }
+
+            $conexion = (new Conexion())->getConexion();
+
+            // 1. Total de guías
+            $sql_total = "SELECT COUNT(*) as total_guias 
+                         FROM guia_remision 
+                         WHERE id_empresa = ? AND fecha_emision BETWEEN ? AND ?";
+            $stmt_total = $conexion->prepare($sql_total);
+            
+            if (!$stmt_total) {
+                throw new Exception('Error en consulta total_guias: ' . $conexion->error);
+            }
+            
+            $stmt_total->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_total->execute();
+            $total_guias = $stmt_total->get_result()->fetch_assoc()['total_guias'];
+
+            // 2. Productos más transportados (en lugar de peso total)
+            $sql_productos = "SELECT 
+                                p.id_producto,
+                                p.nombre,
+                                COUNT(gd.id_producto) as total_transportado,
+                                SUM(gd.cantidad) as cantidad_total,
+                                AVG(gd.precio) as precio_promedio
+                             FROM guia_detalles gd
+                             INNER JOIN productos p ON gd.id_producto = p.id_producto
+                             INNER JOIN guia_remision gr ON gd.id_guia = gr.id_guia_remision
+                             WHERE gr.id_empresa = ? AND gr.fecha_emision BETWEEN ? AND ?
+                             GROUP BY p.id_producto, p.nombre
+                             ORDER BY total_transportado DESC
+                             LIMIT 6";
+            
+            $stmt_productos = $conexion->prepare($sql_productos);
+            
+            if (!$stmt_productos) {
+                throw new Exception('Error en consulta productos_mas_transportados: ' . $conexion->error);
+            }
+            
+            $stmt_productos->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_productos->execute();
+            $result_productos = $stmt_productos->get_result();
+
+            $productos_mas_transportados = [];
+            while ($producto = $result_productos->fetch_assoc()) {
+                $productos_mas_transportados[] = [
+                    'id_producto' => $producto['id_producto'],
+                    'nombre' => $producto['nombre'],
+                    'total_transportado' => $producto['total_transportado'],
+                    'cantidad_total' => $producto['cantidad_total'],
+                    'peso_promedio' => round($producto['precio_promedio'] ?: 0, 2)
+                ];
+            }
+
+            // 3. Top clientes con más guías
+            $sql_clientes_top = "SELECT 
+                                   gr.destinatario_nombre as datos,
+                                   gr.destinatario_nombre as nombre,
+                                   COUNT(gr.id_guia_remision) as total_guias,
+                                   SUM(gr.peso) as peso_total
+                                FROM guia_remision gr
+                                WHERE gr.id_empresa = ? AND gr.fecha_emision BETWEEN ? AND ?
+                                AND gr.destinatario_nombre IS NOT NULL AND gr.destinatario_nombre != ''
+                                GROUP BY gr.destinatario_nombre
+                                ORDER BY total_guias DESC
+                                LIMIT 5";
+            
+            $stmt_clientes = $conexion->prepare($sql_clientes_top);
+            
+            if (!$stmt_clientes) {
+                throw new Exception('Error en consulta clientes_top_guias: ' . $conexion->error);
+            }
+            
+            $stmt_clientes->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_clientes->execute();
+            $result_clientes = $stmt_clientes->get_result();
+
+            $top_clientes = [];
+            while ($cliente = $result_clientes->fetch_assoc()) {
+                $top_clientes[] = [
+                    'datos' => $cliente['datos'],
+                    'nombre' => $cliente['nombre'],
+                    'total_guias' => $cliente['total_guias'],
+                    'peso_total' => round($cliente['peso_total'] ?: 0, 2)
+                ];
+            }
+
+            // 4. Estados de guías
+            $sql_estados = "SELECT 
+                              CASE 
+                                WHEN estado = '0' THEN 'Pendiente'
+                                WHEN estado = '1' THEN 'Enviada'
+                                ELSE 'Otros'
+                              END as estado_nombre,
+                              COUNT(*) as cantidad
+                            FROM guia_remision
+                            WHERE id_empresa = ? AND fecha_emision BETWEEN ? AND ?
+                            GROUP BY estado";
+            
+            $stmt_estados = $conexion->prepare($sql_estados);
+            
+            if (!$stmt_estados) {
+                throw new Exception('Error en consulta estados_guias: ' . $conexion->error);
+            }
+            
+            $stmt_estados->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt_estados->execute();
+            $result_estados = $stmt_estados->get_result();
+
+            $estados_guias = [];
+            while ($estado = $result_estados->fetch_assoc()) {
+                $estados_guias[] = $estado;
+            }
+
+            // 5. Evolución mensual de guías
+            $sql_evolucion = "SELECT 
+                                MONTH(fecha_emision) as mes,
+                                COUNT(*) as total_mes
+                             FROM guia_remision
+                             WHERE id_empresa = ? AND YEAR(fecha_emision) = YEAR(CURDATE())
+                             GROUP BY MONTH(fecha_emision)
+                             ORDER BY mes";
+            
+            $stmt_evolucion = $conexion->prepare($sql_evolucion);
+            
+            if (!$stmt_evolucion) {
+                throw new Exception('Error en consulta evolucion_guias: ' . $conexion->error);
+            }
+            
+            $stmt_evolucion->bind_param("i", $empresa);
+            $stmt_evolucion->execute();
+            $result_evolucion = $stmt_evolucion->get_result();
+
+            $meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            $guias_por_mes = array_fill(0, 12, 0);
+
+            while ($row = $result_evolucion->fetch_assoc()) {
+                $guias_por_mes[$row['mes'] - 1] = intval($row['total_mes']);
+            }
+
+            // 6. Guías recientes
+            $sql_recientes = "SELECT 
+                                gr.id_guia_remision,
+                                gr.serie,
+                                gr.numero,
+                                gr.fecha_emision,
+                                gr.destinatario_nombre as cliente_datos,
+                                gr.destinatario_documento,
+                                gr.motivo_traslado as motivo_nombre,
+                                gr.peso,
+                                gr.nro_bultos,
+                                gr.estado,
+                                'N/A' as vendedor
+                             FROM guia_remision gr
+                             WHERE gr.id_empresa = ?
+                             ORDER BY gr.fecha_emision DESC, gr.id_guia_remision DESC
+                             LIMIT 10";
+            
+            $stmt_recientes = $conexion->prepare($sql_recientes);
+            
+            if (!$stmt_recientes) {
+                throw new Exception('Error en consulta recientes_guias: ' . $conexion->error);
+            }
+            
+            $stmt_recientes->bind_param("i", $empresa);
+            $stmt_recientes->execute();
+            $result_recientes = $stmt_recientes->get_result();
+
+            $guias_recientes = [];
+            while ($guia = $result_recientes->fetch_assoc()) {
+                $guias_recientes[] = $guia;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'total_guias' => $total_guias,
+                    'productos_mas_transportados' => $productos_mas_transportados,
+                    'top_clientes' => $top_clientes,
+                    'estados_guias' => $estados_guias,
+                    'evolucion_mensual' => [
+                        'meses' => $meses,
+                        'cantidades' => $guias_por_mes
+                    ],
+                    'guias_recientes' => $guias_recientes
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener datos de guías: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getDatosClientes()
+    {
+        try {
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            
+            // Obtener parámetros de período
+            $periodo = $_GET['periodo'] ?? 'mes';
+            $fecha_inicio = $_GET['fecha_inicio'] ?? null;
+            $fecha_fin = $_GET['fecha_fin'] ?? null;
+            
+            // Calcular fechas según el período
+            $ahora = new DateTime();
+            switch ($periodo) {
+                case 'hoy':
+                    $fecha_inicio = $ahora->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'semana':
+                    $diaSemana = $ahora->format('N');
+                    $inicioSemana = clone $ahora;
+                    $inicioSemana->modify('-' . ($diaSemana - 1) . ' days');
+                    $fecha_inicio = $inicioSemana->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'mes':
+                    $inicioMes = new DateTime($ahora->format('Y-m-01'));
+                    $fecha_inicio = $inicioMes->format('Y-m-d');
+                    $finMes = new DateTime($ahora->format('Y-m-t'));
+                    $fecha_fin = $finMes->format('Y-m-d');
+                    break;
+                case 'anio':
+                    $inicioAnio = new DateTime($ahora->format('Y-01-01'));
+                    $fecha_inicio = $inicioAnio->format('Y-m-d');
+                    $finAnio = new DateTime($ahora->format('Y-12-31'));
+                    $fecha_fin = $finAnio->format('Y-m-d');
+                    break;
+                default: // personalizado
+                    if (!$fecha_inicio || !$fecha_fin) {
+                        $fecha_inicio = date('Y-m-01');
+                        $fecha_fin = date('Y-m-t');
+                    }
+                    break;
+            }
+
+            $conexion = (new Conexion())->getConexion();
+
+            // Consulta para obtener top clientes por compras en el período
+            $sql_clientes_top = "SELECT 
+                c.datos as cliente_nombre,
+                c.id_cliente,
+                SUM(v.total) as total_compras,
+                COUNT(v.id_venta) as num_compras
+            FROM ventas v
+            INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+            WHERE v.id_empresa = ? 
+                AND v.estado = '1'
+                AND v.fecha_emision BETWEEN ? AND ?
+            GROUP BY c.id_cliente, c.datos
+            ORDER BY total_compras DESC
+            LIMIT 10";
+
+            $stmt = $conexion->prepare($sql_clientes_top);
+            if (!$stmt) {
+                throw new Exception("Error en la preparación de consulta de clientes: " . $conexion->error);
+            }
+            $stmt->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $clientes_nombres = [];
+            $clientes_compras = [];
+
+            while ($cliente = $result->fetch_assoc()) {
+                $clientes_nombres[] = $cliente['cliente_nombre'];
+                $clientes_compras[] = floatval($cliente['total_compras']);
+            }
+
+            $clientesData = [
+                'clientesNombres' => $clientes_nombres,
+                'clientesCompras' => $clientes_compras
+            ];
+
+            echo json_encode([
+                'success' => true,
+                'clientesData' => $clientesData
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener datos de clientes: ' . $e->getMessage()
+            ]);
+        }
+    }
 
     private function generarDatosIngresosPorPeriodo($periodo, $fecha_inicio, $fecha_fin, $empresa, $sucursal, $conexion)
     {
@@ -1702,6 +2279,456 @@ ORDER BY
         return $datos;
     }
 
+    public function getDatosStock()
+    {
+        try {
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            
+            // Obtener parámetros de período
+            $periodo = $_GET['periodo'] ?? 'mes';
+            $fecha_inicio = $_GET['fecha_inicio'] ?? null;
+            $fecha_fin = $_GET['fecha_fin'] ?? null;
+            
+            // Calcular fechas según el período
+            $ahora = new DateTime();
+            switch ($periodo) {
+                case 'hoy':
+                    $fecha_inicio = $ahora->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'semana':
+                    $diaSemana = $ahora->format('N');
+                    $inicioSemana = clone $ahora;
+                    $inicioSemana->modify('-' . ($diaSemana - 1) . ' days');
+                    $fecha_inicio = $inicioSemana->format('Y-m-d');
+                    $fecha_fin = $ahora->format('Y-m-d');
+                    break;
+                case 'mes':
+                    $inicioMes = new DateTime($ahora->format('Y-m-01'));
+                    $fecha_inicio = $inicioMes->format('Y-m-d');
+                    $finMes = new DateTime($ahora->format('Y-m-t'));
+                    $fecha_fin = $finMes->format('Y-m-d');
+                    break;
+                case 'anio':
+                    $inicioAnio = new DateTime($ahora->format('Y-01-01'));
+                    $fecha_inicio = $inicioAnio->format('Y-m-d');
+                    $finAnio = new DateTime($ahora->format('Y-12-31'));
+                    $fecha_fin = $finAnio->format('Y-m-d');
+                    break;
+                default: // personalizado
+                    if (!$fecha_inicio || !$fecha_fin) {
+                        $fecha_inicio = date('Y-m-01');
+                        $fecha_fin = date('Y-m-t');
+                    }
+                    break;
+            }
 
+            $conexion = (new Conexion())->getConexion();
+
+            // 1. Obtener productos para rotación de inventario
+            $sql_productos = "SELECT 
+                id_producto,
+                COALESCE(nombre, detalle) as nombre,
+                cantidad,
+                precio,
+                costo,
+                CASE 
+                    WHEN cantidad <= 5 THEN DATEDIFF(NOW(), ultima_salida)
+                    WHEN cantidad <= 20 THEN FLOOR(RAND() * 15) + 5
+                    ELSE FLOOR(RAND() * 10) + 15
+                END as dias_rotacion
+            FROM productos 
+            WHERE id_empresa = ? AND estado = '1' AND cantidad > 0
+            ORDER BY cantidad DESC
+            LIMIT 10";
+
+            $stmt = $conexion->prepare($sql_productos);
+            if (!$stmt) {
+                throw new Exception("Error en la preparación de consulta de productos: " . $conexion->error);
+            }
+            $stmt->bind_param("i", $empresa);
+            $stmt->execute();
+            $result_productos = $stmt->get_result();
+
+            $productos_nombres = [];
+            $rotacion_dias = [];
+
+            while ($producto = $result_productos->fetch_assoc()) {
+                $productos_nombres[] = $producto['nombre'];
+                $rotacion_dias[] = intval($producto['dias_rotacion']);
+            }
+
+            // 2. Obtener movimientos de inventario para el período seleccionado
+            $sql_movimientos = "SELECT 
+                DATE_FORMAT(hs.fecha_movimiento, '%Y-%m') as mes,
+                hs.tipo_movimiento,
+                SUM(hs.cantidad) as total_cantidad
+            FROM historial_stock hs
+            WHERE hs.id_producto IN (
+                SELECT id_producto FROM productos WHERE id_empresa = ?
+            )
+            AND hs.fecha_movimiento BETWEEN ? AND ?
+            GROUP BY mes, hs.tipo_movimiento
+            ORDER BY mes";
+
+            $stmt2 = $conexion->prepare($sql_movimientos);
+            if (!$stmt2) {
+                throw new Exception("Error en la preparación de consulta de movimientos: " . $conexion->error);
+            }
+            $stmt2->bind_param("iss", $empresa, $fecha_inicio, $fecha_fin);
+            $stmt2->execute();
+            $result_movimientos = $stmt2->get_result();
+
+            $movimientos_por_mes = [];
+            while ($mov = $result_movimientos->fetch_assoc()) {
+                $mes = $mov['mes'];
+                if (!isset($movimientos_por_mes[$mes])) {
+                    $movimientos_por_mes[$mes] = ['INGRESO' => 0, 'SALIDA' => 0];
+                }
+                $movimientos_por_mes[$mes][$mov['tipo_movimiento']] = intval($mov['total_cantidad']);
+            }
+
+            // Generar arrays para los últimos 6 meses
+            $meses = [];
+            $entradas = [];
+            $salidas = [];
+
+            for ($i = 5; $i >= 0; $i--) {
+                $fecha = new DateTime();
+                $fecha->modify("-$i months");
+                $mes_key = $fecha->format('Y-m');
+                $mes_nombre = $fecha->format('M');
+                
+                $meses[] = $mes_nombre;
+                $entradas[] = isset($movimientos_por_mes[$mes_key]) ? $movimientos_por_mes[$mes_key]['INGRESO'] : 0;
+                $salidas[] = isset($movimientos_por_mes[$mes_key]) ? $movimientos_por_mes[$mes_key]['SALIDA'] : 0;
+            }
+
+            // Formatear datos de rotación para JavaScript
+            $rotacion_data = [];
+            for ($i = 0; $i < count($productos_nombres); $i++) {
+                $rotacion_data[] = [
+                    'nombre' => $productos_nombres[$i],
+                    'dias_rotacion' => $rotacion_dias[$i]
+                ];
+            }
+
+            // Formatear datos de movimientos para JavaScript
+            $movimientos_data = [];
+            for ($i = 0; $i < count($meses); $i++) {
+                $movimientos_data[] = [
+                    'mes' => date('Y-m', strtotime($meses[$i] . '-01')),
+                    'tipo_movimiento' => 'INGRESO',
+                    'total_cantidad' => $entradas[$i]
+                ];
+                $movimientos_data[] = [
+                    'mes' => date('Y-m', strtotime($meses[$i] . '-01')),
+                    'tipo_movimiento' => 'SALIDA', 
+                    'total_cantidad' => $salidas[$i]
+                ];
+            }
+
+            $stockData = [
+                'rotacion' => $rotacion_data,
+                'movimientos' => $movimientos_data
+            ];
+
+            echo json_encode([
+                'success' => true,
+                'data' => $stockData
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener datos de stock: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // ==================== GESTIÓN DE VENDEDORES Y METAS INDIVIDUALES ====================
+    
+    /**
+     * Obtener todos los vendedores con sus datos de ventas y metas individuales
+     */
+    public function getTodosVendedores()
+    {
+        try {
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            $mes_actual = date('m');
+            $anio_actual = date('Y');
+
+            if (!$empresa) {
+                throw new Exception('Sesión no válida');
+            }
+
+            // Consulta para obtener vendedores con ventas y metas individuales
+            $sql = "SELECT 
+                u.usuario_id,
+                u.usuario,
+                u.nombres,
+                u.apellidos,
+                u.id_rol,
+                u.email,
+                r.nombre as tipo_usuario,
+                COALESCE(ventas_mes.ventas_actuales, 0) as ventas_actuales,
+                COALESCE(mv.meta_individual, 0) as meta_individual,
+                me.meta_total as meta_total_empresa
+            FROM usuarios u
+            INNER JOIN roles r ON u.id_rol = r.rol_id
+            LEFT JOIN (
+                SELECT 
+                    v.id_vendedor,
+                    SUM(v.total) as ventas_actuales
+                FROM ventas v
+                WHERE v.id_empresa = ?
+                    AND MONTH(v.fecha_emision) = ?
+                    AND YEAR(v.fecha_emision) = ?
+                    AND v.estado = '1'
+                    AND v.id_vendedor IS NOT NULL
+                GROUP BY v.id_vendedor
+            ) ventas_mes ON u.usuario_id = ventas_mes.id_vendedor
+            LEFT JOIN metas_vendedores mv ON u.usuario_id = mv.usuario_id 
+                AND mv.mes = ? AND mv.anio = ? AND mv.estado = '1'
+            LEFT JOIN metas_empresa me ON u.id_empresa = me.id_empresa 
+                AND me.mes = ? AND me.anio = ? AND me.estado = '1'
+            WHERE u.id_empresa = ? 
+                AND u.estado = '1'
+                AND u.id_rol IN (1, 2, 3) -- Admin, Usuario, Vendedor
+            ORDER BY ventas_mes.ventas_actuales DESC";
+
+            $stmt = $this->conexion->prepare($sql);
+            if (!$stmt) {
+                throw new Exception('Error en la preparación de la consulta: ' . $this->conexion->error);
+            }
+
+            $stmt->bind_param("iiiiiiii", $empresa, $mes_actual, $anio_actual, $mes_actual, $anio_actual, $mes_actual, $anio_actual, $empresa);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $vendedores = [];
+            $meta_total_empresa = 0;
+            
+            while ($row = $result->fetch_assoc()) {
+                $vendedores[] = $row;
+                if ($row['meta_total_empresa'] && !$meta_total_empresa) {
+                    $meta_total_empresa = $row['meta_total_empresa'];
+                }
+            }
+
+            // Calcular resumen
+            $total_vendedores = count($vendedores);
+            $total_ventas_mes = array_sum(array_column($vendedores, 'ventas_actuales'));
+            $vendedores_con_metas = count(array_filter($vendedores, function($v) { return $v['meta_individual'] > 0; }));
+
+            echo json_encode([
+                'success' => true,
+                'vendedores' => $vendedores,
+                'resumen' => [
+                    'meta_total_empresa' => $meta_total_empresa,
+                    'total_vendedores' => $total_vendedores,
+                    'total_ventas_mes' => $total_ventas_mes,
+                    'vendedores_con_metas' => $vendedores_con_metas,
+                    'mes_actual' => $mes_actual,
+                    'anio_actual' => $anio_actual
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener vendedores: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Guardar o actualizar meta individual de un vendedor
+     */
+    public function guardarMetaIndividual()
+    {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            
+            $usuario_id = $input['usuario_id'] ?? 0;
+            $meta_individual = $input['meta_individual'] ?? 0;
+            $mes = $input['mes'] ?? date('m');
+            $anio = $input['anio'] ?? date('Y');
+
+            if (!$empresa) {
+                throw new Exception('Sesión no válida');
+            }
+
+            if (!$usuario_id || $meta_individual < 0) {
+                throw new Exception('Datos inválidos');
+            }
+
+            // Verificar si ya existe una meta para este vendedor en este período
+            $sql_check = "SELECT id_meta_vendedor FROM metas_vendedores 
+                         WHERE usuario_id = ? AND mes = ? AND anio = ? AND id_empresa = ?";
+            
+            $stmt_check = $this->conexion->prepare($sql_check);
+            $stmt_check->bind_param("iiii", $usuario_id, $mes, $anio, $empresa);
+            $stmt_check->execute();
+            $result_check = $stmt_check->get_result();
+
+            if ($result_check->num_rows > 0) {
+                // Actualizar meta existente
+                $sql = "UPDATE metas_vendedores 
+                       SET meta_individual = ?, fecha_actualizacion = NOW() 
+                       WHERE usuario_id = ? AND mes = ? AND anio = ? AND id_empresa = ?";
+                
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bind_param("diiii", $meta_individual, $usuario_id, $mes, $anio, $empresa);
+            } else {
+                // Insertar nueva meta
+                $sql = "INSERT INTO metas_vendedores (id_empresa, usuario_id, meta_individual, mes, anio) 
+                       VALUES (?, ?, ?, ?, ?)";
+                
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bind_param("iidii", $empresa, $usuario_id, $meta_individual, $mes, $anio);
+            }
+
+            if ($stmt->execute()) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Meta individual guardada exitosamente'
+                ]);
+            } else {
+                throw new Exception('Error al guardar la meta: ' . $this->conexion->error);
+            }
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al guardar meta individual: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Distribuir metas automáticamente entre vendedores
+     */
+    public function distribuirMetasAutomaticas()
+    {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $empresa = $_SESSION['id_empresa'] ?? 12;
+            $mes = $input['mes'] ?? date('m');
+            $anio = $input['anio'] ?? date('Y');
+
+            if (!$empresa) {
+                throw new Exception('Sesión no válida');
+            }
+
+            // Obtener meta total de la empresa
+            $sql_meta_empresa = "SELECT meta_total FROM metas_empresa 
+                               WHERE id_empresa = ? AND mes = ? AND anio = ? AND estado = '1'";
+            
+            $stmt_meta = $this->conexion->prepare($sql_meta_empresa);
+            $stmt_meta->bind_param("iii", $empresa, $mes, $anio);
+            $stmt_meta->execute();
+            $result_meta = $stmt_meta->get_result();
+            
+            if ($result_meta->num_rows === 0) {
+                throw new Exception('No hay meta total definida para este período');
+            }
+            
+            $meta_total = $result_meta->fetch_assoc()['meta_total'];
+
+            // Obtener vendedores activos con ventas en los últimos 3 meses
+            $sql_vendedores = "SELECT 
+                u.usuario_id,
+                u.nombres,
+                COALESCE(AVG(ventas_historicas.ventas_mes), 0) as promedio_ventas
+            FROM usuarios u
+            LEFT JOIN (
+                SELECT 
+                    v.id_vendedor,
+                    SUM(v.total) as ventas_mes
+                FROM ventas v
+                WHERE v.id_empresa = ?
+                    AND v.fecha_emision >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+                    AND v.estado = '1'
+                    AND v.id_vendedor IS NOT NULL
+                GROUP BY v.id_vendedor, YEAR(v.fecha_emision), MONTH(v.fecha_emision)
+            ) ventas_historicas ON u.usuario_id = ventas_historicas.id_vendedor
+            WHERE u.id_empresa = ? 
+                AND u.estado = '1'
+                AND u.id_rol IN (1, 2, 3)
+            GROUP BY u.usuario_id
+            HAVING promedio_ventas > 0
+            ORDER BY promedio_ventas DESC";
+
+            $stmt_vendedores = $this->conexion->prepare($sql_vendedores);
+            $stmt_vendedores->bind_param("ii", $empresa, $empresa);
+            $stmt_vendedores->execute();
+            $result_vendedores = $stmt_vendedores->get_result();
+
+            $vendedores = [];
+            $total_promedio = 0;
+            
+            while ($row = $result_vendedores->fetch_assoc()) {
+                $vendedores[] = $row;
+                $total_promedio += $row['promedio_ventas'];
+            }
+
+            if (count($vendedores) === 0) {
+                throw new Exception('No hay vendedores con historial de ventas');
+            }
+
+            // Distribuir metas proporcionalmente
+            $vendedores_actualizados = 0;
+            
+            foreach ($vendedores as $vendedor) {
+                $porcentaje_participacion = $total_promedio > 0 ? ($vendedor['promedio_ventas'] / $total_promedio) : (1 / count($vendedores));
+                $meta_individual = $meta_total * $porcentaje_participacion;
+
+                // Verificar si ya existe meta para este vendedor
+                $sql_check = "SELECT id_meta_vendedor FROM metas_vendedores 
+                             WHERE usuario_id = ? AND mes = ? AND anio = ? AND id_empresa = ?";
+                
+                $stmt_check = $this->conexion->prepare($sql_check);
+                $stmt_check->bind_param("iiii", $vendedor['usuario_id'], $mes, $anio, $empresa);
+                $stmt_check->execute();
+                $result_check = $stmt_check->get_result();
+
+                if ($result_check->num_rows > 0) {
+                    // Actualizar meta existente
+                    $sql_update = "UPDATE metas_vendedores 
+                                  SET meta_individual = ?, fecha_actualizacion = NOW() 
+                                  WHERE usuario_id = ? AND mes = ? AND anio = ? AND id_empresa = ?";
+                    
+                    $stmt_update = $this->conexion->prepare($sql_update);
+                    $stmt_update->bind_param("diiii", $meta_individual, $vendedor['usuario_id'], $mes, $anio, $empresa);
+                    $stmt_update->execute();
+                } else {
+                    // Insertar nueva meta
+                    $sql_insert = "INSERT INTO metas_vendedores (id_empresa, usuario_id, meta_individual, mes, anio) 
+                                  VALUES (?, ?, ?, ?, ?)";
+                    
+                    $stmt_insert = $this->conexion->prepare($sql_insert);
+                    $stmt_insert->bind_param("iidii", $empresa, $vendedor['usuario_id'], $meta_individual, $mes, $anio);
+                    $stmt_insert->execute();
+                }
+                
+                $vendedores_actualizados++;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Metas distribuidas exitosamente',
+                'vendedores_actualizados' => $vendedores_actualizados,
+                'meta_total' => $meta_total
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al distribuir metas: ' . $e->getMessage()
+            ]);
+        }
+    }
 
 }

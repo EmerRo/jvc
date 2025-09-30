@@ -18,7 +18,7 @@ class ConstanciaController extends BaseDocumentoController
     {
         parent::__construct();
         $this->modelo = new Constancia();
-        // $this->plantilla = new ConstanciaPlantilla();
+        $this->plantilla = new ConstanciaPlantilla();
         $this->pdfGenerator = new ConstanciaPDF();
         $this->tipoModelo = new TipoConstancia();
     }

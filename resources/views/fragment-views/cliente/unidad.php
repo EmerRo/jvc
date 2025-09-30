@@ -23,7 +23,7 @@
                         <button type="button" data-bs-toggle="modal" data-bs-target="#modalUnidad" class="btn bg-rojo text-white"><i class="fa fa-plus"></i> Añadir</button>
                     </div>
                     <div class="col-md-6 text-end">
-                        <a href="/jvc/almacen/productos" class="btn border-rojo text-rojo bg-white"><i class="fa fa-arrow-left"></i> Regresar</a>
+                        <a href="/almacen/productos" class="btn border-rojo text-rojo bg-white"><i class="fa fa-arrow-left"></i> Regresar</a>
                     </div>
                 </div>
             </div>

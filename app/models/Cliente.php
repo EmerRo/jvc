@@ -491,4 +491,36 @@ public function getOne($id)
             echo $e->getTraceAsString();
         }
     }
+
+    /**
+     * Gestionar cliente para taller (buscar o crear)
+     * @param array $data
+     * @return int ID del cliente
+     */
+    public function gestionarTaller($data)
+    {
+        $sql = "SELECT * FROM clientes WHERE documento = ? AND id_empresa = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("si", $data['num_doc'], $_SESSION['id_empresa']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($rowCl = $result->fetch_assoc()) {
+            // Cliente existe, actualizar datos
+            $idCli = $rowCl['id_cliente'];
+            $sqlUpdate = "UPDATE clientes SET datos = ?, direccion = ?, direccion2 = ? WHERE id_cliente = ?";
+            $stmtUpdate = $this->conectar->prepare($sqlUpdate);
+            $stmtUpdate->bind_param("sssi", $data['nom_cli'], $data['dir_cli'], $data['dir2_cli'], $idCli);
+            $stmtUpdate->execute();
+        } else {
+            // Cliente no existe, crear nuevo
+            $sqlInsert = "INSERT INTO clientes (documento, datos, direccion, direccion2, id_empresa) VALUES (?, ?, ?, ?, ?)";
+            $stmtInsert = $this->conectar->prepare($sqlInsert);
+            $stmtInsert->bind_param("ssssi", $data['num_doc'], $data['nom_cli'], $data['dir_cli'], $data['dir2_cli'], $_SESSION['id_empresa']);
+            $stmtInsert->execute();
+            $idCli = $this->conectar->insert_id;
+        }
+
+        return $idCli;
+    }
 }

@@ -2,39 +2,122 @@
 <link rel="stylesheet" href="<?= URL::to('/public/css/numero-series.css') ?>?v=<?= time() ?>">
 
 <style>
-    .sin-borde-inferior {
-        border-bottom: none !important;
+    /* Estilos para las alertas de garantías */
+    .swal2-popup {
+        font-size: 14px;
     }
-
-    .btn-generar-serie {
-        background-color: #28a745;
-        border-color: #28a745;
+    
+    .swal2-popup .text-start {
+        text-align: left;
+    }
+    
+    .swal2-popup ul {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+    
+    .swal2-popup li {
+        margin: 5px 0;
+    }
+    
+    .swal2-popup .text-danger {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .swal2-popup .text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    /* Estilos para el botón de eliminar */
+    .btnBorrar {
+        transition: all 0.3s ease;
+    }
+    
+    .btnBorrar:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Estilos para botones de garantía bloqueados */
+    .btn-garantia-bloqueado {
+        cursor: not-allowed !important;
+        opacity: 0.6;
+        position: relative;
+    }
+    
+    .btn-garantia-bloqueado:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .btn-garantia-bloqueado::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+    
+    /* Tooltip personalizado para botones bloqueados */
+    .btn-garantia-bloqueado[title]:hover::before {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
         color: white;
-        padding: 0.375rem 0.5rem;
-        font-size: 0.875rem;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 5px;
     }
-
-    .btn-generar-serie:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
-        color: white;
+    
+    .btn-garantia-bloqueado[title]:hover::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #333;
+        margin-bottom: -5px;
+        z-index: 1000;
     }
-
-    .numero-serie-generado {
-        background-color: #d4edda !important;
-        border-color: #c3e6cb !important;
+    
+    /* Estilos para el indicador de estado de garantía */
+    .indicador-garantia {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        animation: fadeIn 0.3s ease-in;
     }
-
-    .seccion-cliente.oculta {
-        display: none !important;
+    
+    .indicador-garantia i {
+        font-size: 8px;
     }
-
-    .custom-checkbox {
-        margin-bottom: 1rem;
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
     }
-
-    .custom-checkbox input[type="checkbox"] {
-        margin-right: 0.5rem;
+    
+    /* Mejorar la apariencia de los botones de acción */
+    .btn-group .btn {
+        margin-right: 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
     }
 </style>
 
@@ -59,6 +142,17 @@
                     <i class="fa fa-plus"></i> Añadir Registro
                 </button>
             </div>
+            <!-- NUEVO: Mensaje informativo sobre eliminación y garantías -->
+            <!-- <div class="alert alert-info mx-3 mt-2 mb-0" style="border-radius: 10px;">
+                <i class="fa fa-info-circle me-2"></i>
+                <strong>Información:</strong> 
+                <ul class="mb-0 mt-1" style="padding-left: 20px;">
+                    <li>Al eliminar un registro se verificarán automáticamente las garantías relacionadas.</li>
+                    <li>Si existen garantías, se mostrará una advertencia antes de proceder con la eliminación.</li>
+                    <li>Los botones de garantía se bloquean automáticamente cuando ya existe una garantía registrada.</li>
+                    <li>Los botones bloqueados muestran un icono de candado <i class="fa fa-lock text-muted"></i> y no son clickeables.</li>
+                </ul>
+            </div> -->
             <div id="conte-vue-modals">
                 <div class="card-body">
                     <div class="card-title-desc">
@@ -66,7 +160,7 @@
                             <table id="tabla_clientes" class="table nowrap table-sm table-bordered text-center">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Item</th>
+                                        <th>N°</th>
                                         <th>Cliente</th>
                                         <th>Cantidad de Equipos</th>
                                         <th>Fecha De Creación</th>
@@ -136,7 +230,7 @@
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header bg-rojo">
-                            <h5 class="modal-title" id="exampleModalLabel">Agregar Registro</h5>
+                            <h5 class="modal-title" id="tituloModalAgregar">Agregar Registro</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <form id="frmClientesAgregar">
@@ -144,7 +238,7 @@
                                 <!-- Checkbox para registrar con cliente -->
                                 <div class="custom-checkbox">
                                     <input type="checkbox" id="tiene_cliente" name="tiene_cliente" checked>
-                                    <label for="tiene_cliente"><i class="fa fa-user"></i> Registro con cliente</label>
+                                    <label for="tiene_cliente"><i class="fa fa-user"></i> Registro con cliente externo</label>
                                 </div>
 
                                 <!-- Sección de cliente -->
@@ -154,7 +248,9 @@
                                             <label for="cliente_documento" class="form-label">(RUC o DNI)</label>
                                             <div class="input-group">
                                                 <input id="input_datos_cliente" type="text"
-                                                    placeholder="Ingrese Documento" class="form-control" maxlength="11">
+                                                    placeholder="Ingrese Documento"
+                                                    class="form-control ui-autocomplete-input" maxlength="11"
+                                                    autocomplete="off">
                                                 <div class="input-group-prepend">
                                                     <button id="btn_buscar_cliente" class="btn bg-rojo text-white"
                                                         type="button"><i class="fa fa-search"></i></button>
@@ -201,9 +297,8 @@
                                                 <select class="form-select" id="marca_comun" required>
                                                     <option value="">Seleccionar Marca</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
-                                                    id="btn_seleccionar_marca" data-bs-toggle="modal"
-                                                    data-bs-target="#modalMarca">
+                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_marca"
+                                                    data-bs-toggle="modal" data-bs-target="#modalMarca">
                                                     <i class="fa fa-list"></i>
                                                 </button>
                                             </div>
@@ -214,9 +309,8 @@
                                                 <select class="form-select" id="modelo_comun" required>
                                                     <option value="">Seleccionar Modelo</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
-                                                    id="btn_seleccionar_modelo" data-bs-toggle="modal"
-                                                    data-bs-target="#modalModelo">
+                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_modelo"
+                                                    data-bs-toggle="modal" data-bs-target="#modalModelo">
                                                     <i class="fa fa-list"></i>
                                                 </button>
                                             </div>
@@ -227,9 +321,8 @@
                                                 <select class="form-select" id="equipo_comun" required>
                                                     <option value="">Seleccionar Equipo</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
-                                                    id="btn_seleccionar_equipo" data-bs-toggle="modal"
-                                                    data-bs-target="#modalEquipo">
+                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_equipo"
+                                                    data-bs-toggle="modal" data-bs-target="#modalEquipo">
                                                     <i class="fa fa-list"></i>
                                                 </button>
                                             </div>
@@ -392,7 +485,7 @@
                                 <!-- Checkbox para registrar con cliente (edición) -->
                                 <div class="custom-checkbox">
                                     <input type="checkbox" id="tiene_cliente_u" name="tiene_cliente_u" checked>
-                                    <label for="tiene_cliente_u"><i class="fa fa-user"></i> Registro con cliente</label>
+                                    <label for="tiene_cliente_u"><i class="fa fa-user"></i> Registro con cliente externo</label>
                                 </div>
 
                                 <!-- Sección de cliente (edición) -->
@@ -402,7 +495,9 @@
                                             <label for="cliente_documento_u" class="form-label">(RUC o DNI)</label>
                                             <div class="input-group">
                                                 <input id="input_datos_cliente_u" type="text"
-                                                    placeholder="Ingrese Documento" class="form-control" maxlength="11">
+                                                    placeholder="Ingrese Documento"
+                                                    class="form-control ui-autocomplete-input" maxlength="11"
+                                                    autocomplete="off">
                                                 <div class="input-group-prepend">
                                                     <button id="btn_buscar_cliente_u" class="btn bg-rojo"
                                                         type="button"><i class="fa fa-search"></i></button>
@@ -448,7 +543,7 @@
                                                 <select class="form-select" id="marca_comun_u" required>
                                                     <option value="">Seleccionar Marca</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
+                                                <button type="button" class="btn bg-rojo"
                                                     id="btn_seleccionar_marca_u" data-bs-toggle="modal"
                                                     data-bs-target="#modalMarca">
                                                     <i class="fa fa-list"></i>
@@ -461,7 +556,7 @@
                                                 <select class="form-select" id="modelo_comun_u" required>
                                                     <option value="">Seleccionar Modelo</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
+                                                <button type="button" class="btn bg-rojo"
                                                     id="btn_seleccionar_modelo_u" data-bs-toggle="modal"
                                                     data-bs-target="#modalModelo">
                                                     <i class="fa fa-list"></i>
@@ -474,7 +569,7 @@
                                                 <select class="form-select" id="equipo_comun_u" required>
                                                     <option value="">Seleccionar Equipo</option>
                                                 </select>
-                                                <button type="button" class="btn btn-outline-secondary"
+                                                <button type="button" class="btn bg-rojo"
                                                     id="btn_seleccionar_equipo_u" data-bs-toggle="modal"
                                                     data-bs-target="#modalEquipo">
                                                     <i class="fa fa-list"></i>
@@ -540,10 +635,6 @@
                                     <div class="card-body">
                                         <div id="equipos_container_u" class="equipos-container">
                                             <!-- Aquí se mostrarán los equipos a agregar -->
-                                            <div class="text-center text-muted py-3" id="no_equipos_nuevos_message">
-                                                <i class="fa fa-info-circle fa-2x mb-2"></i>
-                                                <p>No hay nuevos equipos agregados.</p>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -559,7 +650,7 @@
                                 </div>
 
                                 <div class="mt-3" id="seccion_agregar_equipo_u">
-                                    <button type="button" id="agregar_equipo_diferente_u" class="btn btn-secondary">
+                                    <button type="button" id="agregar_equipo_diferente_u" class="btn bg-rojo text-white">
                                         <i class="fa fa-plus"></i> Agregar equipo diferente
                                     </button>
                                 </div>
@@ -614,7 +705,7 @@
                 aria-hidden="true">
                 <div class="modal-dialog modal-stacked">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="modalModeloLabel">
                                 <i class="fa fa-cube me-1"></i> Modelos
                             </h5>
@@ -651,7 +742,7 @@
                 aria-hidden="true">
                 <div class="modal-dialog modal-stacked">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-rojo">
                             <h5 class="modal-title" id="modalEquipoLabel">
                                 <i class="fa fa-laptop me-1"></i> Equipos
                             </h5>
@@ -687,8 +778,124 @@
 </div>
 
 <script>
+    // FUNCIONES GLOBALES - Deben estar fuera de $(document).ready()
+    
+    // Función para descargar registros Excel
     function descarFunccc() {
         window.open(_URL + `/reporte/registros/excel?texto=${$("#buscar_registros").val()}`)
+    }
+
+    // NUEVO: Función para verificar garantías antes de eliminar (GLOBAL)
+    function verificarGarantiasAntesDeEliminar(idRegistro) {
+        $.ajax({
+            url: _URL + "/ajs/verificar/garantias",
+            method: "POST",
+            data: { id: idRegistro },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    if (response.tiene_garantias) {
+                        // Mostrar alerta de confirmación con información de garantías
+                        const garantiasInfo = response.garantias_info;
+                        Swal.fire({
+                            title: '⚠️ ¡Atención!',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>Este registro tiene garantías relacionadas:</strong></p>
+                                    <ul class="text-start">
+                                        <li>Total de garantías: <strong>${garantiasInfo.total}</strong></li>
+                                        <li>Números de garantía: <strong>${garantiasInfo.numeros.join(', ')}</strong></li>
+                                    </ul>
+                                    <p class="text-danger mt-3">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        <strong>¡ADVERTENCIA!</strong> Al eliminar este registro se eliminarán también todas las garantías relacionadas.
+                                    </p>
+                                    <p class="text-muted">¿Está seguro que desea continuar?</p>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Sí, eliminar todo',
+                            cancelButtonText: 'Cancelar',
+                            width: '500px'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Proceder con la eliminación
+                                eliminarRegistro(idRegistro);
+                            }
+                        });
+                    } else {
+                        // No tiene garantías, proceder directamente
+                        Swal.fire({
+                            title: '¿Está seguro?',
+                            text: 'Esta acción no se puede deshacer.',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                eliminarRegistro(idRegistro);
+                            }
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: response.error || "Error al verificar garantías",
+                        icon: "error"
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    title: "Error",
+                    text: "Error al conectar con el servidor",
+                    icon: "error"
+                });
+            }
+        });
+    }
+
+    // NUEVO: Función para eliminar el registro (GLOBAL)
+    function eliminarRegistro(idRegistro) {
+        $.ajax({
+            url: _URL + "/ajs/delete/numeroseries",
+            method: "POST",
+            data: { id: idRegistro },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: "¡Eliminado!",
+                        text: "El registro ha sido eliminado exitosamente",
+                        icon: "success",
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Recargar la tabla
+                        $('#tabla_clientes').DataTable().ajax.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: response.error || "Error al eliminar el registro",
+                        icon: "error"
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    title: "Error",
+                    text: "Error al conectar con el servidor",
+                    icon: "error"
+                });
+            }
+        });
     }
 
     $(document).ready(function () {
@@ -703,12 +910,23 @@
         $('#tiene_cliente').change(function () {
             if ($(this).is(':checked')) {
                 $('#seccion_cliente').removeClass('oculta');
-            } else {
-                $('#seccion_cliente').addClass('oculta');
-                // Limpiar campos de cliente cuando se deshabilita
+                // Limpiar campos cuando se habilita registro con cliente
                 $('#cliente_ruc_dni').val('');
                 $('#cliente_documento').val('');
                 $('#input_datos_cliente').val('');
+                // Habilitar campos para edición
+                $('#input_datos_cliente').prop('readonly', false);
+                $('#cliente_ruc_dni').prop('readonly', false);
+            } else {
+                // No ocultar la sección, sino llenar con datos de la empresa
+                $('#seccion_cliente').removeClass('oculta');
+                // Llenar con datos de la empresa
+                $('#input_datos_cliente').val('20538381978');
+                $('#cliente_documento').val('20538381978');
+                $('#cliente_ruc_dni').val('COMERCIAL & INDUSTRIAL J. V. C. S.A.C.');
+                // Deshabilitar campos para evitar edición
+                $('#input_datos_cliente').prop('readonly', true);
+                $('#cliente_ruc_dni').prop('readonly', true);
             }
         });
 
@@ -716,18 +934,32 @@
         $('#tiene_cliente_u').change(function () {
             if ($(this).is(':checked')) {
                 $('#seccion_cliente_u').removeClass('oculta');
-            } else {
-                $('#seccion_cliente_u').addClass('oculta');
-                // Limpiar campos de cliente cuando se deshabilita
+                // Limpiar campos cuando se habilita registro con cliente
                 $('#cliente_ruc_dni_u').val('');
                 $('#cliente_documento_u').val('');
                 $('#input_datos_cliente_u').val('');
+                // Habilitar campos para edición
+                $('#input_datos_cliente_u').prop('readonly', false);
+                $('#cliente_ruc_dni_u').prop('readonly', false);
+            } else {
+                // No ocultar la sección, sino llenar con datos de la empresa
+                $('#seccion_cliente_u').removeClass('oculta');
+                // Llenar con datos de la empresa
+                $('#input_datos_cliente_u').val('20538381978');
+                $('#cliente_documento_u').val('20538381978');
+                $('#cliente_ruc_dni_u').val('COMERCIAL & INDUSTRIAL J. V. C. S.A.C.');
+                // Deshabilitar campos para evitar edición
+                $('#input_datos_cliente_u').prop('readonly', true);
+                $('#cliente_ruc_dni_u').prop('readonly', true);
             }
         });
 
         // Evento para cargar el último número de serie al abrir el modal de agregar
         $('[data-bs-target="#modalAgregar"]').on('click', function () {
             cargarUltimoNumeroSerie();
+            actualizarTituloModal(); // <CHANGE> Agregar llamada para actualizar título
+            // Inicializar estado del checkbox y campos
+            inicializarEstadoModal();
         });
 
         // Evento para cargar el último número de serie al abrir el modal de editar
@@ -743,6 +975,7 @@
             "scrollX": false,
             "autoWidth": false,
             "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+            "order": [[3, "desc"]], // Ordenar por fecha de creación (columna 3) en orden descendente
             "ajax": {
                 "url": _URL + "/ajs/get/numeroseries",
                 "dataSrc": "",
@@ -754,17 +987,17 @@
             },
             "columns": [
                 {
-                    "data": null,
-                    "render": function (data, type, row, meta) {
-                        return meta.row + 1;
+                    "data": "numero",
+                    "render": function (data, type, row) {
+                        return 'NS-' + String(data).padStart(2, '0');
                     }
                 },
                 {
                     "data": "cliente_ruc_dni",
                     "render": function (data, type, row) {
-                        // Si no tiene cliente, mostrar "Sin Cliente"
+                        // Si no tiene cliente, mostrar "Registro Interno"
                         if (!data || data === '' || data === null) {
-                            return '<span class="text-muted"><i class="fa fa-user-slash"></i> Sin Cliente</span>';
+                            return '<span class="text-primary"><i class="fa fa-building"></i> Registro Interno (JVC)</span>';
                         }
                         return data;
                     }
@@ -843,41 +1076,41 @@
             return true;
         }
 
-       // Función para generar número de serie único
-function generarNumeroSerie(inputElement) {
-    $.ajax({
-        url: _URL + "/ajs/generar/numeroserie",
-        method: "GET",
-        dataType: "json",
-        success: function(response) {
-            if (response.success) {
-                // Asignar el número generado al input
-                inputElement.val(response.numero_serie);
-                inputElement.addClass('is-valid numero-serie-generado');
-                inputElement.siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie generado automáticamente.</div>');
-            } else {
-                Swal.fire({
-                    title: "Error",
-                    text: response.error || "No se pudo generar el número de serie",
-                    icon: "error"
-                });
-            }
-        },
-        error: function() {
-            Swal.fire({
-                title: "Error",
-                text: "Error al conectar con el servidor",
-                icon: "error"
+        // Función para generar número de serie único
+        function generarNumeroSerie(inputElement) {
+            $.ajax({
+                url: _URL + "/ajs/generar/numeroserie",
+                method: "GET",
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        // Asignar el número generado al input
+                        inputElement.val(response.numero_serie);
+                        inputElement.addClass('is-valid numero-serie-generado');
+                        inputElement.siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie generado automáticamente.</div>');
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: response.error || "No se pudo generar el número de serie",
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Error al conectar con el servidor",
+                        icon: "error"
+                    });
+                }
             });
         }
-    });
-}
 
-// Event listener para los botones de generar serie
-$(document).on('click', '.btn-generar-serie', function() {
-    const inputElement = $(this).siblings('input[name$="[numero_serie]"]');
-    generarNumeroSerie(inputElement);
-});
+        // Event listener para los botones de generar serie
+        $(document).on('click', '.btn-generar-serie', function () {
+            const inputElement = $(this).siblings('input[name$="[numero_serie]"]');
+            generarNumeroSerie(inputElement);
+        });
 
 
         // Validación para equipos individuales
@@ -1205,10 +1438,10 @@ $(document).on('click', '.btn-generar-serie', function() {
                     if (response.success && response.data && response.data.length > 0) {
                         const registro = response.data[0];
 
-                        // Mostrar cliente o "Sin Cliente"
+                        // Mostrar cliente o "Registro Interno"
                         const clienteTexto = registro.cliente_ruc_dni && registro.cliente_ruc_dni !== ''
                             ? registro.cliente_ruc_dni
-                            : 'Sin Cliente';
+                            : 'Registro Interno (COMERCIAL & INDUSTRIAL J. V. C. S.A.C.)';
                         $('#detalle_cliente').text(clienteTexto);
                         $('#detalle_fecha').text(registro.fecha_creacion);
 
@@ -1252,6 +1485,8 @@ $(document).on('click', '.btn-generar-serie', function() {
                 }
             });
         });
+
+
 
         // Eliminar equipo nuevo
         $(document).on('click', '.btn-eliminar-equipo-nuevo', function () {
@@ -1324,14 +1559,169 @@ $(document).on('click', '.btn-generar-serie', function() {
                 $('#error_series_u').hide();
             }
         });
+        // <CHANGE> Función para actualizar el título del modal con el próximo número
+        function actualizarTituloModal() {
+            $.ajax({
+                url: _URL + "/ajs/get/proximonumero/series",
+                type: "GET",
+                success: function (response) {
+                    const data = JSON.parse(response);
+                    const proximoNumero = String(data.proximo_numero).padStart(2, '0');
+                    $('#tituloModalAgregar').text('Agregar Registro N° ' + proximoNumero);
+                },
+                error: function () {
+                    console.log("Error al obtener próximo número");
+                    $('#tituloModalAgregar').text('Agregar Registro'); // Mantener título original si hay error
+                }
+            });
+        }
+        // <CHANGE> Resetear título cuando se cierra el modal
+        $('#modalAgregar').on('hidden.bs.modal', function () {
+            $('#tituloModalAgregar').text('Agregar Registro');
+        });
+
+        // Función para inicializar el estado del modal
+        function inicializarEstadoModal() {
+            const tieneCliente = $('#tiene_cliente').is(':checked');
+            if (!tieneCliente) {
+                // Si está desmarcado, llenar con datos de empresa
+                $('#input_datos_cliente').val('20538381978');
+                $('#cliente_documento').val('20538381978');
+                $('#cliente_ruc_dni').val('COMERCIAL & INDUSTRIAL J. V. C. S.A.C.');
+                $('#input_datos_cliente').prop('readonly', true);
+                $('#cliente_ruc_dni').prop('readonly', true);
+            } else {
+                // Si está marcado, limpiar campos y habilitar edición
+                $('#cliente_ruc_dni').val('');
+                $('#cliente_documento').val('');
+                $('#input_datos_cliente').val('');
+                $('#input_datos_cliente').prop('readonly', false);
+                $('#cliente_ruc_dni').prop('readonly', false);
+            }
+        }
 
     });
 
-    // Agregar este código al final del script en numero-series.php
-    $(document).on('click', '.btnGarantia', function () {
-        const id = $(this).data('id');
-        window.location.href = _URL + '/garantia/add?id=' + id;
-    });
+            // Agregar este código al final del script en numero-series.php
+        $(document).on('click', '.btnGarantia', function () {
+            const id = $(this).data('id');
+            window.location.href = _URL + '/garantia/add?id=' + id;
+        });
+
+        // NUEVO: Evento para el botón eliminar con verificación de garantías
+        $('#tabla_clientes').on('click', '.btnBorrar', function () {
+            const idRegistro = $(this).data('id');
+            verificarGarantiasAntesDeEliminar(idRegistro);
+        });
+
+        // NUEVO: Función para verificar y bloquear botones de garantía
+        function verificarYBloquearGarantias() {
+            $('#tabla_clientes tbody tr').each(function() {
+                const row = $(this);
+                const idRegistro = row.find('.btnBorrar').data('id');
+                const btnGarantia = row.find('.btnGarantia');
+                
+                if (idRegistro && btnGarantia.length > 0) {
+                    $.ajax({
+                        url: _URL + "/ajs/verificar/garantias",
+                        method: "POST",
+                        data: { id: idRegistro },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success && response.tiene_garantias) {
+                                // Bloquear el botón de garantía
+                                btnGarantia.addClass('btn-garantia-bloqueado');
+                                btnGarantia.prop('disabled', true);
+                                btnGarantia.attr('title', 'Ya tiene garantía registrada');
+                                
+                                // Cambiar el icono y estilo
+                                btnGarantia.html('<i class="fa fa-lock"></i>');
+                                btnGarantia.removeClass('btn-success').addClass('btn-secondary');
+                            } else {
+                                // Desbloquear el botón si no tiene garantías
+                                btnGarantia.removeClass('btn-garantia-bloqueado');
+                                btnGarantia.prop('disabled', false);
+                                btnGarantia.attr('title', 'Agregar garantía');
+                                
+                                // Restaurar el icono y estilo original
+                                btnGarantia.html('<i class="fa fa-shield"></i>');
+                                btnGarantia.removeClass('btn-secondary').addClass('btn-success');
+                            }
+                        },
+                        error: function() {
+                            console.log('Error verificando garantías para registro:', idRegistro);
+                        }
+                    });
+                }
+            });
+        }
+
+        // NUEVO: Función para actualizar un botón específico de garantía
+        function actualizarBotonGarantia(idRegistro, tieneGarantia) {
+            const row = $(`#tabla_clientes tbody tr:has(.btnBorrar[data-id="${idRegistro}"])`);
+            const btnGarantia = row.find('.btnGarantia');
+            
+            if (btnGarantia.length > 0) {
+                if (tieneGarantia) {
+                    // Bloquear el botón
+                    btnGarantia.addClass('btn-garantia-bloqueado');
+                    btnGarantia.prop('disabled', true);
+                    btnGarantia.attr('title', 'Ya tiene garantía registrada');
+                    btnGarantia.html('<i class="fa fa-lock"></i>');
+                    btnGarantia.removeClass('btn-success').addClass('btn-secondary');
+                    
+                    // Agregar indicador visual de estado
+                    let indicadorEstado = row.find('.indicador-garantia');
+                    if (indicadorEstado.length === 0) {
+                        indicadorEstado = $('<span class="indicador-garantia badge bg-success ms-2" title="Tiene garantía"><i class="fa fa-check"></i></span>');
+                        row.find('.btnGarantia').after(indicadorEstado);
+                    }
+                } else {
+                    // Desbloquear el botón
+                    btnGarantia.removeClass('btn-garantia-bloqueado');
+                    btnGarantia.prop('disabled', false);
+                    btnGarantia.attr('title', 'Agregar garantía');
+                    btnGarantia.html('<i class="fa fa-shield"></i>');
+                    btnGarantia.removeClass('btn-secondary').addClass('btn-success');
+                    
+                    // Remover indicador visual de estado
+                    row.find('.indicador-garantia').remove();
+                }
+            }
+        }
+
+        // NUEVO: Llamar a la verificación después de cargar la tabla
+        $('#tabla_clientes').on('draw.dt', function() {
+            setTimeout(verificarYBloquearGarantias, 100);
+        });
+
+        // NUEVO: También verificar al cargar la página inicialmente
+        $(document).ready(function() {
+            setTimeout(verificarYBloquearGarantias, 500);
+        });
+
+        // NUEVO: Evento para actualizar botones cuando se recarga la tabla
+        $('#tabla_clientes').on('xhr.dt', function() {
+            setTimeout(verificarYBloquearGarantias, 200);
+        });
+
+        // NUEVO: Evento para actualizar botones después de operaciones CRUD
+        $(document).on('serieActualizada', function(e, idRegistro) {
+            // Verificar garantías para el registro específico
+            setTimeout(function() {
+                $.ajax({
+                    url: _URL + "/ajs/verificar/garantias",
+                    method: "POST",
+                    data: { id: idRegistro },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            actualizarBotonGarantia(idRegistro, response.tiene_garantias);
+                        }
+                    }
+                });
+            }, 300);
+        });
 
 </script>
 <script src="<?= URL::to('public/js/series/funciones-comunes.js') ?>?v=<?= time() ?>"></script>

@@ -137,7 +137,10 @@ $c_ubigeo = new Ubigeo();
                                             <i class="fas fa-user me-2"></i>Destinatario
                                         </label>
                                         <div class="col-lg-10">
-                                            <input v-model="guia.nom_cli" type="text" class="form-control">
+                                            <input v-model="guia.nom_cli" type="text" class="form-control" :class="{ 'is-invalid': !guia.nom_cli }">
+                                            <small v-show="!guia.nom_cli" class="text-danger mt-1">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>El destinatario es requerido para procesar la guía de remisión.
+                                            </small>
                                         </div>
                                     </div>
 
@@ -250,7 +253,7 @@ $c_ubigeo = new Ubigeo();
         </div>
 
         <!-- Chofer -->
-        <div class="row mb-3 align-items-center">
+        <div class="row mb-3">
             <div class="col-lg-2">
                 <label class="form-label mb-0">
                     <i class="fas fa-user-tie me-2"></i>Chofer
@@ -258,7 +261,7 @@ $c_ubigeo = new Ubigeo();
             </div>
             <div class="col-lg-10">
                 <div class="input-group">
-                    <select class="form-select" id="select_chofer">
+                    <select class="form-select" id="select_chofer" :class="{ 'is-invalid': !transporte.chofer_id }">
                         <option value="">Seleccione un chofer</option>
                     </select>
                     <button class="btn bg-rojo" type="button"
@@ -266,6 +269,9 @@ $c_ubigeo = new Ubigeo();
                         <i class="fas fa-plus text-white"></i>
                     </button>
                 </div>
+                <small v-show="!transporte.chofer_id" class="text-danger mt-1">
+                    <i class="fas fa-exclamation-triangle me-1"></i>El chofer es requerido para el transporte de la guía de remisión.
+                </small>
             </div>
         </div>
 
@@ -303,14 +309,17 @@ $c_ubigeo = new Ubigeo();
 </div>
 
 <!-- Doc. de Referencia -->
-<div class="mb-4 row align-items-center">
+<div class="mb-4 row">
     <div class="col-lg-2">
         <label class="form-label mb-0">
             <i class="fas fa-file me-2"></i>Doc. de Referencia
         </label>
     </div>
     <div class="col-lg-10">
-        <input type="text" class="form-control" v-model="guia.doc_referencia">
+        <input type="text" class="form-control" v-model="guia.doc_referencia" :class="{ 'is-invalid': !guia.doc_referencia }">
+        <small v-show="!guia.doc_referencia" class="text-danger mt-1">
+            <i class="fas fa-exclamation-triangle me-1"></i>El documento de referencia de la guía es requerido.
+        </small>
     </div>
 </div>
                                 </form>
@@ -345,14 +354,22 @@ $c_ubigeo = new Ubigeo();
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item,index) in productos">
-                                    <td>{{index+1}}</td>
-                                    <td>{{item.nombre}}</td>
-                                    <td>{{item.cantidad}}</td>
-                                    <td>{{parseFloat(item.precio).toFixed(2)}}</td>
-                                    <td>{{subTotalPro(item.cantidad,item.precio)}}</td>
+                                <tr v-for="(item,index) in productos" 
+    :style="item.esEquipo ? 'background-color: #e3f2fd; font-weight: bold;' : 'background-color: white;'">
+                                    <td>{{ item.esEquipo ? '' : (getProductIndex(index) + 1) }}</td>
+                                    <td style="text-align: left;" :style="{ color: item.esEquipo ? '#1565c0' : 'inherit' }">
+                                        <span v-if="item.esEquipo">
+                                            {{ item.detalle || ('EQUIPO: ' + item.marca + ' ' + item.nombre + ' - Modelo: ' + item.descripcion + ' - Serie: ' + item.serie) }}
+                                        </span>
+                                        <span v-else :style="{ marginLeft: item.id_guia_equipo ? '20px' : '0px' }">
+                                            {{ item.detalle || (item.id_guia_equipo ? ('  ' + item.descripcion) : item.descripcion) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ item.esEquipo ? '' : item.cantidad }}</td>
+                                    <td>{{ item.esEquipo ? '' : parseFloat(item.precioVenta || 0).toFixed(2) }}</td>
+                                    <td>{{ item.esEquipo ? '' : subTotalPro(item.cantidad, item.precioVenta) }}</td>
                                     <td>
-                                        <div class="d-flex gap-2 justify-content-center">
+                                        <div v-if="!item.esEquipo" class="d-flex gap-2 justify-content-center">
                                             <button @click="editarProducto(index)" class="btn btn-warning btn-sm"
                                                 title="Editar">
                                                 <i class="fa fa-edit"></i>
@@ -618,9 +635,11 @@ $c_ubigeo = new Ubigeo();
             </div>
 
 
-        </div>
+            </div> <!-- Cierra el div interno (línea 38) -->
+        </div> <!-- Cierra container-vue (línea 37) -->
+    </div> <!-- Cierra algún div padre si existe -->
 
-        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
         <script>
             // Función para obtener provincias
             function obtenerProvincias() {
@@ -1000,6 +1019,17 @@ $c_ubigeo = new Ubigeo();
                             return (parseFloat(cnt) * parseFloat(precio)).toFixed(2);
                         },
 
+                        // Método para obtener el índice correcto de productos (sin contar equipos)
+                        getProductIndex(index) {
+                            let count = 0;
+                            for (let i = 0; i < index; i++) {
+                                if (!this.productos[i].esEquipo) {
+                                    count++;
+                                }
+                            }
+                            return count;
+                        },
+
                         addProduct() {
                             if (!this.producto.descripcion || !this.producto.cantidad) {
                                 alertAdvertencia("Por favor, complete todos los campos requeridos.");
@@ -1196,12 +1226,14 @@ $c_ubigeo = new Ubigeo();
                                 return;
                             }
 
-                            // Preparar datos para enviar
+                            // Preparar datos para enviar - Solo productos reales (sin equipos)
+                            const productosReales = this.productos.filter(item => !item.esEquipo);
+                            
                             const data = {
                                 id_guia_remision: idGuia, // Agregar el ID de la guía
                                 ...this.guia,
                                 ...this.transporte,
-                                productos: JSON.stringify(this.productos),
+                                productos: JSON.stringify(productosReales),
                                 ubigeo: $("#select_distrito").val(),
                                 motivo: this.guia.motivo
                             };
@@ -1254,6 +1286,7 @@ $c_ubigeo = new Ubigeo();
                                     $("#loader-menor").hide();
                                     if (resp.res) {
                                         console.log('Datos recibidos:', resp);
+                                        console.log('Productos recibidos:', resp.productos);
 
                                         // Cargar datos en el formulario
                                         this.guia = { ...this.guia, ...resp.guia };
@@ -1360,6 +1393,15 @@ $c_ubigeo = new Ubigeo();
 
                 // Asignar la instancia de Vue a window para acceso global
                 window.app = appguia;
+
+                // Listener para actualizar validación del chofer
+                $(document).on('change', '#select_chofer', function() {
+                    const choferIdSeleccionado = $(this).val();
+                    if (window.app) {
+                        window.app.transporte.chofer_id = choferIdSeleccionado;
+                        window.app.$forceUpdate(); // Forzar actualización de la vista
+                    }
+                });
 
             });
         </script>

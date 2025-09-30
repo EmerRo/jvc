@@ -12,6 +12,130 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
+<style>
+/* Ajustes específicos para la tabla de guías */
+#datatable th:last-child,
+#datatable td:last-child {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    text-align: center !important;
+}
+
+/* Estilos para el table responsive */
+.table-responsive {
+    overflow: visible !important;
+}
+
+.card {
+    overflow: visible !important;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+}
+
+/* Estilos para el menú de acciones */
+.action-menu {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    margin: 0 auto;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    color: #6b7280;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+    transition: color 0.2s;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button:hover {
+    color: #4f46e5;
+    background-color: #f3f4f6;
+}
+
+.dropdown-actions {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    z-index: 1000;
+    display: none;
+    margin-top: 5px;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+/* Para filas cerca del final, abrir hacia arriba */
+tr:nth-last-child(-n+3) .dropdown-actions {
+    top: auto;
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.dropdown-actions a {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-actions a:hover {
+    background-color: #f3f4f6;
+}
+
+.dropdown-actions i {
+    width: 16px;
+}
+
+.dropdown-actions .text-danger:hover {
+    background-color: #fee2e2;
+}
+
+.dropdown-actions .divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+/* Muestra el menú cuando tiene la clase show */
+.action-menu.show .dropdown-actions {
+    display: block;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .dropdown-actions {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        top: auto;
+        width: 90%;
+        max-width: 300px;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}
+</style>
+
 <!-- WhatsApp Modal -->
 <div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -100,7 +224,7 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                                 <th width="15%">Factura</th>
                                 <th width="10%">Sunat</th>
                                 <th width="5%">PDF</th>
-                                <th width="10%"></th>
+                                <th width="5%"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -159,43 +283,32 @@ $c_guia->setIdEmpresa($_SESSION['id_empresa']);
                                         </a>
                                     </td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenu<?= $fila['id_guia_remision'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <div class="action-menu">
+                                            <button type="button" class="action-button">
                                                 <i class="fas fa-bars"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenu<?= $fila['id_guia_remision'] ?>">
-                                                <li>
-                                                    <a class="dropdown-item" href="<?= URL::to('files/facturacion/xml/' . $fila['ruc_empresa'] . '/' . $fila['nom_guia_xml'] . '.xml') ?>" target="_blank">
-                                                        <i class="fa fa-file me-2"></i> Archivo XML
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <button type="button" class="dropdown-item whatsapp-share"
-                                                        data-pdf-url="<?php echo $pdf_url ?>"
-                                                        data-guide="<?php echo htmlspecialchars($doc_guia) ?>"
-                                                        data-client="<?php echo htmlspecialchars($fila['datos']) ?>">
-                                                        <i class="fab fa-whatsapp me-2"></i> Enviar por WhatsApp
-                                                    </button>
-                                                </li>
-                                               <li>
-    <?php 
-    // Determinar el tipo de documento y el texto a mostrar
-    $documento = $fila['documento_cliente'];
-    $es_ruc = (strlen($documento) == 11 && is_numeric($documento));
-    $texto_crear = $es_ruc ? 'Crear Factura' : 'Crear Boleta';
-    $icono_crear = $es_ruc ? 'fas fa-file-invoice' : 'fas fa-receipt';
-    ?>
-    <button type="button" class="dropdown-item" onclick="crearDocumento(<?php echo $fila['id_guia_remision']; ?>, '<?php echo $es_ruc ? 'factura' : 'boleta'; ?>')">
-        <i class="<?php echo $icono_crear; ?> me-2"></i> <?php echo $texto_crear; ?>
-    </button>
-</li>
-
-                                                <li>
-                                                    <button type="button" class="dropdown-item" onclick="duplicarGuia(<?php echo $fila['id_guia_remision']; ?>)">
-                                                        <i class="fas fa-copy me-2"></i> Duplicar Guía
-                                                    </button>
-                                                </li>
-                                            </ul>
+                                            <div class="dropdown-actions">
+                                                <a href="<?= URL::to('files/facturacion/xml/' . $fila['ruc_empresa'] . '/' . $fila['nom_guia_xml'] . '.xml') ?>" target="_blank">
+                                                    <i class="fa fa-file text-info"></i> Archivo XML
+                                                </a>
+                                                <a class="whatsapp-share"
+                                                   data-pdf-url="<?php echo $pdf_url ?>"
+                                                   data-guide="<?php echo htmlspecialchars($doc_guia) ?>"
+                                                   data-client="<?php echo htmlspecialchars($fila['datos']) ?>">
+                                                    <i class="fab fa-whatsapp text-success"></i> Enviar por WhatsApp
+                                                </a>
+                                                <div class="divider"></div>
+                                                <!-- Mostrar ambos botones: Crear Factura y Crear Boleta -->
+                                                <a onclick="crearDocumento(<?php echo $fila['id_guia_remision']; ?>, 'factura')">
+                                                    <i class="fas fa-file-invoice text-primary"></i> Crear Factura
+                                                </a>
+                                                <a onclick="crearDocumento(<?php echo $fila['id_guia_remision']; ?>, 'boleta')">
+                                                    <i class="fas fa-receipt text-success"></i> Crear Boleta
+                                                </a>
+                                                <a onclick="duplicarGuia(<?php echo $fila['id_guia_remision']; ?>)">
+                                                    <i class="fas fa-copy text-warning"></i> Duplicar Guía
+                                                </a>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -240,12 +353,49 @@ $(document).ready(function() {
         responsive: true,
         order: [[1, "desc"]],
         language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+            "processing": "Procesando...",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "zeroRecords": "No se encontraron resultados",
+            "emptyTable": "Ningún dato disponible en esta tabla",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "search": "Buscar:",
+            "infoThousands": ",",
+            "loadingRecords": "Cargando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            },
+            "aria": {
+                "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                "sortDescending": ": Activar para ordenar la columna de manera descendente"
+            }
         },
         columnDefs: [{
             targets: '_all',
             className: 'text-center'
         }]
+    });
+
+    // Manejo del menú de acciones (igual que en ventas.php)
+    $(document).on("click", (e) => {
+        if (!$(e.target).closest(".action-menu").length) {
+            $(".action-menu").removeClass("show");
+        }
+    });
+
+    $(document).on("click", ".action-button", function (e) {
+        e.stopPropagation();
+        const menu = $(this).closest(".action-menu");
+        $(".action-menu").not(menu).removeClass("show");
+        menu.toggleClass("show");
+    });
+
+    $(document).on("click", ".dropdown-actions a", function () {
+        $(this).closest(".action-menu").removeClass("show");
     });
 
     // ✅ CORREGIDO: Manejar cambio de filtro SIN refrescar página

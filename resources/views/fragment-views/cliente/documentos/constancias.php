@@ -95,6 +95,9 @@
     <button class="btn bg-rojo text-white" id="btn-gestionar-membretes">
         <i class="fas fa-image me-1"></i> Gestionar Membretes
     </button>
+    <button class="btn bg-rojo hover:bg-white" onclick="window.constanciaModuleInstance.reiniciar()">
+        <i class="fas fa-sync me-1"></i> Reiniciar Módulo
+    </button>
 </div>
 
 <!-- Vista de lista de constancias -->
@@ -714,4 +717,115 @@
             }
         });
     }
+
+    // Funciones para WhatsApp
+    function compartirWhatsAppConstancia(id) {
+        console.log('Compartiendo constancia por WhatsApp:', id);
+        window.constanciaActualWhatsApp = id;
+        $('#compartirWhatsAppConstanciaModal').modal('show');
+    }
+
+    function enviarWhatsAppConstancia() {
+        const numero = $('#numeroWhatsAppConstancia').val().trim();
+        const mensaje = $('#mensajeWhatsAppConstancia').val().trim();
+
+        if (!numero) {
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor ingrese un número de WhatsApp',
+                icon: 'error'
+            });
+            return;
+        }
+
+        if (!numero.match(/^[0-9]{9}$/)) {
+            Swal.fire({
+                title: 'Error',
+                text: 'El número debe tener exactamente 9 dígitos',
+                icon: 'error'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Compartiendo...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: _URL + '/ajs/constancia/compartir-whatsapp',
+            method: 'POST',
+            data: {
+                id_constancia: window.constanciaActualWhatsApp,
+                numero: numero,
+                mensaje: mensaje
+            },
+            success: function(response) {
+                if (response.res) {
+                    $('#compartirWhatsAppConstanciaModal').modal('hide');
+                    Swal.close();
+                    
+                    // Abrir WhatsApp en nueva ventana
+                    window.open(response.whatsapp_url, '_blank');
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error al compartir por WhatsApp: ' + (response.error || 'Error desconocido'),
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al compartir por WhatsApp. Intente nuevamente.',
+                    icon: 'error'
+                });
+            }
+        });
+    }
+
+    // Exportar funciones globalmente
+    window.compartirWhatsAppConstancia = compartirWhatsAppConstancia;
+    window.enviarWhatsAppConstancia = enviarWhatsAppConstancia;
 </script>
+
+<!-- Modal para compartir por WhatsApp -->
+<div class="modal fade" id="compartirWhatsAppConstanciaModal" tabindex="-1" aria-labelledby="compartirWhatsAppConstanciaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compartirWhatsAppConstanciaModalLabel">
+                    <i class="fab fa-whatsapp text-success me-2"></i>Compartir Constancia por WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="numeroWhatsAppConstancia" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Número de WhatsApp
+                    </label>
+                    <input type="text" class="form-control" id="numeroWhatsAppConstancia" 
+                           placeholder="Ingrese el número sin +51 (ej: 999888777)" maxlength="9">
+                </div>
+                <div class="mb-3">
+                    <label for="mensajeWhatsAppConstancia" class="form-label">
+                        <i class="fas fa-comment me-1"></i>Mensaje adicional (opcional)
+                    </label>
+                    <textarea class="form-control" id="mensajeWhatsAppConstancia" rows="3" 
+                              placeholder="Mensaje adicional que desee agregar..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="enviarWhatsAppConstancia()">
+                    <i class="fab fa-whatsapp me-1"></i>Compartir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

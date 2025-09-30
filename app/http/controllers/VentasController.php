@@ -918,10 +918,10 @@ $resultado["valor"] = $c_venta->getIdVenta();
             /*  $c_servicio->eliminar($_POST['idVenta']);   */
 
             foreach ($array_detalle as $fila) {
-                $c_detalle->setIdProducto($fila['productoid']);
-                $c_detalle->setCantidad($fila['cantidad']);
-                $c_detalle->setCosto($fila['costo']);
-                $c_detalle->setPrecio($fila['precio']);
+                $c_detalle->setIdProducto(isset($fila['productoid']) ? $fila['productoid'] : 0);
+                $c_detalle->setCantidad(isset($fila['cantidad']) ? $fila['cantidad'] : 0);
+                $c_detalle->setCosto(isset($fila['costo']) ? $fila['costo'] : 0);
+                $c_detalle->setPrecio(isset($fila['precio']) ? $fila['precio'] : 0);
                 $c_detalle->setIdVenta($_POST['idVenta']);
                 $c_detalle->setPrecioUsado(isset($fila['precio_usado']) ? $fila['precio_usado'] : 1);
                 $c_detalle->insertar();
@@ -1142,17 +1142,26 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     $tipoCoti = isset($_POST['tipoCotizacion']) ? $_POST['tipoCotizacion'] : 'normal';
 
                     if ($tipoCoti === 'taller') {
-                        $sql = "UPDATE taller_cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
+                        $sql = "UPDATE taller_cotizaciones set estado = '1' WHERE id_cotizacion = '{$_POST['idCoti']}'";
                     } else {
                         $sql = "UPDATE cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
                     }
                     $this->conexion->query($sql);
                 }
 
-
+                // ✅ NUEVO: Actualizar guía de remisión si viene desde una guía
+                if (isset($_POST['idGuia']) && $_POST['idGuia']) {
+                    $sql = "UPDATE guia_remision SET id_venta = '{$c_venta->getIdVenta()}' WHERE id_guia_remision = '{$_POST['idGuia']}'";
+                    $this->conexion->query($sql);
+                }
 
                 $resultado["res"] = true;
                 $array_detalle = isset($_POST['listaPro']) ? json_decode($_POST['listaPro'], true) : [];
+                if (empty($array_detalle) && isset($_POST['listaPro'])) {
+                    // Intentar decodificar eliminando backslashes si viniera escapado
+                    $array_detalle = json_decode(stripslashes($_POST['listaPro']), true) ?: [];
+                }
+                error_log("guardarVentas listaPro count=" . (is_array($array_detalle) ? count($array_detalle) : 0));
 
                 foreach ($listaPagos as $diaP) {
                     $sql = "insert into dias_ventas set id_venta='{$c_venta->getIdVenta()}',
@@ -1167,36 +1176,148 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
                 $dataSaveLog = "Venta: {$c_venta->getIdVenta()}, fecha: " . date("Y-m-d") . "\n\n";
 
-                if ($tipoventa == 1) {
+                if ($tipoventa == 1 || !empty($array_detalle)) {
                     $c_detalle->setIdVenta($c_venta->getIdVenta());
+
+                    // Si viene de cotización de taller o guía con equipos, crear ventas_equipos y mapear
+                    $mapEquipo = [];
+                    $tieneEquipos = false;
+                    
+                    if (isset($_POST['tipoCotizacion']) && $_POST['tipoCotizacion'] === 'taller') {
+                        $tieneEquipos = true;
+                        $equiposVenta = isset($_POST['equiposVenta']) ? json_decode($_POST['equiposVenta'], true) : [];
+                        foreach ($equiposVenta as $eq) {
+                            $marca = $this->conexion->real_escape_string($eq['marca'] ?? '');
+                            $equipo = $this->conexion->real_escape_string($eq['equipo'] ?? '');
+                            $modelo = $this->conexion->real_escape_string($eq['modelo'] ?? '');
+                            $serie = $this->conexion->real_escape_string($eq['numero_serie'] ?? '');
+                            $idCotiEq = isset($eq['id_cotizacion_equipo']) ? intval($eq['id_cotizacion_equipo']) : 'NULL';
+
+                            $sqlInsEq = "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
+                                         VALUES ('{$c_venta->getIdVenta()}', " . ($idCotiEq === 'NULL' ? 'NULL' : "'$idCotiEq'") . ", '$marca', '$equipo', '$modelo', '$serie')";
+                            if ($this->conexion->query($sqlInsEq)) {
+                                $idVe = $this->conexion->insert_id;
+                                if ($idCotiEq !== 'NULL') {
+                                    $mapEquipo[$idCotiEq] = $idVe;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Si viene desde guía y tiene equipos, procesarlos y crear mapeo
+                    if (isset($_POST['idGuia']) && $_POST['idGuia'] && isset($_POST['equiposVenta'])) {
+                        $tieneEquipos = true;
+                        $equiposVenta = json_decode($_POST['equiposVenta'], true);
+                        
+                        // Consultar la guía original para obtener relación producto-equipo
+                        $guiaId = intval($_POST['idGuia']);
+                        $sqlGuiaInfo = "SELECT gd.id_producto, gd.id_guia_equipo, ge.numero_serie 
+                                       FROM guia_detalles gd 
+                                       LEFT JOIN guia_equipos ge ON gd.id_guia_equipo = ge.id_guia_equipo 
+                                       WHERE gd.id_guia = $guiaId";
+                        $resultGuiaInfo = $this->conexion->query($sqlGuiaInfo);
+                        
+                        // Crear mapeo de producto -> serie de equipo
+                        $productoEquipoMap = [];
+                        if ($resultGuiaInfo) {
+                            while ($row = $resultGuiaInfo->fetch_assoc()) {
+                                if ($row['numero_serie']) {
+                                    $productoEquipoMap[$row['id_producto']] = $row['numero_serie'];
+                                    error_log("Mapeo producto {$row['id_producto']} -> equipo serie {$row['numero_serie']}");
+                                }
+                            }
+                        } else {
+                            error_log("Error en consulta guía: " . $this->conexion->error);
+                            error_log("SQL ejecutado: $sqlGuiaInfo");
+                        }
+                        
+                        foreach ($equiposVenta as $eq) {
+                            // Los equipos de guía vienen con descripción, extraer datos
+                            $descripcion = $eq['descripcion'] ?? '';
+                            if (preg_match('/EQUIPO: (.+?) - Modelo: (.+?) - Serie: (.+?)$/', $descripcion, $matches)) {
+                                $marcaEquipo = trim($matches[1]);
+                                $modelo = trim($matches[2]);
+                                $serie = trim($matches[3]);
+                                
+                                // Separar marca y equipo (formato: "MARCA EQUIPO")
+                                $partes = explode(' ', $marcaEquipo, 2);
+                                $marca = $partes[0] ?? '';
+                                $equipoNombre = $partes[1] ?? $marcaEquipo;
+                                
+                                $marca = $this->conexion->real_escape_string($marca);
+                                $equipoNombre = $this->conexion->real_escape_string($equipoNombre);
+                                $modelo = $this->conexion->real_escape_string($modelo);
+                                $serie = $this->conexion->real_escape_string($serie);
+                                
+                                $sqlInsEq = "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
+                                             VALUES ('{$c_venta->getIdVenta()}', NULL, '$marca', '$equipoNombre', '$modelo', '$serie')";
+                                if ($this->conexion->query($sqlInsEq)) {
+                                    $idVentaEquipo = $this->conexion->insert_id;
+                                    // Mapear por serie para usar en productos
+                                    $mapEquipo[$serie] = $idVentaEquipo;
+                                    error_log("Equipo desde guía guardado: $marca $equipoNombre - $modelo - $serie (ID: $idVentaEquipo)");
+                                }
+                            }
+                        }
+                    }
+
+                    $insertados = 0;
                     foreach ($array_detalle as $fila) {
-                        $c_detalle->setIdProducto($fila['productoid']);
-                        $c_detalle->setCantidad($fila['cantidad']);
-                        $c_detalle->setCosto($fila['costo']);
+                        $c_detalle->setIdProducto(isset($fila['productoid']) ? $fila['productoid'] : 0);
+                        $c_detalle->setCantidad(isset($fila['cantidad']) ? $fila['cantidad'] : 0);
+                        $c_detalle->setCosto(isset($fila['costo']) ? $fila['costo'] : 0);
 
                         // Asegurar que tc sea un número válido para cálculos
                         $tc = floatval($_POST['tc']);
-                        if ($tc <= 0)
-                            $tc = 1;
+                        if ($tc <= 0) { $tc = 1; }
 
-                        $c_detalle->setPrecio($_POST['moneda'] == '1' ? $fila['precioVenta'] : $fila['precioVenta'] / $tc);
-                        $c_detalle->setPrecioUsado($_POST['moneda'] == '1' ? $fila['precio_usado'] : $fila['precio_usado'] / $tc);
+                        $precioVenta = isset($fila['precioVenta']) ? $fila['precioVenta'] : 0;
+                        $c_detalle->setPrecio($_POST['moneda'] == '1' ? $precioVenta : $precioVenta / $tc);
+                        // precio_usado en productos_ventas es un flag (char(1)), no un monto
+                        $precioUsadoFlag = isset($_POST['usar_precio']) && $_POST['usar_precio'] !== '' ? $_POST['usar_precio'] : '5';
+                        $c_detalle->setPrecioUsado($precioUsadoFlag);
+
+                        // Asignar equipo de la venta si aplica
+                        $idCotiEqFila = isset($fila['id_cotizacion_equipo']) ? intval($fila['id_cotizacion_equipo']) : null;
+                        $idProducto = isset($fila['productoid']) ? intval($fila['productoid']) : 0;
+                        
+                        if ($idCotiEqFila && isset($mapEquipo[$idCotiEqFila])) {
+                            // Caso: Viene de cotización de taller
+                            $c_detalle->setIdVentaEquipo($mapEquipo[$idCotiEqFila]);
+                            $c_detalle->setIdCotizacionEquipo($idCotiEqFila);
+                        } else if (isset($productoEquipoMap[$idProducto])) {
+                            // Caso: Viene de guía, usar mapeo por producto
+                            $serieEquipo = $productoEquipoMap[$idProducto];
+                            if (isset($mapEquipo[$serieEquipo])) {
+                                $c_detalle->setIdVentaEquipo($mapEquipo[$serieEquipo]);
+                                $c_detalle->setIdCotizacionEquipo(null);
+                                error_log("Producto $idProducto asociado a equipo con serie $serieEquipo (ID: {$mapEquipo[$serieEquipo]})");
+                            } else {
+                                $c_detalle->setIdVentaEquipo(null);
+                            }
+                        } else {
+                            $c_detalle->setIdVentaEquipo(null);
+                            if ($idCotiEqFila) { $c_detalle->setIdCotizacionEquipo($idCotiEqFila); }
+                        }
 
                         if ($c_detalle->insertar()) {
                             $dataSaveLog .= "Prod: " . $c_detalle->getSql() . " - true";
                         } else {
                             $dataSaveLog .= "Prod: " . $c_detalle->getSql() . " - false \n";
                             $dataSaveLog .= $c_detalle->getSqlError() . "\n\n\n";
+                            error_log("Error insert productos_ventas: " . $c_detalle->getSqlError());
                         }
+                        if ($c_detalle->getSqlError() == null || $c_detalle->getSqlError() === '') { $insertados++; }
 
                         $dataSend['productos'][] = [
-                            "precio" => $_POST['moneda'] == '1' ? $fila['precioVenta'] : number_format($fila['precioVenta'] / $tc, 2, '.', ''),
-                            "cantidad" => $fila['cantidad'],
-                            "cod_pro" => $fila['productoid'],
+                            "precio" => $_POST['moneda'] == '1' ? $precioVenta : number_format($precioVenta / $tc, 2, '.', ''),
+                            "cantidad" => isset($fila['cantidad']) ? $fila['cantidad'] : 0,
+                            "cod_pro" => isset($fila['productoid']) ? $fila['productoid'] : 0,
                             "cod_sunat" => "",
-                            "descripcion" => $fila['descripcion']
+                            "descripcion" => isset($fila['descripcion']) ? $fila['descripcion'] : ''
                         ];
                     }
+                    error_log("guardarVentas productos insertados=" . $insertados);
                 }
 
                 // Guardar log de la venta
@@ -1324,7 +1445,7 @@ $resultado["valor"] = $c_venta->getIdVenta();
             ]);
         }
     }
-    public function obtenerInfoCotizacionTaller()
+   public function obtenerInfoCotizacionTaller()
 {
     try {
         if (!isset($_POST['coti'])) {
@@ -1337,12 +1458,12 @@ $resultado["valor"] = $c_venta->getIdVenta();
         // Obtener datos principales de la cotización
         $sql = "SELECT 
             tc.*,
-            ct.documento as num_doc,
-            ct.datos as nom_cli,
-            ct.direccion as dir_cli,
-            ct.atencion as dir2_cli
+            c.documento as num_doc,
+            c.datos as nom_cli,
+            c.direccion as dir_cli,
+            c.direccion2 as dir2_cli
             FROM taller_cotizaciones tc
-            INNER JOIN clientes_taller ct ON tc.id_cliente_taller = ct.id_cliente_taller
+            INNER JOIN clientes c ON tc.id_cliente = c.id_cliente
             WHERE tc.id_cotizacion = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -1355,40 +1476,82 @@ $resultado["valor"] = $c_venta->getIdVenta();
             throw new Exception("Cotización no encontrada");
         }
 
-        // Obtener repuestos/productos
-        $sqlRepuestos = "SELECT 
+        // CORREGIDO: Obtener productos/repuestos con la consulta correcta
+        $sqlItems = "SELECT 
             trc.*,
-            r.codigo as codigo_prod,
-            r.nombre as descripcion,
-            r.precio,
-            r.precio2,
-            r.precio_unidad
+            CASE 
+                WHEN trc.tipo_item = 'producto' THEN p.codigo
+                WHEN trc.tipo_item = 'repuesto' THEN r.codigo
+                ELSE 'Sin código'
+            END as codigo_prod,
+            CASE 
+                WHEN trc.tipo_item = 'producto' THEN p.nombre
+                WHEN trc.tipo_item = 'repuesto' THEN r.nombre
+                ELSE 'Sin nombre'
+            END as descripcion,
+            CASE 
+                WHEN trc.tipo_item = 'producto' THEN p.precio
+                WHEN trc.tipo_item = 'repuesto' THEN r.precio
+                ELSE 0
+            END as precio_base,
+            CASE 
+                WHEN trc.tipo_item = 'producto' THEN p.precio2
+                WHEN trc.tipo_item = 'repuesto' THEN r.precio2
+                ELSE 0
+            END as precio2,
+            CASE 
+                WHEN trc.tipo_item = 'producto' THEN p.precio_unidad
+                WHEN trc.tipo_item = 'repuesto' THEN r.precio_unidad
+                ELSE 0
+            END as precio_unidad,
+            tce.marca as equipo_marca,
+            tce.equipo as equipo_nombre,
+            tce.modelo as equipo_modelo,
+            tce.numero_serie as equipo_serie
             FROM taller_repuestos_cotis trc
-            JOIN repuestos r ON trc.id_repuesto = r.id_repuesto
-            WHERE trc.id_coti = ?";
+            LEFT JOIN repuestos r ON trc.id_repuesto = r.id_repuesto AND trc.tipo_item = 'repuesto'
+            LEFT JOIN productos p ON trc.id_producto = p.id_producto AND trc.tipo_item = 'producto'
+            LEFT JOIN taller_cotizaciones_equipos tce ON trc.id_cotizacion_equipo = tce.id_cotizacion_equipo
+            WHERE trc.id_coti = ?
+            ORDER BY trc.id_cotizacion_equipo, trc.id_repuesto_coti";
 
-        $stmtRepuestos = $this->conexion->prepare($sqlRepuestos);
-        $stmtRepuestos->bind_param("i", $id_cotizacion);
-        $stmtRepuestos->execute();
-        $resultRepuestos = $stmtRepuestos->get_result();
+        $stmtItems = $this->conexion->prepare($sqlItems);
+        $stmtItems->bind_param("i", $id_cotizacion);
+        $stmtItems->execute();
+        $resultItems = $stmtItems->get_result();
         
-        $repuestos = [];
-        while ($repuesto = $resultRepuestos->fetch_assoc()) {
-            $repuestos[] = [
-                'productoid' => $repuesto['id_repuesto'],
-                'codigo' => $repuesto['codigo_prod'],
-                'descripcion' => $repuesto['descripcion'],
-                'cantidad' => $repuesto['cantidad'],
-                'precioVenta' => $repuesto['precio'],
-                'costo' => $repuesto['costo'],
-                'precio' => $repuesto['precio'],
-                'precio2' => $repuesto['precio2'],
-                'precio_unidad' => $repuesto['precio_unidad'],
-                'edicion' => false
+        // Organizar productos por equipo
+        $productosPorEquipo = [];
+        while ($item = $resultItems->fetch_assoc()) {
+            $equipoId = $item['id_cotizacion_equipo'];
+            
+            if (!isset($productosPorEquipo[$equipoId])) {
+                $productosPorEquipo[$equipoId] = [];
+            }
+            
+            $productosPorEquipo[$equipoId][] = [
+                'productoid' => $item['tipo_item'] === 'producto' ? $item['id_producto'] : $item['id_repuesto'],
+                'codigo' => $item['codigo_prod'],
+                'descripcion' => $item['descripcion'],
+                'cantidad' => $item['cantidad'],
+                'precioVenta' => $item['precio'],
+                'costo' => $item['costo'],
+                'precio' => $item['precio_base'],
+                'precio2' => $item['precio2'],
+                'precio_unidad' => $item['precio_unidad'],
+                'edicion' => false,
+                'tipo_item' => $item['tipo_item'],
+                'id_cotizacion_equipo' => $equipoId,
+                'equipo_info' => [
+                    'marca' => $item['equipo_marca'],
+                    'equipo' => $item['equipo_nombre'],
+                    'modelo' => $item['equipo_modelo'],
+                    'numero_serie' => $item['equipo_serie']
+                ]
             ];
         }
 
-        // NUEVO: Obtener equipos
+        // Obtener equipos en orden
         $sqlEquipos = "SELECT * FROM taller_cotizaciones_equipos WHERE id_cotizacion = ? ORDER BY id_cotizacion_equipo";
         $stmtEquipos = $this->conexion->prepare($sqlEquipos);
         $stmtEquipos->bind_param("i", $id_cotizacion);
@@ -1396,13 +1559,24 @@ $resultado["valor"] = $c_venta->getIdVenta();
         $resultEquipos = $stmtEquipos->get_result();
 
         $equipos = [];
+        $todosLosProductos = []; // Para mantener compatibilidad con el frontend actual
+        
         while ($equipo = $resultEquipos->fetch_assoc()) {
-            $equipos[] = [
+            $equipoData = [
+                'id_cotizacion_equipo' => $equipo['id_cotizacion_equipo'],
                 'marca' => $equipo['marca'],
                 'equipo' => $equipo['equipo'],
                 'modelo' => $equipo['modelo'],
-                'numero_serie' => $equipo['numero_serie']
+                'numero_serie' => $equipo['numero_serie'],
+                'productos' => $productosPorEquipo[$equipo['id_cotizacion_equipo']] ?? []
             ];
+            
+            $equipos[] = $equipoData;
+            
+            // Agregar productos de este equipo al array general (para compatibilidad)
+            if (isset($productosPorEquipo[$equipo['id_cotizacion_equipo']])) {
+                $todosLosProductos = array_merge($todosLosProductos, $productosPorEquipo[$equipo['id_cotizacion_equipo']]);
+            }
         }
 
         // Obtener cuotas si existen
@@ -1422,8 +1596,9 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
         $response = [
             'res' => true,
-            'productos' => $repuestos,
-            'equipos' => $equipos, // NUEVO CAMPO
+            'productos' => $todosLosProductos, // Mantener para compatibilidad
+            'equipos' => $equipos, // Equipos con sus productos organizados
+            'productos_por_equipo' => $productosPorEquipo, // Productos organizados por equipo
             'cliente_doc' => $cotizacion['num_doc'],
             'cliente_nom' => $cotizacion['nom_cli'],
             'cliente_dir1' => $cotizacion['dir_cli'],

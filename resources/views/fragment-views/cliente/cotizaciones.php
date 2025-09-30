@@ -6,12 +6,7 @@
         <!-- cotizaciones -->
         <div class="clearfix">
             <h6 class="page-title text-center">COTIZACIONES</h6>
-            <ol class="breadcrumb m-0 float-start">
-
-                <li class="breadcrumb-item"><a class="button-link"
-                        style="font-weight: 500; color: #CA3438;">Cotizaciones</a></li>
-
-            </ol>
+          
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
@@ -61,7 +56,7 @@
                                 <th>Estado</th>
                                 <th>Vender</th>
                                 <th>Guía </th>
-                                <th></th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -102,6 +97,37 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de WhatsApp -->
+<div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="whatsappModalLabel">
+                    <i class="fab fa-whatsapp me-2"></i>Enviar por WhatsApp
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-4">
+                    <label for="whatsappNumber" class="form-label">Número de WhatsApp</label>
+                    <div class="input-group">
+                        <span class="input-group-text">+51</span>
+                        <input type="tel" class="form-control form-control-lg" id="whatsappNumber"
+                            placeholder="Ingrese número" maxlength="9" style="border-radius: 0 8px 8px 0;">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="enviarWhatsApp()">
+                        <i class="fab fa-whatsapp me-2"></i>Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
@@ -192,6 +218,7 @@
                     render: function (data, type, row, meta) {
                         return `
                     <div class="btn-group">
+                        <button onclick="abrirWhatsApp(${data})" type="button" class="btn btn-sm btn-success" title="Enviar por WhatsApp"><i class="fab fa-whatsapp"></i></button>
                         <a href="${'/cotizaciones/edt/' + data}" class="button-link btn btn-sm btn-primary"><i class="fa fa-edit"></i></a>
                         <a href="${_URL + '/r/cotizaciones/reporte/' + data}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
                         <button onclick="eliminarCotizacion(${data})" data-cod="" type="button" class="btn-del btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
@@ -201,22 +228,34 @@
                 {
                     targets: 3,
                     render: function (data, type, row) {
-                        let subtotal = parseFloat(data) / 1.18;
-                        return 'S/ ' + subtotal.toFixed(2);
+                        let aplicarIgv = row[11]; // aplicar_igv está en el índice 11
+                        let moneda = row[12]; // moneda está en el índice 12
+                        let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
+                        let subtotal = aplicarIgv == '1' ? parseFloat(data) / 1.18 : parseFloat(data);
+                        return simbolo + subtotal.toFixed(2);
                     }
                 },
                 {
                     targets: 4,
                     render: function (data, type, row) {
-                        let subtotal = parseFloat(data) / 1.18;
-                        let igv = subtotal * 0.18;
-                        return 'S/ ' + igv.toFixed(2);
+                        let aplicarIgv = row[11]; // aplicar_igv está en el índice 11
+                        let moneda = row[12]; // moneda está en el índice 12
+                        let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
+                        if (aplicarIgv == '1') {
+                            let subtotal = parseFloat(data) / 1.18;
+                            let igv = subtotal * 0.18;
+                            return simbolo + igv.toFixed(2);
+                        } else {
+                            return simbolo + '0.00';
+                        }
                     }
                 },
                 {
                     targets: 5,
                     render: function (data, type, row) {
-                        return 'S/ ' + parseFloat(data).toFixed(2);
+                        let moneda = row[12]; // moneda está en el índice 12
+                        let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
+                        return simbolo + parseFloat(data).toFixed(2);
                     }
                 }
             ]
@@ -268,4 +307,47 @@
             tabla.ajax.reload();
         })
     }
+
+    var cotizacionActual = null;
+
+    function abrirWhatsApp(cotizacionId) {
+        cotizacionActual = cotizacionId;
+        $('#whatsappNumber').val('');
+        $('#whatsappModal').modal('show');
+    }
+
+    // Función para enviar por WhatsApp
+    function enviarWhatsApp() {
+        const phoneNumber = $('#whatsappNumber').val().trim();
+
+        if (!phoneNumber) {
+            alert('Por favor ingrese un número de teléfono');
+            return;
+        }
+
+        if (phoneNumber.length !== 9) {
+            alert('El número debe tener 9 dígitos');
+            return;
+        }
+
+        // Generar el enlace del reporte PDF
+        const linkReporte = `${_URL}/r/cotizaciones/reporte/${cotizacionActual}`;
+
+        // Mensaje personalizado para WhatsApp
+        const mensaje = `Te envío la cotización para que puedas revisarla con detalle Cotización N° COT-${String(cotizacionActual).padStart(2, '0')}\n\nPuedes revisarla aquí: ${linkReporte}\n\nSi tienes alguna consulta o necesitas más información, no dudes en escribirme. Estaré encantada de ayudarte.`;
+
+        // Construir la URL de WhatsApp
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=51${phoneNumber}&text=${encodeURIComponent(mensaje)}`;
+
+        // Cerrar el modal y abrir WhatsApp
+        $('#whatsappModal').modal('hide');
+        window.open(whatsappUrl, '_blank');
+    }
+
+    // Validación para que solo acepte números en el input de WhatsApp
+    $(document).ready(function() {
+        $('#whatsappNumber').on('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    });
 </script>
