@@ -118,9 +118,12 @@
 
 <script>
     $(document).ready(function (){
-        
 
-        (function verificador() {
+        // SISTEMA DE CONTROL DE SESIÓN - TIMEOUT DE 12 HORAS
+        let verificadorInterval = null;
+
+        // Función para verificar sesión
+        function verificarSesion() {
             if (localStorage.getItem("_token")){
                 $.ajax({
                     url: _URL+"/ajs/verificador/token",
@@ -133,14 +136,75 @@
                         console.log(resp);
                         resp=JSON.parse(resp);
                         if (resp.res){
+                            // Actualizar token con última actividad
+                            if (resp.token) {
+                                localStorage.setItem("_token", resp.token);
+                            }
+                        }else{
+                            // Sesión expirada
+                            clearInterval(verificadorInterval);
+                            localStorage.removeItem("_token");
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sesión Expirada',
+                                text: 'Tu sesión ha expirado después de 12 horas por seguridad.',
+                                confirmButtonText: 'Iniciar Sesión',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                location.href = _URL+"/login";
+                            });
+                        }
+                    },
+                    error() {
+                        console.error("Error verificando sesión");
+                    }
+                })
+            }else{
+                clearInterval(verificadorInterval);
+                location.href=_URL+"/login"
+            }
+        }
+
+        // Verificador inicial
+        (function verificadorInicial() {
+            if (localStorage.getItem("_token")){
+                $.ajax({
+                    url: _URL+"/ajs/verificador/token",
+                    type: "POST",
+                    data: {
+                        token:localStorage.getItem("_token"),
+                        s:true
+                    },
+                    success(resp){
+                        console.log(resp);
+                        resp=JSON.parse(resp);
+                        if (resp.res){
+                            // Actualizar token con última actividad
+                            if (resp.token) {
+                                localStorage.setItem("_token", resp.token);
+                            }
                             $("#loader-init").hide();
                             _ajaxDOM(getPathURL(),'contenedor-app')
                             $('body').on('click','#toggle-sidebar',function(){
                                 $(".page-wrapper").toggleClass("toggled");
                             })
+
+                            // Iniciar verificación periódica cada 60 segundos (1 minuto)
+                            verificadorInterval = setInterval(verificarSesion, 60000);
+
                         }else{
                             localStorage.removeItem("_token")
-                            location.href=_URL+"/login"
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sesión Expirada',
+                                text: 'Tu sesión ha expirado después de 12 horas por seguridad.',
+                                confirmButtonText: 'Iniciar Sesión',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                location.href = _URL+"/login";
+                            });
                         }
                     }
                 })
@@ -149,8 +213,11 @@
             }
         })()
 
+        // Detección de actividad desactivada (solo timeout de 12 horas)
+
         $("#logout").click(function (evt) {
             evt.preventDefault();
+            clearInterval(verificadorInterval);
             localStorage.removeItem("_token")
             location.href=_URL+"/logout"
         })

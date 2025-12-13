@@ -27,9 +27,11 @@ Vue.prototype.inicializarGraficosVentas = function() {
         console.log('¿Tiene datos de ventas anuales?', tieneVentasAnuales, this.dashboardData.ventasAnuales);
 
         if (tieneVentasAnuales) {
+            const chartColors = window.getChartColors();
             this.charts.ventasAnuales = Highcharts.chart(this.$refs.ventasAnualesChart, {
                 chart: {
                     type: 'area',
+                    backgroundColor: chartColors.backgroundColor,
                     style: {
                         fontFamily: 'Poppins, sans-serif'
                     },
@@ -44,10 +46,12 @@ Vue.prototype.inicializarGraficosVentas = function() {
                     categories: this.dashboardData.categoriasGrafico || this.meses,
                     labels: {
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
-                    }
+                    },
+                    lineColor: chartColors.gridLineColor,
+                    tickColor: chartColors.gridLineColor
                 },
                 yAxis: {
                     title: {
@@ -58,15 +62,26 @@ Vue.prototype.inicializarGraficosVentas = function() {
                             return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                         },
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
                     },
+                    gridLineColor: chartColors.gridLineColor,
                     gridLineDashStyle: 'Dash'
                 },
                 tooltip: {
+                    backgroundColor: chartColors.tooltipBg,
+                    borderColor: chartColors.tooltipBorder,
+                    style: {
+                        color: chartColors.textColor
+                    },
                     formatter: function () {
                         return '<b>' + this.x + '</b><br>S/ ' + Highcharts.numberFormat(this.y, 2);
+                    }
+                },
+                legend: {
+                    itemStyle: {
+                        color: chartColors.textColor
                     }
                 },
                 plotOptions: {
@@ -75,7 +90,7 @@ Vue.prototype.inicializarGraficosVentas = function() {
                         marker: {
                             radius: 4,
                             lineWidth: 2,
-                            lineColor: '#ffffff'
+                            lineColor: chartColors.backgroundColor
                         }
                     }
                 },
@@ -106,9 +121,11 @@ Vue.prototype.inicializarGraficosVentas = function() {
             this.dashboardData.ventasPorPeriodo.length > 0;
 
         if (tieneComparativa) {
+            const chartColors = window.getChartColors();
             this.charts.comparativa = Highcharts.chart(this.$refs.comparativaChart, {
                 chart: {
                     type: 'column',
+                    backgroundColor: chartColors.backgroundColor,
                     style: {
                         fontFamily: 'Poppins, sans-serif'
                     },
@@ -123,10 +140,12 @@ Vue.prototype.inicializarGraficosVentas = function() {
                     categories: this.dashboardData.periodos,
                     labels: {
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
-                    }
+                    },
+                    lineColor: chartColors.gridLineColor,
+                    tickColor: chartColors.gridLineColor
                 },
                 yAxis: {
                     title: {
@@ -137,10 +156,11 @@ Vue.prototype.inicializarGraficosVentas = function() {
                             return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                         },
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
                     },
+                    gridLineColor: chartColors.gridLineColor,
                     gridLineDashStyle: 'Dash'
                 },
                 tooltip: {
@@ -202,6 +222,7 @@ Vue.prototype.inicializarGraficosComparativaAnual = function() {
             this.dashboardData.ventasAnuales.length > 0;
 
         if (tieneVentasAnuales) {
+            const chartColors = window.getChartColors();
             const añoActual = new Date().getFullYear();
             const años = [añoActual - 2, añoActual - 1, añoActual];
 
@@ -212,6 +233,7 @@ Vue.prototype.inicializarGraficosComparativaAnual = function() {
             this.charts.comparativaAnual = Highcharts.chart(this.$refs.comparativaAnualChart, {
                 chart: {
                     type: 'line',
+                    backgroundColor: chartColors.backgroundColor,
                     style: {
                         fontFamily: 'Poppins, sans-serif'
                     },
@@ -226,10 +248,12 @@ Vue.prototype.inicializarGraficosComparativaAnual = function() {
                     categories: this.dashboardData.categoriasGrafico || this.meses,
                     labels: {
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
-                    }
+                    },
+                    lineColor: chartColors.gridLineColor,
+                    tickColor: chartColors.gridLineColor
                 },
                 yAxis: {
                     title: {
@@ -240,10 +264,11 @@ Vue.prototype.inicializarGraficosComparativaAnual = function() {
                             return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                         },
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
                     },
+                    gridLineColor: chartColors.gridLineColor,
                     gridLineDashStyle: 'Dash'
                 },
                 tooltip: {
@@ -308,9 +333,11 @@ Vue.prototype.inicializarGraficoUtilidadBruta = function() {
             this.dashboardData.utilidadBrutaPorPeriodo.length > 0;
 
         if (tieneUtilidadBruta) {
+            const chartColors = window.getChartColors();
             this.charts.utilidadBruta = Highcharts.chart(this.$refs.utilidadBrutaChart, {
                 chart: {
                     type: 'column',
+                    backgroundColor: chartColors.backgroundColor,
                     style: {
                         fontFamily: 'Poppins, sans-serif'
                     },
@@ -325,10 +352,12 @@ Vue.prototype.inicializarGraficoUtilidadBruta = function() {
                     categories: this.dashboardData.categoriasGrafico || this.meses,
                     labels: {
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
-                    }
+                    },
+                    lineColor: chartColors.gridLineColor,
+                    tickColor: chartColors.gridLineColor
                 },
                 yAxis: {
                     title: {
@@ -339,10 +368,11 @@ Vue.prototype.inicializarGraficoUtilidadBruta = function() {
                             return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                         },
                         style: {
-                            color: '#6c757d',
+                            color: chartColors.textColor,
                             fontSize: '12px'
                         }
                     },
+                    gridLineColor: chartColors.gridLineColor,
                     gridLineDashStyle: 'Dash'
                 },
                 tooltip: {

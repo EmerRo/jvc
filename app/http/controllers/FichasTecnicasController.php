@@ -36,7 +36,7 @@ class FichasTecnicasController extends Controller
             $sucursal = isset($_SESSION['sucursal']) ? $_SESSION['sucursal'] : 1;
 
             // NUEVO: Consulta optimizada con JOIN en lugar de subconsultas
-            $sql = "SELECT a.id_archivo, a.titulo, a.id_producto, a.fecha_creacion,
+            $sql = "SELECT a.id_archivo, a.titulo, a.id_producto, a.fecha_creacion, a.fecha_actualizacion,
                            p.nombre as nombre_producto,
                            ga.url_pdf, ga.url_editable, ga.url_imagen, ga.url_youtube,
                            ga.url_imagen_2, ga.url_imagen_3
@@ -124,6 +124,7 @@ class FichasTecnicasController extends Controller
                     "id_producto" => $fila['id_producto'],
                     "nombre_producto" => $fila['nombre_producto'],
                     "fecha_creacion" => $fila['fecha_creacion'],
+                    "fecha_actualizacion" => $fila['fecha_actualizacion'],
                     "adjuntos" => [
                         "pdf" => $pdf,
                         "editable" => $editable,
@@ -210,6 +211,81 @@ class FichasTecnicasController extends Controller
         exit;
     }
 
+    public function actualizarFicha()
+    {
+        // Limpiar cualquier salida previa y establecer headers
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        $respuesta = ["res" => false];
+
+        try {
+            $this->conexion->begin_transaction();
+
+            // Obtener el ID de la ficha a actualizar
+            $id_ficha = isset($_POST['id_ficha']) ? $_POST['id_ficha'] : null;
+            
+            if (!$id_ficha) {
+                throw new Exception("ID de ficha no proporcionado");
+            }
+
+            // Verificar que la ficha existe
+            $sqlVerificar = "SELECT id_archivo FROM gestion_archivos WHERE id_archivo = ? AND tipo = 'ficha_tecnica'";
+            $stmtVerificar = $this->conexion->prepare($sqlVerificar);
+            $stmtVerificar->bind_param("i", $id_ficha);
+            $stmtVerificar->execute();
+            $resultado = $stmtVerificar->get_result();
+            
+            if ($resultado->num_rows === 0) {
+                throw new Exception("Ficha técnica no encontrada");
+            }
+            $stmtVerificar->close();
+
+            // Datos de la ficha técnica
+            $titulo = $_POST['titulo'];
+            $id_producto = isset($_POST['id_producto']) && !empty($_POST['id_producto']) ? $_POST['id_producto'] : null;
+
+            // Actualizar el registro principal
+            $sqlActualizar = "UPDATE gestion_archivos 
+                             SET titulo = ?, 
+                                 id_producto = ?,
+                                 fecha_actualizacion = NOW()
+                             WHERE id_archivo = ?";
+            
+            $stmtActualizar = $this->conexion->prepare($sqlActualizar);
+            if (!$stmtActualizar) {
+                throw new Exception("Error al preparar actualización: " . $this->conexion->error);
+            }
+            
+            $stmtActualizar->bind_param("sii", $titulo, $id_producto, $id_ficha);
+            
+            if (!$stmtActualizar->execute()) {
+                throw new Exception("Error al actualizar la ficha: " . $stmtActualizar->error);
+            }
+            $stmtActualizar->close();
+
+            // Procesar adjuntos si se enviaron nuevos archivos
+            $adjuntosActualizados = $this->actualizarAdjuntos($id_ficha);
+
+            $this->conexion->commit();
+
+            $respuesta = [
+                "res" => true,
+                "id_archivo" => $id_ficha,
+                "mensaje" => "Ficha técnica actualizada correctamente",
+                "adjuntos_actualizados" => $adjuntosActualizados
+            ];
+
+        } catch (Exception $e) {
+            $this->conexion->rollback();
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        echo json_encode($respuesta);
+        exit;
+    }
+
     public function obtenerFicha()
     {
         // NUEVO: Limpiar cualquier salida previa y establecer headers
@@ -223,7 +299,7 @@ class FichasTecnicasController extends Controller
             $id_archivo = $_POST['id_archivo'];
 
             // NUEVO: Consulta optimizada con JOIN en lugar de consultas separadas
-            $sql = "SELECT a.id_archivo, a.titulo, a.id_producto, a.fecha_creacion,
+            $sql = "SELECT a.id_archivo, a.titulo, a.id_producto, a.fecha_creacion, a.fecha_actualizacion,
                            p.nombre as nombre_producto,
                            ga.url_pdf, ga.url_editable, ga.url_imagen, ga.url_youtube,
                            ga.url_imagen_2, ga.url_imagen_3
@@ -284,6 +360,7 @@ class FichasTecnicasController extends Controller
                     "id_producto" => $fila['id_producto'],
                     "nombre_producto" => $fila['nombre_producto'],
                     "fecha_creacion" => $fila['fecha_creacion'],
+                    "fecha_actualizacion" => $fila['fecha_actualizacion'],
                     "adjuntos" => [
                         "pdf" => $pdf,
                         "editable" => $editable,
@@ -789,6 +866,212 @@ class FichasTecnicasController extends Controller
             'imagen_3' => $url_imagen_3,
             'youtube' => $url_youtube
         ];
+    }
+
+    private function actualizarAdjuntos($id_archivo)
+    {
+        $adjuntosActualizados = [];
+
+        // Verificar si ya existe un registro de adjuntos
+        $sqlVerificar = "SELECT id_adjunto FROM gestion_adjuntos WHERE id_archivo = ?";
+        $stmtVerificar = $this->conexion->prepare($sqlVerificar);
+        $stmtVerificar->bind_param("i", $id_archivo);
+        $stmtVerificar->execute();
+        $resultado = $stmtVerificar->get_result();
+        $existeAdjunto = $resultado->num_rows > 0;
+        $stmtVerificar->close();
+
+        // Obtener adjuntos actuales
+        $sqlActuales = "SELECT url_pdf, url_editable, url_imagen, url_imagen_2, url_imagen_3, url_youtube 
+                       FROM gestion_adjuntos WHERE id_archivo = ?";
+        $stmtActuales = $this->conexion->prepare($sqlActuales);
+        $stmtActuales->bind_param("i", $id_archivo);
+        $stmtActuales->execute();
+        $adjuntosActuales = $stmtActuales->get_result()->fetch_assoc();
+        $stmtActuales->close();
+
+        // Inicializar con valores actuales
+        $url_pdf = $adjuntosActuales['url_pdf'] ?? null;
+        $url_editable = $adjuntosActuales['url_editable'] ?? null;
+        $url_imagen = $adjuntosActuales['url_imagen'] ?? null;
+        $url_imagen_2 = $adjuntosActuales['url_imagen_2'] ?? null;
+        $url_imagen_3 = $adjuntosActuales['url_imagen_3'] ?? null;
+        $url_youtube = $adjuntosActuales['url_youtube'] ?? null;
+
+        // Procesar PDF si se envió uno nuevo
+        if (isset($_FILES['pdf']) && $_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['pdf'];
+            
+            if ($archivo['type'] === 'application/pdf' && $archivo['size'] <= 4 * 1024 * 1024) {
+                // Eliminar PDF anterior si existe
+                if ($url_pdf && file_exists($url_pdf)) {
+                    @unlink($url_pdf);
+                }
+
+                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+                $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
+                $rutaDestino = 'files/gestion_archivos/pdf/' . $nombreUnico;
+
+                $directorio = dirname($rutaDestino);
+                if (!is_dir($directorio)) {
+                    mkdir($directorio, 0755, true);
+                }
+
+                if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+                    $url_pdf = $rutaDestino;
+                    $adjuntosActualizados[] = 'pdf';
+                }
+            }
+        }
+
+        // Procesar archivo editable si se envió uno nuevo
+        if (isset($_FILES['editable']) && $_FILES['editable']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['editable'];
+            
+            $tiposPermitidos = [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/vnd.ms-powerpoint'
+            ];
+            
+            if (in_array($archivo['type'], $tiposPermitidos) && $archivo['size'] <= 4 * 1024 * 1024) {
+                // Eliminar archivo anterior si existe
+                if ($url_editable && file_exists($url_editable)) {
+                    @unlink($url_editable);
+                }
+
+                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+                $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
+                $rutaDestino = 'files/gestion_archivos/editable/' . $nombreUnico;
+
+                $directorio = dirname($rutaDestino);
+                if (!is_dir($directorio)) {
+                    mkdir($directorio, 0755, true);
+                }
+
+                if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+                    $url_editable = $rutaDestino;
+                    $adjuntosActualizados[] = 'editable';
+                }
+            }
+        }
+
+        // Procesar imágenes si se enviaron nuevas
+        if (isset($_FILES['imagenes']) && 
+            is_array($_FILES['imagenes']['name']) && 
+            !empty($_FILES['imagenes']['name'][0])) {
+            
+            $total = count($_FILES['imagenes']['name']);
+
+            if ($total <= 3) {
+                // Eliminar imágenes anteriores
+                if ($url_imagen && file_exists($url_imagen)) @unlink($url_imagen);
+                if ($url_imagen_2 && file_exists($url_imagen_2)) @unlink($url_imagen_2);
+                if ($url_imagen_3 && file_exists($url_imagen_3)) @unlink($url_imagen_3);
+
+                // Resetear URLs de imágenes
+                $url_imagen = null;
+                $url_imagen_2 = null;
+                $url_imagen_3 = null;
+
+                for ($i = 0; $i < min($total, 3); $i++) {
+                    if (isset($_FILES['imagenes']['name'][$i]) && 
+                        $_FILES['imagenes']['error'][$i] === UPLOAD_ERR_OK) {
+
+                        $archivo = [
+                            'name' => $_FILES['imagenes']['name'][$i],
+                            'type' => $_FILES['imagenes']['type'][$i],
+                            'tmp_name' => $_FILES['imagenes']['tmp_name'][$i],
+                            'size' => $_FILES['imagenes']['size'][$i]
+                        ];
+
+                        $tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                        if (in_array($archivo['type'], $tiposPermitidos) && $archivo['size'] <= 10 * 1024 * 1024) {
+                            $imagenComprimida = $this->comprimirImagen($archivo);
+                            
+                            if ($imagenComprimida) {
+                                switch ($i) {
+                                    case 0:
+                                        $url_imagen = $imagenComprimida['ruta'];
+                                        break;
+                                    case 1:
+                                        $url_imagen_2 = $imagenComprimida['ruta'];
+                                        break;
+                                    case 2:
+                                        $url_imagen_3 = $imagenComprimida['ruta'];
+                                        break;
+                                }
+                                $adjuntosActualizados[] = 'imagen_' . ($i + 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Procesar URL de YouTube si se envió
+        if (isset($_POST['youtube'])) {
+            $youtube = trim($_POST['youtube']);
+            
+            if (!empty($youtube) && filter_var($youtube, FILTER_VALIDATE_URL) && 
+                (strpos($youtube, 'youtube.com') !== false || strpos($youtube, 'youtu.be') !== false)) {
+                $url_youtube = $youtube;
+                $adjuntosActualizados[] = 'youtube';
+            } else if (empty($youtube)) {
+                // Si se envió vacío, eliminar el enlace
+                $url_youtube = null;
+                $adjuntosActualizados[] = 'youtube_eliminado';
+            }
+        }
+
+        // Actualizar o insertar adjuntos
+        if ($existeAdjunto) {
+            $sqlActualizar = "UPDATE gestion_adjuntos 
+                             SET url_pdf = ?, 
+                                 url_editable = ?, 
+                                 url_imagen = ?, 
+                                 url_imagen_2 = ?, 
+                                 url_imagen_3 = ?, 
+                                 url_youtube = ?
+                             WHERE id_archivo = ?";
+            
+            $stmt = $this->conexion->prepare($sqlActualizar);
+            $stmt->bind_param("ssssssi", 
+                $url_pdf,
+                $url_editable,
+                $url_imagen,
+                $url_imagen_2,
+                $url_imagen_3,
+                $url_youtube,
+                $id_archivo
+            );
+        } else {
+            $sqlInsertar = "INSERT INTO gestion_adjuntos 
+                           (id_archivo, url_pdf, url_editable, url_imagen, url_imagen_2, url_imagen_3, url_youtube) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $this->conexion->prepare($sqlInsertar);
+            $stmt->bind_param("issssss", 
+                $id_archivo,
+                $url_pdf,
+                $url_editable,
+                $url_imagen,
+                $url_imagen_2,
+                $url_imagen_3,
+                $url_youtube
+            );
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Error al actualizar adjuntos: " . $stmt->error);
+        }
+        
+        $stmt->close();
+
+        return $adjuntosActualizados;
     }
 
     // Función para comprimir imágenes

@@ -90,11 +90,13 @@ $almacenRepuesto = 1;
                     <div class="d-flex flex-wrap justify-content-between align-items-center">
                         <h4 class="card-title mb-0">Lista de Repuestos</h4>
                         <div class="text-end mt-2 mt-md-0">
-                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Descargar Excel por búsqueda</button>
+                            <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Descargar Excel</button>
                             <button data-bs-toggle="modal" data-bs-target="#importarModal" class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-excel"></i> Importar</button>
-                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"></i> Aumentar Stock de Repuestos</button>
-                            <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Unidades</a>
-                            <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-plus"></i> Categorias</a>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-aumentar-stock"><i class="fa fa-plus"></i> Aumentar Stock</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-disminuir-stock-repuesto"><i class="fa fa-minus"></i> Disminuir Stock</button>
+                            <button class="btn border-rojo bg-white" data-bs-toggle="modal" data-bs-target="#modal-traslado-almacenes-repuesto"><i class="fa fa-exchange-alt"></i> Traslado Almacenes</button>
+                            <a href="/unidades/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-ruler"></i> Unidades</a>
+                            <a href="/categorias/repuestos" class="btn bg-white text-rojo border-rojo button-link"><i class="fa fa-folder"></i> Categorias</a>
                             <button class="btn bg-rojo text-white bordes" id="add-rep"><i class="fa fa-plus"></i> Agregar Repuesto</button>
                             <button class="btn bg-rojo btnBorrar"><i class="fa fa-trash"></i> Borrar</button>
                             <button hidden class="btn bg-rojo" @click="agregarIds"><i class="fa fa-times"></i> Seleccionar Todos</button>
@@ -230,6 +232,12 @@ $almacenRepuesto = 1;
             </div>
         </div>
     </div>
+
+    <!-- Modal Disminuir Stock de Repuestos -->
+    <?php include __DIR__ . '/../modals/repuesto-modal-disminuir-stock.php' ?>
+
+    <!-- Modal Traslado Entre Almacenes - Repuestos -->
+    <?php include __DIR__ . '/../modals/repuesto-modal-traslado-almacenes.php' ?>
 
     <!-- Modal para agregar repuesto -->
     <div class="modal fade" id="modal-add-rep" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -723,9 +731,9 @@ $almacenRepuesto = 1;
                                     modifique los campos en el archivo.</p>
                                 <div class="d-flex align-items-center">
                                     <span class="fw-bold me-2">Click para descargar:</span>
-                                    <a href="<?= URL::to('/reporte/producto/guia') ?>"
+                                    <a href="<?= URL::to('/reporte/repuesto/guia') ?>"
                                         class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
-                                        <i class="fas fa-download me-1"></i>plantilla.xlsx
+                                        <i class="fas fa-download me-1"></i>plantilla_repuestos.xlsx
                                     </a>
                                 </div>
                             </div>
@@ -767,25 +775,36 @@ $almacenRepuesto = 1;
 
     <div class="modal fade" id="modal-lista-repuestos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog  modal-dialog-scrollable modal-lg modal-dialog-centered">
+        <div class="modal-dialog  modal-dialog-scrollable modal-xl modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-rojo text-white">
                     <h5 class="modal-title" id="staticBackdropLabel">Lista de repuestos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fa fa-warehouse me-1"></i><strong>Seleccione Almacén de Destino:</strong></label>
+                            <select v-model="almacenImportacionRep" class="form-control" required>
+                                <option value="1">Almacén 1</option>
+                                <option value="2">Almacén 2</option>
+                                <option value="3">Almacén 3</option>
+                            </select>
+                            <small class="text-muted">Todos los repuestos se importarán a este almacén</small>
+                        </div>
+                    </div>
                     <table class="table table-sm table-bordered text-center">
                         <thead>
                             <tr>
                                 <th>Repuesto</th>
-                                <th>Descripcion</th>
-                                <th>Cantidad</th>
+                                <th>Detalle</th>
+                                <th>Cnt</th>
                                 <th>Costo</th>
                                 <th>Precio Venta</th>
-                                <th>Precio 1</th>
-                                <th>Precio 2</th>
-                                <th>Almacen</th>
+                                <th>Precio Distribuidor</th>
+                                <th>Precio Mayorista</th>
                                 <th>Codigo</th>
+                                <!-- <th>Almacen</th> -->
                                 <th></th>
                             </tr>
                         </thead>
@@ -793,13 +812,13 @@ $almacenRepuesto = 1;
                             <tr v-for="(item,index) in listaRep">
                                 <td>{{item.repuesto}}</td>
                                 <td>{{item.descripcicon}}</td>
-                                <td> {{item.cantidad}}</td>
-                                <td>{{item.costo}}</td>
-                                <td>{{item.precio_unidad}}</td>
-                                <td>{{item.precio}}</td>
-                                <td>{{item.precio2}}</td>
-                                <td>{{item.almacen}}</td>
+                                <td>{{parseFloat(item.cantidad || 0).toFixed(2)}}</td>
+                                <td>{{parseFloat(item.costo || 0).toFixed(2)}}</td>
+                                <td>{{parseFloat(item.precio_unidad || 0).toFixed(2)}}</td>
+                                <td>{{parseFloat(item.precio || 0).toFixed(2)}}</td>
+                                <td>{{parseFloat(item.precio2 || 0).toFixed(2)}}</td>
                                 <td>{{item.codigoRep}}</td>
+                                <!-- <td>{{item.almacen}}</td> -->
                                 <td><button @click="eliminarItemTablaRep(index)" class="btn-sm btn btn-danger"><i
                                             class="fa fa-times"></i></button></td>
                             </tr>
@@ -1088,6 +1107,7 @@ $almacenRepuesto = 1;
                     almacen: <?php echo $_SESSION["sucursal"] ?>,
                     t: 0,
                     listaRep: [],
+                    almacenImportacionRep: 1, // Almacén por defecto para importación de repuestos
                     categorias: [],
                     unidades: [],
                     subcategorias: [],
@@ -1155,6 +1175,21 @@ $almacenRepuesto = 1;
                         stock_actual: '',
                         cantidad_ingresar: '',
                         repuesto_nombre: ''
+                    },
+                    disminuirDataRepuesto: {
+                        repuesto_id: '',
+                        stock_actual: '',
+                        cantidad_disminuir: '',
+                        repuesto_nombre: '',
+                        unidad: '',
+                        observaciones: ''
+                    },
+                    trasladoDataRepuesto: {
+                        almacen_origen: '',
+                        almacen_destino: '',
+                        repuesto_id: '',
+                        repuestos: [],
+                        nota: ''
                     },
                 },
                 computed: {
@@ -1459,7 +1494,8 @@ $almacenRepuesto = 1;
                     agregarListaImport() {
                         if (this.listaRep.length > 0) {
                             _ajax("/ajs/data/repuesto/add/lista", "POST", {
-                                lista: JSON.stringify(this.listaRep)
+                                lista: JSON.stringify(this.listaRep),
+                                almacen: this.almacenImportacionRep
                             },
                                 function (resp) {
                                     console.log(resp);
@@ -1806,6 +1842,102 @@ $almacenRepuesto = 1;
                                 });
                             } else {
                                 alertAdvertencia("Error al aumentar el stock");
+                            }
+                        });
+                    },
+                    disminuirStockRepuesto() {
+                        if (!this.disminuirDataRepuesto.repuesto_id) {
+                            alertAdvertencia("Debe seleccionar un repuesto");
+                            return;
+                        }
+
+                        if (!this.disminuirDataRepuesto.cantidad_disminuir || this.disminuirDataRepuesto.cantidad_disminuir <= 0) {
+                            alertAdvertencia("Debe ingresar una cantidad válida");
+                            return;
+                        }
+
+                        if (this.disminuirDataRepuesto.cantidad_disminuir > this.disminuirDataRepuesto.stock_actual) {
+                            alertAdvertencia("La cantidad a disminuir no puede ser mayor al stock actual");
+                            return;
+                        }
+
+                        const data = {
+                            repuesto_id: this.disminuirDataRepuesto.repuesto_id,
+                            cantidad: this.disminuirDataRepuesto.cantidad_disminuir,
+                            observaciones: this.disminuirDataRepuesto.observaciones
+                        };
+
+                        _ajax("/ajs/data/repuesto/disminuir/stock", "POST", data, function (resp) {
+                            if (resp.res) {
+                                alertExito("Stock disminuido exitosamente").then(() => {
+                                    $("#modal-disminuir-stock-repuesto").modal("hide");
+                                    datatable.ajax.reload(null, false);
+                                    app._data.disminuirDataRepuesto = {
+                                        repuesto_id: '',
+                                        stock_actual: '',
+                                        cantidad_disminuir: '',
+                                        repuesto_nombre: '',
+                                        unidad: '',
+                                        observaciones: ''
+                                    };
+                                    $('#buscar-repuesto-disminuir').val('');
+                                });
+                            } else {
+                                alertAdvertencia("Error al disminuir el stock");
+                            }
+                        });
+                    },
+                    limpiarRepuestoTraslado() {
+                        $('#buscar-repuesto-traslado').val('');
+                        this.trasladoDataRepuesto.repuesto_id = '';
+                    },
+                    eliminarRepuestoTraslado(index) {
+                        this.trasladoDataRepuesto.repuestos.splice(index, 1);
+                    },
+                    realizarTrasladoRepuesto() {
+                        if (!this.trasladoDataRepuesto.almacen_origen) {
+                            alertAdvertencia("Debe seleccionar el almacén de origen");
+                            return;
+                        }
+
+                        if (!this.trasladoDataRepuesto.almacen_destino) {
+                            alertAdvertencia("Debe seleccionar el almacén de destino");
+                            return;
+                        }
+
+                        if (this.trasladoDataRepuesto.almacen_origen === this.trasladoDataRepuesto.almacen_destino) {
+                            alertAdvertencia("El almacén de origen y destino no pueden ser el mismo");
+                            return;
+                        }
+
+                        if (this.trasladoDataRepuesto.repuestos.length === 0) {
+                            alertAdvertencia("Debe agregar al menos un repuesto");
+                            return;
+                        }
+
+                        const data = {
+                            almacen_origen: this.trasladoDataRepuesto.almacen_origen,
+                            almacen_destino: this.trasladoDataRepuesto.almacen_destino,
+                            repuestos: this.trasladoDataRepuesto.repuestos,
+                            nota: this.trasladoDataRepuesto.nota
+                        };
+
+                        _ajax("/ajs/data/repuesto/traslado/almacenes", "POST", data, function (resp) {
+                            if (resp.res) {
+                                alertExito("Traslado realizado exitosamente").then(() => {
+                                    $("#modal-traslado-almacenes-repuesto").modal("hide");
+                                    datatable.ajax.reload(null, false);
+                                    app._data.trasladoDataRepuesto = {
+                                        almacen_origen: '',
+                                        almacen_destino: '',
+                                        repuesto_id: '',
+                                        repuestos: [],
+                                        nota: ''
+                                    };
+                                    $('#buscar-repuesto-traslado').val('');
+                                });
+                            } else {
+                                alertAdvertencia(resp.error || "Error al realizar el traslado");
                             }
                         });
                     }
@@ -2255,6 +2387,71 @@ $almacenRepuesto = 1;
             });
 
 
+            // Autocomplete para DISMINUIR stock
+            $("#buscar-repuesto-disminuir").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: _URL + "/ajs/cargar/repuestos/" + almacenCod,
+                        data: { term: request.term },
+                        success: function (data) {
+                            response(JSON.parse(data));
+                        }
+                    });
+                },
+                minLength: 2,
+                appendTo: "#modal-disminuir-stock-repuesto .modal-body",
+                select: function (event, ui) {
+                    $(this).val(ui.item.label || ui.item.nombre);
+                    app._data.disminuirDataRepuesto.repuesto_id = ui.item.codigo;
+                    app._data.disminuirDataRepuesto.stock_actual = ui.item.cnt;
+                    app._data.disminuirDataRepuesto.repuesto_nombre = ui.item.nombre;
+                    app._data.disminuirDataRepuesto.unidad = ui.item.unidad || '';
+                    $('#repuesto-disminuir-id').val(ui.item.codigo);
+                    $(this).autocomplete("close");
+                    return false;
+                }
+            });
+
+            // Autocomplete para TRASLADO
+            $("#buscar-repuesto-traslado").autocomplete({
+                source: function (request, response) {
+                    const almacenOrigen = app._data.trasladoDataRepuesto.almacen_origen;
+                    if (!almacenOrigen) {
+                        response([]);
+                        return;
+                    }
+                    $.ajax({
+                        url: _URL + "/ajs/cargar/repuestos/" + almacenOrigen,
+                        data: { term: request.term },
+                        success: function (data) {
+                            response(JSON.parse(data));
+                        }
+                    });
+                },
+                minLength: 2,
+                appendTo: "#modal-traslado-almacenes-repuesto .modal-body",
+                select: function (event, ui) {
+                    const existe = app._data.trasladoDataRepuesto.repuestos.find(p => p.id_repuesto === ui.item.codigo);
+                    if (existe) {
+                        alertAdvertencia("Este repuesto ya está en la lista");
+                        $(this).val('');
+                        return false;
+                    }
+
+                    app._data.trasladoDataRepuesto.repuestos.push({
+                        id_repuesto: ui.item.codigo,
+                        nombre: ui.item.nombre,
+                        unidad: ui.item.unidad || 'Unidad',
+                        cantidad: 1,
+                        stock_disponible: ui.item.cnt
+                    });
+
+                    $(this).val('');
+                    $(this).autocomplete("close");
+                    return false;
+                }
+            });
+
             // Limpiar autocomplete cuando se cierre el modal
             $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
                 $('#buscar-repuesto-stock').val('');
@@ -2266,6 +2463,33 @@ $almacenRepuesto = 1;
                     stock_actual: '',
                     cantidad_ingresar: '',
                     repuesto_nombre: ''
+                };
+            });
+
+            // Limpiar modal disminuir al cerrar
+            $('#modal-disminuir-stock-repuesto').on('hidden.bs.modal', function () {
+                $('#buscar-repuesto-disminuir').val('');
+                $('.ui-autocomplete').hide();
+                app._data.disminuirDataRepuesto = {
+                    repuesto_id: '',
+                    stock_actual: '',
+                    cantidad_disminuir: '',
+                    repuesto_nombre: '',
+                    unidad: '',
+                    observaciones: ''
+                };
+            });
+
+            // Limpiar modal traslado al cerrar
+            $('#modal-traslado-almacenes-repuesto').on('hidden.bs.modal', function () {
+                $('#buscar-repuesto-traslado').val('');
+                $('.ui-autocomplete').hide();
+                app._data.trasladoDataRepuesto = {
+                    almacen_origen: '',
+                    almacen_destino: '',
+                    repuesto_id: '',
+                    repuestos: [],
+                    nota: ''
                 };
             });
         })

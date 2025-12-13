@@ -294,7 +294,7 @@ class SignedXml
     $errors = libxml_get_errors();
     if ($errors) {
         foreach ($errors as $error) {
-            echo "XML Error: ", $error->message;
+            // echo "XML Error: ", $error->message; // Comentado para evitar contaminar el output
         }
         libxml_clear_errors();
     }

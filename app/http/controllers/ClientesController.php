@@ -59,16 +59,16 @@ public function insertar()
         $response = ['status' => 'error'];
         
         try {
-            $doc = trim(filter_var($_POST['documentoAgregar'], FILTER_SANITIZE_STRING));
-            $datosAgregar = trim(filter_var($_POST['datosAgregar'], FILTER_SANITIZE_STRING));
-            $direccionAgregar = trim(filter_var($_POST['direccionAgregar'], FILTER_SANITIZE_STRING));
-            $direccionAgregar2 = trim(filter_var($_POST['direccionAgregar2'], FILTER_SANITIZE_STRING));
-            $telefonoAgregar = trim(filter_var($_POST['telefonoAgregar'], FILTER_SANITIZE_STRING));
-            $telefonoAgregar2 = trim(filter_var($_POST['telefonoAgregar2'], FILTER_SANITIZE_STRING));
+            $doc = htmlspecialchars(trim($_POST['documentoAgregar']), ENT_QUOTES, 'UTF-8');
+            $datosAgregar = htmlspecialchars(trim($_POST['datosAgregar']), ENT_QUOTES, 'UTF-8');
+            $direccionAgregar = htmlspecialchars(trim($_POST['direccionAgregar']), ENT_QUOTES, 'UTF-8');
+            $direccionAgregar2 = htmlspecialchars(trim($_POST['direccionAgregar2']), ENT_QUOTES, 'UTF-8');
+            $telefonoAgregar = htmlspecialchars(trim($_POST['telefonoAgregar']), ENT_QUOTES, 'UTF-8');
+            $telefonoAgregar2 = htmlspecialchars(trim($_POST['telefonoAgregar2']), ENT_QUOTES, 'UTF-8');
             $email = trim(filter_var($_POST['direccion'], FILTER_SANITIZE_EMAIL));
             // Convertir email a minúsculas
             $email = strtolower($email);
-            $rubroCliente = isset($_POST['rubroCliente']) ? trim(filter_var($_POST['rubroCliente'], FILTER_SANITIZE_STRING)) : null;
+            $rubroCliente = isset($_POST['rubroCliente']) ? htmlspecialchars(trim($_POST['rubroCliente']), ENT_QUOTES, 'UTF-8') : null;
 
             // Validaciones
             if (empty($doc)) {

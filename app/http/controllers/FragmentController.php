@@ -26,6 +26,10 @@ class FragmentController extends Controller
     {
         return $this->view("fragment-views/cliente/compra-add");
     }
+    public function comprasEdit($id = null)
+    {
+        return $this->view("fragment-views/cliente/compra-edit", ['id' => $id]);
+    }
     public function compras()
     {
         return $this->view("fragment-views/cliente/compras");

@@ -106,8 +106,10 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
                         <div class="col-md-8">
                             <h6 class="page-title">Dashboard</h6>
                             <ol class="breadcrumb m-10">
-                                <li class="breadcrumb-item active">Bienvenido <strong>JVC</strong> al Sistema de Facturación
-                                    Electrónica <strong>JVC</strong></li>
+                                <li class="breadcrumb-item active">
+                                    Bienvenido(a) <strong class="text-rojo"><?php echo $_SESSION['nombres'] . ' ' . ($_SESSION['apellidos'] ?? ''); ?></strong>
+                                    al Sistema de Facturación Electrónica <strong>JVC</strong>
+                                </li>
                             </ol>
                         </div>
                         <div class="col-md-4 text-end">
@@ -208,6 +210,8 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
 </script>
 
 <!-- JavaScript modular -->
+<!-- Helper para tema oscuro (debe cargarse primero) -->
+<script src="<?= URL::to('resources/views/fragment-views/cliente/home-components/assets/js/chart-theme-helper.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= URL::to('resources/views/fragment-views/cliente/home-components/assets/js/dashboard-app.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= URL::to('resources/views/fragment-views/cliente/home-components/assets/js/charts-ventas.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= URL::to('resources/views/fragment-views/cliente/home-components/assets/js/charts-productos.js') ?>?v=<?= time() ?>"></script>
@@ -260,6 +264,172 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
 .chart-container {
     min-height: 300px;
     position: relative;
+}
+
+/* ========================================
+   MODO OSCURO - DASHBOARD
+   ======================================== */
+
+/* Tarjetas mini-stat en modo oscuro */
+body[data-layout-mode="dark"] .mini-stat.bg-white,
+body.dark-mode .mini-stat.bg-white {
+    background: #2a3042 !important;
+    border: 1px solid #3e4555;
+}
+
+body[data-layout-mode="dark"] .mini-stat.bg-white .text-dark,
+body.dark-mode .mini-stat.bg-white .text-dark {
+    color: #ced4da !important;
+}
+
+body[data-layout-mode="dark"] .mini-stat.bg-white h5,
+body.dark-mode .mini-stat.bg-white h5 {
+    color: #adb5bd !important;
+}
+
+body[data-layout-mode="dark"] .mini-stat.bg-white h1,
+body.dark-mode .mini-stat.bg-white h1 {
+    color: #ffffff !important;
+}
+
+body[data-layout-mode="dark"] .mini-stat.bg-white p,
+body.dark-mode .mini-stat.bg-white p {
+    color: #adb5bd !important;
+}
+
+/* Cards generales en modo oscuro */
+body[data-layout-mode="dark"] .card,
+body.dark-mode .card {
+    background: #2a3042 !important;
+    border: 1px solid #3e4555;
+}
+
+body[data-layout-mode="dark"] .card-body,
+body.dark-mode .card-body {
+    background: transparent !important;
+    color: #ced4da !important;
+}
+
+body[data-layout-mode="dark"] .card-title,
+body.dark-mode .card-title {
+    color: #ffffff !important;
+}
+
+/* Textos en modo oscuro */
+body[data-layout-mode="dark"] .text-dark,
+body.dark-mode .text-dark {
+    color: #ced4da !important;
+}
+
+body[data-layout-mode="dark"] .text-muted,
+body.dark-mode .text-muted {
+    color: #adb5bd !important;
+}
+
+/* bg-light en modo oscuro */
+body[data-layout-mode="dark"] .bg-light,
+body.dark-mode .bg-light {
+    background-color: #1f2937 !important;
+}
+
+body[data-layout-mode="dark"] .bg-light .text-muted,
+body.dark-mode .bg-light .text-muted {
+    color: #adb5bd !important;
+}
+
+body[data-layout-mode="dark"] .bg-light h5,
+body.dark-mode .bg-light h5 {
+    color: #ffffff !important;
+}
+
+/* No data message en modo oscuro */
+body[data-layout-mode="dark"] .no-data-message,
+body.dark-mode .no-data-message {
+    color: #adb5bd !important;
+}
+
+/* List group items en modo oscuro */
+body[data-layout-mode="dark"] .list-group-item,
+body.dark-mode .list-group-item {
+    background-color: #2a3042 !important;
+    border: 1px solid #3e4555 !important;
+    color: #ced4da !important;
+}
+
+body[data-layout-mode="dark"] .list-group-item:hover,
+body.dark-mode .list-group-item:hover {
+    background-color: #3e4555 !important;
+    border-color: #4b5563 !important;
+}
+
+/* Badges en modo oscuro */
+body[data-layout-mode="dark"] .badge,
+body.dark-mode .badge {
+    color: #ffffff !important;
+}
+
+/* Tabs en modo oscuro */
+body[data-layout-mode="dark"] .nav-tabs,
+body.dark-mode .nav-tabs {
+    border-bottom: 1px solid #3e4555;
+}
+
+body[data-layout-mode="dark"] .nav-tabs .nav-link,
+body.dark-mode .nav-tabs .nav-link {
+    color: #adb5bd;
+    border: 1px solid transparent;
+}
+
+body[data-layout-mode="dark"] .nav-tabs .nav-link:hover,
+body.dark-mode .nav-tabs .nav-link:hover {
+    color: #ffffff;
+    border-color: #3e4555;
+}
+
+body[data-layout-mode="dark"] .nav-tabs .nav-link.active,
+body.dark-mode .nav-tabs .nav-link.active {
+    color: #ffffff;
+    background-color: #2a3042;
+    border-color: #3e4555 #3e4555 #2a3042;
+}
+
+/* Breadcrumb en modo oscuro */
+body[data-layout-mode="dark"] .breadcrumb-item,
+body.dark-mode .breadcrumb-item {
+    color: #adb5bd !important;
+}
+
+body[data-layout-mode="dark"] .breadcrumb-item.active,
+body.dark-mode .breadcrumb-item.active {
+    color: #ced4da !important;
+}
+
+body[data-layout-mode="dark"] .page-title,
+body.dark-mode .page-title {
+    color: #ffffff !important;
+}
+
+/* Dropdown items en modo oscuro */
+body[data-layout-mode="dark"] .dropdown-menu,
+body.dark-mode .dropdown-menu {
+    background-color: #3e4555;
+    border: 1px solid #4b5563;
+}
+
+body[data-layout-mode="dark"] .dropdown-item,
+body.dark-mode .dropdown-item {
+    color: #ced4da;
+}
+
+body[data-layout-mode="dark"] .dropdown-item:hover,
+body.dark-mode .dropdown-item:hover {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #ffffff;
+}
+
+body[data-layout-mode="dark"] .dropdown-divider,
+body.dark-mode .dropdown-divider {
+    border-top: 1px solid #4b5563;
 }
 
 /* Fix para evitar espacios en blanco en pestañas */

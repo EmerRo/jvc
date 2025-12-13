@@ -439,7 +439,8 @@ public function setIdCotizacionTaller($id_cotizacion_taller)
         nro_bultos,
         estado,
         id_empresa,
-        sucursal
+        sucursal,
+        id_usuario
     ) VALUES (
         $id_venta_escaped,
         $id_cotizacion_escaped,
@@ -469,7 +470,8 @@ public function setIdCotizacionTaller($id_cotizacion_taller)
         '$nro_bultos_escaped',
         '1',
         '$id_empresa_escaped',
-        '$sucursal_escaped'
+        '$sucursal_escaped',
+        '{$_SESSION['usuario_fac']}'
     )";
 
     $result = $this->conectar->query($sql);

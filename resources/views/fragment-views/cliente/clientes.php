@@ -6,6 +6,20 @@ $c_cliente = new Cliente();
 $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
 ?>
+<style>
+    /* Estilos para la columna de email */
+    #tabla_clientes tbody td:nth-child(4) {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Mejorar el aspecto del tooltip */
+    [title] {
+        position: relative;
+    }
+</style>
 <div class="page-title-box" style="padding: 12px 0;">
     <div class="row align-items-center">
         <div class="col-md-12">
@@ -131,8 +145,9 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                             <div class="col-md-6">
                                                 <label>DNI o RUC<span style="color: red;"> (*)</span></label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" required maxlength="11"
-                                                        id="documentoAgregar" name="documentoAgregar">
+                                                    <input type="text" class="form-control only-numbers" required maxlength="11"
+                                                        id="documentoAgregar" name="documentoAgregar"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                     <div class="input-group-prepend">
                                                         <button id="btnBuscarInfo" class="btn bg-rojo text-white">
                                                             <i class="fa fa-search"></i>
@@ -163,10 +178,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                                             <!-- Fila 3 -->
                                             <div class="col-md-6">
-                                                <label>Teléfono</label>
-                                                <input type="number" class="form-control" id="telefonoAgregar"
-                                                    name="telefonoAgregar" maxlength="9"
-                                                    oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);">
+                                                <label>Teléfono<span style="color: red;"> (*)</span></label>
+                                                <input type="text" class="form-control only-numbers" id="telefonoAgregar"
+                                                    name="telefonoAgregar" maxlength="9" required
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);">
                                                 <p class="text-danger error-msg" id="error-telefonoAgregar"></p>
                                             </div>
                                             <div class="col-md-6">
@@ -178,15 +193,15 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                                             <!-- Fila 4 -->
                                             <div class="col-md-6">
-                                                <label>Email <small>(opcional)</small></label>
+                                                <label>Email<span style="color: red;"> (*)</span></label>
                                                 <input type="email" class="form-control" id="direccion"
-                                                    name="direccion">
+                                                    name="direccion" required>
                                                 <p class="text-danger error-msg" id="error-email"></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <label>Rubro</label>
+                                                <label>Rubro<span style="color: red;"> (*)</span></label>
                                                 <div class="input-group">
-                                                    <select class="form-control" id="rubroCliente" name="rubroCliente">
+                                                    <select class="form-control" id="rubroCliente" name="rubroCliente" required>
                                                         <option value="">Seleccione un rubro</option>
                                                     </select>
                                                     <button class="btn bg-rojo text-white" type="button"
@@ -194,6 +209,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                                         <i class="fa fa-plus"></i>
                                                     </button>
                                                 </div>
+                                                <p class="text-danger error-msg" id="error-rubroCliente"></p>
                                             </div>
                                         </div>
                                     </form>
@@ -222,12 +238,13 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         <div class="row p-2">
                                             <!-- Fila 1 -->
                                             <div class="col-md-6">
-                                                <label>DNI<span style="color: red;"> (*)</span></label>
+                                                <label>DNI o RUC<span style="color: red;"> (*)</span></label>
                                                 <div class="input-group">
                                                     <input type="hidden" name="idCliente" id="idCliente" value="">
                                                     <input type="hidden" name="trid" id="trid" value="">
-                                                    <input type="text" class="form-control" id="documentoEditar"
-                                                        name="documentoEditar" required maxlength="11">
+                                                    <input type="text" class="form-control only-numbers" id="documentoEditar"
+                                                        name="documentoEditar" required maxlength="11"
+                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                     <div class="input-group-prepend">
                                                         <button id="btnBuscarInfoEditar" class="btn bg-rojo text-white">
                                                             <i class="fa fa-search"></i>
@@ -257,10 +274,10 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                                             <!-- Fila 3 -->
                                             <div class="col-md-6">
-                                                <label>Teléfono</label>
-                                                <input type="number" class="form-control" id="telefonoEditar"
-                                                    name="telefonoEditar" maxlength="9"
-                                                    oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);">
+                                                <label>Teléfono<span style="color: red;"> (*)</span></label>
+                                                <input type="text" class="form-control only-numbers" id="telefonoEditar"
+                                                    name="telefonoEditar" maxlength="9" required
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);">
                                                 <p class="text-danger error-msg" id="error-telefonoEditar"></p>
                                             </div>
                                             <div class="col-md-6">
@@ -272,16 +289,16 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 
                                             <!-- Fila 4 -->
                                             <div class="col-md-6">
-                                                <label>Email <small>(opcional)</small></label>
+                                                <label>Email<span style="color: red;"> (*)</span></label>
                                                 <input type="email" class="form-control" id="emailEditar"
-                                                    name="emailEditar">
+                                                    name="emailEditar" required>
                                                 <p class="text-danger error-msg" id="error-emailEditar"></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <label>Rubro</label>
+                                                <label>Rubro<span style="color: red;"> (*)</span></label>
                                                 <div class="input-group">
                                                     <select class="form-control" id="rubroClienteEditar"
-                                                        name="rubroClienteEditar">
+                                                        name="rubroClienteEditar" required>
                                                         <option value="">Seleccione un rubro</option>
                                                     </select>
                                                     <button class="btn bg-rojo text-white" type="button"
@@ -289,6 +306,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                                         <i class="fa fa-plus"></i>
                                                     </button>
                                                 </div>
+                                                <p class="text-danger error-msg" id="error-rubroClienteEditar"></p>
                                             </div>
                                         </div>
                                     </form>
@@ -351,7 +369,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         <th>Télefono</th>
                                         <th>Rubro</th>
                                         <th>S/ Venta</th>
-                                        <th>Ultima Venta</th>
+                                        <th>Ultima </br> Venta</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -437,7 +455,16 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     },
                     { data: "documento", class: "text-center" },
                     { data: "datos", class: "text-center" },
-                    { data: "email", class: "text-center" },
+                    {
+                        data: "email",
+                        class: "text-center",
+                        render: function (data, type, row) {
+                            if (type === 'display' && data && data.length > 25) {
+                                return `<span title="${data}" style="cursor: help; max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${data}</span>`;
+                            }
+                            return data || '';
+                        }
+                    },
                     { data: "telefono", class: "text-center" },
                     {
                         data: "rubro_nombre",
@@ -481,7 +508,18 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             if (!documento) {
                 $("#error-documentoAgregar").text("El documento es obligatorio");
                 isValid = false;
-            } else if (documento.length !== 8 && documento.length !== 11) {
+            } else if (!/^\d+$/.test(documento)) {
+                $("#error-documentoAgregar").text("El documento solo debe contener números");
+                isValid = false;
+            } else if (documento.length === 8) {
+                // Es DNI, está bien
+            } else if (documento.length === 11) {
+                // Validar que sea RUC tipo 10 o tipo 20
+                if (!documento.startsWith('10') && !documento.startsWith('20')) {
+                    $("#error-documentoAgregar").text("El RUC debe empezar con 10 o 20");
+                    isValid = false;
+                }
+            } else {
                 $("#error-documentoAgregar").text("El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)");
                 isValid = false;
             }
@@ -493,17 +531,33 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 isValid = false;
             }
 
-            // Validar teléfono (si se proporciona)
+            // Validar teléfono (OBLIGATORIO)
             const telefono = $("#telefonoAgregar").val().trim();
-            if (telefono && telefono.length !== 9) {
+            if (!telefono) {
+                $("#error-telefonoAgregar").text("El teléfono es obligatorio");
+                isValid = false;
+            } else if (telefono.length !== 9) {
                 $("#error-telefonoAgregar").text("El teléfono debe tener 9 dígitos");
+                isValid = false;
+            } else if (!/^\d+$/.test(telefono)) {
+                $("#error-telefonoAgregar").text("El teléfono solo debe contener números");
                 isValid = false;
             }
 
-            // Validar email (si se proporciona)
+            // Validar email (OBLIGATORIO)
             const email = $("#direccion").val().trim();
-            if (email && !validateEmail(email)) {
+            if (!email) {
+                $("#error-email").text("El email es obligatorio");
+                isValid = false;
+            } else if (!validateEmail(email)) {
                 $("#error-email").text("El formato del email no es válido");
+                isValid = false;
+            }
+
+            // Validar rubro (OBLIGATORIO)
+            const rubro = $("#rubroCliente").val();
+            if (!rubro) {
+                $("#error-rubroCliente").text("Debe seleccionar un rubro");
                 isValid = false;
             }
 
@@ -522,7 +576,18 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             if (!documento) {
                 $("#error-documentoEditar").text("El documento es obligatorio");
                 isValid = false;
-            } else if (documento.length !== 8 && documento.length !== 11) {
+            } else if (!/^\d+$/.test(documento)) {
+                $("#error-documentoEditar").text("El documento solo debe contener números");
+                isValid = false;
+            } else if (documento.length === 8) {
+                // Es DNI, está bien
+            } else if (documento.length === 11) {
+                // Validar que sea RUC tipo 10 o tipo 20
+                if (!documento.startsWith('10') && !documento.startsWith('20')) {
+                    $("#error-documentoEditar").text("El RUC debe empezar con 10 o 20");
+                    isValid = false;
+                }
+            } else {
                 $("#error-documentoEditar").text("El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)");
                 isValid = false;
             }
@@ -534,17 +599,33 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 isValid = false;
             }
 
-            // Validar teléfono (si se proporciona)
+            // Validar teléfono (OBLIGATORIO)
             const telefono = $("#telefonoEditar").val().trim();
-            if (telefono && telefono.length !== 9) {
+            if (!telefono) {
+                $("#error-telefonoEditar").text("El teléfono es obligatorio");
+                isValid = false;
+            } else if (telefono.length !== 9) {
                 $("#error-telefonoEditar").text("El teléfono debe tener 9 dígitos");
+                isValid = false;
+            } else if (!/^\d+$/.test(telefono)) {
+                $("#error-telefonoEditar").text("El teléfono solo debe contener números");
                 isValid = false;
             }
 
-            // Validar email (si se proporciona)
+            // Validar email (OBLIGATORIO)
             const email = $("#emailEditar").val().trim();
-            if (email && !validateEmail(email)) {
+            if (!email) {
+                $("#error-emailEditar").text("El email es obligatorio");
+                isValid = false;
+            } else if (!validateEmail(email)) {
                 $("#error-emailEditar").text("El formato del email no es válido");
+                isValid = false;
+            }
+
+            // Validar rubro (OBLIGATORIO)
+            const rubro = $("#rubroClienteEditar").val();
+            if (!rubro) {
+                $("#error-rubroClienteEditar").text("Debe seleccionar un rubro");
                 isValid = false;
             }
 

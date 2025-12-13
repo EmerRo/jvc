@@ -1,0 +1,135 @@
+═══════════════════════════════════════════════════════════════
+ 🚀 WEBSOCKET JVC - GUÍA DE INICIO RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANTE: Solo funciona en LOCALHOST (no en producción)
+
+═══════════════════════════════════════════════════════════════
+ 📖 PASOS PARA USAR
+═══════════════════════════════════════════════════════════════
+
+1️⃣  INICIAR EL SERVIDOR
+   ──────────────────────────────────────────────────────────
+   Opción A: Doble clic en el archivo:
+
+      📄 INICIAR-WEBSOCKET.bat
+
+   Opción B: Desde terminal (PowerShell/CMD):
+
+      cd C:\xampp\htdocs\jvc
+      php server/websocket-server.php
+
+   ✅ Deberías ver: "✓ Servidor iniciado correctamente"
+
+═══════════════════════════════════════════════════════════════
+
+2️⃣  PROBAR CON EL DEMO
+   ──────────────────────────────────────────────────────────
+   Abre en tu navegador:
+
+      http://localhost/jvc/server/EJEMPLO-USO.html
+
+   • Haz clic en "Conectar"
+   • Prueba los botones de notificaciones
+   • Abre en otra pestaña para ver mensajes en tiempo real
+
+═══════════════════════════════════════════════════════════════
+
+3️⃣  USAR EN TU APLICACIÓN
+   ──────────────────────────────────────────────────────────
+   El WebSocket ya está activo automáticamente en tu app.
+
+   Desde la consola del navegador (F12):
+
+   // Ver el objeto WebSocket
+   window.JVCWebSocket
+
+   // Enviar notificación
+   window.JVCWebSocket.enviarNotificacion('Hola', 'Prueba', 'success');
+
+   // Notificar venta
+   window.JVCWebSocket.notificarVentaNueva(123, 'Juan Pérez', 150.50);
+
+   // Alerta stock bajo
+   window.JVCWebSocket.alertarStockBajo('Laptop HP', 2);
+
+═══════════════════════════════════════════════════════════════
+
+📁 ARCHIVOS IMPORTANTES
+═══════════════════════════════════════════════════════════════
+
+✅ server/README-WEBSOCKET.md          → Documentación completa
+✅ server/EJEMPLO-USO.html              → Demo interactivo
+✅ INICIAR-WEBSOCKET.bat                → Iniciar servidor fácil
+✅ server/websocket-server.php          → Servidor
+✅ public/assets/js/websocket-client.js → Cliente JS
+
+═══════════════════════════════════════════════════════════════
+
+🛠️  SOLUCIÓN DE PROBLEMAS
+═══════════════════════════════════════════════════════════════
+
+❌ "Puerto 8080 ya en uso"
+   → Ejecuta: netstat -ano | findstr :8080
+   → Luego: taskkill /PID [número] /F
+
+❌ "WebSocket no conecta"
+   → ¿Está el servidor corriendo? (terminal abierta)
+   → ¿Estás en localhost o 127.0.0.1?
+   → Revisa la consola del navegador (F12)
+
+❌ "No veo notificaciones"
+   → Verifica que Swal esté cargado (SweetAlert2)
+   → Revisa la consola del navegador
+
+═══════════════════════════════════════════════════════════════
+
+💡 EJEMPLOS RÁPIDOS
+═══════════════════════════════════════════════════════════════
+
+// Notificación simple
+JVCWebSocket.enviarNotificacion('Título', 'Mensaje', 'info');
+
+// Nueva venta con notificación automática
+if (window.JVCWebSocket && window.JVCWebSocket.isConnected) {
+    window.JVCWebSocket.notificarVentaNueva(
+        venta_id,
+        'Cliente ABC',
+        250.00
+    );
+}
+
+// Escuchar cuando se conecta
+window.JVCWebSocket.on('onConnect', function() {
+    console.log('¡Conectado!');
+});
+
+// Escuchar mensajes entrantes
+window.JVCWebSocket.on('onMessage', function(data) {
+    console.log('Mensaje:', data);
+});
+
+═══════════════════════════════════════════════════════════════
+
+📚 MÁS INFORMACIÓN
+═══════════════════════════════════════════════════════════════
+
+Lee el archivo: server/README-WEBSOCKET.md
+
+Contiene:
+• Documentación completa
+• Ejemplos avanzados
+• Solución de problemas
+• Cómo personalizar mensajes
+• Integración con tu código existente
+
+═══════════════════════════════════════════════════════════════
+
+✅ ¡TODO LISTO!
+═══════════════════════════════════════════════════════════════
+
+1. Ejecuta: INICIAR-WEBSOCKET.bat
+2. Abre: http://localhost/jvc/server/EJEMPLO-USO.html
+3. ¡Disfruta las notificaciones en tiempo real!
+
+═══════════════════════════════════════════════════════════════

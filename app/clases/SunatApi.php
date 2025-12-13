@@ -574,6 +574,9 @@ class SunatApi
 
 
     public function genFacturaXML($dataE){
+        // Limpiar buffer de salida para evitar que warnings contaminen el XML
+        if (ob_get_level()) ob_clean();
+
         if(isset($dataE['cliente'])&&is_string($dataE['cliente'])){
             $dataE['cliente']=json_decode($dataE['cliente'],true);
         }
@@ -611,9 +614,9 @@ class SunatApi
             $client = new Client();
             $client->setTipoDoc('6')
                 ->setNumDoc($data['cliente']['doc_num'])
-                ->setRznSocial(utf8_encode($data['cliente']["nom_RS"]))
+                ->setRznSocial(mb_convert_encoding($data['cliente']["nom_RS"], 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
-                    ->setDireccion(utf8_encode($data['cliente']["direccion"])));
+                    ->setDireccion(mb_convert_encoding($data['cliente']["direccion"], 'UTF-8', 'ISO-8859-1')));
 
             $util->setRuc($data['empresa']["ruc"]);
             $util->setClave($data['empresa']["clave_sol"]);
@@ -621,8 +624,8 @@ class SunatApi
 
             $empresa = new Company();
             $empresa->setRuc($data['empresa']["ruc"])
-                ->setNombreComercial(utf8_encode($data['empresa']["razon_social"]))
-                ->setRazonSocial(utf8_encode($data['empresa']["razon_social"]))
+                ->setNombreComercial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
+                ->setRazonSocial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
                     ->setUbigueo($data['empresa']["ubigeo"])
                     ->setDistrito($data['empresa']["distrito"])
@@ -630,7 +633,7 @@ class SunatApi
                     ->setDepartamento($data['empresa']["departamento"])
                     ->setUrbanizacion('-')
                     ->setCodLocal('0000')
-                    ->setDireccion(utf8_encode($data['empresa']["direccion"])));
+                    ->setDireccion(mb_convert_encoding($data['empresa']["direccion"], 'UTF-8', 'ISO-8859-1')));
 
             $subtotal = number_format($data['total'] / ($igv_venta_sel+1), 2, ".", "");
             $igv = number_format($data['total'] / ($igv_venta_sel+1) * $igv_venta_sel, 2, ".", "");
@@ -717,7 +720,7 @@ class SunatApi
                 $item->setCodProducto($value['cod_pro'])
                     ->setCodProdSunat($value['cod_sunat'])
                     ->setUnidad('NIU')
-                    ->setDescripcion(utf8_encode($value['descripcion']))
+                    ->setDescripcion(mb_convert_encoding($value['descripcion'], 'UTF-8', 'ISO-8859-1'))
                     ->setCantidad($cantidad);
 
                 if ($data['apli_igv']){
@@ -744,7 +747,7 @@ class SunatApi
 
             $invoice->setDetails($array_items);
             $c_numeros = new NumerosaLetras();
-            $numeros = utf8_decode($c_numeros->to_word(number_format($data['total'], 2, ".", ""), $data['moneda']));
+            $numeros = mb_convert_encoding($c_numeros->to_word(number_format($data['total'], 2, ".", ""), $data['moneda']), 'ISO-8859-1', 'UTF-8');
             //echo $numeros;
             $invoice->setLegends([
                 (new Legend())
@@ -796,6 +799,9 @@ class SunatApi
         }
     }
     public function genBoletaXML($dataE){
+        // Limpiar buffer de salida para evitar que warnings contaminen el XML
+        if (ob_get_level()) ob_clean();
+
         if(isset($dataE['cliente'])&&is_string($dataE['cliente'])){
             $dataE['cliente']=json_decode($dataE['cliente'],true);
         }
@@ -846,7 +852,7 @@ class SunatApi
             $client = new Client();
             $client->setTipoDoc($tipo_doc)
                 ->setNumDoc($documente_num)
-                ->setRznSocial($nom_rs_c=='-'?'cliente':utf8_encode($nom_rs_c));
+                ->setRznSocial($nom_rs_c=='-'?'cliente':mb_convert_encoding($nom_rs_c, 'UTF-8', 'ISO-8859-1'));
 
             $util->setRuc($data['empresa']["ruc"]);
             $util->setClave($data['empresa']["clave_sol"]);
@@ -854,8 +860,8 @@ class SunatApi
 
             $empresa = new Company();
             $empresa->setRuc($data['empresa']["ruc"])
-                ->setNombreComercial(utf8_encode($data['empresa']["razon_social"]))
-                ->setRazonSocial(utf8_encode($data['empresa']["razon_social"]))
+                ->setNombreComercial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
+                ->setRazonSocial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
                     ->setUbigueo($data['empresa']["ubigeo"])
                     ->setDistrito($data['empresa']["distrito"])
@@ -863,7 +869,7 @@ class SunatApi
                     ->setDepartamento($data['empresa']["departamento"])
                     ->setUrbanizacion('-')
                     ->setCodLocal('0000')
-                    ->setDireccion(utf8_encode($data['empresa']["direccion"])));
+                    ->setDireccion(mb_convert_encoding($data['empresa']["direccion"], 'UTF-8', 'ISO-8859-1')));
 
             $subtotal = number_format($data['total'] / ($igv_venta_sel+1), 2, ".", "");
             $igv = number_format($data['total'] / ($igv_venta_sel+1) * $igv_venta_sel, 2, ".", "");
@@ -938,7 +944,7 @@ class SunatApi
                 $item->setCodProducto($value['cod_pro'])
                     ->setCodProdSunat($value['cod_sunat'])
                     ->setUnidad('NIU')
-                    ->setDescripcion(utf8_encode($value['descripcion']))
+                    ->setDescripcion(mb_convert_encoding($value['descripcion'], 'UTF-8', 'ISO-8859-1'))
                     ->setCantidad($value['cantidad']);
 
 
@@ -967,7 +973,7 @@ class SunatApi
 
             $invoice->setDetails($array_items);
             $c_numeros = new NumerosaLetras();
-            $numeros = utf8_decode($c_numeros->to_word(number_format($data['total'], 2, ".", ""), $data['moneda']));
+            $numeros = mb_convert_encoding($c_numeros->to_word(number_format($data['total'], 2, ".", ""), $data['moneda']), 'ISO-8859-1', 'UTF-8');
             $invoice->setLegends([
                 (new Legend())
                     ->setCode('1000')
@@ -1082,8 +1088,8 @@ class SunatApi
 
             $empresa = new Company();
             $empresa->setRuc($dataE['empresa']['ruc'])
-                ->setNombreComercial(utf8_encode($dataE['empresa']['razon_social']))
-                ->setRazonSocial(utf8_encode($dataE['empresa']['razon_social']))
+                ->setNombreComercial(mb_convert_encoding($dataE['empresa']['razon_social'], 'UTF-8', 'ISO-8859-1'))
+                ->setRazonSocial(mb_convert_encoding($dataE['empresa']['razon_social'], 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
                     ->setUbigueo($dataE['empresa']["ubigeo"])
                     ->setDistrito($dataE['empresa']["distrito"])
@@ -1091,7 +1097,7 @@ class SunatApi
                     ->setDepartamento($dataE['empresa']["departamento"])
                     ->setUrbanizacion('-')
                     ->setCodLocal('0000')
-                    ->setDireccion(utf8_encode($dataE['empresa']["direccion"])));
+                    ->setDireccion(mb_convert_encoding($dataE['empresa']["direccion"], 'UTF-8', 'ISO-8859-1')));
 
 
             $array_items = array();
@@ -1103,7 +1109,7 @@ class SunatApi
                 $detail = new DespatchDetail();
                 $detail->setCantidad($value['cantidad'])
                     ->setUnidad('NIU')
-                    ->setDescripcion(utf8_encode($value['descripcion']) )
+                    ->setDescripcion(mb_convert_encoding($value['descripcion'], 'UTF-8', 'ISO-8859-1') )
                     ->setCodigo($value['cod_pro']);
                 //->setCodProdSunat($value['id_producto']);
 
@@ -1114,8 +1120,8 @@ class SunatApi
 
             $transp = new Transportist();
             $transp->setTipoDoc('6')
-                ->setNumDoc(utf8_encode($dataE['transporte']['ruc']))
-                ->setRznSocial(utf8_encode($dataE['transporte']['razon_social']))
+                ->setNumDoc(mb_convert_encoding($dataE['transporte']['ruc'], 'UTF-8', 'ISO-8859-1'))
+                ->setRznSocial(mb_convert_encoding($dataE['transporte']['razon_social'], 'UTF-8', 'ISO-8859-1'))
                 ->setPlaca($dataE['transporte']['placa'])
                 ->setChoferTipoDoc('1')
                 ->setChoferDoc($dataE['transporte']['doc_chofer']);
@@ -1129,8 +1135,8 @@ class SunatApi
                 ->setPesoTotal($dataE['peso'])
                 ->setUndPesoTotal('KGM')
                 //->setNumBultos($sumar_cantidades)
-                ->setLlegada(new Direction($dataE['ubigeo'],utf8_encode( $dataE['direccion'])))
-                ->setPartida(new Direction($dataE['empresa']["ubigeo"],utf8_encode($dataE['empresa']["direccion"])))
+                ->setLlegada(new Direction($dataE['ubigeo'],mb_convert_encoding( $dataE['direccion'], 'UTF-8', 'ISO-8859-1')))
+                ->setPartida(new Direction($dataE['empresa']["ubigeo"],mb_convert_encoding($dataE['empresa']["direccion"], 'UTF-8', 'ISO-8859-1')))
                 ->setTransportista($transp);
 
             $despatch = new Despatch();
@@ -1250,14 +1256,14 @@ class SunatApi
             $client = new Client();
             $client->setTipoDoc($tipo_doc)
                 ->setNumDoc($documente_num)
-                ->setRznSocial($nom_rs_c=='-'?'cliente':utf8_encode($nom_rs_c))
+                ->setRznSocial($nom_rs_c=='-'?'cliente':mb_convert_encoding($nom_rs_c, 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
                     ->setDireccion($data['cliente']["direccion"]));
 
             $empresa = new Company();
             $empresa->setRuc($data['empresa']["ruc"])
-                ->setNombreComercial(utf8_encode($data['empresa']["razon_social"]))
-                ->setRazonSocial(utf8_encode($data['empresa']["razon_social"]))
+                ->setNombreComercial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
+                ->setRazonSocial(mb_convert_encoding($data['empresa']["razon_social"], 'UTF-8', 'ISO-8859-1'))
                 ->setAddress((new Address())
                     ->setUbigueo($data['empresa']["ubigeo"])
                     ->setDistrito($data['empresa']["distrito"])
@@ -1265,7 +1271,7 @@ class SunatApi
                     ->setDepartamento($data['empresa']["departamento"])
                     ->setUrbanizacion('-')
                     ->setCodLocal('0000')
-                    ->setDireccion(utf8_encode($data['empresa']["direccion"])));
+                    ->setDireccion(mb_convert_encoding($data['empresa']["direccion"], 'UTF-8', 'ISO-8859-1')));
 
 
             $montoGravada=number_format($data['total'] / 1.18, 2, ".", "");
@@ -1308,7 +1314,7 @@ class SunatApi
                 $item->setCodProducto($value['cod_pro'])
                     ->setCodProdSunat($value['cod_sunat'])
                     ->setUnidad('NIU')
-                    ->setDescripcion(utf8_encode($value['descripcion']))
+                    ->setDescripcion(mb_convert_encoding($value['descripcion'], 'UTF-8', 'ISO-8859-1'))
                     ->setCantidad($value['cantidad'])
                     ->setMtoValorUnitario($preciounitariosinigv)
                     ->setMtoValorVenta($valorventasinigv)

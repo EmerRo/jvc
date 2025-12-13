@@ -556,3 +556,87 @@
   height: 100px;
   width: 100%;
 }
+
+/* ========================================
+   MODO OSCURO - SIDEBAR
+   ======================================== */
+body[data-layout-mode="dark"] .jvc-sidebar,
+body.dark-mode .jvc-sidebar {
+  background: #2a3042;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-header,
+body.dark-mode .jvc-sidebar-header {
+  border-bottom: 1px solid #3e4555;
+}
+
+body[data-layout-mode="dark"] .menu-title,
+body.dark-mode .menu-title {
+  color: #e74c3c;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-link,
+body.dark-mode .jvc-sidebar-link {
+  color: #ced4da;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-link:hover,
+body.dark-mode .jvc-sidebar-link:hover {
+  color: #ffffff;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-link i,
+body.dark-mode .jvc-sidebar-link i {
+  color: #e74c3c;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-link:hover i,
+body.dark-mode .jvc-sidebar-link:hover i {
+  color: #ff6b6b;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-dropdown-item,
+body.dark-mode .jvc-sidebar-dropdown-item {
+  color: #adb5bd;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-dropdown-item:hover,
+body.dark-mode .jvc-sidebar-dropdown-item:hover {
+  color: #ffffff;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar-dropdown-item::before,
+body.dark-mode .jvc-sidebar-dropdown-item::before {
+  background-color: #e74c3c;
+}
+
+/* Modo colapsado - hover tooltip oscuro */
+body[data-layout-mode="dark"] .collapsed .jvc-sidebar-item:hover .jvc-sidebar-link span,
+body.dark-mode .collapsed .jvc-sidebar-item:hover .jvc-sidebar-link span {
+  background: #3e4555;
+  border: 1px solid #4b5563;
+  color: #ffffff;
+}
+
+body[data-layout-mode="dark"] .collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown,
+body.dark-mode .collapsed .jvc-sidebar-item:hover .jvc-sidebar-dropdown {
+  background: #3e4555;
+  border: 1px solid #4b5563;
+}
+
+/* Scroll oscuro */
+body[data-layout-mode="dark"] .jvc-sidebar::-webkit-scrollbar-track,
+body.dark-mode .jvc-sidebar::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar::-webkit-scrollbar-thumb,
+body.dark-mode .jvc-sidebar::-webkit-scrollbar-thumb {
+  background: #e74c3c;
+}
+
+body[data-layout-mode="dark"] .jvc-sidebar::-webkit-scrollbar-thumb:hover,
+body.dark-mode .jvc-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #c0392b;
+}

@@ -1,0 +1,373 @@
+
+    /* Contenedor de la vista previa del documento */
+    .document-preview {
+        height: 250px;
+        overflow: hidden;
+        display: block;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* Estilo para el canvas de PDF */
+    .pdf-preview-canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    /* NUEVOS ESTILOS PARA EVITAR DESBORDAMIENTO */
+    
+    /* Contenedor de la tarjeta */
+    .card {
+        overflow: hidden;
+    }
+    
+    /* Header de la tarjeta */
+    .card-header {
+        overflow: hidden;
+    }
+    
+    /* Título de la tarjeta */
+    .card-title {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.3;
+    }
+    
+    /* Badge del producto */
+    .badge {
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        white-space: normal !important;
+        line-height: 1.2;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Contenedor de badges */
+    .card-header .mt-1 {
+        overflow: hidden;
+        word-wrap: break-word;
+    }
+    
+    /* Asegurar que el contenido no se desborde */
+    .card-body {
+        overflow: hidden;
+    }
+    
+    /* Texto pequeño en la parte inferior */
+    .card-body small {
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    /* Responsive: En pantallas pequeñas, hacer el texto aún más pequeño */
+    @media (max-width: 768px) {
+        .badge {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+        }
+    }
+    
+    /* NUEVOS ESTILOS PARA EL MODAL */
+    
+    /* Modal más ancho para mejor visualización */
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    /* Estilos para las imágenes en el modal */
+    .modal .img-fluid {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .modal .img-fluid:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Estilos para los botones de acción */
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem !important;
+        border-bottom-left-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
+    }
+    
+    /* Estilos para la lista de adjuntos */
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Estilos para el contador de archivos */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Estilos para las imágenes con sombra */
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    /* Estilos para el iframe del PDF */
+    .ratio iframe {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    /* Estilos para el modal de imagen ampliada */
+    .swal-wide {
+        max-width: 90vw !important;
+    }
+    
+    .swal-wide .swal2-popup {
+        max-width: none !important;
+    }
+    
+    /* NUEVOS ESTILOS PARA IMÁGENES */
+    
+    /* Efecto hover en imágenes */
+    .img-fluid[onclick*="ampliarImagen"] {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .img-fluid[onclick*="ampliarImagen"]:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        z-index: 10;
+        position: relative;
+    }
+    
+    /* Indicador visual de que la imagen es clickeable */
+    .img-fluid[onclick*="ampliarImagen"]::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.1);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+    
+    .img-fluid[onclick*="ampliarImagen"]:hover::after {
+        opacity: 1;
+    }
+    
+    /* Estilos para el modal de imagen */
+    .modal .img-fluid {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .modal .img-fluid:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Estilos para los botones de acción */
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem !important;
+        border-bottom-left-radius: 0.375rem !important;
+    }
+    
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
+    }
+    
+    /* Estilos para la lista de adjuntos */
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Estilos para el contador de archivos */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* Estilos para las imágenes con sombra */
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    /* Estilos para el iframe del PDF */
+    .ratio iframe {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    /* NUEVO: Quitar hover rojo en lista de adjuntos */
+    
+    /* Quitar hover rojo en list-group-item */
+    .list-group-item:hover {
+        background-color: #f8f9fa !important;
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en botones de la lista */
+    .list-group-item .btn:hover {
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+        color: white !important;
+    }
+    
+    /* Quitar hover rojo en enlaces de la lista */
+    .list-group-item a:hover {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+    
+    /* Quitar hover rojo en iconos de la lista */
+    .list-group-item i:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en spans de la lista */
+    .list-group-item span:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos pequeños de la lista */
+    .list-group-item small:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de texto de la lista */
+    .list-group-item p:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos div de la lista */
+    .list-group-item div:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos con clase bg-light */
+    .list-group-item.bg-light:hover {
+        background-color: #f8f9fa !important;
+        color: #6c757d !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases personalizadas */
+    .list-group-item[class*="bg-"]:hover {
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de color */
+    .list-group-item[class*="text-"]:hover {
+        color: inherit !important;
+    }
+    
+    /* NUEVO: Estilos más específicos para quitar hover rojo */
+    
+    /* Quitar hover rojo en toda la lista de adjuntos del modal */
+    #verArchivoModal .list-group-item:hover {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    /* Quitar hover rojo en elementos específicos de la lista */
+    #verArchivoModal .list-group-item .btn-outline-primary:hover {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+    }
+    
+    #verArchivoModal .list-group-item .btn-outline-success:hover {
+        background-color: #198754 !important;
+        border-color: #198754 !important;
+        color: white !important;
+    }
+    
+    #verArchivoModal .list-group-item .btn-outline-danger:hover {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: white !important;
+    }
+    
+    /* Quitar hover rojo en iconos específicos */
+    #verArchivoModal .list-group-item .fas:hover,
+    #verArchivoModal .list-group-item .fab:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de texto */
+    #verArchivoModal .list-group-item .text-muted:hover {
+        color: #6c757d !important;
+    }
+    
+    #verArchivoModal .list-group-item .text-info:hover {
+        color: #0dcaf0 !important;
+    }
+    
+    /* Quitar hover rojo en elementos con clases específicas */
+    #verArchivoModal .list-group-item .text-truncate:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de Bootstrap */
+    #verArchivoModal .list-group-item.list-group-item-action:hover {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de color personalizadas */
+    #verArchivoModal .list-group-item[class*="bg-"]:hover {
+        background-color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de texto personalizadas */
+    #verArchivoModal .list-group-item[class*="text-"]:hover {
+        color: inherit !important;
+    }
+    
+    /* Quitar hover rojo en elementos de la lista que tengan clases de borde personalizadas */
+    #verArchivoModal .list-group-item[class*="border-"]:hover {
+        border-color: inherit !important;
+    }

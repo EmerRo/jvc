@@ -246,7 +246,10 @@ class Usuario
                             'nombre_empresa' => $empr['razon_social'],
                             'logo_empresa' => $empr['logo'],
                             'sucursal' => intval($this->sucursal),
-                            'ruc_empr' => $empr['ruc']
+                            'ruc_empr' => $empr['ruc'],
+                            // TIMESTAMPS PARA CONTROL DE SESIÓN
+                            'login_time' => time(), // Hora de inicio de sesión (timeout absoluto de 12h)
+                            'last_activity' => time() // Última actividad (timeout de inactividad de 2h)
                         ];
 
                         $_SESSION = $token_u;

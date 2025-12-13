@@ -4,6 +4,8 @@
  */
 
 Vue.prototype.inicializarGraficosProductos = function() {
+    const chartColors = window.getChartColors();
+
     // Gráfico de Productos Top
     if (this.$refs.productosTopChart && this.hayDatosProductos) {
         if (this.charts.productosTop) {
@@ -18,6 +20,7 @@ Vue.prototype.inicializarGraficosProductos = function() {
         this.charts.productosTop = Highcharts.chart(this.$refs.productosTopChart, {
             chart: {
                 type: 'bar',
+                backgroundColor: chartColors.backgroundColor,
                 style: { fontFamily: 'Poppins, sans-serif' },
                 animation: { duration: 1000 }
             },
@@ -25,15 +28,26 @@ Vue.prototype.inicializarGraficosProductos = function() {
             xAxis: {
                 categories: this.dashboardData.productosNombres,
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' }
-                }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
+                },
+                lineColor: chartColors.gridLineColor,
+                tickColor: chartColors.gridLineColor
             },
             yAxis: {
                 title: { text: null },
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
                 },
+                gridLineColor: chartColors.gridLineColor,
                 gridLineDashStyle: 'Dash'
+            },
+            tooltip: {
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                style: { color: chartColors.tooltipTextColor }
+            },
+            legend: {
+                itemStyle: { color: chartColors.textColor }
             },
             tooltip: {
                 formatter: function () {
@@ -98,11 +112,15 @@ Vue.prototype.inicializarGraficosProductos = function() {
         this.charts.distribucionProductos = Highcharts.chart(this.$refs.distribucionProductosChart, {
             chart: {
                 type: 'pie',
+                backgroundColor: chartColors.backgroundColor,
                 style: { fontFamily: 'Poppins, sans-serif' },
                 animation: { duration: 1000 }
             },
             title: { text: null },
             tooltip: {
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                style: { color: chartColors.tooltipTextColor },
                 pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
             },
             plotOptions: {
@@ -126,7 +144,7 @@ Vue.prototype.inicializarGraficosProductos = function() {
                 align: 'center',
                 verticalAlign: 'bottom',
                 itemStyle: {
-                    color: '#6c757d',
+                    color: chartColors.textColor,
                     fontWeight: 'normal',
                     fontSize: '12px'
                 }
@@ -153,6 +171,7 @@ Vue.prototype.inicializarGraficosProductos = function() {
         this.charts.productosCategoria = Highcharts.chart(this.$refs.productosCategoriaChart, {
             chart: {
                 type: 'column',
+                backgroundColor: chartColors.backgroundColor,
                 style: { fontFamily: 'Poppins, sans-serif' },
                 animation: { duration: 1000 }
             },
@@ -160,20 +179,26 @@ Vue.prototype.inicializarGraficosProductos = function() {
             xAxis: {
                 categories: this.dashboardData.categorias || [],
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' },
+                    style: { color: chartColors.textColor, fontSize: '12px' },
                     rotation: -45 // Rotar etiquetas si son muy largas
-                }
+                },
+                lineColor: chartColors.gridLineColor,
+                tickColor: chartColors.gridLineColor
             },
             yAxis: {
                 title: {
                     text: 'Unidades Vendidas',
-                    style: { color: '#6c757d' }
+                    style: { color: chartColors.textColor }
                 },
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' }
-                }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
+                },
+                gridLineColor: chartColors.gridLineColor
             },
             tooltip: {
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                style: { color: chartColors.tooltipTextColor },
                 shared: true,
                 formatter: function () {
                     let s = '<b>' + this.x + '</b><br/>';
@@ -183,6 +208,9 @@ Vue.prototype.inicializarGraficosProductos = function() {
                     });
                     return s;
                 }
+            },
+            legend: {
+                itemStyle: { color: chartColors.textColor }
             },
             plotOptions: {
                 column: {

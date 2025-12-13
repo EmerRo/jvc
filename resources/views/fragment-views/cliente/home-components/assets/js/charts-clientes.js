@@ -6,6 +6,8 @@
 Vue.prototype.inicializarGraficosClientes = function() {
     if (!this.hayDatosClientes) return;
 
+    const chartColors = window.getChartColors();
+
     // Gráfico de Clientes Top
     if (this.$refs.clientesTopChart) {
         if (this.charts.clientesTop) {
@@ -24,6 +26,7 @@ Vue.prototype.inicializarGraficosClientes = function() {
         this.charts.clientesTop = Highcharts.chart(this.$refs.clientesTopChart, {
             chart: {
                 type: 'bar',
+                backgroundColor: chartColors.backgroundColor,
                 style: { fontFamily: 'Poppins, sans-serif' },
                 animation: { duration: 1000 }
             },
@@ -31,21 +34,32 @@ Vue.prototype.inicializarGraficosClientes = function() {
             xAxis: {
                 categories: clientesNombres,
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' }
-                }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
+                },
+                lineColor: chartColors.gridLineColor,
+                tickColor: chartColors.gridLineColor
             },
             yAxis: {
                 title: {
                     text: 'Total Compras (S/)',
-                    style: { color: '#6c757d', fontSize: '12px' }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
                 },
                 labels: {
                     formatter: function () {
                         return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                     },
-                    style: { color: '#6c757d', fontSize: '12px' }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
                 },
+                gridLineColor: chartColors.gridLineColor,
                 gridLineDashStyle: 'Dash'
+            },
+            tooltip: {
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                style: { color: chartColors.tooltipTextColor }
+            },
+            legend: {
+                itemStyle: { color: chartColors.textColor }
             },
             tooltip: {
                 formatter: function () {

@@ -265,11 +265,30 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function verificadorToken()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ["res" => false, "msg" => ""];
         $save = $_POST['s'];
         $token = json_decode(Tools::decryptText($_POST['token']), true);
+
         if ($token) {
+            $ahora = time();
+
+            // VALIDAR TIMEOUT ABSOLUTO (12 horas = 43200 segundos)
+            $TIMEOUT_ABSOLUTO = 12 * 60 * 60; // 12 horas
+            if (isset($token['login_time'])) {
+                $tiempoDesdeLogin = $ahora - $token['login_time'];
+                if ($tiempoDesdeLogin > $TIMEOUT_ABSOLUTO) {
+                    $respuesta["msg"] = "session_expired_12h";
+                    return json_encode($respuesta);
+                }
+            }
+
+            // TIMEOUT POR INACTIVIDAD DESACTIVADO (solo validación de 12 horas)
+            // Si la sesión es válida, actualizar última actividad (para futuros usos)
+            $token['last_activity'] = $ahora;
+
             $respuesta["res"] = true;
+            $respuesta["token"] = Tools::encryptText(json_encode($token)); // Devolver token actualizado
+
             if ($save) {
                 $_SESSION = $token;
             }

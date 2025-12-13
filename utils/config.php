@@ -5,17 +5,21 @@ define("DOMINIO","http://185.111.156.125/");
  * DATABASE_CONFIG
  */
 define("HOST_SS","localhost");
-define("DATABASE_SS","factura_jvc1");
+define("DATABASE_SS","factura_jvc");
 define("USER_SS","root");
 define("PASSWORD_SS","");
 
 /**
  * EMAILS_CONFIG
 */
-define("HOST_SMTP","matrixsistem.com");
-define("USER_SMTP","informes@matrixsistem.com");
-define("CLAVE_SMTP","s(^&2_b5$2lp");
-define("PUERTO_SMTP","465");
+// define("HOST_SMTP","matrixsistem.com");
+// define("USER_SMTP","informes@matrixsistem.com");
+// define("CLAVE_SMTP","s(^&2_b5$2lp");
+// define("PUERTO_SMTP","465");
+define("HOST_SMTP", "mail.apperpan.com");
+define("USER_SMTP", "envios@apperpan.com");
+define("CLAVE_SMTP", "C4p1cu4$$");
+define("PUERTO_SMTP", "465");
 
 /*define("HOST_SMTP","mail.cooplafabril.com");
 define("USER_SMTP","mail_send@cooplafabril.com");

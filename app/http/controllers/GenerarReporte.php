@@ -128,26 +128,26 @@ class GenerarReporte extends Controller
     }
     public function generarExcelProducto()
     {
-
         $texto = $_GET['texto'];
-        $sql = "select descripcion,MIN(codigo) AS codigo,
- MIN(costo) as costo,
-       SUM(CASE WHEN almacen = 1 THEN cantidad ELSE 0 END) AS cantidad1, SUM(CASE WHEN almacen = 2 THEN cantidad ELSE 0 END) AS cantidad2 
-        from productos where descripcion like '%$texto%' or codigo like '%$texto%' GROUP BY descripcion;";
+        $sql = "select codigo, MAX(nombre) AS nombre, MAX(descripcion) AS descripcion, /* MAX(detalle) AS detalle, */
+ MAX(costo) as costo,
+       SUM(CASE WHEN almacen = 1 THEN cantidad ELSE 0 END) AS cantidad1,
+       SUM(CASE WHEN almacen = 2 THEN cantidad ELSE 0 END) AS cantidad2,
+       SUM(CASE WHEN almacen = 3 THEN cantidad ELSE 0 END) AS cantidad3
+        from productos where (descripcion like '%$texto%' or codigo like '%$texto%' or nombre like '%$texto%') AND estado = '1' GROUP BY codigo ORDER BY codigo;";
 
         $result = $this->conexion->query($sql);
 
+        $tbody = '';
         foreach ($result as $fila) {
-
-            // $tbody .= '
-            $tbody = '
+            $tbody .= '
             <tr>
-                <td>' . $fila['codigo'] . '</td>            
-                <td>' . $fila['descripcion'] . '</td>            
-                <td>' . $fila['costo'] . '</td>            
-                <td>' . $fila['cantidad1'] . '</td>            
-                <td>' . $fila['cantidad2'] . '</td>         
-                         
+                <td>' . $fila['codigo'] . '</td>
+                <td>' . $fila['nombre'] . '</td>
+                <td>' . $fila['costo'] . '</td>
+                <td>' . $fila['cantidad1'] . '</td>
+                <td>' . $fila['cantidad2'] . '</td>
+                <td>' . $fila['cantidad3'] . '</td>
             </tr>';
         }
 
@@ -155,28 +155,37 @@ class GenerarReporte extends Controller
         <table>
             <tr>
                     <th style='background-color: #90BFEB;width:10px'>Codigo</th>
-                    <th style='background-color: #90BFEB;width:85px'>Descripcion</th>
+                    <th style='background-color: #90BFEB;width:50px'>Nombre</th>
                     <th style='background-color: #90BFEB;width:7px'>Costo</th>
                     <th style='background-color: #90BFEB;width:7px'>CNT A1</th>
-                    <th style='background-color: #90BFEB;width:8px'>CNT A2</th> 
+                    <th style='background-color: #90BFEB;width:7px'>CNT A2</th>
+                    <th style='background-color: #90BFEB;width:7px'>CNT A3</th>
             </tr>
             <tbody>
                 " . $tbody . "
             </tbody>
         </table>";
 
-
-
-
-        /*   return ($arrayRes);  */
-        $nombre_exel = "reporteproductosstock.xlsx";
+        // Generar nombre único con fecha y hora
+        $nombre_exel = "reporte-productos-stock-" . date('Y-m-d-His') . ".xlsx";
+        
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
 
-
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+        // Configurar headers para descarga directa sin guardar en servidor
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $nombre_exel . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+        
+        // Enviar directamente al navegador (no guardar en servidor)
+        $writer->save('php://output');
+        exit;
     }
     public function generarExcel($id)
     {
@@ -412,56 +421,133 @@ class GenerarReporte extends Controller
                     costo,
                     precio_unidad,
                     precio,
-                    precio2,
-                    precio3,
-		            precio4,
+                    precio_mayor,
+                    precio_menor,
+                    precio4,
                     codsunat,
                     almacen,
                     codigo,
-		            detalle 
+                    detalle
                 FROM
                     productos
-                where almacen = '{$_SESSION["sucursal"]}' and estado = 1";
+                WHERE almacen = '{$_SESSION["sucursal"]}' AND estado = 1
+                ORDER BY codigo ASC";
 
         $result = $this->conexion->query($sql);
-        $tabla = '';
-        $tbody = '';
-        foreach ($result as $fila) {
+        $data = $result->fetch_all(MYSQLI_ASSOC);
 
-            $tbody .= '
-               <tr>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['nombre'] . '</td>
-		    <td style="font-size: 10px;border:1px solid black;">' . $fila['detalle'] . '</td>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['cnt'] . '</td>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['costo'] . '</td>
-		    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio'] . '</td>                    
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio2'] . '</td>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio3'] . '</td>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['almacen'] . '</td>
-                    <td style="font-size: 10px;border:1px solid black;">' . $fila['codigo'] . '</td>
-               </tr>
-                ';
+        // Crear el Excel usando PhpSpreadsheet directamente para mejor control
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Configurar encabezados
+        $headers = [
+            'A1' => 'Producto',
+            'B1' => 'Detalle',
+            'C1' => 'Cantidad',
+            'D1' => 'Costo',
+            'E1' => 'Precio Venta',
+            'F1' => 'Precio Distribuidor',
+            'G1' => 'Precio Mayorista',
+            'H1' => 'Almacén',
+            'I1' => 'Código'
+        ];
+
+        // Establecer encabezados
+        foreach ($headers as $cell => $value) {
+            $sheet->setCellValue($cell, $value);
         }
-        $tabla = '  <table style="width:100%">
-        <tr>					
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Producto</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Detalle</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:13px;text-align: center;word-wrap: break-word">Cnt</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Costo</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:10px;text-align: center;word-wrap: break-word">Precio Venta</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:15px;text-align: center;">Precio 1</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;">Precio 2</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;">Almacen</td>
-            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;word-wrap: break-word">Codigo</td>
-        </tr>
-       ' . $tbody . '
-        </table>';
 
-        $nombre_exel = "prueba.xlsx";
-        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
-        $spreadsheet = $reader->loadFromString($tabla);
+        // Configurar estilos de encabezados
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 11
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '90BFEB']
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ]
+        ];
+
+        $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
+
+        // Configurar anchos de columnas para evitar deformación
+        $sheet->getColumnDimension('A')->setWidth(35); // Producto - más ancho
+        $sheet->getColumnDimension('B')->setWidth(50); // Detalle - el más ancho para contenido largo
+        $sheet->getColumnDimension('C')->setWidth(10); // Cantidad
+        $sheet->getColumnDimension('D')->setWidth(12); // Costo
+        $sheet->getColumnDimension('E')->setWidth(15); // Precio Venta
+        $sheet->getColumnDimension('F')->setWidth(18); // Precio Distribuidor
+        $sheet->getColumnDimension('G')->setWidth(18); // Precio Mayorista
+        $sheet->getColumnDimension('H')->setWidth(10); // Almacén
+        $sheet->getColumnDimension('I')->setWidth(15); // Código
+
+        // Llenar datos
+        $row = 2; // Empezar desde la fila 2 (después de encabezados)
+        foreach ($data as $fila) {
+            // Preservar espacios y saltos de línea en el detalle
+            $detalle = $fila['detalle'] ? $fila['detalle'] : '';
+            
+            $sheet->setCellValue('A' . $row, $fila['nombre']);
+            $sheet->setCellValue('B' . $row, $detalle);
+            $sheet->setCellValue('C' . $row, $fila['cnt']);
+            $sheet->setCellValue('D' . $row, $fila['costo']);
+            $sheet->setCellValue('E' . $row, $fila['precio']);
+            $sheet->setCellValue('F' . $row, $fila['precio_mayor']);
+            $sheet->setCellValue('G' . $row, $fila['precio_menor']);
+            $sheet->setCellValue('H' . $row, $fila['almacen']);
+            $sheet->setCellValue('I' . $row, $fila['codigo']);
+
+            // Configurar wrap text para Producto y Detalle, y ajustar altura de fila
+            $sheet->getStyle('A' . $row)->getAlignment()->setWrapText(true);
+            $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+            $sheet->getRowDimension($row)->setRowHeight(-1); // Auto-ajustar altura
+
+            // Aplicar bordes a toda la fila
+            $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000']
+                    ]
+                ],
+                'font' => ['size' => 10]
+            ]);
+
+            $row++;
+        }
+
+        // Configurar alineación para columnas numéricas (horizontal y vertical)
+        if ($row > 2) {
+            $sheet->getStyle('C2:H' . ($row - 1))->getAlignment()
+                ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+                ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        }
+        
+        // Aplicar alineación vertical centrada a las columnas de texto también
+        if ($row > 2) {
+            $sheet->getStyle('A2:B' . ($row - 1))->getAlignment()
+                ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            $sheet->getStyle('I2:I' . ($row - 1))->getAlignment()
+                ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+        }
+
+        // Guardar archivo
+        $nombre_exel = "plantilla-productos-importar.xlsx";
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
         $writer->save($nombre_exel);
+        
         header('Location: ' . URL::to($nombre_exel));
     }
 
@@ -951,6 +1037,140 @@ class GenerarReporte extends Controller
                     </table>';
 
         $nombre_exel = "RegistroGeneralCajas_" . date("Y-m-d") . ".xlsx";
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+        $spreadsheet = $reader->loadFromString($tabla);
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer->save($nombre_exel);
+        header('Location: ' . URL::to($nombre_exel));
+    }
+
+    // Generar Plantilla Excel para Importar Repuestos
+    public function generarExcelRepuestoImporte()
+    {
+        $sql = "SELECT
+                    nombre AS repuesto,
+                    detalle,
+                    cantidad AS cnt,
+                    costo,
+                    precio_unidad,
+                    precio,
+                    precio2,
+                    almacen,
+                    codigo
+                FROM
+                    repuestos
+                WHERE almacen = '{$_SESSION["sucursal"]}' AND estado = 1";
+
+        $result = $this->conexion->query($sql);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+
+        // Ordenar por código
+        usort($data, function($a, $b) {
+            return strnatcmp($a['codigo'], $b['codigo']);
+        });
+
+        $tabla = '';
+        $tbody = '';
+        foreach ($data as $fila) {
+            $tbody .= '
+               <tr>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['repuesto'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['detalle'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['cnt'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['costo'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio_unidad'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['precio2'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['almacen'] . '</td>
+                    <td style="font-size: 10px;border:1px solid black;">' . $fila['codigo'] . '</td>
+               </tr>
+                ';
+        }
+
+        $tabla = '  <table style="width:100%">
+        <tr>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Repuesto</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Detalle</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:13px;text-align: center;word-wrap: break-word">Cnt</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:16px;text-align: center;word-wrap: break-word">Costo</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:10px;text-align: center;word-wrap: break-word">Precio Venta</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:15px;text-align: center; word-wrap: break-word">Precio Distribuidor</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;word-wrap: break-word">Precio Mayorista</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;word-wrap: break-word">Almacen</td>
+            <td style="font-size: 10px;font-weight:bold;border:1px solid black;width:12px;text-align: center;word-wrap: break-word">Codigo</td>
+        </tr>
+       ' . $tbody . '
+        </table>';
+
+        $nombre_exel = "plantilla_repuestos.xlsx";
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+        $spreadsheet = $reader->loadFromString($tabla);
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer->save($nombre_exel);
+        header('Location: ' . URL::to($nombre_exel));
+    }
+
+    // Generar Excel de Repuestos con búsqueda
+    public function generarExcelRepuesto()
+    {
+        $texto = $_GET['texto'] ?? '';
+
+        // Consulta similar a productos pero para repuestos
+        $sql = "SELECT codigo,
+                MAX(nombre) AS nombre,
+                MAX(detalle) AS detalle,
+                MAX(costo) AS costo,
+                MAX(precio_unidad) AS precio_unidad,
+                MAX(precio) AS precio,
+                MAX(precio2) AS precio2,
+                SUM(CASE WHEN almacen = 1 THEN cantidad ELSE 0 END) AS cantidad1,
+                SUM(CASE WHEN almacen = 2 THEN cantidad ELSE 0 END) AS cantidad2,
+                SUM(CASE WHEN almacen = 3 THEN cantidad ELSE 0 END) AS cantidad3
+                FROM repuestos
+                WHERE (nombre LIKE '%$texto%' OR codigo LIKE '%$texto%' OR detalle LIKE '%$texto%')
+                AND estado = '1'
+                GROUP BY codigo
+                ORDER BY codigo";
+
+        $result = $this->conexion->query($sql);
+
+        $tbody = '';
+        foreach ($result as $fila) {
+            $tbody .= '
+            <tr>
+                <td>' . $fila['codigo'] . '</td>
+                <td>' . $fila['nombre'] . '</td>
+                <td>' . $fila['detalle'] . '</td>
+                <td>' . number_format($fila['costo'], 2) . '</td>
+                <td>' . number_format($fila['precio_unidad'], 2) . '</td>
+                <td>' . number_format($fila['precio'], 2) . '</td>
+                <td>' . number_format($fila['precio2'], 2) . '</td>
+                <td>' . $fila['cantidad1'] . '</td>
+                <td>' . $fila['cantidad2'] . '</td>
+                <td>' . $fila['cantidad3'] . '</td>
+            </tr>';
+        }
+
+        $tabla = "
+        <table>
+            <tr>
+                <th style='background-color: #90BFEB;width:10px'>Codigo</th>
+                <th style='background-color: #90BFEB;width:50px'>Nombre</th>
+                <th style='background-color: #90BFEB;width:30px'>Detalle</th>
+                <th style='background-color: #90BFEB;width:10px'>Costo</th>
+                <th style='background-color: #90BFEB;width:10px'>Precio Venta</th>
+                <th style='background-color: #90BFEB;width:10px'>Precio Distribuidor</th>
+                <th style='background-color: #90BFEB;width:10px'>Precio Mayorista</th>
+                <th style='background-color: #90BFEB;width:7px'>CNT A1</th>
+                <th style='background-color: #90BFEB;width:7px'>CNT A2</th>
+                <th style='background-color: #90BFEB;width:7px'>CNT A3</th>
+            </tr>
+            <tbody>
+                " . $tbody . "
+            </tbody>
+        </table>";
+
+        $nombre_exel = "reporterepuestosstock.xlsx";
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");

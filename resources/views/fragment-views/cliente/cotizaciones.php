@@ -1,6 +1,109 @@
 <!-- resources\views\fragment-views\cliente\cotizaciones.php -->
 <link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
 
+<style>
+/* Estilos para el menú de acciones - Copiados de guia-remision.php y taller.php */
+.table-responsive {
+    overflow: visible !important;
+}
+
+.card {
+    overflow: visible !important;
+}
+
+/* Estilos para el menú de acciones */
+.action-menu {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    margin: 0 auto;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    color: #6b7280;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+    transition: color 0.2s;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button:hover {
+    color: #4f46e5;
+    background-color: #f3f4f6;
+}
+
+.dropdown-actions {
+    position: fixed;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    z-index: 9999;
+    display: none;
+    margin-top: 5px;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+
+.dropdown-actions a {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dropdown-actions a:hover {
+    background-color: #f3f4f6;
+}
+
+.dropdown-actions i {
+    width: 16px;
+}
+
+.dropdown-actions .text-danger:hover {
+    background-color: #fee2e2;
+}
+
+.dropdown-actions .divider {
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 4px 0;
+}
+
+/* Muestra el menú cuando tiene la clase show */
+.action-menu.show .dropdown-actions {
+    display: block;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .dropdown-actions {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        top: auto;
+        width: 90%;
+        max-width: 300px;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}
+</style>
+
 <div class="page-title-box">
     <div class="row align-items-center">
         <!-- cotizaciones -->
@@ -128,6 +231,45 @@
     </div>
 </div>
 
+<!-- Modal de Imprimir Cotización -->
+<div class="modal fade" id="modalImprimirCotizacion" tabindex="-1" aria-labelledby="modalImprimirCotizacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header text-white bg-rojo">
+                <h5 class="modal-title" id="modalImprimirCotizacionLabel">Imprimir Cotización</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a id="cot-a4" href="#" target="_blank" class="btn bg-rojo text-white w-100">
+                            <i class="fa fa-file-pdf me-2"></i>Hoja A4
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a id="cot-media-a4" href="#" target="_blank" class="btn bg-rojo text-white w-100">
+                            <i class="fa fa-file-pdf me-2"></i>Media Hoja A4
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a id="cot-voucher-8cm" href="#" target="_blank" class="btn bg-white border-rojo text-rojo w-100">
+                            <i class="fas fa-file-invoice me-2"></i>Voucher 8cm
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a id="cot-voucher-5-6cm" href="#" target="_blank" class="btn bg-white border-rojo text-rojo w-100">
+                            <i class="fas fa-file-invoice me-2"></i>Voucher 5.6cm
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
@@ -180,9 +322,11 @@
                 {
                     targets: 0, // Columna N°
                     render: function (data, type, row, meta) {
-                        // Formatear el número como COT-XXX con enlace
+                        // data = número de cotización (ej: 7)
+                        // row[8] = ID de cotización (ej: 56)
                         const numeroFormateado = 'COT-' + String(data).padStart(2, '0');
-                        return `<a href="#" class="text-primary" style="text-decoration: none;">${numeroFormateado}</a>`;
+                        const cotizacionId = row[8]; // Obtener el ID desde la columna 8
+                        return `<a href="/r/cotizaciones/reporte/${cotizacionId}" target="_blank" class="text-primary" style="text-decoration: none;">${numeroFormateado}</a>`;
                     }
                 },
                 
@@ -215,14 +359,29 @@
                 },
                 {
                     targets: 10,
+                    className: 'text-center',
                     render: function (data, type, row, meta) {
                         return `
-                    <div class="btn-group">
-                        <button onclick="abrirWhatsApp(${data})" type="button" class="btn btn-sm btn-success" title="Enviar por WhatsApp"><i class="fab fa-whatsapp"></i></button>
-                        <a href="${'/cotizaciones/edt/' + data}" class="button-link btn btn-sm btn-primary"><i class="fa fa-edit"></i></a>
-                        <a href="${_URL + '/r/cotizaciones/reporte/' + data}" target="_blank" class="btn btn-sm btn-info"><i class="fa fa-file"></i></a>
-                        <button onclick="eliminarCotizacion(${data})" data-cod="" type="button" class="btn-del btn btn-danger btn-sm"><i class="fa fa-times"></i></button>
-                    </div>`;
+                        <div class="action-menu">
+                            <button type="button" class="action-button">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="dropdown-actions">
+                                <a href="javascript:void(0)" onclick="abrirWhatsApp(${data})" title="Enviar por WhatsApp">
+                                    <i class="fab fa-whatsapp text-success"></i> WhatsApp
+                                </a>
+                                <a class="button-link" href="/cotizaciones/edt/${data}">
+                                    <i class="fa fa-edit text-primary"></i> Editar
+                                </a>
+                                <a href="javascript:void(0)" onclick="abrirModalImprimir(${data})">
+                                    <i class="fa fa-print text-primary"></i> Imprimir
+                                </a>
+                                <div class="divider"></div>
+                                <a class="text-danger" href="javascript:void(0)" onclick="eliminarCotizacion(${data})">
+                                    <i class="fa fa-times"></i> Eliminar
+                                </a>
+                            </div>
+                        </div>`;
                     }
                 },
                 {
@@ -309,11 +468,24 @@
     }
 
     var cotizacionActual = null;
+    var cotizacionParaImprimir = null;
 
     function abrirWhatsApp(cotizacionId) {
         cotizacionActual = cotizacionId;
         $('#whatsappNumber').val('');
         $('#whatsappModal').modal('show');
+    }
+
+    function abrirModalImprimir(cotizacionId) {
+        cotizacionParaImprimir = cotizacionId;
+
+        // Configurar las URLs de los diferentes formatos
+        $('#cot-a4').attr('href', `${_URL}/r/cotizaciones/reporte/${cotizacionId}`);
+        $('#cot-media-a4').attr('href', `${_URL}/r/cotizaciones/reporte-media-a4/${cotizacionId}`);
+        $('#cot-voucher-8cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-8cm/${cotizacionId}`);
+        $('#cot-voucher-5-6cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-5-6cm/${cotizacionId}`);
+
+        $('#modalImprimirCotizacion').modal('show');
     }
 
     // Función para enviar por WhatsApp
@@ -348,6 +520,59 @@
     $(document).ready(function() {
         $('#whatsappNumber').on('input', function () {
             this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Manejo del menú de acciones (copiado de guia-remision.php)
+        $(document).on("click", (e) => {
+            if (!$(e.target).closest(".action-menu").length) {
+                $(".action-menu").removeClass("show");
+            }
+        });
+
+        $(document).on("click", ".action-button", function (e) {
+            e.stopPropagation();
+            const menu = $(this).closest(".action-menu");
+            const dropdown = menu.find(".dropdown-actions");
+
+            // Cerrar otros menús
+            $(".action-menu").not(menu).removeClass("show");
+
+            // Toggle el menú actual
+            menu.toggleClass("show");
+
+            if (menu.hasClass("show")) {
+                // Posicionar el dropdown usando coordenadas fijas
+                const buttonRect = this.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const dropdownHeight = 200; // Altura estimada del dropdown
+
+                let top = buttonRect.bottom + window.scrollY + 5;
+                let left = buttonRect.right + window.scrollX - 180; // Alinear el dropdown con el borde derecho del botón, menos el ancho del dropdown
+
+                // Si no hay espacio abajo, mostrar arriba
+                if (buttonRect.bottom + dropdownHeight > viewportHeight) {
+                    top = buttonRect.top + window.scrollY - dropdownHeight - 5;
+                }
+
+                // Ajustar si se sale por la izquierda del viewport
+                if (left < 10) {
+                    left = buttonRect.left + window.scrollX;
+                }
+
+                // Ajustar si se sale por la derecha del viewport
+                if (left + 200 > window.innerWidth) {
+                    left = window.innerWidth - 210;
+                }
+
+                dropdown.css({
+                    'top': top + 'px',
+                    'left': left + 'px'
+                });
+            }
+        });
+
+        $(document).on("click", ".dropdown-actions a", function () {
+            $(this).closest(".action-menu").removeClass("show");
         });
     });
 </script>

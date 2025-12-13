@@ -667,7 +667,9 @@ class Html extends BaseReader
         $dom = new DOMDocument();
         //    Reload the HTML file into the DOM object
         try {
-            $loaded = $dom->loadHTML(mb_convert_encoding($this->securityScanner->scan($content), 'HTML-ENTITIES', 'UTF-8'));
+            // Agregar meta tag para especificar UTF-8 en lugar de usar mb_convert_encoding deprecated
+            $content = '<?xml encoding="UTF-8">' . $this->securityScanner->scan($content);
+            $loaded = $dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         } catch (Throwable $e) {
             $loaded = false;
         }

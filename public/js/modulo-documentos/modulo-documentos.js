@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
-// Función global para cargar archivos
+// Función global para cargar archivos 
 function cargarArchivos(tipo) {
   if (window.ModuloDocumentos) {
     window.ModuloDocumentos.cargarArchivos(tipo);

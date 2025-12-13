@@ -182,29 +182,38 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             </div>
             <div class="modal-body p-3">
                 <form id="myForm">
-                    <div class="row g-3">
+                    <div class="row g-2">
                         <!-- Primera fila -->
                         <div class="col-md-6">
+                            <label class="form-label ">
+                                <i class="fa fa-id-card me-1"></i>Número de documento<span style="color: red;"> (*)</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" name="ndoc" id="ndoc" class="form-control form-control-sm only-numbers" required maxlength="11"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <button id="btnBuscarDocUsuario" class="btn btn-sm bg-rojo text-white" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                            <p class="text-danger error-msg small" id="error-ndoc"></p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label ">
+                                <i class="fa fa-signature me-1"></i>Nombres<span style="color: red;"> (*)</span>
+                            </label>
+                            <input type="text" name="nombres" id="nombres" class="form-control form-control-sm"
+                                required>
+                            <p class="text-danger error-msg small" id="error-nombres"></p>
+                        </div>
+
+                        <!-- Segunda fila -->
+                         <div class="col-md-6">
                             <label class="form-label ">
                                 <i class="fa fa-user-tag me-1"></i>Rol
                             </label>
                             <select name="rol" id="rol" class="form-select form-select-sm">
                             </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label ">
-                                <i class="fa fa-signature me-1"></i>Nombres
-                            </label>
-                            <input type="text" name="nombres" id="nombres" class="form-control form-control-sm"
-                                required>
-                        </div>
-
-                        <!-- Segunda fila -->
-                        <div class="col-md-6">
-                            <label class="form-label ">
-                                <i class="fa fa-id-card me-1"></i>Número de documento
-                            </label>
-                            <input type="text" name="ndoc" id="ndoc" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label ">
@@ -217,24 +226,28 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         <!-- Tercera fila -->
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-key me-1"></i>Clave
+                                <i class="fa fa-key me-1"></i>Clave<span style="color: red;"> (*)</span>
                             </label>
                             <input type="password" name="clave" id="clave" class="form-control form-control-sm"
                                 required>
+                            <p class="text-danger error-msg small" id="error-clave"></p>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-phone me-1"></i>Teléfono
+                                <i class="fa fa-phone me-1"></i>Teléfono<span style="color: red;"> (*)</span>
                             </label>
-                            <input type="text" name="telefono" id="telefono" class="form-control form-control-sm">
+                            <input type="text" name="telefono" id="telefono" class="form-control form-control-sm only-numbers" required maxlength="9"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);">
+                            <p class="text-danger error-msg small" id="error-telefono"></p>
                         </div>
 
                         <!-- Cuarta fila -->
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-envelope me-1"></i>Correo
+                                <i class="fa fa-envelope me-1"></i>Correo<span style="color: red;"> (*)</span>
                             </label>
                             <input type="email" name="email" id="email" class="form-control form-control-sm" required>
+                            <p class="text-danger error-msg small" id="error-email"></p>
                         </div>
                         <!-- <div class="col-md-6">
                             <label class="form-label ">
@@ -302,7 +315,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             </div>
             <div class="modal-body p-3">
                 <form id="clientesEditar">
-                    <div class="row g-3">
+                    <div class="row g-2">
                         <input type="text" name="idCliente" id="idCliente" value="" hidden>
 
                         <!-- Primera fila -->
@@ -315,17 +328,25 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         </div>
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-signature"></i>Nombre
+                                <i class="fa fa-signature"></i>Nombre<span style="color: red;"> (*)</span>
                             </label>
-                            <input type="text" class="form-control form-control-sm" id="datosEditar" name="datosEditar">
+                            <input type="text" class="form-control form-control-sm" id="datosEditar" name="datosEditar" required>
+                            <p class="text-danger error-msg small" id="error-datosEditar"></p>
                         </div>
 
                         <!-- Segunda fila -->
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-id-card "></i>Número de documento
+                                <i class="fa fa-id-card"></i>Número de documento<span style="color: red;"> (*)</span>
                             </label>
-                            <input type="text" class="form-control form-control-sm" id="doc" name="doc">
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-sm only-numbers" id="doc" name="doc" required maxlength="11"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <button id="btnBuscarDocUsuarioEdit" class="btn btn-sm bg-rojo text-white" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                            <p class="text-danger error-msg small" id="error-doc"></p>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label ">
@@ -343,19 +364,22 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         </div>
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-phone "></i>Teléfono
+                                <i class="fa fa-phone"></i>Teléfono<span style="color: red;"> (*)</span>
                             </label>
-                            <input type="text" class="form-control form-control-sm" id="telefonoEditar"
-                                name="telefonoEditar">
+                            <input type="text" class="form-control form-control-sm only-numbers" id="telefonoEditar"
+                                name="telefonoEditar" required maxlength="9"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9);">
+                            <p class="text-danger error-msg small" id="error-telefonoEditar"></p>
                         </div>
 
                         <!-- Cuarta fila -->
                         <div class="col-md-6">
                             <label class="form-label ">
-                                <i class="fa fa-envelope "></i>Email
+                                <i class="fa fa-envelope"></i>Email<span style="color: red;"> (*)</span>
                             </label>
                             <input required type="email" class="form-control form-control-sm" id="emailEditar"
                                 name="emailEditar">
+                            <p class="text-danger error-msg small" id="error-emailEditar"></p>
                         </div>
                         <!-- <div class="col-md-6">
                             <label class="form-label ">
@@ -642,6 +666,280 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
 <script>
     // Se elimina $(document).ready() para que el script se ejecute en cada carga AJAX
 
+    // ========== VALIDACIONES Y BÚSQUEDA DE DOCUMENTO ==========
+
+    // Función de validación de email
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // Función de validación del formulario de usuario
+    function validarFormularioUsuario() {
+        $('.error-msg').text('');
+        let isValid = true;
+
+        // Validar documento
+        const documento = $("#ndoc").val().trim();
+        if (!documento) {
+            $("#error-ndoc").text("El documento es obligatorio");
+            isValid = false;
+        } else if (!/^\d+$/.test(documento)) {
+            $("#error-ndoc").text("El documento solo debe contener números");
+            isValid = false;
+        } else if (documento.length === 8) {
+            // Es DNI, está bien
+        } else if (documento.length === 11) {
+            if (!documento.startsWith('10') && !documento.startsWith('20')) {
+                $("#error-ndoc").text("El RUC debe empezar con 10 o 20");
+                isValid = false;
+            }
+        } else {
+            $("#error-ndoc").text("El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)");
+            isValid = false;
+        }
+
+        // Validar nombres
+        const nombres = $("#nombres").val().trim();
+        if (!nombres) {
+            $("#error-nombres").text("Los nombres son obligatorios");
+            isValid = false;
+        }
+
+        // Validar teléfono (9 dígitos obligatorio)
+        const telefono = $("#telefono").val().trim();
+        if (!telefono) {
+            $("#error-telefono").text("El teléfono es obligatorio");
+            isValid = false;
+        } else if (telefono.length !== 9) {
+            $("#error-telefono").text("El teléfono debe tener 9 dígitos");
+            isValid = false;
+        }
+
+        // Validar email (obligatorio)
+        const email = $("#email").val().trim();
+        if (!email) {
+            $("#error-email").text("El email es obligatorio");
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            $("#error-email").text("El formato del email no es válido");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Limpiar mensajes de error al escribir
+    $(document).on('input', '#ndoc, #nombres, #telefono, #email', function() {
+        const errorId = '#error-' + $(this).attr('id');
+        $(errorId).text('');
+    });
+
+    // Búsqueda de documento DNI/RUC (Modal Agregar)
+    $(document).on('click', '#btnBuscarDocUsuario', function() {
+        const ndoc = $('#ndoc').val().trim();
+
+        // Limpiar mensaje de error
+        $('#error-ndoc').text('');
+
+        if (!ndoc) {
+            $('#error-ndoc').text('Ingrese un número de documento');
+            return;
+        }
+
+        if (ndoc.length !== 8 && ndoc.length !== 11) {
+            $('#error-ndoc').text('El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        const btnOriginalHtml = $(this).html();
+        $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: _URL + '/ajs/consulta/doc/cliente',
+            type: 'POST',
+            data: { doc: ndoc },
+            success: function(response) {
+                try {
+                    const data = JSON.parse(response);
+                    if (data.res && data.data) {
+                        // Solo rellenar el campo nombres (NO apellidos)
+                        if (data.data.nombres) {
+                            $('#nombres').val(data.data.nombres);
+                            $('#error-ndoc').text('');
+                        } else {
+                            Swal.fire({
+                                title: "Información",
+                                text: "No se encontraron datos para este documento",
+                                icon: "info"
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: "Advertencia",
+                            text: data.message || "No se encontró información del documento",
+                            icon: "warning"
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error al procesar respuesta:', e);
+                    Swal.fire({
+                        title: "Error",
+                        text: "Error al procesar la respuesta del servidor",
+                        icon: "error"
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Error al consultar el documento",
+                    icon: "error"
+                });
+            },
+            complete: function() {
+                // Restaurar botón
+                $('#btnBuscarDocUsuario').prop('disabled', false).html(btnOriginalHtml);
+            }
+        });
+    });
+
+    // Búsqueda de documento DNI/RUC (Modal Editar)
+    $(document).on('click', '#btnBuscarDocUsuarioEdit', function() {
+        const doc = $('#doc').val().trim();
+
+        // Limpiar mensaje de error
+        $('#error-doc').text('');
+
+        if (!doc) {
+            $('#error-doc').text('Ingrese un número de documento');
+            return;
+        }
+
+        if (doc.length !== 8 && doc.length !== 11) {
+            $('#error-doc').text('El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        const btnOriginalHtml = $(this).html();
+        $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: _URL + '/ajs/consulta/doc/cliente',
+            type: 'POST',
+            data: { doc: doc },
+            success: function(response) {
+                try {
+                    const data = JSON.parse(response);
+                    if (data.res && data.data) {
+                        // Solo rellenar el campo nombres (NO apellidos)
+                        if (data.data.nombres) {
+                            $('#datosEditar').val(data.data.nombres);
+                            $('#error-doc').text('');
+                        } else {
+                            Swal.fire({
+                                title: "Información",
+                                text: "No se encontraron datos para este documento",
+                                icon: "info"
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: "Advertencia",
+                            text: data.message || "No se encontró información del documento",
+                            icon: "warning"
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error al procesar respuesta:', e);
+                    Swal.fire({
+                        title: "Error",
+                        text: "Error al procesar la respuesta del servidor",
+                        icon: "error"
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Error al consultar el documento",
+                    icon: "error"
+                });
+            },
+            complete: function() {
+                // Restaurar botón
+                $('#btnBuscarDocUsuarioEdit').prop('disabled', false).html(btnOriginalHtml);
+            }
+        });
+    });
+
+    // Función de validación del formulario de editar usuario
+    function validarFormularioEditarUsuario() {
+        $('.error-msg').text('');
+        let isValid = true;
+
+        // Validar documento
+        const documento = $("#doc").val().trim();
+        if (!documento) {
+            $("#error-doc").text("El documento es obligatorio");
+            isValid = false;
+        } else if (!/^\d+$/.test(documento)) {
+            $("#error-doc").text("El documento solo debe contener números");
+            isValid = false;
+        } else if (documento.length === 8) {
+            // Es DNI, está bien
+        } else if (documento.length === 11) {
+            if (!documento.startsWith('10') && !documento.startsWith('20')) {
+                $("#error-doc").text("El RUC debe empezar con 10 o 20");
+                isValid = false;
+            }
+        } else {
+            $("#error-doc").text("El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)");
+            isValid = false;
+        }
+
+        // Validar nombres
+        const nombres = $("#datosEditar").val().trim();
+        if (!nombres) {
+            $("#error-datosEditar").text("Los nombres son obligatorios");
+            isValid = false;
+        }
+
+        // Validar teléfono (9 dígitos obligatorio)
+        const telefono = $("#telefonoEditar").val().trim();
+        if (!telefono) {
+            $("#error-telefonoEditar").text("El teléfono es obligatorio");
+            isValid = false;
+        } else if (telefono.length !== 9) {
+            $("#error-telefonoEditar").text("El teléfono debe tener 9 dígitos");
+            isValid = false;
+        }
+
+        // Validar email (obligatorio)
+        const email = $("#emailEditar").val().trim();
+        if (!email) {
+            $("#error-emailEditar").text("El email es obligatorio");
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            $("#error-emailEditar").text("El formato del email no es válido");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // Limpiar mensajes de error al escribir en modal editar
+    $(document).on('input', '#doc, #datosEditar, #telefonoEditar, #emailEditar', function() {
+        const errorId = '#error-' + $(this).attr('id');
+        $(errorId).text('');
+    });
+
+    // ========== FIN VALIDACIONES Y BÚSQUEDA ==========
+
     if ($.fn.DataTable.isDataTable("#tabla_clientes")) {
         $("#tabla_clientes").DataTable().destroy();
     }
@@ -758,6 +1056,11 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
     });
 
     $("#updateCliente").click(function () {
+        // Validar formulario antes de enviar
+        if (!validarFormularioEditarUsuario()) {
+            return; // Detener si la validación falla
+        }
+
         $("#loader-menor").show();
         let formData = new FormData(document.getElementById('clientesEditar'));
         let id = $("#idCliente").val();
@@ -870,6 +1173,11 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
     });
 
     $('#submitButton').click(function () {
+        // Validar formulario antes de enviar
+        if (!validarFormularioUsuario()) {
+            return; // Detener si la validación falla
+        }
+
         if ($('#rol').val() && $('#ndoc').val() && $('#usuario').val() && $('#clave').val() && $('#email').val() && $('#nombres').val()) {
             var formData = new FormData(document.getElementById('myForm'));
 

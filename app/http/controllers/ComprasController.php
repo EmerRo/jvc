@@ -223,11 +223,11 @@ class ComprasController extends Controller
     public function getAll()
     {
         $where = ($_SESSION['rol'] == 1) ? "" : "and c.sucursal = {$_SESSION["sucursal"]} ";
-        $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero, 
-        p.razon_social, u.nombres, u.apellidos, u.usuario_id 
-        FROM compras AS c 
-        LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id 
-        LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id 
+        $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero,
+        c.estado, p.razon_social, u.nombres, u.apellidos, u.usuario_id
+        FROM compras AS c
+        LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id
+        LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id
         WHERE c.id_empresa = '{$_SESSION['id_empresa']}' $where";
 
         $result = $this->conectar->query($sql);
@@ -396,5 +396,219 @@ class ComprasController extends Controller
         } else {
             return json_encode(['success' => false, 'message' => 'Error al guardar: ' . $this->conectar->error]);
         }
+    }
+
+    public function anular()
+    {
+        $respuesta = ["res" => false];
+
+        if (!isset($_POST['id'])) {
+            $respuesta['msg'] = 'ID de compra no proporcionado';
+            return json_encode($respuesta);
+        }
+
+        $id_compra = $_POST['id'];
+
+        // Verificar que la compra existe y está activa
+        $sql_check = "SELECT estado FROM compras WHERE id_compra = ?";
+        $stmt_check = $this->conectar->prepare($sql_check);
+        $stmt_check->bind_param("i", $id_compra);
+        $stmt_check->execute();
+        $result = $stmt_check->get_result();
+
+        if ($result->num_rows === 0) {
+            $respuesta['msg'] = 'La orden de compra no existe';
+            return json_encode($respuesta);
+        }
+
+        $compra = $result->fetch_assoc();
+
+        if ($compra['estado'] === '0') {
+            $respuesta['msg'] = 'La orden de compra ya está anulada';
+            return json_encode($respuesta);
+        }
+
+        // Anular la compra (cambiar estado a '0')
+        $sql_anular = "UPDATE compras SET estado = '0' WHERE id_compra = ?";
+        $stmt_anular = $this->conectar->prepare($sql_anular);
+        $stmt_anular->bind_param("i", $id_compra);
+
+        if ($stmt_anular->execute()) {
+            $respuesta["res"] = true;
+            $respuesta["msg"] = "Orden de compra anulada correctamente";
+        } else {
+            $respuesta['msg'] = 'Error al anular la orden de compra: ' . $this->conectar->error;
+        }
+
+        $stmt_check->close();
+        $stmt_anular->close();
+
+        return json_encode($respuesta);
+    }
+
+    public function obtenerCompra()
+    {
+        $respuesta = ["res" => false];
+
+        if (!isset($_POST['id'])) {
+            $respuesta['msg'] = 'ID de compra no proporcionado';
+            return json_encode($respuesta);
+        }
+
+        $id_compra = $_POST['id'];
+
+        // Obtener datos de la compra
+        $sql_compra = "SELECT c.*, p.razon_social, p.ruc as proveedor_documento
+                       FROM compras c
+                       LEFT JOIN proveedores p ON c.id_proveedor = p.proveedor_id
+                       WHERE c.id_compra = ?";
+        $stmt = $this->conectar->prepare($sql_compra);
+        $stmt->bind_param("i", $id_compra);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 0) {
+            $respuesta['msg'] = 'Compra no encontrada';
+            return json_encode($respuesta);
+        }
+
+        $compra = $result->fetch_assoc();
+
+        // Obtener productos de la compra
+        $sql_productos = "SELECT pc.*, p.nombre, p.codigo
+                          FROM productos_compras pc
+                          LEFT JOIN productos p ON pc.id_producto = p.id_producto
+                          WHERE pc.id_compra = ?";
+        $stmt_prod = $this->conectar->prepare($sql_productos);
+        $stmt_prod->bind_param("i", $id_compra);
+        $stmt_prod->execute();
+        $productos = $stmt_prod->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        // Obtener repuestos de la compra
+        $sql_repuestos = "SELECT rc.*, r.nombre, r.codigo
+                          FROM repuestos_compras rc
+                          LEFT JOIN repuestos r ON rc.id_repuesto = r.id_repuesto
+                          WHERE rc.id_compra = ?";
+        $stmt_rep = $this->conectar->prepare($sql_repuestos);
+        $stmt_rep->bind_param("i", $id_compra);
+        $stmt_rep->execute();
+        $repuestos = $stmt_rep->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        // Obtener pagos si es a crédito
+        $pagos = [];
+        if ($compra['id_tipo_pago'] == 2) {
+            $sql_pagos = "SELECT * FROM dias_compras WHERE id_compra = ?";
+            $stmt_pagos = $this->conectar->prepare($sql_pagos);
+            $stmt_pagos->bind_param("i", $id_compra);
+            $stmt_pagos->execute();
+            $pagos = $stmt_pagos->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+
+        $respuesta['res'] = true;
+        $respuesta['compra'] = $compra;
+        $respuesta['productos'] = $productos;
+        $respuesta['repuestos'] = $repuestos;
+        $respuesta['pagos'] = $pagos;
+
+        return json_encode($respuesta);
+    }
+
+    public function actualizarCompra()
+    {
+        $respuesta = ["res" => false];
+
+        if (!isset($_POST['id_compra'])) {
+            $respuesta['msg'] = 'ID de compra no proporcionado';
+            return json_encode($respuesta);
+        }
+
+        $id_compra = $_POST['id_compra'];
+
+        // DEBUG: Log de datos recibidos
+        error_log("=== ACTUALIZAR COMPRA ===");
+        error_log("ID Compra: " . $id_compra);
+        error_log("id_proveedor: " . ($_POST['id_proveedor'] ?? 'NO RECIBIDO'));
+        error_log("fecha_emision: " . ($_POST['fecha_emision'] ?? 'NO RECIBIDO'));
+        error_log("fecha_vencimiento: " . ($_POST['fecha_vencimiento'] ?? 'NO RECIBIDO'));
+        error_log("tipo_pago: " . ($_POST['tipo_pago'] ?? 'NO RECIBIDO'));
+        error_log("num_doc: " . ($_POST['num_doc'] ?? 'NO RECIBIDO'));
+        error_log("nom_cli: " . ($_POST['nom_cli'] ?? 'NO RECIBIDO'));
+        error_log("POST completo: " . json_encode($_POST));
+
+        // Verificar que la compra existe y está activa
+        $sql_check = "SELECT estado FROM compras WHERE id_compra = ?";
+        $stmt_check = $this->conectar->prepare($sql_check);
+        $stmt_check->bind_param("i", $id_compra);
+        $stmt_check->execute();
+        $result = $stmt_check->get_result();
+
+        if ($result->num_rows === 0) {
+            $respuesta['msg'] = 'La orden de compra no existe';
+            return json_encode($respuesta);
+        }
+
+        $compra = $result->fetch_assoc();
+        if ($compra['estado'] === '0') {
+            $respuesta['msg'] = 'No se puede editar una orden de compra anulada';
+            return json_encode($respuesta);
+        }
+
+        // Actualizar datos básicos de la compra
+        $sql_update = "UPDATE compras SET
+                       id_proveedor = ?,
+                       fecha_emision = ?,
+                       fecha_vencimiento = ?,
+                       id_tipo_pago = ?,
+                       direccion = ?,
+                       total = ?
+                       WHERE id_compra = ?";
+
+        $stmt_update = $this->conectar->prepare($sql_update);
+        $stmt_update->bind_param("isssssi",
+            $_POST['id_proveedor'],
+            $_POST['fecha_emision'],
+            $_POST['fecha_vencimiento'],
+            $_POST['id_tipo_pago'],
+            $_POST['direccion'],
+            $_POST['total'],
+            $id_compra
+        );
+
+        if ($stmt_update->execute()) {
+            // Eliminar productos y repuestos anteriores
+            $this->conectar->query("DELETE FROM productos_compras WHERE id_compra = $id_compra");
+            $this->conectar->query("DELETE FROM repuestos_compras WHERE id_compra = $id_compra");
+            $this->conectar->query("DELETE FROM dias_compras WHERE id_compra = $id_compra");
+
+            // Insertar nuevos productos y repuestos
+            $c_compra = new Compra();
+            $array_detalle = json_decode($_POST['listaPro'], true);
+            $listaPagos = json_decode($_POST['dias_lista'], true);
+
+            $insertCompra = false;
+            foreach ($array_detalle as $fila) {
+                if ($fila['tipo'] == 'producto') {
+                    $insertCompra = $c_compra->insertProductosCompras($fila['productoid'], $id_compra, $fila['cantidad'], $fila['precio']);
+                } else if ($fila['tipo'] == 'repuesto') {
+                    $insertCompra = $c_compra->insertRepuestosCompras($fila['productoid'], $id_compra, $fila['cantidad'], $fila['precio']);
+                }
+            }
+
+            // Insertar pagos si es crédito
+            if ($_POST['tipo_pago'] == 2 && !empty($listaPagos)) {
+                foreach ($listaPagos as $fila) {
+                    $c_compra->insertDiasCompras($id_compra, $fila['monto'], $fila['fecha']);
+                }
+            }
+
+            $respuesta['res'] = true;
+            $respuesta['resp'] = true; // Para compatibilidad
+            $respuesta['msg'] = 'Compra actualizada correctamente';
+            $respuesta['id_compra'] = $id_compra;
+        } else {
+            $respuesta['msg'] = 'Error al actualizar la compra: ' . $this->conectar->error;
+        }
+
+        return json_encode($respuesta);
     }
 }

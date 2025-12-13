@@ -143,13 +143,6 @@ Route::post("/ajs/imagenes/guardar", "ImagenesController@guardarImagenes")->Midd
 
 
 
-Route::get("/ajs/server/sider/productos","ProductosController@listaProductoServerSide");
-Route::get("/ajs/server/sider/repuestos","RepuestosController@listaRepuestoServerSide");
-Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
-Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
-
-Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Middleware([ValidarTokenMiddleware::class]);
-
 
 
 // Rutas para fotos de cotizaciones de taller
@@ -160,6 +153,7 @@ Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Mi
 // Rutas para operaciones AJAX
 Route::post("/ajs/fichas-tecnicas/listar", "FichasTecnicasController@listarFichas")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/guardar", "FichasTecnicasController@guardarFicha")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/fichas-tecnicas/actualizar", "FichasTecnicasController@actualizarFicha")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/obtener", "FichasTecnicasController@obtenerFicha")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/ajs/fichas-tecnicas/info-completa/:id_ficha", "FichasTecnicasController@obtenerInfoCompleta")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/eliminar", "FichasTecnicasController@eliminarFicha")->Middleware([ValidarTokenMiddleware::class]);

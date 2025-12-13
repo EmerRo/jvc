@@ -26,14 +26,14 @@ $c_ubigeo = new Ubigeo();
                         Remisión</li>
                 </ol>
             </div>
-            <div class="col-md-4">
-                <div class="float-end d-none d-md-block">
-                    <button id="backbuttonvp" href="/guias/remision" type="button"
-                        class="btn bg-white border-rojo text-rojo button-link">
-                        <i class="fa fa-arrow-left"></i> Regresar
-                    </button>
-                </div>
+        <div class="col-md-4">
+            <div class="float-end d-none d-md-block">
+                <a id="backbuttonvp" href="/guias/remision"
+                    class="btn border-rojo text-rojo bg-white button-link">
+                    <i class="fa fa-arrow-left"></i> Regresar
+                </a>
             </div>
+        </div>
         </div>
     </div>
 

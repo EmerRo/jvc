@@ -54,6 +54,19 @@ Route::post("/ajs/save/condiciones/temp", "ProductosController@saveCondicionTemp
 Route::post("/ajs/save/condiciones/default", "ProductosController@saveCondicionDefault");
 Route::get("/ajas/get/diagnosticos", "ProductosController@getDiagnostico");
 Route::get("/ajas/get/diagnosticos", "ProductosController@saveDiagnostico");
+
+
+Route::get("/ajs/server/sider/productos","ProductosController@listaProductoServerSide");
+Route::get("/ajs/server/sider/repuestos","RepuestosController@listaRepuestoServerSide");
+Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/producto/disminuir/stock', "ProductosController@disminuirStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/producto/traslado/almacenes', "ProductosController@trasladoAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/repuesto/disminuir/stock', "RepuestosController@disminuirStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/data/repuesto/traslado/almacenes', "RepuestosController@trasladoAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
+
+Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Middleware([ValidarTokenMiddleware::class]);
+
 /* ====================== FIN DE LAS RUTAS DE PRODUCTOS CONTROLLER ========================================= */
 
 // ================  CotizacionesController ===================================
@@ -103,6 +116,9 @@ Route::post("/ajs/save/observaciones/compra", "ComprasController@saveObservacion
 Route::post("/ajs/save/observaciones/temp", "ComprasController@saveObservacionTemp");
 Route::post("/ajs/save/observaciones/default", "ComprasController@saveObservacionDefault");
 Route::get("/ajs/compra/serie-numero", "ComprasController@obtenerSerieNumeroCompra");
+Route::post("/ajs/compra/anular", "ComprasController@anular");
+Route::post("/ajs/compra/obtener", "ComprasController@obtenerCompra");
+Route::post("/ajs/compra/actualizar", "ComprasController@actualizarCompra");
 
 // ================  DashboardController ===================================
 Route::get("/ajs/dashboard/cliente-detalle", "DashboardController@getClienteDetalle");

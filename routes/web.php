@@ -49,6 +49,7 @@ Route::postBase("/cajaRegistros","FragmentController@cajaRegistros");
 
 Route::postBase("/compras","FragmentController@compras");
 Route::postBase("/compras/add","FragmentController@comprasAdd");
+Route::postBase("/compras/editar/:id","FragmentController@comprasEdit");
 
 Route::postBase("/cobranzas","FragmentController@cobranzas");
 
@@ -89,11 +90,13 @@ Route::postBase("/taller/cotizaciones", "FragmentController@tallerCotizaciones")
 
 Route::get("/reporte/excel/:fecha","GenerarReporte@generarExcel");
 Route::get("/reporte/producto/excel","GenerarReporte@generarExcelProducto");
+Route::get("/reporte/repuesto/excel","GenerarReporte@generarExcelRepuesto");
 Route::get("/reporte/registros/excel/", "GenerarRegistros@generarExcelSeries");
 Route::get("/reporte/rvta/excel/:fecha","GenerarReporte@generarExcelRVTA");
 /* Route::get("/reporte/excel/test2","GenerarReporte@testExcel"); */
 Route::get("/reporte/ingresos/egresos/:id","GenerarReporte@ingresosEgresos");
 Route::get("/reporte/producto/guia","GenerarReporte@generarExcelProductoImporte");
+Route::get("/reporte/repuesto/guia","GenerarReporte@generarExcelRepuestoImporte");
 Route::get("/reporte/caja/excel/:id","GenerarReporte@generarExcelCaja");
 Route::postBase("/reporte/cotizaciones/vendedores", "GenerarReporte@reporteVentaPorVendedor");
 

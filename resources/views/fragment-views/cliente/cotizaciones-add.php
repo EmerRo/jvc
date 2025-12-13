@@ -505,7 +505,7 @@
                                                     <tr v-for="(item,index) in productos">
                                                         <td class="text-center">{{index+1}}</td>
                                                         <td>{{item.codigo_pp || item.codigo || ''}}</td>
-                                                        <td>{{item.descripcion}}</td>
+                                                        <td>{{item.nom_prod || item.descripcion}}</td>
                                                         <td><span v-if="!item.editable">{{item.cantidad}}</span><input
                                                                 v-if="item.editable" v-model="item.cantidad"></td>
                                                         <td style="white-space: nowrap;"><span
@@ -880,7 +880,7 @@
                     </div>
                     <!-- Modal de Edición -->
                     <div class="modal fade" id="modalEditarProducto" tabindex="-1">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header bg-rojo text-white">
                                     <h5 class="modal-title">
@@ -891,9 +891,8 @@
                                 </div>
                                 <div class="modal-body p-3">
                                     <div class="row g-2">
-                                        <!-- Columna izquierda -->
-                                        <div class="col-md-6">
-                                            <!-- Código del producto -->
+                                        <!-- Código del producto (más pequeño) -->
+                                        <div class="col-md-3">
                                             <div class="mb-2">
                                                 <label class="form-label small mb-1">
                                                     <i class="fa fa-barcode me-1"></i> Código
@@ -901,8 +900,21 @@
                                                 <input type="text" class="form-control form-control-sm bg-light"
                                                     v-model="productoEdit.codigo_pp" readonly>
                                             </div>
+                                        </div>
 
-                                            <!-- Precio con dropdown -->
+                                        <!-- Nombre del producto (más grande) -->
+                                        <div class="col-md-9">
+                                            <div class="mb-2">
+                                                <label class="form-label small mb-1">
+                                                    <i class="fa fa-tag me-1"></i> Nombre
+                                                </label>
+                                                <input type="text" class="form-control form-control-sm"
+                                                    v-model="productoEdit.nom_prod">
+                                            </div>
+                                        </div>
+
+                                        <!-- Precio con dropdown -->
+                                        <div class="col-md-4">
                                             <div class="mb-2">
                                                 <label class="form-label small mb-1">
                                                     <i class="fa fa-money-bill me-1"></i> Precio
@@ -1005,39 +1017,10 @@
                                                     </ul>
                                                 </div>
                                             </div>
-
-                                            <!-- Cantidad -->
-                                            <div class="mb-2">
-                                                <label class="form-label small mb-1">
-                                                    <i class="fa fa-cubes me-1"></i> Cantidad
-                                                </label>
-                                                <div class="input-group input-group-sm">
-                                                    <button class="btn btn-sm border-rojo text-rojo" type="button"
-                                                        @click="productoEdit.cantidad = Math.max(1, parseInt(productoEdit.cantidad) - 1)">
-                                                        <i class="fa fa-minus"></i>
-                                                    </button>
-                                                    <input type="number" class="form-control text-center"
-                                                        v-model="productoEdit.cantidad" @keypress="onlyNumber">
-                                                    <button class="btn btn-sm border-rojo text-rojo" type="button"
-                                                        @click="productoEdit.cantidad = parseInt(productoEdit.cantidad) + 1">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </div>
 
-                                        <!-- Columna derecha -->
-                                        <div class="col-md-6">
-                                            <!-- Nombre del producto -->
-                                            <div class="mb-2">
-                                                <label class="form-label small mb-1">
-                                                    <i class="fa fa-tag me-1"></i> Nombre
-                                                </label>
-                                                <input type="text" class="form-control form-control-sm"
-                                                    v-model="productoEdit.nom_prod">
-                                            </div>
-
-                                            <!-- Precio Especial -->
+                                        <!-- Precio Especial -->
+                                        <div class="col-md-4">
                                             <div class="mb-2">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <label class="form-label small mb-1">
@@ -1056,6 +1039,27 @@
                                                         v-model="productoEdit.precioEspecial"
                                                         :disabled="!usarPrecioEspecial"
                                                         :class="{'bg-light': !usarPrecioEspecial}">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cantidad -->
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label small mb-1">
+                                                    <i class="fa fa-cubes me-1"></i> Cantidad
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    <button class="btn btn-sm border-rojo text-rojo" type="button"
+                                                        @click="productoEdit.cantidad = Math.max(1, parseInt(productoEdit.cantidad) - 1)">
+                                                        <i class="fa fa-minus"></i>
+                                                    </button>
+                                                    <input type="number" class="form-control text-center"
+                                                        v-model="productoEdit.cantidad" @keypress="onlyNumber">
+                                                    <button class="btn btn-sm border-rojo text-rojo" type="button"
+                                                        @click="productoEdit.cantidad = parseInt(productoEdit.cantidad) + 1">
+                                                        <i class="fa fa-plus"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1416,7 +1420,7 @@
                     monto_inicial: 0,
                     porcentaje_inicial: 0,
                     asunto: '',
-                    aplicar_igv: '0'
+                    aplicar_igv: '1'
 
                 },
                 dataKey: '',
@@ -1631,8 +1635,8 @@
                     this.productoEdit = {
                         index: index,
                         codigo_pp: producto.codigo_pp,
-                        nombre: producto.nombre || producto.descripcion,
-                        nom_prod: producto.nombre || producto.descripcion,
+                        nombre: producto.nombre || producto.nom_prod,
+                        nom_prod: producto.nombre || producto.nom_prod,
                         detalle: producto.detalle || "",
                         moneda: producto.moneda || 'PEN',
                         cantidad: producto.cantidad,
@@ -1708,10 +1712,12 @@
                 actualizarProducto() {
                     const index = this.productoEdit.index
                     if (index > -1) {
+                        // Mantener el código del producto
+                        const codigo = this.productos[index].codigo_pp || this.productos[index].codigo || '';
                         this.productos[index] = {
                             ...this.productos[index],
                             nombre: this.productoEdit.nom_prod,
-                            descripcion: this.productoEdit.nom_prod,
+                            descripcion: (codigo ? codigo + " | " : "") + this.productoEdit.nom_prod, // Para el input visual
                             detalle: this.productoEdit.detalle,
                             cantidad: this.productoEdit.cantidad,
                             precioVenta: this.productoEdit.precio,
@@ -2064,8 +2070,8 @@
                             // Asignar valores del producto
                             app.producto.productoid = ui.item.codigo; // Este es el id_producto
                             app.producto.codigo_pp = ui.item.codigo_pp;
-                            app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre;
-                            app.producto.nom_prod = ui.item.nombre;
+                            app.producto.descripcion = ui.item.codigo_pp + " | " + ui.item.nombre; // Para el input visual
+                            app.producto.nom_prod = ui.item.nombre; // Para la tabla
                             app.producto.cantidad = '';
                             app.producto.stock = ui.item.cnt;
                             app.producto.precio = ui.item.precio == null ? parseFloat(0 + "").toFixed(2) : parseFloat(ui.item.precio + "").toFixed(2);
@@ -2392,10 +2398,11 @@
                                 ...this.producto
                             }
                             prod.productoid = id;
-                            prod.descripcion = codigo_app + "|" + nom_prod;
-                            prod.nom_prod = nom_prod;
+                            prod.descripcion = codigo_app + " | " + nom_prod; // Para el input visual
+                            prod.nom_prod = nom_prod; // Para la tabla
                             prod.cantidad = cantidad;
                             prod.codigo = codigo_app;
+                            prod.codigo_pp = codigo_app;
                             prod.costo = costo;
                             prod.codsunat = codsunat;
                             prod.precio = parseFloat(precio).toFixed(2);
@@ -2607,11 +2614,21 @@
                         totalBase = totalBase * (1 - descuento);
                     }
 
-                    // Calculamos el total final según si aplica IGV
+                    // CORRECCIÓN: Los precios de almacén YA incluyen IGV (18%)
+                    // Lógica correcta:
+                    // - Si aplicar_igv = '1' (SÍ): usar precio tal cual (ya tiene IGV incluido)
+                    // - Si aplicar_igv = '0' (NO): quitar IGV dividiendo entre 1.18 (clientes exonerados)
                     let totalFinal = totalBase;
-                    if (this.venta.aplicar_igv == '1') {
-                        totalFinal = totalBase * 1.18; // Agregamos IGV del 18%
+                    if (this.venta.aplicar_igv == '0') {
+                        // Cliente exonerado: quitar el IGV que ya está incluido en los precios
+                        totalFinal = totalBase / 1.18;
                     }
+                    // Si aplicar_igv == '1', totalFinal = totalBase (sin cambios, ya tiene IGV)
+
+                    // CÓDIGO ORIGINAL COMENTADO - Causaba doble aplicación de IGV:
+                    // if (this.venta.aplicar_igv == '1') {
+                    //     totalFinal = totalBase * 1.18; // ❌ Multiplicaba cuando ya tenía IGV
+                    // }
 
                     // Actualizamos el total en venta y retornamos con 2 decimales
                     this.venta.total = totalFinal;
@@ -2817,8 +2834,8 @@
                 }
 
                 app.producto.codigo_pp = ui.item.codigo_pp;
-                app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre;
-                app.producto.nom_prod = ui.item.nombre;
+                app.producto.descripcion = ui.item.codigo_pp + " | " + ui.item.nombre; // Para el input visual
+                app.producto.nom_prod = ui.item.nombre; // Para la tabla
                 app.producto.cantidad = '1';
                 app.producto.stock = ui.item.cnt;
 

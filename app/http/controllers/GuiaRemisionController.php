@@ -338,7 +338,7 @@ class GuiaRemisionController extends Controller
             $conexion = (new Conexion())->getConexion();
 
             // Get guide and client information - MEJORADA para incluir cotización
-            $query = "SELECT 
+            $query = "SELECT
             gr.id_guia_remision,
             gr.fecha_emision,
             gr.dir_llegada as cliente_direccion,
@@ -346,7 +346,8 @@ class GuiaRemisionController extends Controller
             COALESCE(c_venta.datos, c_coti.datos, c_taller.datos, gr.destinatario_nombre) as cliente_nombre,
             gr.serie,
             gr.numero,
-            gr.estado
+            gr.estado,
+            gr.ref_orden_compra
             FROM guia_remision gr
             LEFT JOIN ventas v ON gr.id_venta = v.id_venta
             LEFT JOIN clientes c_venta ON v.id_cliente = c_venta.id_cliente
@@ -432,8 +433,8 @@ class GuiaRemisionController extends Controller
                     'cantidad' => (int) $prod['cantidad'],
                     'descripcion' => $descripcionProducto,
                     'nombre' => $descripcionProducto, // Para compatibilidad con la vista
-                    'precioVenta' => number_format((float) $prod['precioVenta'], 5, '.', ''),
-                    'precio' => number_format((float) $prod['precioVenta'], 5, '.', ''), // Formato correcto
+                    'precioVenta' => number_format((float) $prod['precioVenta'], 2, '.', ''),
+                    'precio' => number_format((float) $prod['precioVenta'], 2, '.', ''),
                     'edicion' => false,
                     'productoid' => $prod['id_producto'],
                     'esEquipo' => false
@@ -459,6 +460,7 @@ class GuiaRemisionController extends Controller
                 'cliente_doc' => $guia['cliente_doc'],
                 'cliente_nombre' => $guia['cliente_nombre'],
                 'cliente_direccion' => $guia['cliente_direccion'],
+                'ref_orden_compra' => $guia['ref_orden_compra'],
                 'productos' => $productosFormateados
             ];
 

@@ -16,17 +16,17 @@ $c_ubigeo = new Ubigeo();
             <h6 class="page-title">Guía Remisión Manual</h6>
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
-                <li class="breadcrumb-item"><a href="/ventas" class="button-link">Guía Remisión</a></li>
+                <li class="breadcrumb-item"><a href="/guias/remision" class="button-link">Guía Remisión</a></li>
                 <li class="breadcrumb-item active" aria-current="page" style="color: #CA3438">Registrar Guia Remisión
                     Manual</li>
             </ol>
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
-                <button id="backbuttonvp" href="/guias/remision" type="button"
+                <a id="backbuttonvp" href="/guias/remision"
                     class="btn border-rojo text-rojo bg-white button-link">
                     <i class="fa fa-arrow-left"></i> Regresar
-                </button>
+                </a>
             </div>
         </div>
     </div>

@@ -1,379 +1,7 @@
 <!-- resources/views/fragment-views/cliente/documentos/componentes/fichas-tecnicas.php -->
+<link rel="stylesheet" href="<?= URL::to('/public/css/fichas-tecnicas.css') ?>?v=<?= time() ?>">
 
-<style>
-    /* Contenedor de la vista previa del documento */
-    .document-preview {
-        height: 250px;
-        overflow: hidden;
-        display: block;
-        background-color: white;
-        padding: 0;
-        margin: 0;
-    }
-    
-    /* Estilo para el canvas de PDF */
-    .pdf-preview-canvas {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 100%;
-        object-fit: contain;
-        display: block;
-        margin: 0 auto;
-    }
-    
-    /* NUEVOS ESTILOS PARA EVITAR DESBORDAMIENTO */
-    
-    /* Contenedor de la tarjeta */
-    .card {
-        overflow: hidden;
-    }
-    
-    /* Header de la tarjeta */
-    .card-header {
-        overflow: hidden;
-    }
-    
-    /* Título de la tarjeta */
-    .card-title {
-        word-wrap: break-word;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        line-height: 1.3;
-    }
-    
-    /* Badge del producto */
-    .badge {
-        max-width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: inline-block;
-        word-wrap: break-word;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        white-space: normal !important;
-        line-height: 1.2;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
-    }
-    
-    /* Contenedor de badges */
-    .card-header .mt-1 {
-        overflow: hidden;
-        word-wrap: break-word;
-    }
-    
-    /* Asegurar que el contenido no se desborde */
-    .card-body {
-        overflow: hidden;
-    }
-    
-    /* Texto pequeño en la parte inferior */
-    .card-body small {
-        word-wrap: break-word;
-        word-break: break-word;
-        overflow-wrap: break-word;
-    }
-    
-    /* Responsive: En pantallas pequeñas, hacer el texto aún más pequeño */
-    @media (max-width: 768px) {
-        .badge {
-            font-size: 0.65rem;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        .card-title {
-            font-size: 1rem;
-        }
-    }
-    
-    /* NUEVOS ESTILOS PARA EL MODAL */
-    
-    /* Modal más ancho para mejor visualización */
-    .modal-xl {
-        max-width: 95%;
-    }
-    
-    /* Estilos para las imágenes en el modal */
-    .modal .img-fluid {
-        transition: transform 0.2s ease-in-out;
-    }
-    
-    .modal .img-fluid:hover {
-        transform: scale(1.02);
-    }
-    
-    /* Estilos para los botones de acción */
-    .btn-group .btn {
-        border-radius: 0.375rem !important;
-    }
-    
-    .btn-group .btn:first-child {
-        border-top-left-radius: 0.375rem !important;
-        border-bottom-left-radius: 0.375rem !important;
-    }
-    
-    .btn-group .btn:last-child {
-        border-top-right-radius: 0.375rem !important;
-        border-bottom-right-radius: 0.375rem !important;
-    }
-    
-    /* Estilos para la lista de adjuntos */
-    .list-group-item {
-        border-left: none;
-        border-right: none;
-        border-top: none;
-    }
-    
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
-    
-    /* Estilos para el contador de archivos */
-    .list-group-item.bg-light {
-        background-color: #f8f9fa !important;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    /* Estilos para las imágenes con sombra */
-    .shadow-sm {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-    }
-    
-    /* Estilos para el iframe del PDF */
-    .ratio iframe {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-    }
-    
-    /* Estilos para el modal de imagen ampliada */
-    .swal-wide {
-        max-width: 90vw !important;
-    }
-    
-    .swal-wide .swal2-popup {
-        max-width: none !important;
-    }
-    
-    /* NUEVOS ESTILOS PARA IMÁGENES */
-    
-    /* Efecto hover en imágenes */
-    .img-fluid[onclick*="ampliarImagen"] {
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .img-fluid[onclick*="ampliarImagen"]:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-        z-index: 10;
-        position: relative;
-    }
-    
-    /* Indicador visual de que la imagen es clickeable */
-    .img-fluid[onclick*="ampliarImagen"]::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.1);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-        border-radius: inherit;
-    }
-    
-    .img-fluid[onclick*="ampliarImagen"]:hover::after {
-        opacity: 1;
-    }
-    
-    /* Estilos para el modal de imagen */
-    .modal .img-fluid {
-        transition: transform 0.2s ease-in-out;
-    }
-    
-    .modal .img-fluid:hover {
-        transform: scale(1.02);
-    }
-    
-    /* Estilos para los botones de acción */
-    .btn-group .btn {
-        border-radius: 0.375rem !important;
-    }
-    
-    .btn-group .btn:first-child {
-        border-top-left-radius: 0.375rem !important;
-        border-bottom-left-radius: 0.375rem !important;
-    }
-    
-    .btn-group .btn:last-child {
-        border-top-right-radius: 0.375rem !important;
-        border-bottom-right-radius: 0.375rem !important;
-    }
-    
-    /* Estilos para la lista de adjuntos */
-    .list-group-item {
-        border-left: none;
-        border-right: none;
-        border-top: none;
-    }
-    
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
-    
-    /* Estilos para el contador de archivos */
-    .list-group-item.bg-light {
-        background-color: #f8f9fa !important;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    /* Estilos para las imágenes con sombra */
-    .shadow-sm {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-    }
-    
-    /* Estilos para el iframe del PDF */
-    .ratio iframe {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-    }
-    
-    /* NUEVO: Quitar hover rojo en lista de adjuntos */
-    
-    /* Quitar hover rojo en list-group-item */
-    .list-group-item:hover {
-        background-color: #f8f9fa !important;
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en botones de la lista */
-    .list-group-item .btn:hover {
-        background-color: #6c757d !important;
-        border-color: #6c757d !important;
-        color: white !important;
-    }
-    
-    /* Quitar hover rojo en enlaces de la lista */
-    .list-group-item a:hover {
-        color: inherit !important;
-        text-decoration: none !important;
-    }
-    
-    /* Quitar hover rojo en iconos de la lista */
-    .list-group-item i:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en spans de la lista */
-    .list-group-item span:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos pequeños de la lista */
-    .list-group-item small:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de texto de la lista */
-    .list-group-item p:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos div de la lista */
-    .list-group-item div:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos con clase bg-light */
-    .list-group-item.bg-light:hover {
-        background-color: #f8f9fa !important;
-        color: #6c757d !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases personalizadas */
-    .list-group-item[class*="bg-"]:hover {
-        background-color: inherit !important;
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases de color */
-    .list-group-item[class*="text-"]:hover {
-        color: inherit !important;
-    }
-    
-    /* NUEVO: Estilos más específicos para quitar hover rojo */
-    
-    /* Quitar hover rojo en toda la lista de adjuntos del modal */
-    #verArchivoModal .list-group-item:hover {
-        background-color: #f8f9fa !important;
-        color: #212529 !important;
-        border-color: #dee2e6 !important;
-    }
-    
-    /* Quitar hover rojo en elementos específicos de la lista */
-    #verArchivoModal .list-group-item .btn-outline-primary:hover {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd !important;
-        color: white !important;
-    }
-    
-    #verArchivoModal .list-group-item .btn-outline-success:hover {
-        background-color: #198754 !important;
-        border-color: #198754 !important;
-        color: white !important;
-    }
-    
-    #verArchivoModal .list-group-item .btn-outline-danger:hover {
-        background-color: #dc3545 !important;
-        border-color: #dc3545 !important;
-        color: white !important;
-    }
-    
-    /* Quitar hover rojo en iconos específicos */
-    #verArchivoModal .list-group-item .fas:hover,
-    #verArchivoModal .list-group-item .fab:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de texto */
-    #verArchivoModal .list-group-item .text-muted:hover {
-        color: #6c757d !important;
-    }
-    
-    #verArchivoModal .list-group-item .text-info:hover {
-        color: #0dcaf0 !important;
-    }
-    
-    /* Quitar hover rojo en elementos con clases específicas */
-    #verArchivoModal .list-group-item .text-truncate:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases de Bootstrap */
-    #verArchivoModal .list-group-item.list-group-item-action:hover {
-        background-color: #f8f9fa !important;
-        color: #212529 !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases de color personalizadas */
-    #verArchivoModal .list-group-item[class*="bg-"]:hover {
-        background-color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases de texto personalizadas */
-    #verArchivoModal .list-group-item[class*="text-"]:hover {
-        color: inherit !important;
-    }
-    
-    /* Quitar hover rojo en elementos de la lista que tengan clases de borde personalizadas */
-    #verArchivoModal .list-group-item[class*="border-"]:hover {
-        border-color: inherit !important;
-    }
-</style>
+
 <div class="tab-content" id="fichasTabsContent">
     <!-- Navegación entre Lista y Nueva Ficha -->
     <div class="d-flex mb-4 gap-2">
@@ -588,13 +216,16 @@ function renderizarFichas(fichas) {
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Actualizado: ${formatDate(ficha.fecha_actualizacion)}</small>
                                 <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="verFicha(${ficha.id_archivo})">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="verFicha(${ficha.id_archivo})" title="Ver">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-success" onclick="compartirWhatsApp(${ficha.id_archivo})">
+                                    <button class="btn btn-sm btn-outline-warning" onclick="editarFicha(${ficha.id_archivo})" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="compartirWhatsApp(${ficha.id_archivo})" title="Compartir">
                                         <i class="fab fa-whatsapp"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarFicha(${ficha.id_archivo})">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarFicha(${ficha.id_archivo})" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -1471,6 +1102,64 @@ function enviarWhatsApp() {
     });
 }
 
+// Función para editar una ficha técnica
+function editarFicha(id) {
+    // Mostrar loader
+    Swal.fire({
+        title: 'Cargando ficha...',
+        html: '<div style="display: flex; justify-content: center; align-items: center; padding: 20px;"><div style="width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #CA3438; border-radius: 50%; animation: spin 1s linear infinite;"></div></div>',
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+
+    // Obtener datos de la ficha
+    $.ajax({
+        url: _URL + '/ajs/fichas-tecnicas/obtener',
+        type: 'POST',
+        data: { id_archivo: id },
+        dataType: 'json',
+        success: function(data) {
+            Swal.close();
+            
+            if (data.res && data.ficha) {
+                // Cambiar a la pestaña de nueva ficha
+                $('#lista-fichas').removeClass('show active');
+                $('#nueva-ficha').addClass('show active');
+                
+                // Llenar el formulario con los datos existentes
+                $('#titulo').val(data.ficha.titulo || '');
+                
+                // Buscar y seleccionar el producto si existe
+                if (data.ficha.id_producto && data.ficha.nombre_producto) {
+                    $('#buscar_producto').val(data.ficha.nombre_producto);
+                    $('#id_producto').val(data.ficha.id_producto);
+                }
+                
+                // Guardar el ID de la ficha para actualizar (no crear nueva)
+                $('#id-ficha-editar').val(id);
+                
+                // Cambiar el texto del botón
+                $('#nuevaFichaForm button[type="submit"]').html('<i class="fas fa-save me-2"></i>Actualizar Ficha Técnica');
+                
+                // Mostrar mensaje informativo
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Modo Edición',
+                    text: 'Modifica los campos necesarios y haz clic en "Actualizar Ficha Técnica"',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', 'No se pudo cargar la ficha para editar', 'error');
+            }
+        },
+        error: function() {
+            Swal.close();
+            Swal.fire('Error', 'Error al cargar la ficha. Intente nuevamente.', 'error');
+        }
+    });
+}
+
 // Función para eliminar una ficha técnica
 function eliminarFicha(id) {
     Swal.fire({
@@ -2075,11 +1764,17 @@ function guardarFicha(form) {
     const submitBtn = $(form).find('button[type="submit"]');
     const btnText = submitBtn.html();
     
+    // Detectar si es edición o creación
+    const idFicha = $('#id-ficha-editar').val();
+    const esEdicion = idFicha && idFicha !== '';
+    const url = esEdicion ? _URL + '/ajs/fichas-tecnicas/actualizar' : _URL + '/ajs/fichas-tecnicas/guardar';
+    const mensajeExito = esEdicion ? 'Ficha técnica actualizada correctamente' : 'Ficha técnica guardada correctamente';
+    
     submitBtn.prop('disabled', true);
-    submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Guardando...');
+    submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>' + (esEdicion ? 'Actualizando...' : 'Guardando...'));
     
     $.ajax({
-        url: _URL + '/ajs/fichas-tecnicas/guardar',
+        url: url,
         type: 'POST',
         data: formData,
         processData: false,
@@ -2090,11 +1785,17 @@ function guardarFicha(form) {
               Swal.fire({
     icon: 'success',
     title: '¡Éxito!',
-    text: 'Ficha técnica guardada correctamente',
+    text: mensajeExito,
     confirmButtonColor: '#3085d6'
 }).then(() => {
     // NUEVO: Limpiar completamente el formulario
     limpiarFormularioCompleto();
+    
+    // Limpiar el ID de edición
+    $('#id-ficha-editar').val('');
+    
+    // Restaurar el texto del botón
+    submitBtn.html('<i class="fas fa-save me-2"></i>Guardar Ficha Técnica');
     
     // Cambiar a la pestaña de lista
     $('#nueva-ficha').removeClass('show active');

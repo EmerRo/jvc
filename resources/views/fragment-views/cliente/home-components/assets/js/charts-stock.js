@@ -74,7 +74,7 @@ Vue.prototype.inicializarGraficoRotacion = function() {
     });
 
     this.charts.rotacionInventario = Highcharts.chart(this.$refs.rotacionInventarioChart, {
-        chart: {
+        chart: { backgroundColor: window.getChartColors().backgroundColor,
             type: 'column',
             style: {
                 fontFamily: 'Poppins, sans-serif'
@@ -90,7 +90,7 @@ Vue.prototype.inicializarGraficoRotacion = function() {
             categories: productosNombres,
                 labels: {
                     style: {
-                        color: '#6c757d',
+                        color: window.getChartColors().textColor,
                         fontSize: '12px'
                     }
                 }
@@ -99,13 +99,13 @@ Vue.prototype.inicializarGraficoRotacion = function() {
                 title: {
                     text: 'Días promedio de rotación',
                     style: {
-                        color: '#6c757d',
+                        color: window.getChartColors().textColor,
                         fontSize: '12px'
                     }
                 },
                 labels: {
                     style: {
-                        color: '#6c757d',
+                        color: window.getChartColors().textColor,
                         fontSize: '12px'
                     }
                 },
@@ -164,7 +164,7 @@ Vue.prototype.inicializarGraficoMovimientos = function() {
     });
 
     this.charts.movimientosInventario = Highcharts.chart(this.$refs.movimientosInventarioChart, {
-        chart: {
+        chart: { backgroundColor: window.getChartColors().backgroundColor,
             type: 'areaspline',
             style: {
                 fontFamily: 'Poppins, sans-serif'
@@ -180,7 +180,7 @@ Vue.prototype.inicializarGraficoMovimientos = function() {
             categories: mesesFormateados,
             labels: {
                 style: {
-                    color: '#6c757d',
+                    color: window.getChartColors().textColor,
                     fontSize: '12px'
                 }
             }
@@ -189,13 +189,13 @@ Vue.prototype.inicializarGraficoMovimientos = function() {
             title: {
                 text: 'Unidades',
                 style: {
-                    color: '#6c757d',
+                    color: window.getChartColors().textColor,
                     fontSize: '12px'
                 }
             },
             labels: {
                 style: {
-                    color: '#6c757d',
+                    color: window.getChartColors().textColor,
                     fontSize: '12px'
                 }
             },

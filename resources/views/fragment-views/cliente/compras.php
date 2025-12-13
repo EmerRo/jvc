@@ -53,6 +53,8 @@
                                 <th style="text-align: center;">Usuario</th>
                                 <th style="text-align: center;">Detalles</th>
                                 <th style="text-align: center;">Reporte</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: center;">Acciones</th>
                             </tr>
                         </thead>
 
@@ -202,10 +204,53 @@
               <div class="btn-group"><a target="_blank" class="btn btn-sm btn-info" href="${_URL}/reporte/compras/pdf/${row.id_compra}" ><i class="fa fa-file"></i> </a></div></div>`;
                 },
             },
+            {
+                data: null,
+                class: "text-center",
+                render: function (data, type, row) {
+                    // Columna Estado con badges
+                    if (row.estado === '1') {
+                        return `<span class="badge bg-success">Normal</span>`;
+                    } else {
+                        return `<span class="badge bg-danger">Anulada</span>`;
+                    }
+                },
+            },
+            {
+                data: null,
+                class: "text-center",
+                render: function (data, type, row) {
+                    // Columna Acciones con iconos
+                    let iconos = '';
+
+                    // Icono de editar (siempre visible)
+                    iconos += `<button data-id="${row.id_compra}"
+                                      class="btn btn-sm btn-warning btnEditar me-1"
+                                      title="Editar"
+                                      data-bs-toggle="tooltip">
+                                 <i class="fa fa-edit"></i>
+                               </button>`;
+
+                    // Icono de anular (solo si está activa)
+                    if (row.estado === '1') {
+                        iconos += `<button data-id="${row.id_compra}"
+                                          class="btn btn-sm btn-danger btnAnular"
+                                          title="Anular"
+                                          data-bs-toggle="tooltip">
+                                     <i class="fa fa-trash"></i>
+                                   </button>`;
+                    }
+
+                    return `<div class="text-center">${iconos}</div>`;
+                },
+            },
             ],
         });
 
-
+        // Inicializar tooltips después de cargar la tabla
+        datatable.on('draw', function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
 
         $("#datatable").on("click", ".btnDetalle ", function (event) {
             $("#loader-menor").show();
@@ -286,6 +331,65 @@
                                 $("#tipoPagoText").text("Contado");
                                 $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center">Esta compra fue pagada al contado</td></tr>');
                             }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Event listener para Editar
+        $("#datatable").on("click", ".btnEditar", function (event) {
+            var id = $(this).data("id");
+            // Redirigir a la página de edición
+            window.location.href = _URL + '/compras/editar/' + id;
+        });
+
+        // Event listener para Anular
+        $("#datatable").on("click", ".btnAnular", function (event) {
+            var id = $(this).data("id");
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¿Deseas anular esta orden de compra?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, anular',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $("#loader-menor").show();
+                    $.ajax({
+                        type: 'POST',
+                        url: _URL + '/ajs/compra/anular',
+                        data: { id: id },
+                        success: function (resp) {
+                            $("#loader-menor").hide();
+                            let data = JSON.parse(resp);
+                            if (data.res) {
+                                Swal.fire(
+                                    'Anulada',
+                                    'La orden de compra ha sido anulada correctamente.',
+                                    'success'
+                                ).then(() => {
+                                    datatable.ajax.reload();
+                                });
+                            } else {
+                                Swal.fire(
+                                    'Error',
+                                    data.msg || 'No se pudo anular la orden de compra.',
+                                    'error'
+                                );
+                            }
+                        },
+                        error: function() {
+                            $("#loader-menor").hide();
+                            Swal.fire(
+                                'Error',
+                                'Ocurrió un error al procesar la solicitud.',
+                                'error'
+                            );
                         }
                     });
                 }

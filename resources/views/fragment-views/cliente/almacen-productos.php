@@ -113,6 +113,18 @@ $almacenProducto = 1;
                                         </li>
                                         <li>
                                             <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                                data-bs-target="#modal-disminuir-stock">
+                                                <i class="fa fa-minus me-2"></i> Disminuir Stock
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                                data-bs-target="#modal-traslado-almacenes">
+                                                <i class="fa fa-exchange-alt me-2"></i> Traslado Almacenes
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
                                                 data-bs-target="#modal-historial-stock">
                                                 <i class="fa fa-history me-2"></i> Historial Stock
                                             </a>
@@ -163,7 +175,17 @@ $almacenProducto = 1;
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-aumentar-stock">
                                 <i class="fa fa-plus"></i>
-                                <span class="d-none d-lg-inline">Aumentar Stock de Productos</span>
+                                <span class="d-none d-lg-inline">Aumentar Stock</span>
+                            </button>
+                            <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modal-disminuir-stock">
+                                <i class="fa fa-minus"></i>
+                                <span class="d-none d-lg-inline">Disminuir Stock</span>
+                            </button>
+                            <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modal-traslado-almacenes">
+                                <i class="fa fa-exchange-alt"></i>
+                                <span class="d-none d-lg-inline">Traslado Almacenes</span>
                             </button>
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-historial-stock">
@@ -202,7 +224,7 @@ $almacenProducto = 1;
                                 </select>
                             </div>
 
-                                                       <!-- Toggle de Vista y Filtros para pantallas grandes -->
+                            <!-- Toggle de Vista y Filtros para pantallas grandes -->
                             <div class="col-md-6 d-none d-lg-block">
                                 <div class="d-flex align-items-end justify-content-start gap-3" style="height: 100%;">
                                     <!-- Filtro Dropdown -->
@@ -298,1018 +320,45 @@ $almacenProducto = 1;
                 </div>
             </div>
 
-            <!-- Todos los modales existentes se mantienen igual -->
-            <div class="modal fade" id="modal-precios" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Precios</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
 
-                        <form @submit.prevent="agregarPrecios">
+            <!-- modal de precios resources\views\fragment-views\cliente\modals\product-modal-precios.php -->
+            <?php include __DIR__ . '/modals/product-modal-precios.php'; ?>
 
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="form-group col-md-12">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Venta: </label>
-                                        <input v-model="edt.precio_unidad" id="precio_unidad" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-12">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 1: </label>
-                                        <input v-model="edt.precio" id="precio1" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-12">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 2: </label>
-                                        <input v-model="edt.precio2" id="precio2" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-12">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 3: </label>
-                                        <input v-model="edt.precio3" id="precio3" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-12">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 4: </label>
-                                        <input v-model="edt.precio4" id="precio4" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Guardar</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            </div>
-                        </form>
+            <!-- modal de agregar producto resources\views\fragment-views\cliente\modals\product-modal-add-prod.php -->
+            <?php include __DIR__ . '/modals/product-modal-add-prod.php' ?>
 
-                    </div>
-                </div>
-            </div>
-            <!-- Modal de Agregar Producto Rediseñado -->
-            <div class="modal fade" id="modal-add-prod" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="exampleModalLabel">
-                                <i class="fa fa-plus-circle me-2"></i>Nuevo Producto
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form @submit.prevent="agregarProd">
-                            <div class="modal-body">
-                                <div class="row">
-                                    <!-- Primera fila: Nombre y Código -->
-                                    <div class="form-group col-md-8 mb-3">
-                                        <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
-                                        <input v-model="reg.nombre" type="text" class="form-control" required>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-barcode me-1"></i>Código</label>
-                                        <input v-model="reg.codigo" type="text" class="form-control" required>
-                                    </div>
+            <!-- modal de editar producto resources\views\fragment-views\cliente\modals\product-modal-edt-prod.php-->
+            <?php include __DIR__ . '/modals/product-modal-edt-prod.php' ?>
 
-                                    <!-- Segunda fila: Detalle y Categoría -->
-                                    <div class="form-group col-md-8 mb-3">
-                                        <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
-                                        <textarea v-model="reg.detalle" class="form-control" rows="3"></textarea>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-folder me-1"></i>Categoría</label>
-                                        <select v-model="reg.categoria" id="categoria" class="form-control" required>
-                                            <!-- Las opciones se cargan dinámicamente -->
-                                        </select>
-                                    </div>
+            <!-- Modal Historial Stock  resources\views\fragment-views\cliente\modals\product-modal-historial-stock.php-->
+            <?php include __DIR__ . '/modals/product-modal-historial-stock.php' ?>
 
-                                    <!-- Tercera fila: Precio, Costo y Cantidad -->
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio
-                                            Venta</label>
-                                        <input v-model="reg.precio" @keypress="onlyNumber" type="text"
-                                            class="form-control" required>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Costo</label>
-                                        <input v-model="reg.costo" @keypress="onlyNumber" type="text"
-                                            class="form-control" required>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
-                                        <input v-model="reg.cantidad" @keypress="onlyNumber" type="text"
-                                            class="form-control" required>
-                                    </div>
+            <!-- Modal Aumentar Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-aumentar-stock.php-->
+            <?php include __DIR__ . '/modals/product-modal-aumentar-stock.php' ?>
 
-                                    <!-- Cuarta fila: Unidades, Almacén y Código Sunat -->
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-ruler me-1"></i>Unidades</label>
-                                        <select v-model="reg.unidad" class="form-control" id="unidades" required>
-                                            <!-- Las opciones se cargan dinámicamente -->
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
-                                        <select v-model="reg.almacen" class="form-control" required>
-                                            <option value="1">Almacén 1</option>
-                                            <option value="2">Almacén 2</option>
-                                            <option value="3">Almacén 3</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-money-bill-wave me-1"></i>Moneda</label>
-                                        <select v-model="reg.moneda" class="form-control" required>
-                                            <option value="PEN">Soles (PEN)</option>
-                                            <option value="USD">Dólares (USD)</option>
-                                        </select>
-                                    </div>
+            <!-- Modal Disminuir Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-disminuir-stock.php-->
+            <?php include __DIR__ . '/modals/product-modal-disminuir-stock.php' ?>
 
-                                    <!-- Quinta fila: Código Sunat -->
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
-                                        <input v-model="reg.codSunat" type="text" class="form-control">
-                                    </div>
+            <!-- Modal Traslado Entre Almacenes resources\views\fragment-views\cliente\modals\product-modal-traslado-almacenes.php-->
+            <?php include __DIR__ . '/modals/product-modal-traslado-almacenes.php' ?>
 
-                                    <!-- Quinta fila: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
-                                        <select v-model="reg.afecto" class="form-control">
-                                            <option value="0">No</option>
-                                            <option value="1">Si</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Distribuidor</label>
-                                        <input v-model="reg.precio1" @keypress="onlyNumber" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mb-3">
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio Mayorista</label>
-                                        <input v-model="reg.precio2" @keypress="onlyNumber" type="text"
-                                            class="form-control">
-                                    </div>
+            <!-- Modal restock Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-restock.php-->
+            <?php include __DIR__ . '/modals/product-modal-restock.php' ?>
 
-                                    <!-- Sexta fila: Imagen del Producto -->
-                                    <div class="form-group col-md-12 mb-3">
-                                        <label><i class="fa fa-image me-1"></i>Imagen del Producto</label>
-                                        <div class="input-group">
-                                            <input type="file" @change="onImageChange" class="form-control"
-                                                accept="image/png, image/jpeg" id="product-image-input">
-                                        </div>
-                                        <div class="mt-2" v-if="imagePreview">
-                                            <img :src="imagePreview" alt="Vista previa" class="img-thumbnail"
-                                                style="max-height: 150px;">
-                                        </div>
-                                        <div class="mt-2" v-else>
-                                            <div class="text-center p-3 border rounded bg-light">
-                                                <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
-                                                <p class="mb-0">No hay imagen para este producto</p>
-                                            </div>
-                                        </div>
-                                    </div>
+            <!-- Modal importar  Productos resources\views\fragment-views\cliente\modals\product-modal-importar.php-->
+            <?php include __DIR__ . '/modals/product-modal-importar.php' ?>
 
-                                    <!-- Séptima fila: ¿Utilizar MultiPrecio? -->
-                                    <div class="form-group col-md-12 mb-3">
-                                        <label><i class="fa fa-tags me-1"></i>¿Utilizar MultiPrecio?</label>
-                                        <div class="form-check form-switch">
-                                            <input v-model="reg.usar_multiprecio" class="form-check-input"
-                                                type="checkbox" id="usar_multiprecio_add"
-                                                style="width: 3em; height: 1.5em;">
-                                            <label class="form-check-label ms-2" for="usar_multiprecio_add"
-                                                :class="{'text-danger': reg.usar_multiprecio, 'text-secondary': !reg.usar_multiprecio}">
-                                                {{ reg.usar_multiprecio ? 'Sí' : 'No' }}
-                                            </label>
-                                        </div>
-                                    </div>
+            <!-- Modal lista  Productos resources\views\fragment-views\cliente\modals\product-modal-lista-productos.php-->
+            <?php include __DIR__ . '/modals/product-modal-lista-productos.php' ?>
 
-                                    <!-- Campos ocultos -->
-                                    <div class="form-group col-md-4" hidden>
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio 3</label>
-                                        <input v-model="reg.precio3" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4" hidden>
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaReg }}</span>Precio 4</label>
-                                        <input v-model="reg.precio4" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <!-- Campo oculto para usar_barra -->
-                                    <div class="form-group" hidden>
-                                        <input v-model="reg.usar_barra" type="hidden" value="0">
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Modal codigo de barras resources\views\fragment-views\cliente\modals\product-modal-codigo-barras.php-->
+            <?php include __DIR__ . '/modals/product-modal-codigo-barras.php' ?>
 
-                            <!-- Sección de MultiPrecio -->
-                            <div v-if="reg.usar_multiprecio" class="col-md-12 px-3 mb-3">
-                                <div class="card border-danger">
-                                    <div
-                                        class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
-                                        <button type="button" @click="agregarPrecioNuevo" class="btn btn-sm btn-light">
-                                            <i class="fa fa-plus me-1"></i> Agregar
-                                        </button>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <table class="table table-bordered m-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width: 50%; padding: 4px 8px;">Nombre</th>
-                                                    <th style="width: 35%; padding: 4px 8px;">Precio</th>
-                                                    <th style="width: 15%; padding: 4px 8px; text-align: center;">
-                                                        Opciones
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="(precio, index) in preciosNuevos" :key="index">
-                                                    <td style="padding: 4px;">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text"><i
-                                                                    class="fa fa-tag"></i></span>
-                                                            <input v-model="precio.nombre" type="text"
-                                                                class="form-control" placeholder="Nombre del precio">
-                                                        </div>
-                                                    </td>
-                                                    <td style="padding: 4px;">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text"><span class="me-1"
-                                                                    style="font-weight: bold;">S/</span></span>
-                                                            <input v-model="precio.precio" @keypress="onlyNumber"
-                                                                type="text" class="form-control" placeholder="0.00">
-                                                        </div>
-                                                    </td>
-                                                    <td style="padding: 4px; text-align: center;">
-                                                        <button @click="eliminarPrecioNuevo(index)" type="button"
-                                                            class="btn btn-sm btn-danger">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr v-if="preciosNuevos.length === 0">
-                                                    <td colspan="3" class="text-center text-muted"
-                                                        style="padding: 4px;">
-                                                        No hay precios configurados. Haga clic en "Agregar" para crear
-                                                        uno.
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                                    <i class="fa fa-times me-1"></i>Cerrar
-                                </button>
-                                <button type="submit" class="btn bg-rojo text-white">
-                                    <i class="fa fa-save me-1"></i>Guardar
-                                </button>
-
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <!-- modal de editar -->
-            <div class="modal fade" id="modal-edt-prod" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                aria-labelledby="exampleModalLabel">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="exampleModalLabel"><i class="fa fa-edit me-2"></i>Editar
-                                Producto
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form @submit.prevent="actualizarProd" enctype="multipart/form-data">
-                            <div class="modal-body">
-                                <div class="row">
-                                    <input v-model="edt.cod_prod" type="hidden" class="form-control">
-                                    <div class="form-group col-md-8 mt-2">
-                                        <label><i class="fa fa-tag me-1"></i>Nombre de producto</label>
-                                        <input v-model="edt.nombre" required type="text" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-barcode me-1"></i>Código</label>
-                                        <input v-model="edt.codigo" required type="text" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-8 mt-2">
-                                        <label><i class="fa fa-align-left me-1"></i>Detalle de producto</label>
-                                        <textarea v-model="edt.detalle" class="form-control"></textarea>
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-folder me-1"></i>Categoría</label>
-                                        <select v-model="edt.categoria" id="categoria-edt" class="form-control">
-                                        </select>
-                                    </div>
-
-                                    <!-- PRIMERA FILA: Precio Venta, Costo, Cantidad -->
-                                    <div class="form-group col-md-4 mt-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio
-                                                Venta</label>
-                                            <span v-if="parseFloat(edt.precio) <= 0" class="text-danger small">
-                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                            </span>
-                                        </div>
-                                        <input v-model="edt.precio" @keypress="onlyNumber" required value="0"
-                                            type="text" class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Costo</label>
-                                            <span v-if="parseFloat(edt.costo) <= 0" class="text-danger small">
-                                                <i class="fa fa-exclamation-triangle"></i> Costo está en 0
-                                            </span>
-                                        </div>
-                                        <input v-model="edt.costo" @keypress="onlyNumber" required value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label><i class="fa fa-cubes me-1"></i>Cantidad</label>
-                                            <span v-if="parseInt(edt.cantidad) <= 0" class="text-danger small">
-                                                <i class="fa fa-exclamation-triangle"></i> Cantidad está en 0
-                                            </span>
-                                        </div>
-                                        <input v-model="edt.cantidad" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-
-                                    <!-- SEGUNDA FILA: Unidades, Almacén, Cod. Sunat -->
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-ruler me-1"></i>Unidades</label>
-                                        <select v-model="edt.unidad" id="unidades-edt" class="form-control">
-                                            <option v-for="unit in units" :key="unit.id" :value="unit.id">
-                                                {{unit.nombre}}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
-                                        <select v-model="edt.almacen" required class="form-control">
-                                            <option value="1">Almacén 1</option>
-                                            <option value="2">Almacén 2</option>
-                                            <option value="3">Almacén 3</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-money-bill-wave me-1"></i>Moneda</label>
-                                        <select v-model="edt.moneda" class="form-control" required>
-                                            <option value="PEN">Soles (PEN)</option>
-                                            <option value="USD">Dólares (USD)</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- TERCERA FILA: Cod. Sunat -->
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-file-alt me-1"></i>Cod. Sunat</label>
-                                        <input v-model="edt.codSunat" type="text" class="form-control">
-                                    </div>
-
-                                    <!-- TERCERA FILA: Afecto ICBP, Precio Distribuidor, Precio Mayorista -->
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-check-circle me-1"></i>Afecto ICBP</label>
-                                        <select v-model="edt.afecto" class="form-control">
-                                            <option value="0">No</option>
-                                            <option value="1">Si</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Distribuidor</label>
-                                            <span v-if="parseFloat(edt.precioMayor) <= 0" class="text-danger small">
-                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                            </span>
-                                        </div>
-                                        <input v-model="edt.precioMayor" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio Mayorista</label>
-                                            <span v-if="parseFloat(edt.precioMenor) <= 0" class="text-danger small">
-                                                <i class="fa fa-exclamation-triangle"></i> Precio está en 0
-                                            </span>
-                                        </div>
-                                        <input v-model="edt.precioMenor" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-
-                                    <!-- Campos ocultos -->
-                                    <div class="form-group col-md-4 mt-2" hidden>
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 3</label>
-                                        <input v-model="edt.precio3" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-4 mt-2" hidden>
-                                        <label><span class="me-1" style="font-weight: bold;">{{ simboloMonedaEdt }}</span>Precio 4</label>
-                                        <input v-model="edt.precio4" @keypress="onlyNumber" value="0" type="text"
-                                            class="form-control">
-                                    </div>
-                                    <div class="form-group col-md-8 mt-3">
-                                        <label class="d-flex align-items-center mb-2">
-                                            <i class="fa fa-image me-2"></i>
-                                            <span class="fw-bold">Imagen del Producto</span>
-                                        </label>
-
-                                        <!-- Contenedor de la imagen existente -->
-                                        <div class="image-container position-relative"
-                                            style="display: none; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden; background-color: #f8f9fa; text-align: center; min-height: 200px; align-items: center; justify-content: center; display: flex;">
-                                            <img id="img-preview" alt="Vista previa"
-                                                style="max-height: 180px; width: auto; margin: 10px;" />
-
-                                            <!-- Botón de edición -->
-                                            <div id="image-edit-button"
-                                                style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                                                <button type="button" class="btn btn-light" onclick="toggleImageMenu()"
-                                                    style="background-color: rgba(255, 255, 255, 0.9); border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                    <i class="fa fa-pencil-alt me-1"></i>
-                                                    Editar
-                                                </button>
-
-                                                <!-- Menú desplegable -->
-                                                <div id="image-menu" class="position-absolute shadow-sm"
-                                                    style="display: none; top: 100%; right: 0; margin-top: 5px; background-color: white; border-radius: 4px; border: 1px solid #dee2e6; min-width: 160px; z-index: 1000;">
-                                                    <div class="p-2 hover-bg-light" style="cursor: pointer;"
-                                                        onclick="changeImage()">
-                                                        <i class="fa fa-upload me-2"></i> Cambiar foto...
-                                                    </div>
-                                                    <div class="p-2 text-danger hover-bg-light" style="cursor: pointer;"
-                                                        onclick="removeImage()">
-                                                        <i class="fa fa-trash me-2"></i> Eliminar foto
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Input oculto para subir imagen -->
-                                        <input type="file" id="upload-input" name="imagen" class="d-none"
-                                            accept="image/*" onchange="previewImage(this)" />
-
-                                        <!-- Mensaje y botón para cuando NO hay imagen -->
-                                        <div id="no-image-message" class="text-center p-3 border rounded bg-light mt-2"
-                                            style="display: none;">
-                                            <i class="fa fa-image fa-2x text-muted mb-2 d-block"></i>
-                                            <p class="mb-2">No hay imagen para este producto</p>
-                                            <button type="button" class="btn btn-primary btn-sm"
-                                                onclick="changeImage()">
-                                                <i class="fa fa-upload me-1"></i> Subir imagen
-                                            </button>
-                                        </div>
-                                    </div>
-
-
-
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label><i class="fa fa-qrcode me-1"></i>Usar Código Barra</label>
-                                        <div class="input-group">
-                                            <select v-model="edt.usar_barra" class="form-control">
-                                                <option value="0">No</option>
-                                                <option value="1">Si</option>
-                                            </select>
-                                            <div v-if="edt.usar_barra=='1'" class="input-group-append">
-                                                <button @click="edtGenerarCodeBarra" type="button"
-                                                    class="btn border-rojo"><i class="fa fa-sync-alt"></i>
-                                                    Generar</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-12 mt-3 text-center" v-if="edt.usar_barra=='1'">
-                                        <label><i class="fa fa-barcode me-1"></i>Código de Barras</label>
-                                        <div class="p-2 border rounded bg-light">
-                                            <img id="barcode" class="img-fluid" />
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group col-md-4 mt-2">
-                                        <label class="d-flex align-items-center">
-                                            <i class="fa fa-tags me-2"></i>
-                                            <span class="fw-bold">¿Utilizar MultiPrecio?</span>
-                                        </label>
-                                        <div class="form-check form-switch">
-                                            <input v-model="edt.usar_multiprecio" class="form-check-input"
-                                                type="checkbox" id="usar_multiprecio_edit"
-                                                style="width: 3em; height: 1.5em;">
-                                            <label class="form-check-label ms-2 fw-bold" for="usar_multiprecio_edit"
-                                                :class="{'text-danger': edt.usar_multiprecio, 'text-secondary': !edt.usar_multiprecio}">
-                                                {{ edt.usar_multiprecio ? 'Sí' : 'No' }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="edt.usar_multiprecio" class="col-md-12 mt-0 ">
-                                <div class="card border-danger mb-3">
-                                    <div
-                                        class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fa fa-list-ul me-2"></i>Lista de Precios</h5>
-                                        <button type="button" @click="agregarPrecio" class="btn btn-sm btn-light">
-                                            <i class="fa fa-plus me-1"></i> Agregar
-                                        </button>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <table class="table table-bordered m-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width: 50%; padding: 4px 8px;">Nombre</th>
-                                                    <th style="width: 35%; padding: 4px 8px;">Precio</th>
-                                                    <th style="width: 15%; padding: 4px 8px; text-align: center;">
-                                                        Opciones
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="(precio, index) in precios" :key="index">
-                                                    <td style="padding: 4px;">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text"><i
-                                                                    class="fa fa-tag"></i></span>
-                                                            <input v-model="precio.nombre" type="text"
-                                                                class="form-control" placeholder="Nombre del precio">
-                                                        </div>
-                                                    </td>
-                                                    <td style="padding: 4px;">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text"><span
-                                                                    style="font-weight: bold;">S/</span></span>
-                                                            <input v-model="precio.precio" @keypress="onlyNumber"
-                                                                type="text" class="form-control" placeholder="0.00">
-                                                        </div>
-                                                    </td>
-                                                    <td style="padding: 4px; text-align: center;">
-                                                        <button @click="eliminarPrecio(index)" type="button"
-                                                            class="btn btn-sm btn-danger">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr v-if="precios.length === 0">
-                                                    <td colspan="3" class="text-center text-muted"
-                                                        style="padding: 4px;">
-                                                        No hay precios configurados. Haga clic en "Agregar" para crear
-                                                        uno.
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn bg-rojo"><i
-                                        class="fa fa-save me-1"></i>Actualizar</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i
-                                        class="fa fa-times me-1"></i>Cerrar</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Historial Stock -->
-            <div class="modal fade" id="modal-historial-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title">
-                                <i class="fa fa-history me-2"></i>Historial de Stock
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover table-sm">
-                                    <thead class="table-light sticky-top">
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Producto</th>
-                                            <th>Movimiento</th>
-                                            <th>Cantidad</th>
-                                            <th>Fecha</th>
-                                            <th>Usuario</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in historialStock" :key="item.id">
-                                            <td>{{ item.codigo }}</td>
-                                            <td>{{ item.producto_nombre }}</td>
-                                            <td>
-                                                <span class="badge"
-                                                    :class="item.tipo_movimiento === 'INGRESO' ? 'bg-success' : 'bg-danger'">
-                                                    {{ item.tipo_movimiento }}
-                                                </span>
-                                            </td>
-                                            <td>{{ item.cantidad }}</td>
-                                            <td>{{ formatearFecha(item.fecha_movimiento) }}</td>
-                                            <td>{{ item.usuario }}</td>
-                                        </tr>
-                                        <tr v-if="historialStock.length === 0">
-                                            <td colspan="6" class="text-center text-muted">No hay movimientos
-                                                registrados
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="fa fa-times me-1"></i>Cerrar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Modal Aumentar Stock de Productos -->
-            <div class="modal fade" id="modal-aumentar-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title">
-                                <i class="fa fa-box me-2"></i>Aumentar Stock de Productos
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form @submit.prevent="aumentarStockProducto">
-                            <div class="modal-body">
-                                <div class="alert alert-info">
-                                    <i class="fa fa-info-circle me-2"></i>
-                                    Aquí Debes Buscar y Seleccionar un Producto:
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label><i class="fa fa-search me-1"></i>Buscar Producto:</label>
-                                    <input type="text" id="buscar-producto-stock" class="form-control"
-                                        placeholder="Buscar por código o nombre...">
-                                    <input type="hidden" id="producto-seleccionado-id" v-model="stockData.producto_id">
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label><i class="fa fa-cubes me-1"></i>Stock Actual:</label>
-                                            <input type="text" class="form-control" v-model="stockData.stock_actual"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label><i class="fa fa-plus-circle me-1"></i>Cant. a Ingresar *:</label>
-                                            <input type="number" class="form-control"
-                                                v-model="stockData.cantidad_ingresar" min="1" required placeholder="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
-                                    <i class="fa fa-times me-1"></i>Cerrar
-                                </button>
-                                <button type="submit" class="btn bg-rojo text-white">
-                                    <i class="fa fa-check me-1"></i>Aumentar Stock Ahora
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="modal-restock" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form @submit.prevent="agregarStock">
-                            <div class="modal-body">
-                                <div class="form-group">
-                                    <label>Cantidad</label>
-                                    <input v-model="restock.cantidad" required type="text" class="form-control">
-                                    <small class="form-text text-muted">La cantidad ingresada se sumará a la cantidad
-                                        actual</small>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">Guardar</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            </div>
-                        </form>
-
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="importarModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content"
-                        style="border-radius: 15px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-                        <div class="modal-header bg-rojo text-white"
-                            style="border-radius: 15px 15px 0 0; border-bottom: none;">
-                            <h5 class="modal-title" id="exampleModalLabel" style="font-weight: 600;">
-                                <i class="fas fa-file-excel me-2"></i>Importar Productos con EXCEL
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                            <form enctype='multipart/form-data'>
-                                <div class="mb-4">
-                                    <div class="p-3 bg-light rounded-3" style="border: 1px dashed #dee2e6;">
-                                        <p class="mb-2">Descargue el modelo en <span class="fw-bold">EXCEL</span> para
-                                            importar,
-                                            no
-                                            modifique los campos en el archivo.</p>
-                                        <div class="d-flex align-items-center">
-                                            <span class="fw-bold me-2">Click para descargar:</span>
-                                            <a href="<?= URL::to('/reporte/producto/guia') ?>"
-                                                class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
-                                                <i class="fas fa-download me-1"></i>plantilla.xlsx
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold mb-2">Importar Excel:</label>
-                                    <div class="file-upload-wrapper">
-                                        <div class="file-upload-area"
-                                            style="position: relative; border: 2px dashed #CA3438; border-radius: 10px; padding: 20px; text-align: center; background-color: #fff5f5; transition: all 0.3s ease;">
-                                            <input id="file-import-exel"
-                                                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                                type="file"
-                                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-                                            <div class="file-info">
-                                                <i class="fas fa-cloud-upload-alt"
-                                                    style="font-size: 2rem; color: #CA3438; margin-bottom: 10px;"></i>
-                                                <p class="mb-0" id="file-name-display">Arrastre su archivo aquí o haga
-                                                    click
-                                                    para seleccionar</p>
-                                                <p class="text-muted small mt-1">Formatos aceptados: Excel, CSV</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer" style="border-top: none;">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                                style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">Cancelar</button>
-                            <button type="button" class="btn bg-rojo text-white" id="btn-importar"
-                                style="border-radius: 8px; padding: 8px 20px; font-weight: 500;">
-                                <i class="fas fa-file-import me-1"></i>Importar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
-
-
-            <div class="modal fade" id="modal-lista-productos" data-bs-backdrop="static" data-bs-keyboard="false"
-                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                <div class="modal-dialog  modal-dialog-scrollable modal-lg modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="staticBackdropLabel">Lista de productos</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <table class="table table-sm table-bordered text-center">
-                                <thead>
-                                    <tr>
-                                        <th>Producto</th>
-                                        <th>Descripción</th>
-                                        <th>Cantidad</th>
-                                        <th>Costo</th>
-                                        <th>Precio Venta</th>
-                                        <th>Precio 1</th>
-                                        <th>Precio 2</th>
-                                        <th>Almacén</th>
-                                        <th>Código</th>
-                                        <th>Unidades</th>
-                                        <th>Categorías</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(item,index) in listaProd">
-                                        <td>{{item.producto}}</td>
-                                        <td>{{item.descripcicon}}</td>
-                                        <td> {{item.cantidad}}</td>
-                                        <td>{{item.costo}}</td>
-                                        <td>{{item.precio_unidad}}</td>
-                                        <td>{{item.precio}}</td>
-                                        <td>{{item.precio2}}</td>
-                                        <td>{{item.almacen}}</td>
-                                        <td>{{item.codigoProd}}</td>
-                                        <td>{{item.unidad}}</td>
-                                        <td>{{item.categoria}}</td>
-                                        <td><button @click="eliminarItemTablaPro(index)"
-                                                class="btn-sm btn btn-danger"><i class="fa fa-times"></i></button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="modal-footer">
-                            <button @click="agregarListaImport" type="button" class="btn btn-primary">Guardar</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal fade" id="modalCodigoBarras" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-rojo text-white">
-                            <h5 class="modal-title" id="exampleModalLabel">Código de Barras</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-
-                            <div class="mb-3 text-center">
-                                <img id="idCodigoBarras">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Escalar</label>
-                                <select id="scalimg" class="form-control">
-                                    <option value="1">NO</option>
-                                    <option value="2">SI</option>
-                                </select>
-                            </div>
-                            <div class="text-center">
-                                <button class="btn border-rojo text-rojo" id="btnImprimir"
-                                    onclick="imprimir()">Imprimir</button>
-                                <button class="btn  border-rojo text-rojo" id="btnImprimir2"
-                                    onclick="imprimir2()">Imprimir
-                                    2</button>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Modal de reporte resources\views\fragment-views\cliente\modals\product-modal-reporte.php -->
+            <?php include __DIR__ . '/modals/product-modal-reporte.php' ?>
 
         </div>
 
-        <div class="modal fade" id="modal-prodEreport" tabindex="-1" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Reporte De Producto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Año</label>
-                            <select id='anioreporEFG' class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select id='mesreprEFG' class="form-control">
-                                <?php
-                                $contador = 1;
-                                $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Día</label>
-                            <input id='diareporEfghg' class="form-control">
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button id="generarreporteProd" type="button" class="btn btn-primary">Generar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="modal fade" id="modal-imagen" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Imagen del Producto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="col-md-12 mb-3" id="imagen">
-
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Agregar Categoría</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="addCategoria">
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="nombreCategoria" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="nombreCategoria">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" id="submitCategoria" class="btn btn-primary">Guardar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="listaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Lista de Categorías</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="addCategoria">
-                        <div class="modal-body">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Categoría</th>
-                                            <th scope="col">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tbodyCat">
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="updateCategoria" tabindex="-1" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Actualizar Categoría</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="addCategoria">
-                        <div class="modal-body">
-                            <input type="text" id="idCatU" value="" hidden>
-                            <div class="mb-3">
-                                <label for="nombreCategoriaU" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="nombreCategoriaU">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" id="updateCategoriaBtn" class="btn btn-primary">Guardar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -1587,6 +636,9 @@ $almacenProducto = 1;
                 almacen: <?php echo json_encode($_SESSION["sucursal"]); ?>,
                 t: 0,
                 listaProd: [],
+                almacenImportacion: 1, // Almacén por defecto para importación
+                buscarProductoImport: '', // Buscador en modal de importación
+                modoEdicion: false, // Controla si la tabla está en modo edición
                 restock: {
                     cod: '',
                     cantidad: '',
@@ -1648,7 +700,25 @@ $almacenProducto = 1;
                     producto_id: '',
                     stock_actual: '',
                     cantidad_ingresar: '',
-                    producto_nombre: ''
+                    producto_nombre: '',
+                    costo_compra: '',
+                    moneda: 'PEN',
+                    observaciones: ''
+                },
+                disminuirData: {
+                    producto_id: '',
+                    stock_actual: '',
+                    cantidad_disminuir: '',
+                    producto_nombre: '',
+                    unidad: '',
+                    observaciones: ''
+                },
+                trasladoData: {
+                    almacen_origen: '',
+                    almacen_destino: '',
+                    producto_id: '',
+                    productos: [],
+                    nota: ''
                 },
                 historialStock: [],
             },
@@ -1660,9 +730,61 @@ $almacenProducto = 1;
                 // Símbolos de moneda para el formulario de editar
                 simboloMonedaEdt() {
                     return this.edt.moneda === 'USD' ? '$' : 'S/';
+                },
+                // Filtrar productos para importación
+                productosFiltrados() {
+                    if (!this.buscarProductoImport) {
+                        return this.listaProd;
+                    }
+                    const busqueda = this.buscarProductoImport.toLowerCase();
+                    return this.listaProd.filter(item => {
+                        return (item.producto && item.producto.toLowerCase().includes(busqueda)) ||
+                            (item.descripcicon && item.descripcicon.toLowerCase().includes(busqueda)) ||
+                            (item.codigoProd && item.codigoProd.toLowerCase().includes(busqueda));
+                    });
                 }
             },
             methods: {
+                toggleModoEdicion() {
+                    // Mostrar loader genial con color rojo
+                    Swal.fire({
+                        title: this.modoEdicion ? 'Cambiando a modo vista...' : 'Activando modo edición...',
+                        html: `
+                            <div style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+                                <div style="
+                                    width: 60px;
+                                    height: 60px;
+                                    border: 6px solid #f3f3f3;
+                                    border-top: 6px solid #CA3438;
+                                    border-radius: 50%;
+                                    animation: spin 1s linear infinite;
+                                "></div>
+                            </div>
+                            <style>
+                                @keyframes spin {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            </style>
+                        `,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'swal-loader-custom'
+                        }
+                    });
+
+                    // Usar setTimeout para permitir que el DOM se actualice
+                    setTimeout(() => {
+                        this.modoEdicion = !this.modoEdicion;
+
+                        // Cerrar el loader después de un breve momento
+                        setTimeout(() => {
+                            Swal.close();
+                        }, 300);
+                    }, 100);
+                },
                 agregarPrecio() {
                     this.precios.push({
                         nombre: '',
@@ -1752,7 +874,8 @@ $almacenProducto = 1;
                 agregarListaImport() {
                     if (this.listaProd.length > 0) {
                         _ajax("/ajs/data/producto/add/lista", "POST", {
-                            lista: JSON.stringify(this.listaProd)
+                            lista: JSON.stringify(this.listaProd),
+                            almacen: this.almacenImportacion
                         },
                             function (resp) {
                                 console.log(resp);
@@ -1874,6 +997,17 @@ $almacenProducto = 1;
                 },
 
                 actualizarProd() {
+                    // Validar campos requeridos
+                    if (!this.edt.categoria || this.edt.categoria === '') {
+                        alertAdvertencia("Debe seleccionar una categoría");
+                        return;
+                    }
+
+                    if (!this.edt.unidad || this.edt.unidad === '') {
+                        alertAdvertencia("Debe seleccionar una unidad");
+                        return;
+                    }
+
                     let formData = new FormData();
 
                     // Añadir los datos al formData
@@ -1900,12 +1034,12 @@ $almacenProducto = 1;
                     formData.append('moneda', this.edt.moneda);
                     formData.append('usar_multiprecio', this.edt.usar_multiprecio ? '1' : '0');
 
-                  // Agregar la imagen solo si fue seleccionada Y el input no está vacío
-let inputImagen = document.querySelector('#upload-input');
-let imagen = inputImagen && inputImagen.files && inputImagen.files[0];
-if (imagen && inputImagen.value) {
-    formData.append('imagen', imagen);
-}
+                    // Agregar la imagen solo si fue seleccionada Y el input no está vacío
+                    let inputImagen = document.querySelector('#upload-input');
+                    let imagen = inputImagen && inputImagen.files && inputImagen.files[0];
+                    if (imagen && inputImagen.value) {
+                        formData.append('imagen', imagen);
+                    }
 
                     // Verificar si se debe eliminar la imagen
                     let eliminarImagen = document.querySelector('#eliminar-imagen-flag');
@@ -1974,6 +1108,17 @@ if (imagen && inputImagen.value) {
                     }
                 },
                 agregarProd() {
+                    // Validar campos requeridos
+                    if (!this.reg.categoria || this.reg.categoria === '') {
+                        alertAdvertencia("Debe seleccionar una categoría");
+                        return;
+                    }
+
+                    if (!this.reg.unidad || this.reg.unidad === '') {
+                        alertAdvertencia("Debe seleccionar una unidad");
+                        return;
+                    }
+
                     const formData = new FormData();
                     formData.append('nombre', this.reg.nombre);
                     formData.append('precio', this.reg.precio);
@@ -2046,14 +1191,14 @@ if (imagen && inputImagen.value) {
                         const cats = JSON.parse(categorias);
                         const units = JSON.parse(unidades);
 
-                        // Poblar los selectores
-                        let catOptions = '';
+                        // Poblar los selectores con opción por defecto
+                        let catOptions = '<option value="">Seleccione categoría</option>';
                         cats.forEach(cat => {
                             catOptions += `<option value="${cat.id}">${cat.nombre}</option>`;
                         });
                         $('#categoria-edt').html(catOptions);
 
-                        let unitOptions = '';
+                        let unitOptions = '<option value="">Seleccione unidad</option>';
                         units.forEach(unit => {
                             unitOptions += `<option value="${unit.id}">${unit.nombre}</option>`;
                         });
@@ -2068,8 +1213,8 @@ if (imagen && inputImagen.value) {
                             nombre: data.nombre,
                             codigo: data.codigo,
                             detalle: data.detalle,
-                            categoria: data.categoria,
-                            unidad: data.unidad_id || data.unidad,
+                            categoria: data.categoria || '',
+                            unidad: data.unidad_id || data.unidad || '',
                             precio: data.precio,
                             costo: parseFloat(data.costo).toFixed(2),
                             almacen: data.almacen,
@@ -2121,11 +1266,11 @@ if (imagen && inputImagen.value) {
                             $('#no-image-message').show();
                         }
 
-                       // Limpiar flag de eliminar imagen al abrir modal
-$('#eliminar-imagen-flag').remove();
+                        // Limpiar flag de eliminar imagen al abrir modal
+                        $('#eliminar-imagen-flag').remove();
 
-// CRÍTICO: Limpiar el input file para evitar que se envíe imagen de otro producto
-$('#upload-input').val('');
+                        // CRÍTICO: Limpiar el input file para evitar que se envíe imagen de otro producto
+                        $('#upload-input').val('');
 
 
                     }).catch(error => {
@@ -2166,9 +1311,17 @@ $('#upload-input').val('');
                         return;
                     }
 
+                    if (!this.stockData.costo_compra || this.stockData.costo_compra <= 0) {
+                        alertAdvertencia("Debe ingresar el precio de compra");
+                        return;
+                    }
+
                     const data = {
                         producto_id: this.stockData.producto_id,
-                        cantidad: this.stockData.cantidad_ingresar
+                        cantidad: this.stockData.cantidad_ingresar,
+                        costo_compra: this.stockData.costo_compra,
+                        moneda: this.stockData.moneda,
+                        observaciones: this.stockData.observaciones
                     };
 
                     _ajax("/ajs/data/producto/aumentar/stock", "POST", data, function (resp) {
@@ -2185,12 +1338,121 @@ $('#upload-input').val('');
                                     producto_id: '',
                                     stock_actual: '',
                                     cantidad_ingresar: '',
-                                    producto_nombre: ''
+                                    producto_nombre: '',
+                                    costo_compra: '',
+                                    moneda: 'PEN',
+                                    observaciones: ''
                                 };
                                 $('#buscar-producto-stock').val('');
                             });
                         } else {
                             alertAdvertencia("Error al aumentar el stock");
+                        }
+                    });
+                },
+                disminuirStockProducto() {
+                    if (!this.disminuirData.producto_id) {
+                        alertAdvertencia("Debe seleccionar un producto");
+                        return;
+                    }
+
+                    if (!this.disminuirData.cantidad_disminuir || this.disminuirData.cantidad_disminuir <= 0) {
+                        alertAdvertencia("Debe ingresar una cantidad válida");
+                        return;
+                    }
+
+                    if (this.disminuirData.cantidad_disminuir > this.disminuirData.stock_actual) {
+                        alertAdvertencia("La cantidad a disminuir no puede ser mayor al stock actual");
+                        return;
+                    }
+
+                    const data = {
+                        producto_id: this.disminuirData.producto_id,
+                        cantidad: this.disminuirData.cantidad_disminuir,
+                        observaciones: this.disminuirData.observaciones
+                    };
+
+                    _ajax("/ajs/data/producto/disminuir/stock", "POST", data, function (resp) {
+                        if (resp.res) {
+                            alertExito("Stock disminuido exitosamente").then(() => {
+                                $("#modal-disminuir-stock").modal("hide");
+                                if (currentView === 'table') {
+                                    datatable.ajax.reload(null, false);
+                                } else {
+                                    loadGridProducts(currentPage, searchTerm);
+                                }
+                                // Limpiar formulario
+                                app._data.disminuirData = {
+                                    producto_id: '',
+                                    stock_actual: '',
+                                    cantidad_disminuir: '',
+                                    producto_nombre: '',
+                                    unidad: '',
+                                    observaciones: ''
+                                };
+                                $('#buscar-producto-disminuir').val('');
+                            });
+                        } else {
+                            alertAdvertencia("Error al disminuir el stock");
+                        }
+                    });
+                },
+                limpiarProductoTraslado() {
+                    $('#buscar-producto-traslado').val('');
+                    this.trasladoData.producto_id = '';
+                },
+                eliminarProductoTraslado(index) {
+                    this.trasladoData.productos.splice(index, 1);
+                },
+                realizarTraslado() {
+                    if (!this.trasladoData.almacen_origen) {
+                        alertAdvertencia("Debe seleccionar el almacén de origen");
+                        return;
+                    }
+
+                    if (!this.trasladoData.almacen_destino) {
+                        alertAdvertencia("Debe seleccionar el almacén de destino");
+                        return;
+                    }
+
+                    if (this.trasladoData.almacen_origen === this.trasladoData.almacen_destino) {
+                        alertAdvertencia("El almacén de origen y destino no pueden ser el mismo");
+                        return;
+                    }
+
+                    if (this.trasladoData.productos.length === 0) {
+                        alertAdvertencia("Debe agregar al menos un producto");
+                        return;
+                    }
+
+                    const data = {
+                        almacen_origen: this.trasladoData.almacen_origen,
+                        almacen_destino: this.trasladoData.almacen_destino,
+                        productos: this.trasladoData.productos,
+                        nota: this.trasladoData.nota
+                    };
+
+                    _ajax("/ajs/data/producto/traslado/almacenes", "POST", data, function (resp) {
+                        if (resp.res) {
+                            alertExito("Traslado realizado exitosamente").then(() => {
+                                $("#modal-traslado-almacenes").modal("hide");
+                                if (currentView === 'table') {
+                                    datatable.ajax.reload(null, false);
+                                } else {
+                                    loadGridProducts(currentPage, searchTerm);
+                                }
+                                // Limpiar formulario
+                                app._data.trasladoData = {
+                                    almacen_origen: '',
+                                    almacen_destino: '',
+                                    producto_id: '',
+                                    productos: [],
+                                    nota: ''
+                                };
+                                $('#buscar-producto-traslado').val('');
+                            });
+                        } else {
+                            alertAdvertencia(resp.error || "Error al realizar el traslado");
                         }
                     });
                 }
@@ -2498,6 +1760,126 @@ $('#upload-input').val('');
         });
 
 
+        // Autocomplete para modal de DISMINUIR stock
+        $("#buscar-producto-disminuir").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: _URL + "/ajs/cargar/productos/" + almacenCod,
+                    data: { term: request.term },
+                    success: function (data) {
+                        response(JSON.parse(data));
+                    }
+                });
+            },
+            minLength: 2,
+            appendTo: "#modal-disminuir-stock .modal-body",
+            select: function (event, ui) {
+                $(this).val(ui.item.label || ui.item.nombre);
+                app._data.disminuirData.producto_id = ui.item.codigo;
+                app._data.disminuirData.stock_actual = ui.item.cnt;
+                app._data.disminuirData.producto_nombre = ui.item.nombre;
+                app._data.disminuirData.unidad = ui.item.unidad || '';
+                $('#producto-disminuir-id').val(ui.item.codigo);
+                $(this).autocomplete("close");
+                return false;
+            },
+            open: function () {
+                $('.ui-autocomplete').css({
+                    'z-index': 9999,
+                    'max-width': $('#buscar-producto-disminuir').outerWidth() + 'px',
+                    'font-size': '13px'
+                });
+                var input = $('#buscar-producto-disminuir');
+                var inputOffset = input.position();
+                $('.ui-autocomplete').css({
+                    'left': inputOffset.left + 'px',
+                    'top': (inputOffset.top + input.outerHeight() + 2) + 'px'
+                });
+            },
+            close: function () {
+                $('.ui-autocomplete').hide();
+            }
+        });
+
+        // Limpiar modal de disminuir al cerrar
+        $('#modal-disminuir-stock').on('hidden.bs.modal', function () {
+            $('#buscar-producto-disminuir').val('');
+            $('.ui-autocomplete').hide();
+            app._data.disminuirData = {
+                producto_id: '',
+                stock_actual: '',
+                cantidad_disminuir: '',
+                producto_nombre: '',
+                unidad: '',
+                observaciones: ''
+            };
+        });
+
+        // Autocomplete para modal de TRASLADO entre almacenes
+        $("#buscar-producto-traslado").autocomplete({
+            source: function (request, response) {
+                const almacenOrigen = app._data.trasladoData.almacen_origen;
+                if (!almacenOrigen) {
+                    response([]);
+                    return;
+                }
+                $.ajax({
+                    url: _URL + "/ajs/cargar/productos/" + almacenOrigen,
+                    data: { term: request.term },
+                    success: function (data) {
+                        response(JSON.parse(data));
+                    }
+                });
+            },
+            minLength: 2,
+            appendTo: "#modal-traslado-almacenes .modal-body",
+            select: function (event, ui) {
+                // Verificar si el producto ya está en la lista
+                const existe = app._data.trasladoData.productos.find(p => p.id_producto === ui.item.codigo);
+                if (existe) {
+                    alertAdvertencia("Este producto ya está en la lista");
+                    $(this).val('');
+                    return false;
+                }
+
+                // Agregar producto a la lista
+                app._data.trasladoData.productos.push({
+                    id_producto: ui.item.codigo,
+                    nombre: ui.item.nombre,
+                    unidad: ui.item.unidad || 'Unidad',
+                    cantidad: 1,
+                    stock_disponible: ui.item.cnt
+                });
+
+                $(this).val('');
+                $(this).autocomplete("close");
+                return false;
+            },
+            open: function () {
+                $('.ui-autocomplete').css({
+                    'z-index': 9999,
+                    'max-width': $('#buscar-producto-traslado').outerWidth() + 'px',
+                    'font-size': '13px'
+                });
+            },
+            close: function () {
+                $('.ui-autocomplete').hide();
+            }
+        });
+
+        // Limpiar modal de traslado al cerrar
+        $('#modal-traslado-almacenes').on('hidden.bs.modal', function () {
+            $('#buscar-producto-traslado').val('');
+            $('.ui-autocomplete').hide();
+            app._data.trasladoData = {
+                almacen_origen: '',
+                almacen_destino: '',
+                producto_id: '',
+                productos: [],
+                nota: ''
+            };
+        });
+
         // Agregar después de la configuración del autocomplete
         $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
 
@@ -2517,7 +1899,10 @@ $('#upload-input').val('');
                 producto_id: '',
                 stock_actual: '',
                 cantidad_ingresar: '',
-                producto_nombre: ''
+                producto_nombre: '',
+                costo_compra: '',
+                moneda: 'PEN',
+                observaciones: ''
             };
         });
 
@@ -2604,8 +1989,8 @@ $('#upload-input').val('');
                                         cantidad: el[2] || 0,
                                         costo: el[3] || 0,
                                         precio_unidad: el[4] || 0,
-                                        precio: el[5] || 0,
-                                        precio2: el[6] || 0,
+                                        precio_mayor: el[5] || 0,
+                                        precio_menor: el[6] || 0,
                                         almacen: el[7] || 1,
                                         afecto: false,
                                         codigoProd: el[8] || '',
@@ -2695,10 +2080,10 @@ $('#upload-input').val('');
         })
 
         // Event delegation para botones de editar (funciona tanto en tabla como en grid)
-       $(document).on("click", ".btn-edt", function (evt) {
-    // Limpiar input file antes de abrir modal
-    $('#upload-input').val('');
-  
+        $(document).on("click", ".btn-edt", function (evt) {
+            // Limpiar input file antes de abrir modal
+            $('#upload-input').val('');
+
             const cod = $(evt.currentTarget).attr("data-item");
             _ajax("/ajs/data/producto/info", "POST", {
                 cod
@@ -2713,14 +2098,6 @@ $('#upload-input').val('');
                 }
             )
         });
-
-        $("#datatable").on("click", ".btn-re-foto", function (evt) {
-            const cod = $(evt.currentTarget).attr("data-foto");
-            $('#modal-imagen').modal('show');
-            let img = `<img src='/public/img/productos/${cod}' style="width:100%">`;
-            $('#imagen').html(img);
-        })
-
         // Función para restaurar estados de checkboxes
         function restoreCheckboxStates() {
             const savedIds = JSON.parse(localStorage.getItem('idChecks') || '[]');
@@ -2889,21 +2266,6 @@ $('#upload-input').val('');
             $('#modal-add-prod').modal('show');
         });
 
-        $('#submitCategoria').click(function () {
-            $.post("/ajs/save/categorias", {
-                nombre: $('#nombreCategoria').val()
-            }, function (data, textStatus, jqXHR) {
-                Swal.fire({
-                    title: "Éxito",
-                    text: "Se guardó correctamente",
-                    icon: "success"
-                });
-                $('#modalCategoria').modal('hide');
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.error("Error al cargar las categorías: " + textStatus, errorThrown);
-                alert("No se pudo cargar las categorías. Por favor, intenta nuevamente.");
-            });
-        })
     });
 
     function truncateText(text, maxLength) {
@@ -2985,7 +2347,5 @@ $('#upload-input').val('');
                 }
             }
         });
-
-
     })();
 </script>

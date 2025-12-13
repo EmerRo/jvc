@@ -14,13 +14,13 @@ class EnvioEmail
     {
         $this->mail =  new PHPMailer(true);
         //Server settings
-        $this->mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
+        $this->mail->SMTPDebug = 0;                      // Desactivar debug en producción (usar SMTP::DEBUG_SERVER para debug)
         $this->mail->isSMTP();                                            //Send using SMTP
         $this->mail->Host       = HOST_SMTP;                     //Set the SMTP server to send through
         $this->mail->SMTPAuth   = true;                                   //Enable SMTP authentication
         $this->mail->Username   = USER_SMTP;                     //SMTP username
         $this->mail->Password   = CLAVE_SMTP;                               //SMTP password
-        $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;         // SSL para puerto 465
         $this->mail->Port       = PUERTO_SMTP;                                    //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
         $this->mail->isHTML(true);
         $this->mail->CharSet = 'UTF-8';

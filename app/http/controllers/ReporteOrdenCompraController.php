@@ -380,8 +380,8 @@ class ReporteOrdenCompraController extends Controller
         $whereClause = " WHERE c.fecha_emision BETWEEN '$fecha_inicio' AND '$fecha_fin'";
     }
 
-    $sql = "SELECT c.id_compra, c.fecha_emision, c.direccion, CONCAT(ds.abreviatura, ' | ', c.serie, ' - ', c.numero) AS factura, 
-            p.razon_social, c.total, tp.nombre as tipoPago, c.dias_pagos, c.id_empresa
+    $sql = "SELECT c.id_compra, c.fecha_emision, c.direccion, CONCAT(ds.abreviatura, ' | ', c.serie, ' - ', c.numero) AS factura,
+            p.razon_social, p.ruc as proveedor_ruc, c.total, tp.nombre as tipoPago, c.id_empresa, c.id_tipo_pago
             FROM compras c
             LEFT JOIN documentos_sunat ds ON c.id_tido = ds.id_tido
             LEFT JOIN proveedores p ON p.proveedor_id = c.id_proveedor
@@ -402,14 +402,29 @@ class ReporteOrdenCompraController extends Controller
         $totalGeneral += $total;
         $idEmpresa = $fila['id_empresa'];
 
+        // Obtener días de pago si es crédito
+        $diasPago = "";
+        if ($fila['id_tipo_pago'] == 2) {
+            $sqlPagos = "SELECT COUNT(*) as total_cuotas, GROUP_CONCAT(DATE_FORMAT(fecha, '%d/%m/%Y') ORDER BY fecha SEPARATOR ', ') as fechas
+                         FROM dias_compras
+                         WHERE id_compra = {$fila['id_compra']}";
+            $resultPagos = $this->conexion->query($sqlPagos);
+            if ($resultPagos && $resultPagos->num_rows > 0) {
+                $pagosData = $resultPagos->fetch_assoc();
+                $diasPago = $pagosData['total_cuotas'] . " cuota(s): " . $pagosData['fechas'];
+            }
+        } else {
+            $diasPago = "-";
+        }
+
         $rowHtml .= "<tr>
             <td style='font-size: 9px; text-align: center; border: 1px solid #333; padding: 4px;'>{$contador}</td>
             <td style='font-size: 9px; text-align: center; border: 1px solid #333; padding: 4px;'>{$fila['fecha_emision']}</td>
-            <td style='font-size: 9px; text-align: left; border: 1px solid #333; padding: 4px;'>{$fila['direccion']}</td>
+            <td style='font-size: 9px; text-align: left; border: 1px solid #333; padding: 4px;'>{$fila['proveedor_ruc']}</td>
             <td style='font-size: 9px; text-align: center; border: 1px solid #333; padding: 4px;'>{$fila['factura']}</td>
             <td style='font-size: 9px; text-align: left; border: 1px solid #333; padding: 4px;'>{$fila['razon_social']}</td>
             <td style='font-size: 9px; text-align: center; border: 1px solid #333; padding: 4px;'>{$fila['tipoPago']}</td>
-            <td style='font-size: 9px; text-align: center; border: 1px solid #333; padding: 4px;'>{$fila['dias_pagos']}</td>
+            <td style='font-size: 8px; text-align: left; border: 1px solid #333; padding: 4px;'>{$diasPago}</td>
             <td style='font-size: 9px; text-align: right; border: 1px solid #333; padding: 4px;'>S/ {$totalFormateado}</td>
         </tr>";
         $contador++;
@@ -481,12 +496,12 @@ class ReporteOrdenCompraController extends Controller
                 <thead>
                     <tr style='background-color: #CA3438;'>
                         <th style='width: 5%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>N°</strong></th>
-                        <th style='width: 10%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Fecha</strong></th>
-                        <th style='width: 15%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Dirección</strong></th>
-                        <th style='width: 15%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Documento</strong></th>
-                        <th style='width: 25%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Proveedor</strong></th>
-                        <th style='width: 10%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Tipo Pago</strong></th>
-                        <th style='width: 10%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Días Pago</strong></th>
+                        <th style='width: 8%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Fecha</strong></th>
+                        <th style='width: 10%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>RUC Proveedor</strong></th>
+                        <th style='width: 12%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Documento</strong></th>
+                        <th style='width: 20%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Proveedor</strong></th>
+                        <th style='width: 8%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Tipo Pago</strong></th>
+                        <th style='width: 22%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Fechas de Pago</strong></th>
                         <th style='width: 10%; font-size: 10px; text-align: center; border: 1px solid #333; padding: 8px; color: white;'><strong>Total</strong></th>
                     </tr>
                 </thead>

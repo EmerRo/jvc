@@ -130,6 +130,8 @@ class ProductosController extends Controller
 
             // Establecer un timeout más largo para la sesión actual
 
+            // CAPTURAR EL ALMACÉN SELECCIONADO DESDE EL MODAL (no del Excel)
+            $almacenDestino = isset($_POST['almacen']) ? intval($_POST['almacen']) : 1;
 
             $lista = json_decode($_POST['lista'], true);
 
@@ -186,18 +188,20 @@ class ProductosController extends Controller
                 $codigoProd = isset($item['codigoProd']) ? $item['codigoProd'] : '';
                 $codsunat = isset($item['codsunat']) ? $item['codsunat'] : '0';
                 $nombre = isset($item['producto']) ? $item['producto'] : '';
-                $precio = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
-                $precio2 = isset($item['precio2']) ? floatval($item['precio2']) : 0;
-                $almacen = isset($item['almacen']) ? intval($item['almacen']) : 1;
                 $precioUnidad = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
+                $precioMayor = isset($item['precio_mayor']) ? floatval($item['precio_mayor']) : 0;
+                $precioMenor = isset($item['precio_menor']) ? floatval($item['precio_menor']) : 0;
+                // USAR EL ALMACÉN SELECCIONADO EN EL MODAL, NO EL DEL EXCEL
+                $almacen = $almacenDestino;
                 $costo = isset($item['costo']) ? floatval($item['costo']) : 0;
                 $cantidad = isset($item['cantidad']) ? intval($item['cantidad']) : 0;
                 $moneda = isset($item['moneda']) ? $item['moneda'] : 'PEN';
 
                 // Verificar si el producto existe usando FOR UPDATE para bloqueo explícito
-                $sqlProducto = "SELECT * FROM productos WHERE codigo = ? FOR UPDATE";
+                // Filtrar por codigo, empresa, sucursal y almacen para evitar duplicados
+                $sqlProducto = "SELECT * FROM productos WHERE codigo = ? AND id_empresa = ? AND sucursal = ? AND almacen = ? FOR UPDATE";
                 $stmt = $this->conexion->prepare($sqlProducto);
-                $stmt->bind_param('s', $codigoProd);
+                $stmt->bind_param('siii', $codigoProd, $_SESSION['id_empresa'], $_SESSION['sucursal'], $almacen);
                 $stmt->execute();
                 $resultado = $stmt->get_result();
                 $producto = $resultado->fetch_assoc();
@@ -205,49 +209,85 @@ class ProductosController extends Controller
 
                 if ($producto) {
                     // Actualizar producto existente
+                    // CORRECCIÓN: Solo actualizar unidad y categoría si NO están vacías en el Excel
                     $updateProducto = "UPDATE productos SET
                         nombre = ?,
                         detalle = ?,
                         precio = ?,
+                        precio_unidad = ?,
+                        precio_mayor = ?,
+                        precio_menor = ?,
                         precio2 = ?,
                         almacen = ?,
-                        precio_unidad = ?,
                         costo = ?,
                         cantidad = ?,
                         estado = '1',
-                        unidad = ?,
-                        categoria = ?,
-                        moneda = ?
-                        WHERE codigo = ?";
+                        moneda = ?";
+
+                    // Agregar unidad solo si viene del Excel (no vacía)
+                    if ($unidadId !== null) {
+                        $updateProducto .= ", unidad = ?";
+                    }
+
+                    // Agregar categoría solo si viene del Excel (no vacía)
+                    if ($categoriaId !== null) {
+                        $updateProducto .= ", categoria = ?";
+                    }
+
+                    $updateProducto .= " WHERE codigo = ? AND id_empresa = ? AND sucursal = ? AND almacen = ?";
 
                     $stmt = $this->conexion->prepare($updateProducto);
                     if (!$stmt) {
                         throw new Exception("Error preparando actualización: " . $this->conexion->error);
                     }
 
-                    $stmt->bind_param(
-                        'ssddsdddiiiss',
+                    // Construir parámetros dinámicamente
+                    $params = [
                         $nombre,
                         $descripcion,
-                        $precio,
-                        $precio2,
-                        $almacen,
                         $precioUnidad,
+                        $precioUnidad,
+                        $precioMayor,
+                        $precioMenor,
+                        $precioMenor,
+                        $almacen,
                         $costo,
                         $cantidad,
-                        $unidadId,
-                        $categoriaId,
-                        $moneda,
-                        $codigoProd
-                    );
+                        $moneda
+                    ];
+
+                    // Agregar unidad a parámetros si existe
+                    if ($unidadId !== null) {
+                        $params[] = $unidadId;
+                    }
+
+                    // Agregar categoría a parámetros si existe
+                    if ($categoriaId !== null) {
+                        $params[] = $categoriaId;
+                    }
+
+                    // Agregar código, empresa, sucursal y almacen al final (WHERE)
+                    $params[] = $codigoProd;
+                    $params[] = $_SESSION['id_empresa'];
+                    $params[] = $_SESSION['sucursal'];
+                    $params[] = $almacen;
+
+                    // Crear tipos dinámicamente
+                    $types = 'ssdddddidis'; // nombre, detalle, precio, precio_unidad, precio_mayor, precio_menor, precio2, almacen, costo, cantidad, moneda
+                    if ($unidadId !== null) $types .= 'i';
+                    if ($categoriaId !== null) $types .= 'i';
+                    $types .= 's'; // codigo
+                    $types .= 'iii'; // id_empresa, sucursal, almacen
+
+                    $stmt->bind_param($types, ...$params);
                 } else {
                     // Insertar nuevo producto
                     $sql = "INSERT INTO productos (
-                        nombre, detalle, precio, precio2, almacen,
-                        precio_unidad, costo, cantidad, iscbp,
+                        nombre, detalle, precio, precio_unidad, precio_mayor,
+                        precio_menor, precio2, almacen, costo, cantidad, iscbp,
                         id_empresa, sucursal, codigo, ultima_salida,
                         codsunat, estado, unidad, categoria, moneda
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '1', ?, ?, ?)";
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '1', ?, ?, ?)";
 
                     $stmt = $this->conexion->prepare($sql);
                     if (!$stmt) {
@@ -256,13 +296,15 @@ class ProductosController extends Controller
 
                     $ultimaSalida = '1000-01-01';
                     $stmt->bind_param(
-                        'ssddsdddsissssiis',
+                        'ssdddddidisiisssiis',
                         $nombre,
                         $descripcion,
-                        $precio,
-                        $precio2,
-                        $almacen,
                         $precioUnidad,
+                        $precioUnidad,
+                        $precioMayor,
+                        $precioMenor,
+                        $precioMenor,
+                        $almacen,
                         $costo,
                         $cantidad,
                         $afect,
@@ -398,7 +440,11 @@ class ProductosController extends Controller
                 $codigoBarras = $_POST['codigo'];
             }
 
-            // Consulta SQL con manejo de imagen opcional
+            // Manejar categoría y unidad nulas o vacías
+            $categoria = (!empty($_POST['categoria']) && $_POST['categoria'] !== 'null') ? $_POST['categoria'] : null;
+            $unidad = (!empty($_POST['unidad']) && $_POST['unidad'] !== 'null') ? $_POST['unidad'] : null;
+
+            // Consulta SQL con manejo de imagen opcional y categorías nulas
             $sql = "INSERT INTO productos SET
                 nombre = '{$_POST['nombre']}',
                 precio = '{$_POST['precio']}',
@@ -419,8 +465,8 @@ class ProductosController extends Controller
                 razon_social = '{$_POST['razon']}',
                 ruc = '{$_POST['ruc']}',
                 detalle= '{$_POST['detalle']}',
-                categoria= '{$_POST['categoria']}',
-                unidad= '{$_POST['unidad']}',
+                categoria= " . ($categoria ? "'$categoria'" : "NULL") . ",
+                unidad= " . ($unidad ? "'$unidad'" : "NULL") . ",
                 moneda= '{$_POST['moneda']}',
                 usar_multiprecio = '{$usar_multiprecio}',
                  usar_barra = '" . (isset($_POST['usar_barra']) ? $_POST['usar_barra'] : '0') . "',
@@ -471,6 +517,10 @@ class ProductosController extends Controller
 
         try {
             $this->conexion->begin_transaction();
+
+            // DEBUG: Log para verificar el contenido del campo detalle
+            error_log("DETALLE RECIBIDO: '" . $_POST['detalle'] . "'");
+            error_log("LONGITUD DETALLE: " . strlen($_POST['detalle']));
 
             // Obtener la imagen actual antes de actualizarla
             $imagenAnterior = null;
@@ -570,14 +620,17 @@ $sql = "UPDATE productos SET
 
 $stmt = $this->conexion->prepare($sql);
 
-// Crear array de parámetros
-$params = [
+// Manejar categoría nula o vacía
+$categoria = (!empty($_POST['categoria']) && $_POST['categoria'] !== 'null') ? $_POST['categoria'] : null;
+$unidad = (!empty($_POST['unidad']) && $_POST['unidad'] !== 'null') ? $_POST['unidad'] : null;
 
+// Crear array de parámetros - CORREGIDO: Preservar espacios en detalle y manejar categoría nula
+$params = [
                 $_POST['nombre'],
                 $_POST['codigo'],
-                $_POST['detalle'],
-                $_POST['categoria'],
-                $_POST['unidad'],
+                $_POST['detalle'], // Este campo ahora preservará los espacios correctamente
+                $categoria, // Manejar categoría nula correctamente
+                $unidad, // Manejar unidad nula correctamente
                 $_POST['precio'],
                 $_POST['costo'],
                 $_POST['almacen'],
@@ -603,16 +656,22 @@ if ($nombreImagen && $nombreImagen !== 'NULL') {
 $params[] = $_POST['cod'];
 
 // Crear string de tipos basado en el número real de parámetros
-$types = str_repeat('s', count($params));
-
-           // Crear string de tipos basado en el número real de parámetros
 $paramCount = count($params);
-$types = str_repeat('s', $paramCount);
+
+// CORREGIDO: Contar exactamente los tipos de datos
+// s = string, d = double/decimal, i = integer
+$types = 'sssiiiddisisddddddisss'; // 22 parámetros base
+
+// Agregar tipo para imagen si existe
+if ($nombreImagen && $nombreImagen !== 'NULL') {
+    $types .= 's'; // imagen
+}
+$types .= 'i'; // id_producto (WHERE clause)
 
 // Debug para verificar parámetros
 error_log("Número de parámetros: " . $paramCount);
 error_log("Tipos generados: " . $types);
-error_log("Parámetros: " . print_r($params, true));
+error_log("Detalle enviado: " . $_POST['detalle']);
 
 $stmt->bind_param($types, ...$params);
 
@@ -942,6 +1001,8 @@ $stmt->bind_param($types, ...$params);
         try {
             $producto_id = $_POST['producto_id'];
             $cantidad = intval($_POST['cantidad']);
+            $costo_compra = isset($_POST['costo_compra']) ? floatval($_POST['costo_compra']) : null;
+            $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : null;
             $fecha_actual = date('Y-m-d H:i:s');
 
             // Actualizar stock del producto
@@ -954,14 +1015,14 @@ $stmt->bind_param($types, ...$params);
             $stmt->bind_param('isi', $cantidad, $fecha_actual, $producto_id);
 
             if ($stmt->execute()) {
-                // Registrar el movimiento en historial (opcional)
+                // Registrar el movimiento en historial con costo y observaciones
                 $sql_historial = "INSERT INTO historial_stock 
-                             (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario) 
-                             VALUES (?, 'INGRESO', ?, ?, ?)";
+                             (id_producto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'INGRESO', ?, ?, ?, ?, ?)";
 
                 $stmt_hist = $this->conexion->prepare($sql_historial);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador'; // Asignar usuario por defecto si no está en sesión
-                $stmt_hist->bind_param('iiss', $producto_id, $cantidad, $fecha_actual, $usuario);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $stmt_hist->bind_param('iidsss', $producto_id, $cantidad, $costo_compra, $fecha_actual, $usuario, $observaciones);
                 $stmt_hist->execute();
 
                 $respuesta["res"] = true;
@@ -973,6 +1034,175 @@ $stmt->bind_param($types, ...$params);
 
         return json_encode($respuesta);
     }
+
+    public function disminuirStock()
+    {
+        $respuesta = ["res" => false];
+
+        try {
+            $producto_id = $_POST['producto_id'];
+            $cantidad = intval($_POST['cantidad']);
+            $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : null;
+            $fecha_actual = date('Y-m-d H:i:s');
+
+            // Verificar que hay stock suficiente
+            $sql_check = "SELECT cantidad FROM productos WHERE id_producto = ?";
+            $stmt_check = $this->conexion->prepare($sql_check);
+            $stmt_check->bind_param('i', $producto_id);
+            $stmt_check->execute();
+            $result = $stmt_check->get_result();
+            $producto = $result->fetch_assoc();
+
+            if ($producto['cantidad'] < $cantidad) {
+                $respuesta["error"] = "Stock insuficiente";
+                return json_encode($respuesta);
+            }
+
+            // Actualizar stock del producto (restar)
+            $sql = "UPDATE productos SET 
+                cantidad = cantidad - ?
+                WHERE id_producto = ?";
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param('ii', $cantidad, $producto_id);
+
+            if ($stmt->execute()) {
+                // Registrar el movimiento en historial como EGRESO
+                $sql_historial = "INSERT INTO historial_stock 
+                             (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'EGRESO', ?, ?, ?, ?)";
+
+                $stmt_hist = $this->conexion->prepare($sql_historial);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $stmt_hist->bind_param('iisss', $producto_id, $cantidad, $fecha_actual, $usuario, $observaciones);
+                $stmt_hist->execute();
+
+                $respuesta["res"] = true;
+            }
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
+
+    public function trasladoAlmacenes()
+    {
+        $respuesta = ["res" => false];
+
+        try {
+            $almacen_origen = $_POST['almacen_origen'];
+            $almacen_destino = $_POST['almacen_destino'];
+            $productos = $_POST['productos'];
+            $nota = isset($_POST['nota']) ? $_POST['nota'] : '';
+            $fecha_actual = date('Y-m-d H:i:s');
+
+            // Validar que origen y destino sean diferentes
+            if ($almacen_origen == $almacen_destino) {
+                $respuesta["error"] = "El almacén de origen y destino no pueden ser el mismo";
+                return json_encode($respuesta);
+            }
+
+            // Iniciar transacción
+            $this->conexion->begin_transaction();
+
+            foreach ($productos as $producto) {
+                $producto_id = $producto['id_producto'];
+                $cantidad = intval($producto['cantidad']);
+
+                // Obtener datos del producto origen (incluyendo código)
+                $sql_get_origen = "SELECT id_producto, codigo, cantidad FROM productos WHERE id_producto = ? AND almacen = ?";
+                $stmt_get_origen = $this->conexion->prepare($sql_get_origen);
+                $stmt_get_origen->bind_param('ii', $producto_id, $almacen_origen);
+                $stmt_get_origen->execute();
+                $result_origen = $stmt_get_origen->get_result();
+                $prod_origen = $result_origen->fetch_assoc();
+
+                if (!$prod_origen || $prod_origen['cantidad'] < $cantidad) {
+                    $this->conexion->rollback();
+                    $respuesta["error"] = "Stock insuficiente en almacén origen para el producto ID: " . $producto_id;
+                    return json_encode($respuesta);
+                }
+
+                $codigo_producto = $prod_origen['codigo'];
+
+                // Disminuir stock en almacén origen
+                $sql_origen = "UPDATE productos SET cantidad = cantidad - ? WHERE id_producto = ? AND almacen = ?";
+                $stmt_origen = $this->conexion->prepare($sql_origen);
+                $stmt_origen->bind_param('iii', $cantidad, $producto_id, $almacen_origen);
+                $stmt_origen->execute();
+
+                // Registrar EGRESO en historial
+                $sql_hist_egreso = "INSERT INTO historial_stock 
+                             (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'EGRESO', ?, ?, ?, ?)";
+                $stmt_hist_egreso = $this->conexion->prepare($sql_hist_egreso);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $obs_egreso = "Traslado de Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
+                $stmt_hist_egreso->bind_param('iisss', $producto_id, $cantidad, $fecha_actual, $usuario, $obs_egreso);
+                $stmt_hist_egreso->execute();
+
+                // Buscar si el producto existe en almacén destino (por CODIGO, no por id_producto)
+                $sql_check_destino = "SELECT id_producto, cantidad FROM productos WHERE codigo = ? AND almacen = ? AND id_empresa = ?";
+                $stmt_check_destino = $this->conexion->prepare($sql_check_destino);
+                $id_empresa = $_SESSION['id_empresa'];
+                $stmt_check_destino->bind_param('sii', $codigo_producto, $almacen_destino, $id_empresa);
+                $stmt_check_destino->execute();
+                $result_destino = $stmt_check_destino->get_result();
+                $prod_destino = $result_destino->fetch_assoc();
+
+                if ($prod_destino) {
+                    // Aumentar stock en almacén destino (usando el id_producto del destino)
+                    $id_producto_destino = $prod_destino['id_producto'];
+                    $sql_destino = "UPDATE productos SET cantidad = cantidad + ?, fecha_ultimo_ingreso = ? WHERE id_producto = ? AND almacen = ?";
+                    $stmt_destino = $this->conexion->prepare($sql_destino);
+                    $stmt_destino->bind_param('isii', $cantidad, $fecha_actual, $id_producto_destino, $almacen_destino);
+                    $stmt_destino->execute();
+
+                    // Registrar INGRESO en historial con el id_producto del destino
+                    $sql_hist_ingreso = "INSERT INTO historial_stock 
+                                 (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                                 VALUES (?, 'INGRESO', ?, ?, ?, ?)";
+                    $stmt_hist_ingreso = $this->conexion->prepare($sql_hist_ingreso);
+                    $obs_ingreso = "Traslado desde Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
+                    $stmt_hist_ingreso->bind_param('iisss', $id_producto_destino, $cantidad, $fecha_actual, $usuario, $obs_ingreso);
+                    $stmt_hist_ingreso->execute();
+                } else {
+                    // Crear registro en almacén destino (copiar del origen)
+                    $sql_copiar = "INSERT INTO productos (cod_barra, nombre, precio, costo, cantidad, iscbp, id_empresa, sucursal, ultima_salida, codsunat, usar_barra, usar_multiprecio, precio_mayor, precio_menor, razon_social, ruc, estado, almacen, precio2, precio3, precio4, precio_unidad, codigo, imagen, detalle, categoria, descripcion, unidad, moneda, fecha_ultimo_ingreso)
+                                   SELECT cod_barra, nombre, precio, costo, ?, iscbp, id_empresa, sucursal, ultima_salida, codsunat, usar_barra, usar_multiprecio, precio_mayor, precio_menor, razon_social, ruc, estado, ?, precio2, precio3, precio4, precio_unidad, codigo, imagen, detalle, categoria, descripcion, unidad, moneda, ?
+                                   FROM productos WHERE id_producto = ? AND almacen = ? LIMIT 1";
+                    $stmt_copiar = $this->conexion->prepare($sql_copiar);
+                    $stmt_copiar->bind_param('iisii', $cantidad, $almacen_destino, $fecha_actual, $producto_id, $almacen_origen);
+                    $stmt_copiar->execute();
+
+                    // Obtener el id del producto recién insertado
+                    $nuevo_id_producto = $this->conexion->insert_id;
+
+                    // Registrar INGRESO en historial con el nuevo id_producto
+                    $sql_hist_ingreso = "INSERT INTO historial_stock 
+                                 (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                                 VALUES (?, 'INGRESO', ?, ?, ?, ?)";
+                    $stmt_hist_ingreso = $this->conexion->prepare($sql_hist_ingreso);
+                    $obs_ingreso = "Traslado desde Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
+                    $stmt_hist_ingreso->bind_param('iisss', $nuevo_id_producto, $cantidad, $fecha_actual, $usuario, $obs_ingreso);
+                    $stmt_hist_ingreso->execute();
+                }
+            }
+
+            // Confirmar transacción
+            $this->conexion->commit();
+            $respuesta["res"] = true;
+
+        } catch (Exception $e) {
+            $this->conexion->rollback();
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
+
     public function obtenerHistorialStock()
     {
         $respuesta = ["res" => false, "data" => []];
@@ -1011,8 +1241,10 @@ $stmt->bind_param($types, ...$params);
                     "codigo" => $row['codigo'],
                     "tipo_movimiento" => $row['tipo_movimiento'],
                     "cantidad" => $row['cantidad'],
+                    "costo_compra" => $row['costo_compra'],
                     "fecha_movimiento" => $row['fecha_movimiento'],
-                    "usuario" => $row['usuario']
+                    "usuario" => $row['usuario'],
+                    "observaciones" => $row['observaciones']
                 ];
             }
 

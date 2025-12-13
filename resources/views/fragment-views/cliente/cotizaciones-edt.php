@@ -877,41 +877,31 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
 
                     <!-- Modal de Edición -->
                     <div class="modal fade" id="modalEditarProducto" tabindex="-1">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header bg-rojo text-white">
                                     <h5 class="modal-title">Editar Producto</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <!-- Código del producto -->
-                                    <div class="mb-3">
-                                        <label class="form-label">Código</label>
-                                        <input type="text" class="form-control" v-model="productoEdit.codigo_pp"
-                                            readonly>
+                                    <div class="row g-3">
+                                        <!-- Código del producto (más pequeño) -->
+                                        <div class="col-md-3">
+                                            <label class="form-label">Código</label>
+                                            <input type="text" class="form-control bg-light" v-model="productoEdit.codigo_pp"
+                                                readonly>
+                                        </div>
+                                        <!-- Nombre del producto (más grande) -->
+                                        <div class="col-md-9">
+                                            <label class="form-label">Nombre</label>
+                                            <input type="text" class="form-control" v-model="productoEdit.nom_prod">
+                                        </div>
                                     </div>
-                                    <!-- Nombre del producto -->
-                                    <div class="mb-3">
-                                        <label class="form-label">Nombre</label>
-                                        <input type="text" class="form-control" v-model="productoEdit.nom_prod">
-                                    </div>
-                                    <!-- Detalle del producto -->
-                                    <div class="mb-3">
-                                        <label class="form-label">Descripción</label>
-                                        <textarea class="form-control" id="detalle" v-model="productoEdit.detalle"
-                                            rows="5"></textarea>
-                                    </div>
-                                    <!-- Cantidad -->
-                                    <div class="mb-3">
-                                        <label class="form-label">Cantidad</label>
-                                        <input type="number" class="form-control" v-model="productoEdit.cantidad"
-                                            @keypress="onlyNumber">
-                                    </div>
-                                    <!-- Modificar el modal de edición para incluir el selector de precios con icono verde -->
-                                    <!-- Reemplazar el div del precio en el modal de edición (líneas aproximadas 450-460) -->
 
-                                    <!-- Precio -->
-                                    <div class="mb-3">
+                                    <div class="row g-3">
+                                        <!-- Precio -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
                                         <label class="form-label">Precio</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control dropdown-toggle"
@@ -961,10 +951,32 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                 </ul>
                                             </div>
                                         </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Precio Especial -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Precio Especial</label>
+                                                <input type="number" class="form-control" v-model="productoEdit.precioEspecial">
+                                            </div>
+                                        </div>
+
+                                        <!-- Cantidad -->
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Cantidad</label>
+                                                <input type="number" class="form-control" v-model="productoEdit.cantidad"
+                                                    @keypress="onlyNumber">
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <!-- Detalle del producto -->
                                     <div class="mb-3">
-                                        <label class="form-label">Precio Especial</label>
-                                        <input type="number" class="form-control" v-model="productoEdit.precioEspecial">
+                                        <label class="form-label">Descripción</label>
+                                        <textarea class="form-control" id="detalle" v-model="productoEdit.detalle"
+                                            rows="5"></textarea>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -1261,8 +1273,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                     this.productoEdit = {
                         index: index,
                         codigo_pp: producto.codigo_pp,
-                        nombre: producto.nombre || producto.descripcion,
-                        nom_prod: producto.nombre || producto.descripcion,
+                        nombre: producto.nombre || producto.nom_prod,
+                        nom_prod: producto.nombre || producto.nom_prod,
                         detalle: producto.detalle || '',
                         cantidad: producto.cantidad,
                         precio: producto.precioVenta || producto.precio || '0.00',
@@ -1283,10 +1295,12 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                 actualizarProducto() {
                     const index = this.productoEdit.index;
                     if (index > -1) {
+                        // Mantener el código del producto
+                        const codigo = this.productos[index].codigo_pp || this.productos[index].codigo || '';
                         this.productos[index] = {
                             ...this.productos[index],
                             nombre: this.productoEdit.nom_prod,
-                            descripcion: this.productoEdit.nom_prod,
+                            descripcion: (codigo ? codigo + " | " : "") + this.productoEdit.nom_prod, // Para el input visual
                             detalle: this.productoEdit.detalle,
                             cantidad: this.productoEdit.cantidad,
                             precioVenta: this.productoEdit.precio,
@@ -1430,6 +1444,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                 editarProd(index, i) {
                     this.producto.index = i
                     var self = this
+                    // Obtener el código del producto actual
+                    const codigoProducto = this.productos[i].codigo_pp || this.productos[i].codigo || '';
                     _ajax("/ajs/consulta/prod/coti", "POST", {
                         index
                     },
@@ -1437,12 +1453,13 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                             $("#loader-menor").hide();
                             console.log('Producto editado:', resp);
                             self.producto.nombre = resp.nombre;
-                            self.producto.descripcion = resp.id_producto + ' | ' + resp.nombre;
+                            self.producto.descripcion = (codigoProducto ? codigoProducto + " | " : "") + resp.nombre; // Para el input visual
                             self.producto.stock = resp.cantidad;
                             self.producto.cantidad = '';
                             self.producto.codigo = resp.id_producto;
+                            self.producto.codigo_pp = codigoProducto;
                             self.producto.productoid = resp.id_producto;
-                            self.producto.nom_prod = resp.nombre;
+                            self.producto.nom_prod = resp.nombre; // Para la tabla
                             self.producto.precio = parseFloat(resp.precio + "").toFixed(2);
                             self.producto.precio2 = parseFloat(resp.precio2 + "").toFixed(2);
                             self.producto.precio3 = parseFloat(resp.precio3 + "").toFixed(2);
@@ -1944,11 +1961,21 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                         totalBase = totalBase * (1 - descuento);
                     }
 
-                    // Calculamos el total final según si aplica IGV
+                    // CORRECCIÓN: Los precios de almacén YA incluyen IGV (18%)
+                    // Lógica correcta:
+                    // - Si aplicar_igv = '1' (SÍ): usar precio tal cual (ya tiene IGV incluido)
+                    // - Si aplicar_igv = '0' (NO): quitar IGV dividiendo entre 1.18 (clientes exonerados)
                     let totalFinal = totalBase;
-                    if (this.venta.aplicar_igv == '1') {
-                        totalFinal = totalBase * 1.18; // Agregamos IGV del 18%
+                    if (this.venta.aplicar_igv == '0') {
+                        // Cliente exonerado: quitar el IGV que ya está incluido en los precios
+                        totalFinal = totalBase / 1.18;
                     }
+                    // Si aplicar_igv == '1', totalFinal = totalBase (sin cambios, ya tiene IGV)
+
+                    // CÓDIGO ORIGINAL COMENTADO - Causaba doble aplicación de IGV:
+                    // if (this.venta.aplicar_igv == '1') {
+                    //     totalFinal = totalBase * 1.18; // ❌ Multiplicaba cuando ya tenía IGV
+                    // }
 
                     // Actualizamos el total en venta y retornamos con 2 decimales
                     this.venta.total = totalFinal;
@@ -2048,8 +2075,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                 }
 
                 app.producto.codigo_pp = ui.item.codigo_pp;
-                app.producto.descripcion = ui.item.codigo + " | " + ui.item.nombre;
-                app.producto.nom_prod = ui.item.nombre;
+                app.producto.descripcion = ui.item.codigo_pp + " | " + ui.item.nombre; // Para el input visual
+                app.producto.nom_prod = ui.item.nombre; // Para la tabla
                 app.producto.detalle = ui.item.detalle;
                 app.producto.cantidad = '1';
                 app.producto.stock = ui.item.cnt;

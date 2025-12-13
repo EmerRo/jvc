@@ -12,12 +12,16 @@
         if (e === "light-mode-switch") {
             // Modo Claro
             $("html").removeAttr("dir");
+            $("body").removeAttr("data-layout-mode");
+            $("body").removeClass("dark-mode");
             $("#bootstrap-style").attr("href", _URL + "/public/assets/css/bootstrap.min.css");
             $("#app-style").attr("href", _URL + "/public/assets/css/app.min.css");
             sessionStorage.setItem("is_visited", "light-mode-switch");
         } else if (e === "dark-mode-switch") {
             // Modo Oscuro
             $("html").removeAttr("dir");
+            $("body").attr("data-layout-mode", "dark");
+            $("body").addClass("dark-mode");
             $("#bootstrap-style").attr("href", _URL + "/public/assets/css/bootstrap-dark.min.css");
             $("#app-style").attr("href", _URL + "/public/assets/css/app-dark.min.css");
             sessionStorage.setItem("is_visited", "dark-mode-switch");

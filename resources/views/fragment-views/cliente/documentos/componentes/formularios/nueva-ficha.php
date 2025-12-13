@@ -9,6 +9,7 @@
     <div class="card-body p-4">
         <form id="nuevaFichaForm" enctype="multipart/form-data">
             <input type="hidden" name="tipo" value="ficha_tecnica">
+            <input type="hidden" id="id-ficha-editar" name="id_ficha" value="">
 
             <!-- Sección de Información Básica -->
             <div class="mb-4 pb-2 border-bottom">

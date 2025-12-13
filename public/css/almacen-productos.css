@@ -1,3 +1,6 @@
+    .modal-medio {
+    max-width: 700px; /* Entre modal-md (~500px) y modal-lg (~900px) */
+}
 .dt-body-left {
         text-align: left !important;
     }

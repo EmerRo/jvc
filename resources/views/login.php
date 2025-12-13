@@ -579,12 +579,21 @@
                         console.log(resp);
                         resp = JSON.parse(resp);
                         if (resp.res) {
+                            // Actualizar token con última actividad
+                            if (resp.token) {
+                                localStorage.setItem("_token", resp.token);
+                            }
                             $("#loader-init").hide();
                             $("#loader-barrido").hide();
                             location.href = _URL
                         } else {
                             localStorage.removeItem("_token")
                             $("#loader-init").hide();
+                            // Mostrar mensaje si la sesión expiró
+                            if (resp.msg && resp.msg === "session_expired_12h") {
+                                // No mostrar alerta aquí, solo limpiar
+                                console.log("Sesión expirada después de 12 horas");
+                            }
                             // Mostrar el loader por 4 segundos
                             setTimeout(function() {
                                 $("#loader-barrido").fadeOut(800);

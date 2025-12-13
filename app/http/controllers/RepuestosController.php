@@ -1,7 +1,7 @@
 <?php
 
-require_once "utils/lib/exel/vendor/autoload.php";
-require_once "app/models/Repuesto.php";
+require_once 'utils/lib/exel/vendor/autoload.php';
+require_once 'app/models/Repuesto.php';
 
 class RepuestosController extends Controller
 {
@@ -15,7 +15,7 @@ class RepuestosController extends Controller
 
     public function listaRepuestoServerSide()
     {
-        require_once "app/clases/serverside.php";
+        require_once 'app/clases/serverside.php';
         header('Pragma: no-cache');
         header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Content-Type: application/json');
@@ -27,7 +27,7 @@ class RepuestosController extends Controller
         $view = "view_repuestos_$almacen";
 
         // Construir cláusula WHERE para filtrado
-        $where = "";
+        $where = '';
         switch ($filter) {
             case 'JVC':
                 $where = "codigo LIKE 'JVC%'";
@@ -38,35 +38,34 @@ class RepuestosController extends Controller
             case 'REP':
                 $where = "codigo LIKE 'REP%'";
                 break;
-
         }
 
         $result = $table_data->getAlmacen(
             $view,
-            "id_repuesto",
+            'id_repuesto',
             [
-                "codigo",
-                "nombre",
-                "unidad",
-                "precio_unidad",
-                "cantidad",
-                "id_repuesto",
-                "id_repuesto",
-                "moneda"
+                'codigo',
+                'nombre',
+                'unidad',
+                'precio_unidad',
+                'cantidad',
+                'id_repuesto',
+                'id_repuesto',
+                'moneda'
             ],
             false,
-            "",
+            '',
             $where
         );
 
         if (!$result) {
             error_log("Error en listaRepuestoServerSide: No se pudieron obtener datos de $view");
             echo json_encode([
-                "sEcho" => intval($_GET['sEcho']),
-                "iTotalRecords" => 0,
-                "iTotalDisplayRecords" => 0,
-                "aaData" => [],
-                "error" => "No se pudieron obtener los datos"
+                'sEcho' => intval($_GET['sEcho']),
+                'iTotalRecords' => 0,
+                'iTotalDisplayRecords' => 0,
+                'aaData' => [],
+                'error' => 'No se pudieron obtener los datos'
             ]);
             exit;
         }
@@ -89,9 +88,12 @@ class RepuestosController extends Controller
 
     public function agregarPorLista()
     {
-        $respuesta = ["res" => false, "error" => ""];
+        $respuesta = ['res' => false, 'error' => ''];
 
         try {
+            // CAPTURAR EL ALMACÉN SELECCIONADO DESDE EL MODAL (no del Excel)
+            $almacenDestino = isset($_POST['almacen']) ? intval($_POST['almacen']) : 1;
+
             $lista = json_decode($_POST['lista'], true);
 
             foreach ($lista as $item) {
@@ -106,22 +108,24 @@ class RepuestosController extends Controller
                 $nombre = isset($item['repuesto']) ? $item['repuesto'] : '';
                 $precio = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
                 $precio2 = isset($item['precio2']) ? floatval($item['precio2']) : 0;
-                $almacen = isset($item['almacen']) ? intval($item['almacen']) : 1;
+                // USAR EL ALMACÉN SELECCIONADO EN EL MODAL, NO EL DEL EXCEL
+                $almacen = $almacenDestino;
                 $precioUnidad = isset($item['precio_unidad']) ? floatval($item['precio_unidad']) : 0;
                 $costo = isset($item['costo']) ? floatval($item['costo']) : 0;
                 $cantidad = isset($item['cantidad']) ? intval($item['cantidad']) : 0;
                 $moneda = isset($item['moneda']) ? $item['moneda'] : 'PEN';
 
-                $sqlRepuesto = "SELECT * FROM repuestos WHERE codigo = ?";
+                // Verificar si el repuesto existe - Filtrar por codigo, empresa, sucursal y almacen
+                $sqlRepuesto = 'SELECT * FROM repuestos WHERE codigo = ? AND id_empresa = ? AND sucursal = ? AND almacen = ?';
                 $stmt = $this->conexion->prepare($sqlRepuesto);
-                $stmt->bind_param('s', $codigoRep);
+                $stmt->bind_param('siii', $codigoRep, $_SESSION['id_empresa'], $_SESSION['sucursal'], $almacen);
                 $stmt->execute();
                 $resultado = $stmt->get_result();
                 $repuesto = $resultado->fetch_assoc();
                 $stmt->close();
 
                 if ($repuesto) {
-                    $updateRepuesto = "UPDATE repuestos SET
+                    $updateRepuesto = 'UPDATE repuestos SET
                         nombre = ?,
                         detalle = ?,
                         precio = ?,
@@ -131,15 +135,15 @@ class RepuestosController extends Controller
                         costo = ?,
                         cantidad = ?,
                         moneda = ?
-                        WHERE codigo = ?";
+                        WHERE codigo = ? AND id_empresa = ? AND sucursal = ? AND almacen = ?';
 
                     $stmt = $this->conexion->prepare($updateRepuesto);
                     if (!$stmt) {
-                        throw new Exception("Error preparando actualización: " . $this->conexion->error);
+                        throw new Exception('Error preparando actualización: ' . $this->conexion->error);
                     }
 
                     $stmt->bind_param(
-                        'ssddsdddss',
+                        'ssddsdddssiii',
                         $nombre,
                         $descripcion,
                         $precio,
@@ -149,19 +153,22 @@ class RepuestosController extends Controller
                         $costo,
                         $cantidad,
                         $moneda,
-                        $codigoRep
+                        $codigoRep,
+                        $_SESSION['id_empresa'],
+                        $_SESSION['sucursal'],
+                        $almacen
                     );
                 } else {
-                    $sql = "INSERT INTO repuestos (
+                    $sql = 'INSERT INTO repuestos (
                         nombre, detalle, precio, precio2, almacen,
                         precio_unidad, costo, cantidad, iscbp,
                         id_empresa, sucursal, codigo, ultima_salida,
                         codsunat, moneda
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
                     $stmt = $this->conexion->prepare($sql);
                     if (!$stmt) {
-                        throw new Exception("Error preparando inserción: " . $this->conexion->error);
+                        throw new Exception('Error preparando inserción: ' . $this->conexion->error);
                     }
 
                     $ultimaSalida = '1000-01-01';
@@ -186,54 +193,51 @@ class RepuestosController extends Controller
                 }
 
                 if (!$stmt->execute()) {
-                    throw new Exception("Error en la operación: " . $stmt->error);
+                    throw new Exception('Error en la operación: ' . $stmt->error);
                 }
                 $stmt->close();
             }
 
-            $respuesta["res"] = true;
-
+            $respuesta['res'] = true;
         } catch (Exception $e) {
-            $respuesta["error"] = $e->getMessage();
-            error_log("Error en agregarPorLista: " . $e->getMessage());
+            $respuesta['error'] = $e->getMessage();
+            error_log('Error en agregarPorLista: ' . $e->getMessage());
         }
 
         return json_encode($respuesta);
     }
 
-
-
     public function importarExel()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $filename = $_FILES['file']['name'];
 
         $path_parts = pathinfo($filename, PATHINFO_EXTENSION);
         $newName = Tools::getToken(80);
-        $loc_ruta = "files/temp";
+        $loc_ruta = 'files/temp';
         if (!file_exists($loc_ruta)) {
             mkdir($loc_ruta, 0777, true);
         }
-        $location = $loc_ruta . "/" . $newName . '.' . $path_parts;
+        $location = $loc_ruta . '/' . $newName . '.' . $path_parts;
         if (move_uploaded_file($_FILES['file']['tmp_name'], $location)) {
-            $nombre_logo = $newName . "." . $path_parts;
+            $nombre_logo = $newName . '.' . $path_parts;
 
-            $respuesta["res"] = true;
+            $respuesta['res'] = true;
             $type = $path_parts;
 
-            if ($type == "xlsx") {
+            if ($type == 'xlsx') {
                 $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-            } elseif ($type == "xls") {
+            } elseif ($type == 'xls') {
                 $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
-            } elseif ($type == "csv") {
+            } elseif ($type == 'csv') {
                 $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
             }
 
             $reader->setReadDataOnly(true);
-            $spreadsheet = $reader->load("files/temp/" . $nombre_logo);
+            $spreadsheet = $reader->load('files/temp/' . $nombre_logo);
 
             $schdeules = $spreadsheet->getActiveSheet()->toArray();
-            $respuesta["data"] = $schdeules;
+            $respuesta['data'] = $schdeules;
 
             unlink($location);
         }
@@ -243,45 +247,45 @@ class RepuestosController extends Controller
 
     public function restock()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $sql = "update repuestos set cantidad=cantidad+{$_POST['cantidad']} where id_repuesto='{$_POST['cod']}'";
         if ($this->conexion->query($sql)) {
-            $respuesta["res"] = true;
+            $respuesta['res'] = true;
         }
         return json_encode($respuesta);
     }
 
     public function informacionPorCodigo()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $sql = "SELECT * FROM repuestos where trim(codigo)='{$_POST['code']}' AND almacen = '{$_POST['almacen']}' and sucursal='{$_SESSION['sucursal']}'";
 
         if ($row = $this->conexion->query($sql)->fetch_assoc()) {
-            $respuesta["res"] = true;
-            $respuesta["data"] = $row;
+            $respuesta['res'] = true;
+            $respuesta['data'] = $row;
         }
         return json_encode($respuesta);
     }
 
     public function informacion()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $sql = "SELECT * FROM repuestos where id_repuesto='{$_POST['cod']}'";
         if ($row = $this->conexion->query($sql)->fetch_assoc()) {
-            $respuesta["res"] = true;
-            $respuesta["data"] = $row;
+            $respuesta['res'] = true;
+            $respuesta['data'] = $row;
         }
         return json_encode($respuesta);
     }
 
     public function agregar()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $codigoRep = $_POST['codigo'];
         $usar_multiprecio = isset($_POST['usar_multiprecio']) ? $_POST['usar_multiprecio'] : '0';
         $precios = isset($_POST['precios']) ? json_decode($_POST['precios'], true) : [];
 
-        //obtener la subcategoria del POST
+        // obtener la subcategoria del POST
         $subcategoria = isset($_POST['subcategoria']) ? $_POST['subcategoria'] : 'NULL';
         try {
             $this->conexion->begin_transaction();
@@ -296,7 +300,7 @@ class RepuestosController extends Controller
                 $rutaDestino = 'public/img/repuestos/' . $nombreImagen;
 
                 if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception("Error al subir la imagen");
+                    throw new Exception('Error al subir la imagen');
                 }
             }
 
@@ -333,8 +337,8 @@ class RepuestosController extends Controller
                 moneda= '{$_POST['moneda']}',
                 usar_multiprecio = '{$usar_multiprecio}',
                 usar_barra = '" . (isset($_POST['usar_barra']) ? $_POST['usar_barra'] : '0') . "',
-                cod_barra = " . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
-                codigo = ?";
+                cod_barra = " . ($codigoBar ? "'{$codigoBar}'" : 'NULL') . ',
+                codigo = ?';
 
             if ($nombreImagen) {
                 $sql .= ", imagen = '{$nombreImagen}'";
@@ -344,14 +348,14 @@ class RepuestosController extends Controller
             $stmt->bind_param('s', $codigoRep);
 
             if (!$stmt->execute()) {
-                throw new Exception("Error al insertar repuesto: " . $stmt->error);
+                throw new Exception('Error al insertar repuesto: ' . $stmt->error);
             }
 
             $id_repuesto = $this->conexion->insert_id;
 
             // Si usa multiprecio, guardar los precios
             if ($usar_multiprecio === '1' && !empty($precios)) {
-                $sql = "INSERT INTO repuesto_precios (id_repuesto, nombre, precio) VALUES (?, ?, ?)";
+                $sql = 'INSERT INTO repuesto_precios (id_repuesto, nombre, precio) VALUES (?, ?, ?)';
                 $stmt = $this->conexion->prepare($sql);
 
                 foreach ($precios as $precio) {
@@ -359,17 +363,16 @@ class RepuestosController extends Controller
                     $valor = $precio['precio'];
                     $stmt->bind_param('iss', $id_repuesto, $nombre, $valor);
                     if (!$stmt->execute()) {
-                        throw new Exception("Error al insertar precio: " . $stmt->error);
+                        throw new Exception('Error al insertar precio: ' . $stmt->error);
                     }
                 }
             }
 
             $this->conexion->commit();
-            $respuesta["res"] = true;
-
+            $respuesta['res'] = true;
         } catch (Exception $e) {
             $this->conexion->rollback();
-            $respuesta["error"] = $e->getMessage();
+            $respuesta['error'] = $e->getMessage();
         }
 
         return json_encode($respuesta);
@@ -377,7 +380,7 @@ class RepuestosController extends Controller
 
     public function actualizar()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $codigoRep = $_POST['codigo'];
         $usar_multiprecio = isset($_POST['usar_multiprecio']) ? $_POST['usar_multiprecio'] : '0';
 
@@ -394,9 +397,9 @@ class RepuestosController extends Controller
             $sql = "select * from repuestos where id_repuesto='{$_POST['cod']}'";
             $result = $this->conexion->query($sql);
             if ($row = $result->fetch_assoc()) {
-                $almacenTemp = $row["almacen"] == "1" ? 2 : 1;
-                $sql = "update repuestos set 
-                     cod_barra=" . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
+                $almacenTemp = $row['almacen'] == '1' ? 2 : 1;
+                $sql = 'update repuestos set 
+                     cod_barra=' . ($codigoBar ? "'{$codigoBar}'" : 'NULL') . ",
                      usar_barra='{$_POST['usar_barra']}',
                      usar_multiprecio='{$usar_multiprecio}',
                      precio='{$_POST['precio']}',
@@ -417,7 +420,7 @@ class RepuestosController extends Controller
                 $stmt->bind_param('ss', $codigoRep, $row['descripcion']);
 
                 if (!$stmt->execute()) {
-                    throw new Exception("Error al actualizar repuesto relacionado: " . $stmt->error);
+                    throw new Exception('Error al actualizar repuesto relacionado: ' . $stmt->error);
                 }
             }
 
@@ -427,12 +430,12 @@ class RepuestosController extends Controller
                 $rutaDestino = 'public/img/repuestos/' . $nombreImagen;
 
                 if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception("Error al subir la imagen");
+                    throw new Exception('Error al subir la imagen');
                 }
             }
 
-            $sql = "update repuestos set 
-                 cod_barra=" . ($codigoBar ? "'{$codigoBar}'" : "NULL") . ",
+            $sql = 'update repuestos set 
+                 cod_barra=' . ($codigoBar ? "'{$codigoBar}'" : 'NULL') . ",
                  nombre = '{$_POST['nombre']}',
                  usar_barra='{$_POST['usar_barra']}',
                  usar_multiprecio='{$usar_multiprecio}',
@@ -453,23 +456,22 @@ class RepuestosController extends Controller
                  where id_repuesto='{$_POST['cod']}'";
 
             if (isset($nombreImagen)) {
-                $sql = str_replace("codigo=?", "imagen = '{$nombreImagen}', codigo=?", $sql);
+                $sql = str_replace('codigo=?', "imagen = '{$nombreImagen}', codigo=?", $sql);
             }
 
             $stmt = $this->conexion->prepare($sql);
             $stmt->bind_param('s', $codigoRep);
 
             if (!$stmt->execute()) {
-                throw new Exception("Error al actualizar repuesto: " . $stmt->error);
+                throw new Exception('Error al actualizar repuesto: ' . $stmt->error);
             }
 
             $this->conexion->commit();
-            $respuesta["res"] = true;
-            $respuesta["cod_barra"] = $codigoBar; // devolver el nuevo código de barras
-
+            $respuesta['res'] = true;
+            $respuesta['cod_barra'] = $codigoBar;  // devolver el nuevo código de barras
         } catch (Exception $e) {
             $this->conexion->rollback();
-            $respuesta["error"] = $e->getMessage();
+            $respuesta['error'] = $e->getMessage();
         }
 
         return json_encode($respuesta);
@@ -477,14 +479,14 @@ class RepuestosController extends Controller
 
     public function actualizarPrecios()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $sql = "update repuestos set precio='{$_POST['precio']}',precio_unidad='{$_POST['precio_unidad']}', precio2='{$_POST['precio2']}', precio3='{$_POST['precio3']}', precio4='{$_POST['precio4']}' where id_repuesto='{$_POST['cod_rep']}'";
         if ($this->conexion->query($sql)) {
-            $respuesta["res"] = true;
+            $respuesta['res'] = true;
             $sql = "select * from repuestos where id_repuesto='{$_POST['cod_rep']}'";
             $result = $this->conexion->query($sql);
             if ($row = $result->fetch_assoc()) {
-                $almacenTemp = $row["almacen"] == "1" ? 2 : 1;
+                $almacenTemp = $row['almacen'] == '1' ? 2 : 1;
                 $sql = "update repuestos set 
                      precio='{$_POST['precio']}',precio_unidad='{$_POST['precio_unidad']}', 
                      precio2='{$_POST['precio2']}', precio3='{$_POST['precio3']}', 
@@ -550,24 +552,22 @@ class RepuestosController extends Controller
 
     public function delete()
     {
-        $respuesta["res"] = true;
-        $respuesta["data"] = $_POST;
+        $respuesta['res'] = true;
+        $respuesta['data'] = $_POST;
         $sql = '';
-        foreach ($respuesta["data"]['arrayId'] as $ids) {
+        foreach ($respuesta['data']['arrayId'] as $ids) {
             $sql = "UPDATE repuestos set estado=0 where id_repuesto = '{$ids['id']}'";
             if ($this->conexion->query($sql)) {
-                $respuesta["res"] = true;
+                $respuesta['res'] = true;
             }
         }
         return json_encode($respuesta);
     }
 
-  
-
     // Método para guardar precios múltiples
     public function guardarPrecios()
     {
-        $respuesta = ["res" => false];
+        $respuesta = ['res' => false];
         $id_repuesto = $_POST['id_repuesto'];
         $precios = $_POST['precios'];
 
@@ -576,13 +576,13 @@ class RepuestosController extends Controller
             $this->conexion->begin_transaction();
 
             // Eliminar precios existentes
-            $sql = "DELETE FROM repuesto_precios WHERE id_repuesto = ?";
+            $sql = 'DELETE FROM repuesto_precios WHERE id_repuesto = ?';
             $stmt = $this->conexion->prepare($sql);
             $stmt->bind_param('i', $id_repuesto);
             $stmt->execute();
 
             // Insertar nuevos precios
-            $sql = "INSERT INTO repuesto_precios (id_repuesto, nombre, precio) VALUES (?, ?, ?)";
+            $sql = 'INSERT INTO repuesto_precios (id_repuesto, nombre, precio) VALUES (?, ?, ?)';
             $stmt = $this->conexion->prepare($sql);
 
             foreach ($precios as $precio) {
@@ -600,12 +600,11 @@ class RepuestosController extends Controller
 
             // Confirmar transacción
             $this->conexion->commit();
-            $respuesta["res"] = true;
-
+            $respuesta['res'] = true;
         } catch (Exception $e) {
             // Revertir en caso de error
             $this->conexion->rollback();
-            $respuesta["error"] = $e->getMessage();
+            $respuesta['error'] = $e->getMessage();
         }
 
         return json_encode($respuesta);
@@ -614,11 +613,11 @@ class RepuestosController extends Controller
     // Método para obtener precios múltiples
     public function obtenerPrecios()
     {
-        $respuesta = ["res" => false, "precios" => []];
+        $respuesta = ['res' => false, 'precios' => []];
         $id_repuesto = $_POST['id_repuesto'];
 
         try {
-            $sql = "SELECT * FROM repuesto_precios WHERE id_repuesto = ?";
+            $sql = 'SELECT * FROM repuesto_precios WHERE id_repuesto = ?';
             $stmt = $this->conexion->prepare($sql);
             $stmt->bind_param('i', $id_repuesto);
             $stmt->execute();
@@ -626,16 +625,16 @@ class RepuestosController extends Controller
 
             if ($resultado->num_rows > 0) {
                 while ($row = $resultado->fetch_assoc()) {
-                    $respuesta["precios"][] = [
-                        "id" => $row['id'],
-                        "nombre" => $row['nombre'],
-                        "precio" => $row['precio']
+                    $respuesta['precios'][] = [
+                        'id' => $row['id'],
+                        'nombre' => $row['nombre'],
+                        'precio' => $row['precio']
                     ];
                 }
-                $respuesta["res"] = true;
+                $respuesta['res'] = true;
             }
         } catch (Exception $e) {
-            $respuesta["error"] = $e->getMessage();
+            $respuesta['error'] = $e->getMessage();
         }
 
         return json_encode($respuesta);
@@ -643,41 +642,188 @@ class RepuestosController extends Controller
 
     public function aumentarStock()
     {
-        $respuesta = ["res" => false];
-        
+        $respuesta = ['res' => false];
+
         try {
             $repuesto_id = $_POST['repuesto_id'];
             $cantidad = intval($_POST['cantidad']);
             $fecha_actual = date('Y-m-d H:i:s');
-            
+
             // Actualizar stock del repuesto
-            $sql = "UPDATE repuestos SET 
-                    cantidad = cantidad + ?,    
-                    fecha_ultimo_ingreso = ?
-                    WHERE id_repuesto = ?";
-            
+            $sql = 'UPDATE repuestos SET 
+                    cantidad = cantidad + ?
+                    WHERE id_repuesto = ?';
+
             $stmt = $this->conexion->prepare($sql);
-            $stmt->bind_param('isi', $cantidad, $fecha_actual, $repuesto_id);
-            
+            $stmt->bind_param('ii', $cantidad, $repuesto_id);
+
             if ($stmt->execute()) {
                 // Registrar el movimiento en historial_stock_repuestos
                 $sql_historial = "INSERT INTO historial_stock_repuestos 
                                  (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario) 
                                  VALUES (?, 'INGRESO', ?, ?, ?)";
-                
+
                 $stmt_hist = $this->conexion->prepare($sql_historial);
                 $usuario = $_SESSION['usuario'] ?? 'Sistema';
                 $stmt_hist->bind_param('iiss', $repuesto_id, $cantidad, $fecha_actual, $usuario);
                 $stmt_hist->execute();
-                
-                $respuesta["res"] = true;
+
+                $respuesta['res'] = true;
             }
-            
         } catch (Exception $e) {
-            $respuesta["error"] = $e->getMessage();
+            $respuesta['error'] = $e->getMessage();
         }
-        
+
         return json_encode($respuesta);
     }
-    
+
+    public function disminuirStock()
+    {
+        $respuesta = ['res' => false];
+
+        try {
+            $repuesto_id = $_POST['repuesto_id'];
+            $cantidad = intval($_POST['cantidad']);
+            $observaciones = isset($_POST['observaciones']) ? $_POST['observaciones'] : null;
+            $fecha_actual = date('Y-m-d H:i:s');
+
+            // Verificar que hay stock suficiente
+            $sql_check = 'SELECT cantidad FROM repuestos WHERE id_repuesto = ?';
+            $stmt_check = $this->conexion->prepare($sql_check);
+            $stmt_check->bind_param('i', $repuesto_id);
+            $stmt_check->execute();
+            $result = $stmt_check->get_result();
+            $repuesto = $result->fetch_assoc();
+
+            if ($repuesto['cantidad'] < $cantidad) {
+                $respuesta['error'] = 'Stock insuficiente';
+                return json_encode($respuesta);
+            }
+
+            // Actualizar stock del repuesto (restar)
+            $sql = 'UPDATE repuestos SET 
+                cantidad = cantidad - ?
+                WHERE id_repuesto = ?';
+
+            $stmt = $this->conexion->prepare($sql);
+            $stmt->bind_param('ii', $cantidad, $repuesto_id);
+
+            if ($stmt->execute()) {
+                // Registrar el movimiento en historial como EGRESO
+                $sql_historial = "INSERT INTO historial_stock_repuestos 
+                             (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'EGRESO', ?, ?, ?, ?)";
+
+                $stmt_hist = $this->conexion->prepare($sql_historial);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $stmt_hist->bind_param('iisss', $repuesto_id, $cantidad, $fecha_actual, $usuario, $observaciones);
+                $stmt_hist->execute();
+
+                $respuesta['res'] = true;
+            }
+        } catch (Exception $e) {
+            $respuesta['error'] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
+
+    public function trasladoAlmacenes()
+    {
+        $respuesta = ['res' => false];
+
+        try {
+            $almacen_origen = $_POST['almacen_origen'];
+            $almacen_destino = $_POST['almacen_destino'];
+            $repuestos = $_POST['repuestos'];
+            $nota = isset($_POST['nota']) ? $_POST['nota'] : '';
+            $fecha_actual = date('Y-m-d H:i:s');
+
+            // Validar que origen y destino sean diferentes
+            if ($almacen_origen == $almacen_destino) {
+                $respuesta['error'] = 'El almacén de origen y destino no pueden ser el mismo';
+                return json_encode($respuesta);
+            }
+
+            // Iniciar transacción
+            $this->conexion->begin_transaction();
+
+            foreach ($repuestos as $repuesto) {
+                $repuesto_id = $repuesto['id_repuesto'];
+                $cantidad = intval($repuesto['cantidad']);
+
+                // Verificar stock en almacén origen
+                $sql_check = 'SELECT cantidad FROM repuestos WHERE id_repuesto = ? AND almacen = ?';
+                $stmt_check = $this->conexion->prepare($sql_check);
+                $stmt_check->bind_param('ii', $repuesto_id, $almacen_origen);
+                $stmt_check->execute();
+                $result = $stmt_check->get_result();
+                $rep_origen = $result->fetch_assoc();
+
+                if (!$rep_origen || $rep_origen['cantidad'] < $cantidad) {
+                    $this->conexion->rollback();
+                    $respuesta['error'] = 'Stock insuficiente en almacén origen para el repuesto ID: ' . $repuesto_id;
+                    return json_encode($respuesta);
+                }
+
+                // Disminuir stock en almacén origen
+                $sql_origen = 'UPDATE repuestos SET cantidad = cantidad - ? WHERE id_repuesto = ? AND almacen = ?';
+                $stmt_origen = $this->conexion->prepare($sql_origen);
+                $stmt_origen->bind_param('iii', $cantidad, $repuesto_id, $almacen_origen);
+                $stmt_origen->execute();
+
+                // Registrar EGRESO en historial
+                $sql_hist_egreso = "INSERT INTO historial_stock_repuestos 
+                             (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'EGRESO', ?, ?, ?, ?)";
+                $stmt_hist_egreso = $this->conexion->prepare($sql_hist_egreso);
+                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $obs_egreso = "Traslado de Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
+                $stmt_hist_egreso->bind_param('iisss', $repuesto_id, $cantidad, $fecha_actual, $usuario, $obs_egreso);
+                $stmt_hist_egreso->execute();
+
+                // Verificar si el repuesto existe en almacén destino
+                $sql_check_destino = 'SELECT id_repuesto, cantidad FROM repuestos WHERE id_repuesto = ? AND almacen = ?';
+                $stmt_check_destino = $this->conexion->prepare($sql_check_destino);
+                $stmt_check_destino->bind_param('ii', $repuesto_id, $almacen_destino);
+                $stmt_check_destino->execute();
+                $result_destino = $stmt_check_destino->get_result();
+                $rep_destino = $result_destino->fetch_assoc();
+
+                if ($rep_destino) {
+                    // Aumentar stock en almacén destino
+                    $sql_destino = 'UPDATE repuestos SET cantidad = cantidad + ? WHERE id_repuesto = ? AND almacen = ?';
+                    $stmt_destino = $this->conexion->prepare($sql_destino);
+                    $stmt_destino->bind_param('iii', $cantidad, $repuesto_id, $almacen_destino);
+                    $stmt_destino->execute();
+                } else {
+                    // Crear registro en almacén destino (copiar del origen)
+                    $sql_copiar = 'INSERT INTO repuestos (cod_barra, nombre, precio, costo, cantidad, iscbp, id_empresa, sucursal, ultima_salida, codsunat, usar_barra, usar_multiprecio, precio_mayor, precio_menor, razon_social, ruc, estado, almacen, precio2, precio3, precio4, precio_unidad, codigo, imagen, detalle, categoria, descripcion, unidad, moneda, subcategoria)
+                                   SELECT cod_barra, nombre, precio, costo, ?, iscbp, id_empresa, sucursal, ultima_salida, codsunat, usar_barra, usar_multiprecio, precio_mayor, precio_menor, razon_social, ruc, estado, ?, precio2, precio3, precio4, precio_unidad, codigo, imagen, detalle, categoria, descripcion, unidad, moneda, subcategoria
+                                   FROM repuestos WHERE id_repuesto = ? AND almacen = ? LIMIT 1';
+                    $stmt_copiar = $this->conexion->prepare($sql_copiar);
+                    $stmt_copiar->bind_param('iiii', $cantidad, $almacen_destino, $repuesto_id, $almacen_origen);
+                    $stmt_copiar->execute();
+                }
+
+                // Registrar INGRESO en historial
+                $sql_hist_ingreso = "INSERT INTO historial_stock_repuestos 
+                             (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES (?, 'INGRESO', ?, ?, ?, ?)";
+                $stmt_hist_ingreso = $this->conexion->prepare($sql_hist_ingreso);
+                $obs_ingreso = "Traslado desde Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
+                $stmt_hist_ingreso->bind_param('iisss', $repuesto_id, $cantidad, $fecha_actual, $usuario, $obs_ingreso);
+                $stmt_hist_ingreso->execute();
+            }
+
+            // Confirmar transacción
+            $this->conexion->commit();
+            $respuesta['res'] = true;
+        } catch (Exception $e) {
+            $this->conexion->rollback();
+            $respuesta['error'] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
 }

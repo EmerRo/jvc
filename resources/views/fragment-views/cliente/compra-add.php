@@ -12,6 +12,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -1384,6 +1385,7 @@
                             if (this.venta.fecha !== undefined && this.venta.nom_cli !== '' && this.venta.serie !== '') {
                                 if (this.venta.dir_cli !== undefined) {
                                     $("#loader-menor").hide();
+
                                     _ajax("/ajs/compras/add", "POST",
                                         data,
                                         function (resp) {

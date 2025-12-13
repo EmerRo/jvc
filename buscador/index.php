@@ -23,15 +23,16 @@
             box-sizing: border-box;
         }
         
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #CA3438 0%, #8B1E23 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+       body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: url('assets/img/fondo.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
         
         .container {
             background: white;
@@ -262,11 +263,11 @@
         <form id="formLogin" name="formLogin">
             <div class="form-group">
                 <label class="form-label" for="rucemisor">
-                    <i class="fas fa-building"></i> RUC Emisor
+                    <i class="fas fa-building"></i> Documento Emisor
                 </label>
-                <input id="rucemisor" name="rucemisor" value="<?=$bid;?>" type="text" 
-                       maxlength="11" placeholder="RUC del emisor" tabindex="1" 
-                       class="form-input" readonly>
+                <input id="rucemisor" name="rucemisor" type="text" 
+                       maxlength="11" placeholder="Ingrese documento" tabindex="1" 
+                       class="form-input" >
             </div>
             
             <div class="form-row">

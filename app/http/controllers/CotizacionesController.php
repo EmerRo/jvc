@@ -119,21 +119,11 @@ class CotizacionesController extends Controller
             foreach ($productos as $prod) {
                 $tipo = isset($prod['tipo']) ? $prod['tipo'] : 'producto';
 
-                // Determinar la tabla correcta para actualizar
-                $tabla = ($tipo === 'repuesto') ? 'repuestos' : 'productos';
-                $id_campo = ($tipo === 'repuesto') ? 'id_repuesto' : 'id_producto';
+                // IMPORTANTE: Ya NO actualizamos el producto/repuesto original
+                // Los nombres editados se guardan en productos_cotis para esta cotización específica
+                // De esta forma, cada cotización puede tener nombres personalizados sin afectar el producto original
 
-                // Primero actualizar el producto/repuesto principal
-                $sql_update = "UPDATE {$tabla} SET 
-                    nombre = '" . $this->conexion->real_escape_string($prod['nombre']) . "',
-                    detalle = '" . $this->conexion->real_escape_string($prod['detalle'] ?? '') . "'
-                    WHERE {$id_campo} = " . intval($prod['productoid']);
-
-                if (!$this->conexion->query($sql_update)) {
-                    error_log("Error actualizando {$tabla}: " . $this->conexion->error);
-                }
-
-                // Luego insertar en productos_cotis
+                // Insertar en productos_cotis
                 $precioEspecial = isset($prod['precioEspecial']) && $prod['precioEspecial'] !== '' ?
                     $this->conexion->real_escape_string($prod['precioEspecial']) : 'NULL';
 
@@ -144,20 +134,26 @@ class CotizacionesController extends Controller
                 $cantidad = $this->conexion->real_escape_string($prod['cantidad']);
                 $costo = isset($prod['costo']) ? $this->conexion->real_escape_string($prod['costo']) : '0';
 
-                $sql = "INSERT INTO productos_cotis 
-                    (id_producto, id_coti, cantidad, precio, costo, precioEspecial, tipo_producto) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                // Obtener nombre y descripción editados (si existen)
+                $nombreProducto = isset($prod['nombre']) ? $prod['nombre'] : null;
+                $descripcionProducto = isset($prod['detalle']) ? $prod['detalle'] : null;
+
+                $sql = "INSERT INTO productos_cotis
+                    (id_producto, id_coti, cantidad, precio, costo, precioEspecial, tipo_producto, nombre_producto, descripcion_producto)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 $stmt = $this->conexion->prepare($sql);
                 $stmt->bind_param(
-                    'iidddss',
+                    'iidddssss',
                     $prod['productoid'],
                     $_POST['cotiId'],
                     $cantidad,
                     $precioVenta,
                     $costo,
                     $precioEspecial,
-                    $tipo
+                    $tipo,
+                    $nombreProducto,
+                    $descripcionProducto
                 );
 
                 if (!$stmt->execute()) {
@@ -249,43 +245,49 @@ class CotizacionesController extends Controller
             }
 
             // Obtener productos
-            $sql = "SELECT 
+            $sql = "SELECT
                 pc.*,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.codigo
                     WHEN pc.tipo_producto = 'repuesto' THEN r.codigo
                 END as codigo_pp,
-                CASE 
-                    WHEN pc.tipo_producto = 'producto' THEN p.nombre
-                    WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
-                END as nombre,
-                CASE 
+                COALESCE(
+                    pc.nombre_producto,
+                    CASE
+                        WHEN pc.tipo_producto = 'producto' THEN p.nombre
+                        WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
+                    END
+                ) as nombre,
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.descripcion
                     WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
                 END as descripcion,
                 pc.id_producto as productoid,
-                 CASE 
-                    WHEN pc.tipo_producto = 'producto' THEN p.detalle
-                    WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
-                END as detalle,
+                COALESCE(
+                    pc.descripcion_producto,
+                    CASE
+                        WHEN pc.tipo_producto = 'producto' THEN p.detalle
+                        WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
+                    END
+                ) as detalle,
                 pc.id_producto as productoid,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio
                 END as precio_original,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio2
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio2
                 END as precio2,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio3
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio3
                 END as precio3,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio4
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio4
                 END as precio4,
-                CASE 
+                CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio_unidad
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio_unidad
                 END as precio_unidad
@@ -541,9 +543,9 @@ class CotizacionesController extends Controller
                         $id_valor = isset($prod[$id_campo]) ? $prod[$id_campo] : $prod['productoid'];
 
                         // Preparar la consulta SQL con placeholders
-                        $sql = "INSERT INTO productos_cotis 
-                            (id_coti, id_producto, cantidad, precio, costo, precioEspecial, tipo_producto) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        $sql = "INSERT INTO productos_cotis
+                            (id_coti, id_producto, cantidad, precio, costo, precioEspecial, tipo_producto, nombre_producto, descripcion_producto)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                         // Preparar el statement
                         $stmt = $this->conexion->prepare($sql);
@@ -562,16 +564,22 @@ class CotizacionesController extends Controller
                         $precioVenta = isset($prod['precioVenta']) ? $prod['precioVenta'] : (isset($prod['precio']) ? $prod['precio'] : 0);
                         $costo = isset($prod['costo']) ? $prod['costo'] : 0;
 
+                        // Obtener nombre y descripción editados (si existen)
+                        $nombreProducto = isset($prod['nombre']) ? $prod['nombre'] : null;
+                        $descripcionProducto = isset($prod['detalle']) ? $prod['detalle'] : null;
+
                         // Vincular los parámetros
                         $stmt->bind_param(
-                            'iidddss',
+                            'iidddssss',
                             $idCoti,                    // id_coti (i)
                             $id_valor,                  // id_producto (i)
-                            $cantidad,                  // cantidad (i)
+                            $cantidad,                  // cantidad (d)
                             $precioVenta,               // precio (d)
                             $costo,                     // costo (d)
                             $precioEspecial,            // precioEspecial (d)
-                            $tipo                       // tipo_producto (s)
+                            $tipo,                      // tipo_producto (s)
+                            $nombreProducto,            // nombre_producto (s)
+                            $descripcionProducto        // descripcion_producto (s)
                         );
 
                         // Ejecutar la consulta

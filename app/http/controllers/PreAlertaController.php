@@ -18,7 +18,7 @@ class PreAlertaController extends Controller
     public function buscarDocInfo()
     {
         // Validar y sanitizar el documento
-        $doc = filter_var($_POST['doc'], FILTER_SANITIZE_STRING);
+        $doc = htmlspecialchars(trim($_POST['doc']), ENT_QUOTES, 'UTF-8');
 
         if (strlen($doc) == 8) {
             $url = 'https://dniruc.apisperu.com/api/v1/dni/' . $doc . '?token=' . $this->token;

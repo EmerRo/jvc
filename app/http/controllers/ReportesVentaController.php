@@ -20,6 +20,7 @@ class ReportesVentaController extends Controller
 {
   private $mpdf;
   private $conexion;
+     protected $venta;
 
   public function __construct()
   {
@@ -85,29 +86,36 @@ class ReportesVentaController extends Controller
   public function comprobanteCotizacion($coti)
   {
     // Modificar la consulta inicial para manejar tanto productos como repuestos
+    // Usar COALESCE para priorizar nombres personalizados de la cotización
     $listaProd1 = $this->conexion->query("
-           SELECT 
+           SELECT
                pc.*,
-               CASE 
-                   WHEN pc.tipo_producto = 'producto' THEN p.nombre 
-                   WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
-               END as nombre,
-               CASE 
-                   WHEN pc.tipo_producto = 'producto' THEN p.detalle 
-                   WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
-               END as descripcion,
-               CASE 
+               COALESCE(
+                   pc.nombre_producto,
+                   CASE
+                       WHEN pc.tipo_producto = 'producto' THEN p.nombre
+                       WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
+                   END
+               ) as nombre,
+               COALESCE(
+                   pc.descripcion_producto,
+                   CASE
+                       WHEN pc.tipo_producto = 'producto' THEN p.detalle
+                       WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
+                   END
+               ) as descripcion,
+               CASE
                    WHEN pc.tipo_producto = 'producto' THEN TRIM(p.codigo)
                    WHEN pc.tipo_producto = 'repuesto' THEN TRIM(r.codigo)
                END as codigo,
-               CASE 
+               CASE
                    WHEN pc.tipo_producto = 'producto' THEN p.imagen
                    WHEN pc.tipo_producto = 'repuesto' THEN r.imagen
                END as imagen
-           FROM productos_cotis pc 
+           FROM productos_cotis pc
            LEFT JOIN productos p ON p.id_producto = pc.id_producto AND pc.tipo_producto = 'producto'
            LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
-           WHERE pc.id_coti = '$coti' 
+           WHERE pc.id_coti = '$coti'
            ORDER BY codigo ASC
        ");
     $sql = "select *, aplicar_igv from cotizaciones where cotizacion_id=" . $coti;
@@ -285,7 +293,7 @@ class ReportesVentaController extends Controller
         <td style='width: 30px; font-size: 10px; font-family: Arial, Helvetica, sans-serif;text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>ITEM</strong></td>
         <td style='font-family: Arial, Helvetica, sans-serif; width: " . ($showDiscountColumn ? "240px" : "300px") . "; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>DESCRIPCIÓN</strong></td>
         <td style='font-family: Arial, Helvetica, sans-serif;width: 30px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>CANT</strong></td>
-        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>UNIT. SIN<br>I.G.V.</strong></td>";
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>" . ($datoVenta['aplicar_igv'] == 1 ? 'PRECIO<br>UNITARIO<br>(CON I.G.V.)' : 'COSTO<br>UNITARIO<br>(SIN I.G.V.)') . "</strong></td>";
 
     if ($showDiscountColumn) {
       $tableHeader .= "
@@ -293,7 +301,7 @@ class ReportesVentaController extends Controller
     }
 
     $tableHeader .= "
-        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>TOTAL. " . ($datoVenta['aplicar_igv'] == 1 ? 'CON' : 'SIN') . "<br>I.G.V.</strong>
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>" . ($datoVenta['aplicar_igv'] == 1 ? 'PRECIO<br>TOTAL<br>(CON I.G.V.)' : 'COSTO<br>TOTAL<br>(SIN I.G.V.)') . "</strong>
 </td>";
 
     $tableHeader .= "
@@ -326,17 +334,38 @@ class ReportesVentaController extends Controller
       $total += $importeBase;
       $totalDescuentoEspecial = 0;
       $tempDescuento = 0;
-      
-      // Los precios por ítem siempre se muestran sin IGV en la tabla
-      // porque el IGV se calcula al final en el resumen
-      $precioFormateado = number_format($precio, 2, '.', ',');
-      $precioEspecialFormateado = number_format($precioEspecial, 2, '.', ',');
-      $precioConDescuentoGeneralFormateado = number_format($precioConDescuentoGeneral, 2, '.', ',');
-      $importe = number_format($importeBase, 2, '.', ',');
+
+      // CORRECCIÓN: Los precios de almacén YA incluyen IGV (18%)
+      // Lógica correcta:
+      // - Si aplicar_igv = '1' (SÍ): usar precio tal cual (ya tiene IGV incluido)
+      // - Si aplicar_igv = '0' (NO): quitar IGV dividiendo entre 1.18 (clientes exonerados)
+
+      if ($datoVenta['aplicar_igv'] == 0) {
+        // Cliente exonerado: quitar el IGV que ya está incluido en los precios
+        $precioFormateado = number_format($precio / 1.18, 2, '.', ',');
+        $precioEspecialFormateado = number_format($precioEspecial / 1.18, 2, '.', ',');
+        $precioConDescuentoGeneralFormateado = number_format($precioConDescuentoGeneral / 1.18, 2, '.', ',');
+        $importeFormateado = number_format($importeBase / 1.18, 2, '.', ',');
+      } else {
+        // Cliente normal: usar precio con IGV ya incluido
+        $precioFormateado = number_format($precio, 2, '.', ',');
+        $precioEspecialFormateado = number_format($precioEspecial, 2, '.', ',');
+        $precioConDescuentoGeneralFormateado = number_format($precioConDescuentoGeneral, 2, '.', ',');
+        $importeFormateado = number_format($importeBase, 2, '.', ',');
+      }
+
+      // CÓDIGO ORIGINAL COMENTADO - Causaba doble aplicación de IGV:
+      // if ($datoVenta['aplicar_igv'] == 1) {
+      //     $importeConIGV = $importeBase * 1.18; // ❌ Multiplicaba cuando ya tenía IGV
+      //     $importeFormateado = number_format($importeConIGV, 2, '.', ',');
+      // } else {
+      //     $importeFormateado = number_format($importeBase, 2, '.', ',');
+      // }
+      $importe = number_format($importeBase, 2, '.', ','); // Mantener para compatibilidad
       $tempDescuento = number_format($tempDescuento, 2, '.', ',');
       $prod['codigo'] = trim($prod['codigo']);
       $detalle = nl2br($prod['descripcion']);
-      
+
       // Agregar información del equipo si está disponible
       if (!empty($prod['marca']) || !empty($prod['equipo']) || !empty($prod['modelo']) || !empty($prod['numero_serie'])) {
         $equipoInfo = '';
@@ -382,7 +411,7 @@ class ReportesVentaController extends Controller
             // Determinar qué precio mostrar y si aplicar fondo
             $precioDescuento = '';
             $aplicarFondo = false;
-            
+
             if ($hasSpecialPrices && $precioEspecial < $precio) {
               // Si hay precio especial, mostrar el precio especial
               $precioDescuento = "$simbolfff22 $precioEspecialFormateado";
@@ -392,7 +421,7 @@ class ReportesVentaController extends Controller
               $precioDescuento = "$simbolfff22 $precioConDescuentoGeneralFormateado";
               $aplicarFondo = true;
             }
-            
+
             $lastItemHTML .= "
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438; " .
               ($aplicarFondo ? "background-color: #FFFDE7;" : "") . "'>" .
@@ -400,7 +429,7 @@ class ReportesVentaController extends Controller
           }
 
           $lastItemHTML .= "
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importe</td>
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importeFormateado</td>
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>";
 
           try {
@@ -441,7 +470,7 @@ class ReportesVentaController extends Controller
           // Determinar qué precio mostrar y si aplicar fondo
           $precioDescuento = '';
           $aplicarFondo = false;
-          
+
           if ($hasSpecialPrices && $precioEspecial < $precio) {
             // Si hay precio especial, mostrar el precio especial
             $precioDescuento = "S/ $precioEspecialFormateado";
@@ -451,7 +480,7 @@ class ReportesVentaController extends Controller
             $precioDescuento = "S/ $precioConDescuentoGeneralFormateado";
             $aplicarFondo = true;
           }
-          
+
           $rowHTML .= "
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438; " .
             ($aplicarFondo ? "background-color: #FFFDE7;" : "") . "'>" .
@@ -459,7 +488,7 @@ class ReportesVentaController extends Controller
         }
 
         $rowHTML .= "
-    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importe</td>
+    <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>$simbolfff22 $importeFormateado</td>
     <td style='width: 80px; font-size: 10px; text-align: center; border: 1px solid #CA3438;'>";
 
         try {
@@ -484,48 +513,47 @@ class ReportesVentaController extends Controller
       }
     }
 
-    // El total guardado en BD incluye descuentos ya aplicados
-    // y también incluye IGV si aplicar_igv = 1
-    $totalGuardado = $total;
-    
-    // Extraer información según si aplica IGV
-    if ($datoVenta['aplicar_igv'] == 1) {
-      // Total guardado incluye IGV, extraer base
-      $totalConDescuento = $totalGuardado; // Total final con IGV
-      $baseGravable = $totalGuardado / 1.18; // Base sin IGV
-      $igvCalculado = $totalGuardado - $baseGravable; // IGV
-      
-      // Calcular descuento (sobre la base sin IGV)
-      $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
-      if ($descuentoGeneral > 0) {
-        $baseSinDescuento = $baseGravable / (1 - ($descuentoGeneral / 100));
-        $montoDescuento = $baseSinDescuento - $baseGravable;
-      } else {
-        $montoDescuento = 0;
-      }
-    } else {
-      // Total guardado no incluye IGV
-      $totalConDescuento = $totalGuardado;
-      $baseGravable = $totalGuardado;
-      $igvCalculado = 0;
-      
-      // Calcular descuento
-      $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
-      if ($descuentoGeneral > 0) {
-        $totalSinDescuento = $totalGuardado / (1 - ($descuentoGeneral / 100));
-        $montoDescuento = $totalSinDescuento - $totalGuardado;
-      } else {
-        $montoDescuento = 0;
-      }
-    }
+// CORRECCIÓN: El total del foreach YA TIENE IGV INCLUIDO (precios de almacén)
+// Los precios en la BD ya incluyen el 18% de IGV
+$totalConIGV = $total;
+
+// Calcular descuento general si existe (se aplica sobre el total con IGV)
+$descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
+if ($descuentoGeneral > 0) {
+  $montoDescuento = ($totalConIGV * $descuentoGeneral) / 100;
+  $totalConIGV = $totalConIGV - $montoDescuento;
+} else {
+  $montoDescuento = 0;
+}
+
+// Calcular base gravable, IGV y total según si aplica IGV
+if ($datoVenta['aplicar_igv'] == 1) {
+  // Cliente normal: el total YA tiene IGV incluido
+  $totalConDescuento = $totalConIGV; // El total final es el que ya tiene IGV
+  $baseGravable = $totalConIGV / 1.18; // Calcular base dividiendo entre 1.18
+  $igvCalculado = $baseGravable * 0.18; // IGV es 18% de la base
+} else {
+  // Cliente exonerado: quitar el IGV que está incluido en los precios
+  $totalConDescuento = $totalConIGV / 1.18; // Quitar el IGV dividiendo
+  $baseGravable = $totalConDescuento;
+  $igvCalculado = 0;
+}
+
+// CÓDIGO ORIGINAL COMENTADO - Causaba doble aplicación de IGV:
+// $totalSinIGV = $total; // ❌ Asumía que era sin IGV
+// if ($datoVenta['aplicar_igv'] == 1) {
+//   $baseGravable = $totalSinIGV;
+//   $igvCalculado = $totalSinIGV * 0.18; // ❌ Multiplicaba sobre total que ya tenía IGV
+//   $totalConDescuento = $totalSinIGV + $igvCalculado; // ❌ Sumaba IGV de nuevo
+// } 
 
     // Calcular subtotal correcto para mostrar
     if ($datoVenta['aplicar_igv'] == 1) {
-      // Para IGV: mostrar base gravable + descuento
-      $subtotalMostrar = $baseGravable + $montoDescuento;
+      // Para IGV: mostrar base gravable (sin IGV)
+      $subtotalMostrar = $baseGravable;
     } else {
-      // Para sin IGV: mostrar total + descuento  
-      $subtotalMostrar = $totalGuardado + $montoDescuento;
+      // Para sin IGV (exonerado): mostrar total sin IGV
+      $subtotalMostrar = $totalConDescuento;
     }
 
     // Asignar variables para mostrar en el reporte
@@ -546,7 +574,7 @@ class ReportesVentaController extends Controller
     $resumenPrecios = "
      <tr class='price-summary'>
          <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-         
+
     if ($showDiscountColumn) {
       $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
@@ -557,7 +585,7 @@ class ReportesVentaController extends Controller
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>
        <td style='border: none;'></td>";
     }
-    
+
     $resumenPrecios .= "
        </tr>";
 
@@ -567,7 +595,7 @@ class ReportesVentaController extends Controller
       $resumenPrecios .= "
        <tr>
          <td colspan='" . ($showDiscountColumn ? '3' : '5') . "' style='border: none;'></td>";
-         
+
       if ($showDiscountColumn) {
         $resumenPrecios .= "
          <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #FFFDE7;'>Descuento Total:</td>
@@ -576,7 +604,7 @@ class ReportesVentaController extends Controller
         $resumenPrecios .= "
          <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #FFFDE7;'>Descuento Total: $simbolfff22 $descuentoEspecialTotal</td>";
       }
-      
+
       $resumenPrecios .= "
        </tr>";
     }
@@ -586,7 +614,7 @@ class ReportesVentaController extends Controller
       $resumenPrecios .= "
      <tr>
        <td colspan='3' style='border: none;'></td>";
-       
+
       if ($showDiscountColumn) {
         $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>IGV (18.00%):</td>
@@ -595,7 +623,7 @@ class ReportesVentaController extends Controller
         $resumenPrecios .= "
        <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>IGV (18.00%): $simbolfff22 $igv</td>";
       }
-      
+
       $resumenPrecios .= "
      </tr>";
     }
@@ -605,7 +633,7 @@ class ReportesVentaController extends Controller
       $resumenPrecios .= "
      <tr>
        <td colspan='3' style='border: none;'></td>";
-       
+
       if ($showDiscountColumn) {
         $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento<br>General " . intval($descuentoGeneral) . "%:</td>
@@ -614,7 +642,7 @@ class ReportesVentaController extends Controller
         $resumenPrecios .= "
        <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>Descuento General " . intval($descuentoGeneral) . "%: $simbolfff22 $montoDescuento</td>";
       }
-      
+
       $resumenPrecios .= "
      </tr>";
     }
@@ -622,7 +650,7 @@ class ReportesVentaController extends Controller
     $resumenPrecios .= "
      <tr>
        <td colspan='3' style='border: none;'></td>";
-       
+
     if ($showDiscountColumn) {
       $resumenPrecios .= "
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
@@ -633,7 +661,7 @@ class ReportesVentaController extends Controller
        <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>
        <td style='border: none;'></td>";
     }
-    
+
     $resumenPrecios .= "
      </tr>";
 
@@ -648,7 +676,7 @@ class ReportesVentaController extends Controller
       $resumenPrecios .= "
        <tr>
          <td colspan='" . ($showDiscountColumn ? '4' : '5') . "' style='border: none;'></td>";
-         
+
       if ($showDiscountColumn) {
         $resumenPrecios .= "
          <td style='border: 1px solid #363636; font-size: 12px; text-align: left;'>Total a Pagar</td>
@@ -657,7 +685,7 @@ class ReportesVentaController extends Controller
         $resumenPrecios .= "
          <td colspan='2' style='border: 1px solid #363636; font-size: 12px; text-align: center;'>Total a Pagar: $simbolfff $totalDolar</td>";
       }
-      
+
       $resumenPrecios .= "
        </tr>";
     }
@@ -667,7 +695,7 @@ class ReportesVentaController extends Controller
     // Modificado: Título de cotización con número en formato centrado
     $htmlCuadroHead = "<div style='width: auto; text-align: center; margin-bottom: 10px; margin-top:30px'>
            <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e; margin: left 65px;'>
-             <span class='table-header' style='font-size: 14px; font-weight: bold;'>COTIZACIÓN DE J.V.C. S.A.C. – N° " . str_pad($datoVenta['numero'], 8, "0", STR_PAD_LEFT) . "/" . date('Y') . "</span>
+             <span class='table-header' style='font-size: 14px; font-weight: bold;'>COTIZACIÓN DE J.V.C. S.A.C. – N° " . str_pad($datoVenta['numero'], 3, "0", STR_PAD_LEFT) . "/" . date('Y') . "</span>
            </div>
        </div>";
 
@@ -825,7 +853,7 @@ class ReportesVentaController extends Controller
              $lastItemHTML
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-               
+
     if ($showDiscountColumn) {
       $html .= "
                <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>" . ($datoVenta['aplicar_igv'] == 1 ? 'Gravada:' : 'Sub Total:') . "</td>
@@ -836,7 +864,7 @@ class ReportesVentaController extends Controller
                <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 " . ($datoVenta['aplicar_igv'] == 1 ? $totalOpgravado : $subtotalParaReporte) . "</td>
                <td style='border: none;'></td>";
     }
-    
+
     $html .= "
              </tr>";
 
@@ -845,7 +873,7 @@ class ReportesVentaController extends Controller
       $html .= "
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-                 
+
       if ($showDiscountColumn) {
         $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #FFFDE7;'>Descuento Total:</td>
@@ -854,7 +882,7 @@ class ReportesVentaController extends Controller
         $html .= "
                  <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #FFFDE7;'>Descuento Total: $simbolfff22 $descuentoEspecialTotal</td>";
       }
-      
+
       $html .= "
              </tr>";
     }
@@ -864,16 +892,17 @@ class ReportesVentaController extends Controller
       $html .= "
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-                 
+
       if ($showDiscountColumn) {
         $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>IGV (18.00%):</td>
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $igv</td>";
       } else {
         $html .= "
-                 <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>IGV (18.00%): $simbolfff22 $igv</td>";
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>IGV (18.00%):</td>
+                 <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #ffffff;'>$simbolfff22 $igv</td>";
       }
-      
+
       $html .= "
              </tr>";
     }
@@ -883,7 +912,7 @@ class ReportesVentaController extends Controller
       $html .= "
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-                 
+
       if ($showDiscountColumn) {
         $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #ffffff;'>Descuento<br>General " . intval($descuentoGeneral) . "%:</td>
@@ -892,7 +921,7 @@ class ReportesVentaController extends Controller
         $html .= "
                  <td colspan='2' style='border: 1px solid #CA3438; font-size: 10px; text-align: center; background-color: #ffffff;'>Descuento General " . intval($descuentoGeneral) . "%: $simbolfff22 $montoDescuento</td>";
       }
-      
+
       $html .= "
              </tr>";
     }
@@ -900,7 +929,7 @@ class ReportesVentaController extends Controller
     $html .= "
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-                 
+
     if ($showDiscountColumn) {
       $html .= "
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: left; background-color: #CA3438; color:white'><strong>Total:</strong></td>
@@ -911,7 +940,7 @@ class ReportesVentaController extends Controller
                  <td style='border: 1px solid #CA3438; font-size: 10px; text-align: right; background-color: #CA3438; color:white'><strong>$simbolfff22 $totalFinal</strong></td>
                  <td style='border: none;'></td>";
     }
-    
+
     $html .= "
              </tr>";
 
@@ -926,7 +955,7 @@ class ReportesVentaController extends Controller
       $html .= "
              <tr>
                  <td colspan='" . ($showDiscountColumn ? '4' : '3') . "' style='border: none;'></td>";
-                 
+
       if ($showDiscountColumn) {
         $html .= "
                  <td style='border: 1px solid #363636; font-size: 12px; text-align: right;'>Total a Pagar</td>
@@ -935,7 +964,7 @@ class ReportesVentaController extends Controller
         $html .= "
                  <td colspan='2' style='border: 1px solid #363636; font-size: 12px; text-align: center;'>Total a Pagar: $simbolfff $totalDolar</td>";
       }
-      
+
       $html .= "
              </tr>";
     }
@@ -1789,25 +1818,41 @@ class ReportesVentaController extends Controller
           $qrImage = '';
         }
       }
-      // Obtener datos del usuario que creó la guía
-      $usuario_creador = 'Emer Zapata'; // Valor por defecto
+      // Obtener datos del usuario que creó la guía desde la BD
+      $usuario_creador = 'Sin Asignar';
       $codigo_usuario = 'N/A';
 
-      // Intentar obtener el usuario de la sesión actual
-      if (isset($_SESSION['usuario_id'])) {
-        $sql_usuario = "SELECT nombres, apellidos, codigo FROM usuarios WHERE usuario_id = " . $_SESSION['usuario_id'];
-        $result_usuario = $this->conexion->query($sql_usuario);
+      // Obtener el id_usuario de la guía
+      $sql_guia_usuario = "SELECT id_usuario FROM guia_remision WHERE id_guia_remision = " . $datosGuia['id_guia_remision'];
+      $result_guia_usuario = $this->conexion->query($sql_guia_usuario);
 
-        if ($result_usuario && $result_usuario->num_rows > 0) {
-          $usuario_data = $result_usuario->fetch_assoc();
-          $usuario_creador = $usuario_data['nombres'] . ' ' . ($usuario_data['apellidos'] ?: '');
-          $codigo_usuario = $usuario_data['codigo'] ?: 'N/A';
+      if ($result_guia_usuario && $result_guia_usuario->num_rows > 0) {
+        $guia_usuario = $result_guia_usuario->fetch_assoc();
+        $id_usuario_guia = $guia_usuario['id_usuario'];
+
+        if ($id_usuario_guia) {
+          // Obtener datos del usuario desde la tabla usuarios
+          $sql_usuario = "SELECT nombres, apellidos FROM usuarios WHERE usuario_id = " . $id_usuario_guia;
+          $result_usuario = $this->conexion->query($sql_usuario);
+
+          if ($result_usuario && $result_usuario->num_rows > 0) {
+            $usuario_data = $result_usuario->fetch_assoc();
+            $nombre_completo = trim($usuario_data['nombres'] . ' ' . ($usuario_data['apellidos'] ?: ''));
+            $usuario_creador = $nombre_completo;
+
+            // Generar código de usuario con iniciales
+            $palabras = explode(' ', $nombre_completo);
+            $codigo_usuario = '';
+            foreach ($palabras as $palabra) {
+              if (!empty($palabra)) {
+                $codigo_usuario .= strtoupper(substr($palabra, 0, 1));
+              }
+            }
+            if (empty($codigo_usuario)) {
+              $codigo_usuario = 'N/A';
+            }
+          }
         }
-      }
-
-      // Si no hay usuario en sesión, usar el valor por defecto
-      if (empty(trim($usuario_creador)) || $usuario_creador == ' ') {
-        $usuario_creador = 'Emer Zapata';
       }
 
       $dominio = DOMINIO . 'buscador';
@@ -1832,7 +1877,7 @@ class ReportesVentaController extends Controller
       $consultaEquipos = "SELECT COUNT(*) as total FROM guia_equipos WHERE id_guia = " . $guia;
       $resultadoEquipos = $this->conexion->query($consultaEquipos);
       $tieneEquipos = $resultadoEquipos->fetch_assoc()['total'] > 0;
-      
+
       if ($tieneEquipos) {
         // Guía de cotización de taller - incluir información de equipos
         $query = "SELECT gd.*,
@@ -1915,15 +1960,15 @@ class ReportesVentaController extends Controller
       // ✅ NUEVA LÓGICA: Generar filas de productos con equipos para guías de taller
       $rowHTML = '';
       $conradorRow = 1;
-      
+
       if ($tieneEquipos) {
         // Guía de taller - agrupar por equipos usando id_guia_equipo
         $equiposYaImpresos = [];
-        
+
         while ($itemProd = $listaProductos->fetch_assoc()) {
           // ✅ PRIMERO: Mostrar el producto/repuesto
           $descripcionProducto = $itemProd['detalles'];
-          
+
           $rowHTML .= "
                 <tr>
                       <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px;'>
@@ -1942,16 +1987,16 @@ class ReportesVentaController extends Controller
                         {$itemProd['cantidad']} 
                       </td>
                     </tr>";
-          
+
           $conradorRow++;
-          
+
           // ✅ SEGUNDO: Mostrar el equipo asociado (si existe y no se ha mostrado ya)
           $equipoId = $itemProd['id_guia_equipo'];
-          
+
           if ($itemProd['equipo_marca'] && !in_array($equipoId, $equiposYaImpresos)) {
             // Mostrar fila del equipo después del producto
             $equipoInfo = " EQUIPO: {$itemProd['equipo_marca']} {$itemProd['equipo_nombre']} - Modelo: {$itemProd['equipo_modelo']} - Serie: {$itemProd['equipo_serie']}";
-            
+
             $rowHTML .= "
                   <tr style='background-color: #f8f9fa;'>
                         <td style='width: 5%; padding: 10px; text-align: center; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 10.5px; font-weight: bold;'>
@@ -1970,7 +2015,7 @@ class ReportesVentaController extends Controller
                           
                         </td>
                       </tr>";
-            
+
             $equiposYaImpresos[] = $equipoId;
           }
         }
@@ -2666,20 +2711,52 @@ class ReportesVentaController extends Controller
     ]);
 
     $guiaRealionada = '';
+    $guiaId = null;
+    $ordenCompra = '';
 
-    $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.detalle as descripcion, p.imagen,p.nombre,p.codigo,ve.marca,ve.equipo,ve.modelo,ve.numero_serie FROM productos_ventas 
-      join productos p on p.id_producto = productos_ventas.id_producto LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo WHERE productos_ventas.id_venta=" . $venta);
-    $listaProd2 = $this->conexion->query("SELECT * FROM ventas_servicios WHERE id_venta=" . $venta);
-    $ventaSunat = $this->conexion->query("SELECT * FROM ventas_sunat WHERE id_venta=" . $venta)->fetch_assoc();
-
+    // Primero verificar si existe una guía relacionada
     $sql = "SELECT * FROM guia_remision where id_venta = $venta";
     if ($rowGuia = $this->conexion->query($sql)->fetch_assoc()) {
       $guiaRealionada = $rowGuia["serie"] . '-' . Tools::numeroParaDocumento($rowGuia["numero"], 6);
+      $guiaId = $rowGuia["id_guia_remision"];
+      // Si viene de guía, usar ref_orden_compra de la guía
+      $ordenCompra = $rowGuia["ref_orden_compra"] ?? '';
     }
+
+    // Si existe guía, obtener los productos con los nombres editados de guia_detalles
+    if ($guiaId) {
+      $listaProd1 = $this->conexion->query("SELECT
+        productos_ventas.*,
+        COALESCE(gd.detalles, p.detalle) as descripcion,
+        p.imagen,
+        COALESCE(gd.detalles, p.nombre) as nombre,
+        p.codigo,
+        ve.marca,
+        ve.equipo,
+        ve.modelo,
+        ve.numero_serie
+      FROM productos_ventas
+      LEFT JOIN guia_detalles gd ON gd.id_producto = productos_ventas.id_producto AND gd.id_guia = $guiaId
+      LEFT JOIN productos p ON p.id_producto = productos_ventas.id_producto
+      LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo
+      WHERE productos_ventas.id_venta=" . $venta);
+    } else {
+      // Si no hay guía, usar el query original
+      $listaProd1 = $this->conexion->query("SELECT productos_ventas.*,p.detalle as descripcion, p.imagen,p.nombre,p.codigo,ve.marca,ve.equipo,ve.modelo,ve.numero_serie FROM productos_ventas
+        join productos p on p.id_producto = productos_ventas.id_producto LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo WHERE productos_ventas.id_venta=" . $venta);
+    }
+
+    $listaProd2 = $this->conexion->query("SELECT * FROM ventas_servicios WHERE id_venta=" . $venta);
+    $ventaSunat = $this->conexion->query("SELECT * FROM ventas_sunat WHERE id_venta=" . $venta)->fetch_assoc();
 
     $sql = "select * from ventas where id_venta=" . $venta;
     $datoVenta = $this->conexion->query($sql)->fetch_assoc();
     $datoEmpresa = $this->conexion->query("select * from empresas where id_empresa=" . $datoVenta['id_empresa'])->fetch_assoc();
+
+    // Si NO viene de guía (ordenCompra está vacío), usar doc_referencia de la venta
+    if (empty($ordenCompra)) {
+      $ordenCompra = $datoVenta['doc_referencia'] ?? '';
+    }
 
     $igv_venta_sel = $datoVenta['igv'];
 
@@ -2813,10 +2890,10 @@ class ReportesVentaController extends Controller
       $importe = number_format($importe, 2, '.', ',');
       $tempDescuento = number_format($tempDescuento, 2, '.', ',');
       $detalle = nl2br($prod['descripcion']);
-      
+
       // Construir información del producto y equipo
       $productoInfo = "<strong>{$prod['nombre']}</strong>";
-      
+
       // Agregar información del equipo si está disponible
       if (!empty($prod['marca']) || !empty($prod['equipo']) || !empty($prod['modelo']) || !empty($prod['numero_serie'])) {
         $equipoInfo = '';
@@ -2835,7 +2912,7 @@ class ReportesVentaController extends Controller
           $productoInfo .= '<br>' . $equipoInfo;
         }
       }
-      
+
       $afectIgv = "Gravado";
 
       $rowHTML = $rowHTML . "
@@ -3071,7 +3148,7 @@ class ReportesVentaController extends Controller
                <strong>{$docLabel}</strong> {$resultC['documento']}
               </td>
               <td style='width: 50%; padding: 5px; font-size: 10px; border-bottom: 0.5px solid #000000; font-family: Calibri, Helvetica Neue, sans-serif;'>
-              <strong>Orden de Compra:</strong> {$datoVenta['doc_referencia']}
+              <strong>Orden de Compra:</strong> {$ordenCompra}
               </td>
             </tr>
 
@@ -3906,29 +3983,36 @@ class ReportesVentaController extends Controller
     ]);
 
     // Consulta inicial para productos y repuestos
+    // Usar COALESCE para priorizar nombres personalizados de la cotización
     $listaProd1 = $this->conexion->query("
-        SELECT 
+        SELECT
             pc.*,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.nombre 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
-            END as nombre,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.detalle 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
-            END as descripcion,
-            CASE 
+            COALESCE(
+                pc.nombre_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.nombre
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
+                END
+            ) as nombre,
+            COALESCE(
+                pc.descripcion_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.detalle
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
+                END
+            ) as descripcion,
+            CASE
                 WHEN pc.tipo_producto = 'producto' THEN TRIM(p.codigo)
                 WHEN pc.tipo_producto = 'repuesto' THEN TRIM(r.codigo)
             END as codigo,
-            CASE 
+            CASE
                 WHEN pc.tipo_producto = 'producto' THEN p.imagen
                 WHEN pc.tipo_producto = 'repuesto' THEN r.imagen
             END as imagen
-        FROM productos_cotis pc 
+        FROM productos_cotis pc
         LEFT JOIN productos p ON p.id_producto = pc.id_producto AND pc.tipo_producto = 'producto'
         LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
-        WHERE pc.id_coti = '$coti' 
+        WHERE pc.id_coti = '$coti'
         ORDER BY codigo ASC
     ");
 
@@ -4060,12 +4144,22 @@ class ReportesVentaController extends Controller
       $rowHTML .= "</tr>";
     }
 
-    // Calcular totales
+    // Calcular totales - CORRECCIÓN: Considerar si aplica IGV
     $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
     $montoDescuento = ($total * $descuentoGeneral) / 100;
     $totalConDescuento = $total - $montoDescuento;
-    $igv = $totalConDescuento / 1.18 * 0.18;
-    $totalOpgravado = $totalConDescuento - $igv;
+
+    // El total YA tiene IGV incluido (precios de almacén)
+    if ($datoVenta['aplicar_igv'] == 1) {
+      // Cliente normal: calcular base e IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = $totalOpgravado * 0.18;
+    } else {
+      // Cliente exonerado: quitar IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = 0;
+      $totalConDescuento = $totalOpgravado; // Total sin IGV
+    }
 
     // Formatear números
     $montoDescuento = number_format($montoDescuento, 2, '.', ',');
@@ -4208,25 +4302,32 @@ class ReportesVentaController extends Controller
     ]);
 
     // Consulta inicial para productos y repuestos
+    // Usar COALESCE para priorizar nombres personalizados de la cotización
     $listaProd1 = $this->conexion->query("
-        SELECT 
+        SELECT
             pc.*,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.nombre 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
-            END as nombre,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.detalle 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
-            END as descripcion,
-            CASE 
+            COALESCE(
+                pc.nombre_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.nombre
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
+                END
+            ) as nombre,
+            COALESCE(
+                pc.descripcion_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.detalle
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
+                END
+            ) as descripcion,
+            CASE
                 WHEN pc.tipo_producto = 'producto' THEN TRIM(p.codigo)
                 WHEN pc.tipo_producto = 'repuesto' THEN TRIM(r.codigo)
             END as codigo
-        FROM productos_cotis pc 
+        FROM productos_cotis pc
         LEFT JOIN productos p ON p.id_producto = pc.id_producto AND pc.tipo_producto = 'producto'
         LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
-        WHERE pc.id_coti = '$coti' 
+        WHERE pc.id_coti = '$coti'
         ORDER BY codigo ASC
     ");
 
@@ -4314,12 +4415,22 @@ class ReportesVentaController extends Controller
         </tr>";
     }
 
-    // Calcular totales
+    // Calcular totales - CORRECCIÓN: Considerar si aplica IGV
     $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
     $montoDescuento = ($total * $descuentoGeneral) / 100;
     $totalConDescuento = $total - $montoDescuento;
-    $igv = $totalConDescuento / 1.18 * 0.18;
-    $totalOpgravado = $totalConDescuento - $igv;
+
+    // El total YA tiene IGV incluido (precios de almacén)
+    if ($datoVenta['aplicar_igv'] == 1) {
+      // Cliente normal: calcular base e IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = $totalOpgravado * 0.18;
+    } else {
+      // Cliente exonerado: quitar IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = 0;
+      $totalConDescuento = $totalOpgravado; // Total sin IGV
+    }
 
     // Formatear números
     $montoDescuento = number_format($montoDescuento, 2, '.', ',');
@@ -4445,25 +4556,32 @@ class ReportesVentaController extends Controller
     ]);
 
     // Consulta inicial para productos y repuestos
+    // Usar COALESCE para priorizar nombres personalizados de la cotización
     $listaProd1 = $this->conexion->query("
-        SELECT 
+        SELECT
             pc.*,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.nombre 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
-            END as nombre,
-            CASE 
-                WHEN pc.tipo_producto = 'producto' THEN p.detalle 
-                WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
-            END as descripcion,
-            CASE 
+            COALESCE(
+                pc.nombre_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.nombre
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.nombre
+                END
+            ) as nombre,
+            COALESCE(
+                pc.descripcion_producto,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN p.detalle
+                    WHEN pc.tipo_producto = 'repuesto' THEN r.detalle
+                END
+            ) as descripcion,
+            CASE
                 WHEN pc.tipo_producto = 'producto' THEN TRIM(p.codigo)
                 WHEN pc.tipo_producto = 'repuesto' THEN TRIM(r.codigo)
             END as codigo
-        FROM productos_cotis pc 
+        FROM productos_cotis pc
         LEFT JOIN productos p ON p.id_producto = pc.id_producto AND pc.tipo_producto = 'producto'
         LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
-        WHERE pc.id_coti = '$coti' 
+        WHERE pc.id_coti = '$coti'
         ORDER BY codigo ASC
     ");
 
@@ -4551,12 +4669,22 @@ class ReportesVentaController extends Controller
         </tr>";
     }
 
-    // Calcular totales
+    // Calcular totales - CORRECCIÓN: Considerar si aplica IGV
     $descuentoGeneral = isset($datoVenta['descuento']) ? $datoVenta['descuento'] : 0;
     $montoDescuento = ($total * $descuentoGeneral) / 100;
     $totalConDescuento = $total - $montoDescuento;
-    $igv = $totalConDescuento / 1.18 * 0.18;
-    $totalOpgravado = $totalConDescuento - $igv;
+
+    // El total YA tiene IGV incluido (precios de almacén)
+    if ($datoVenta['aplicar_igv'] == 1) {
+      // Cliente normal: calcular base e IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = $totalOpgravado * 0.18;
+    } else {
+      // Cliente exonerado: quitar IGV
+      $totalOpgravado = $totalConDescuento / 1.18;
+      $igv = 0;
+      $totalConDescuento = $totalOpgravado; // Total sin IGV
+    }
 
     // Formatear números
     $montoDescuento = number_format($montoDescuento, 2, '.', ',');

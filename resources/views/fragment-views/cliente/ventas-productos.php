@@ -595,7 +595,7 @@ if (isset($_GET["guia"]) || isset($guia)) {
                                     <!-- Campo Doc. de Referencia - solo visible cuando viene de cotización -->
                                     <div class="form-group mb-3" v-if="vieneDesCotizacion">
                                         <div class="col-lg-12">
-                                            <label>Doc. de Referencia</label>
+                                            <label>Doc. de Referencia (orden compra) </label>
                                             <div class="input-group">
                                                 <input v-model="venta.doc_referencia" type="text"
                                                     placeholder="Ingrese documento de referencia"

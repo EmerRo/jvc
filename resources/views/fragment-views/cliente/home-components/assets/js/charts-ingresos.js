@@ -6,6 +6,8 @@
 Vue.prototype.inicializarGraficosIngresos = function() {
     if (!this.hayDatosIngresos) return;
 
+    const chartColors = window.getChartColors();
+
     // Gráfico de Ingresos y Egresos CON DATOS REALES
     if (this.$refs.ingresosEgresosChart) {
         if (this.charts.ingresosEgresos) {
@@ -24,6 +26,7 @@ Vue.prototype.inicializarGraficosIngresos = function() {
 
         this.charts.ingresosEgresos = Highcharts.chart(this.$refs.ingresosEgresosChart, {
             chart: {
+                backgroundColor: chartColors.backgroundColor,
                 style: { fontFamily: 'Poppins, sans-serif' },
                 animation: { duration: 1000 }
             },
@@ -31,8 +34,10 @@ Vue.prototype.inicializarGraficosIngresos = function() {
             xAxis: {
                 categories: categorias,
                 labels: {
-                    style: { color: '#6c757d', fontSize: '12px' }
-                }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
+                },
+                lineColor: chartColors.gridLineColor,
+                tickColor: chartColors.gridLineColor
             },
             yAxis: {
                 title: { text: null },
@@ -40,9 +45,18 @@ Vue.prototype.inicializarGraficosIngresos = function() {
                     formatter: function () {
                         return 'S/ ' + Highcharts.numberFormat(this.value, 0);
                     },
-                    style: { color: '#6c757d', fontSize: '12px' }
+                    style: { color: chartColors.textColor, fontSize: '12px' }
                 },
+                gridLineColor: chartColors.gridLineColor,
                 gridLineDashStyle: 'Dash'
+            },
+            tooltip: {
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                style: { color: chartColors.tooltipTextColor }
+            },
+            legend: {
+                itemStyle: { color: chartColors.textColor }
             },
             tooltip: {
                 shared: true,
