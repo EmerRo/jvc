@@ -60,6 +60,8 @@ abstract class BaseDocumentoController extends Controller
                     'contenido' => $this->modelo->getContenido(),
                     'header_image' => $this->modelo->getHeaderImage(),
                     'footer_image' => $this->modelo->getFooterImage(),
+                    'imagen1' => $this->modelo->getImagen1(),
+                    'imagen2' => $this->modelo->getImagen2(),
                     'header_image_url' => $this->modelo->getHeaderImageUrl(),
                     'footer_image_url' => $this->modelo->getFooterImageUrl(),
                     'cliente_nombre' => $this->modelo->getClienteNombre(),
@@ -94,6 +96,8 @@ abstract class BaseDocumentoController extends Controller
                 // Procesar imágenes si se proporcionan
                 $header_image = null;
                 $footer_image = null;
+                $imagen1 = null;
+                $imagen2 = null;
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
                     $header_image = $this->procesarImagen($_FILES['header_image']);
@@ -105,6 +109,18 @@ abstract class BaseDocumentoController extends Controller
                     $footer_image = $this->procesarImagen($_FILES['footer_image']);
                 } else if (isset($_POST['footer_image']) && !empty($_POST['footer_image'])) {
                     $footer_image = $_POST['footer_image'];
+                }
+                
+                if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
+                    $imagen1 = $this->procesarImagen($_FILES['imagen1']);
+                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
+                    $imagen1 = $_POST['imagen1_base64'];
+                }
+                
+                if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
+                    $imagen2 = $this->procesarImagen($_FILES['imagen2']);
+                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
+                    $imagen2 = $_POST['imagen2_base64'];
                 }
                 
                 // Obtener un ID de usuario válido
@@ -129,6 +145,8 @@ abstract class BaseDocumentoController extends Controller
                 $this->modelo->setContenido($contenido);
                 $this->modelo->setHeaderImage($header_image);
                 $this->modelo->setFooterImage($footer_image);
+                $this->modelo->setImagen1($imagen1);
+                $this->modelo->setImagen2($imagen2);
                 $this->modelo->setIdCliente($id_cliente);
                 $this->modelo->setUsuarioId($usuario_id);
                 $this->modelo->setEstado('borrador');
@@ -188,6 +206,8 @@ abstract class BaseDocumentoController extends Controller
                 // Procesar imágenes si se proporcionan
                 $header_image = $this->modelo->getHeaderImage();
                 $footer_image = $this->modelo->getFooterImage();
+                $imagen1 = $this->modelo->getImagen1();
+                $imagen2 = $this->modelo->getImagen2();
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
                     $header_image = $this->procesarImagen($_FILES['header_image']);
@@ -201,12 +221,26 @@ abstract class BaseDocumentoController extends Controller
                     $footer_image = $_POST['footer_image'];
                 }
                 
+                if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
+                    $imagen1 = $this->procesarImagen($_FILES['imagen1']);
+                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
+                    $imagen1 = $_POST['imagen1_base64'];
+                }
+                
+                if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
+                    $imagen2 = $this->procesarImagen($_FILES['imagen2']);
+                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
+                    $imagen2 = $_POST['imagen2_base64'];
+                }
+                
                 // Configurar el objeto documento
                 $this->modelo->setTipo($tipo);
                 $this->modelo->setTitulo($titulo);
                 $this->modelo->setContenido($contenido);
                 $this->modelo->setHeaderImage($header_image);
                 $this->modelo->setFooterImage($footer_image);
+                $this->modelo->setImagen1($imagen1);
+                $this->modelo->setImagen2($imagen2);
                 $this->modelo->setIdCliente($id_cliente);
                 $this->modelo->setEstado($estado);
                 

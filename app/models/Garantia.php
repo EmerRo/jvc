@@ -208,42 +208,16 @@ class Garantia
     public function obtenerGarantia()
     {
         try {
-            // Verificar si la columna series_ids existe en la tabla garantia
-            $checkColumnSql = "SHOW COLUMNS FROM garantia LIKE 'series_ids'";
-            $columnExists = false;
-
-            if ($this->conectar instanceof mysqli) {
-                $columnResult = $this->conectar->query($checkColumnSql);
-                $columnExists = $columnResult && $columnResult->num_rows > 0;
-            } else if ($this->conectar instanceof PDO) {
-                $columnResult = $this->conectar->query($checkColumnSql);
-                $columnExists = $columnResult && $columnResult->rowCount() > 0;
-            }
-if ($columnExists) {
-    // <CHANGE> Agregar JOIN con clientes para obtener nombre correcto del cliente
-    $sql = "SELECT g.*, g.series_ids, ns.cliente_ruc_dni, ds.marca, ds.modelo, ds.equipo, ds.numero_serie,
-            CASE 
-                WHEN g.id_cliente IS NOT NULL THEN c.datos
-                ELSE ns.cliente_ruc_dni
-            END as cliente
-            FROM garantia g
-            JOIN numero_series ns ON g.numero_serie_id = ns.id
-            JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
-            LEFT JOIN clientes c ON g.id_cliente = c.id_cliente
-            WHERE g.id_garantia = ?";
-} else {
-    // <CHANGE> Agregar JOIN con clientes para consulta original también
-    $sql = "SELECT g.*, ns.cliente_ruc_dni, ds.marca, ds.modelo, ds.equipo, ds.numero_serie,
-            CASE 
-                WHEN g.id_cliente IS NOT NULL THEN c.datos
-                ELSE ns.cliente_ruc_dni
-            END as cliente
-            FROM garantia g
-            JOIN numero_series ns ON g.numero_serie_id = ns.id
-            JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
-            LEFT JOIN clientes c ON g.id_cliente = c.id_cliente
-            WHERE g.id_garantia = ?";
-}
+            // Consulta simplificada que obtiene datos de garantia y cliente
+            $sql = "SELECT g.*, ns.cliente_ruc_dni,
+                    CASE 
+                        WHEN g.id_cliente IS NOT NULL THEN c.datos
+                        ELSE ns.cliente_ruc_dni
+                    END as cliente
+                    FROM garantia g
+                    JOIN numero_series ns ON g.numero_serie_id = ns.id
+                    LEFT JOIN clientes c ON g.id_cliente = c.id_cliente
+                    WHERE g.id_garantia = ?";
 
             if ($this->conectar instanceof mysqli) {
                 $stmt = $this->conectar->prepare($sql);
@@ -251,41 +225,27 @@ if ($columnExists) {
                 $stmt->execute();
                 $result = $stmt->get_result();
 
-              if ($fila = $result->fetch_assoc()) {
-    $this->numero = $fila['numero'] ?? null; // Cargar el número
-    $this->cliente = $fila['cliente'];
-    $this->id_cliente = $fila['id_cliente'] ?? null; // <CHANGE> Cargar id_cliente
-    $this->marca = $fila['marca'];
-    $this->modelo = $fila['modelo'];
-    $this->equipo = $fila['equipo'];
-    $this->numero_serie = $fila['numero_serie'];
-    $this->guia_remision = $fila['guia_remision'];
-    $this->fecha_inicio = $fila['fecha_inicio'];
-    $this->fecha_caducidad = $fila['fecha_caducidad'];
-
-                    if ($columnExists && isset($fila['series_ids'])) {
-                        $this->series_ids = $fila['series_ids'];
-                    }
+                if ($fila = $result->fetch_assoc()) {
+                    $this->numero = $fila['numero'] ?? null;
+                    $this->cliente = $fila['cliente'];
+                    $this->id_cliente = $fila['id_cliente'] ?? null;
+                    $this->guia_remision = $fila['guia_remision'];
+                    $this->fecha_inicio = $fila['fecha_inicio'];
+                    $this->fecha_caducidad = $fila['fecha_caducidad'];
+                    $this->numero_serie_id = $fila['numero_serie_id'];
                 }
             } else if ($this->conectar instanceof PDO) {
                 $stmt = $this->conectar->prepare($sql);
                 $stmt->execute([$this->id_garantia]);
 
-             if ($fila = $stmt->fetch()) {
-    $this->numero = $fila['numero'] ?? null; // Cargar el número
-    $this->cliente = $fila['cliente'];
-    $this->id_cliente = $fila['id_cliente'] ?? null; // <CHANGE> Cargar id_cliente
-    $this->marca = $fila['marca'];
-    $this->modelo = $fila['modelo'];
-    $this->equipo = $fila['equipo'];
-    $this->numero_serie = $fila['numero_serie'];
-    $this->guia_remision = $fila['guia_remision'];
-    $this->fecha_inicio = $fila['fecha_inicio'];
-    $this->fecha_caducidad = $fila['fecha_caducidad'];
-
-                    if ($columnExists && isset($fila['series_ids'])) {
-                        $this->series_ids = $fila['series_ids'];
-                    }
+                if ($fila = $stmt->fetch()) {
+                    $this->numero = $fila['numero'] ?? null;
+                    $this->cliente = $fila['cliente'];
+                    $this->id_cliente = $fila['id_cliente'] ?? null;
+                    $this->guia_remision = $fila['guia_remision'];
+                    $this->fecha_inicio = $fila['fecha_inicio'];
+                    $this->fecha_caducidad = $fila['fecha_caducidad'];
+                    $this->numero_serie_id = $fila['numero_serie_id'];
                 }
             }
         } catch (Exception $e) {
@@ -332,33 +292,43 @@ if ($columnExists) {
     public function getAllData($filtro = null, $tipo_busqueda = null)
     {
         try {
-            // Construir la consulta SQL base - INCLUIR EL CAMPO NUMERO Y EXPANDIR SERIES
-
-            $sql = "SELECT g.*, g.numero, ns.cliente_ruc_dni, ds.numero_serie, ds.id as detalle_serie_id,
-        CASE 
-            WHEN g.id_cliente IS NOT NULL THEN c.datos
-            ELSE ns.cliente_ruc_dni
-        END as cliente_nombre
-        FROM garantia g
-        JOIN numero_series ns ON g.numero_serie_id = ns.id
-        JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
-        LEFT JOIN clientes c ON g.id_cliente = c.id_cliente";
+            // Construir la consulta SQL base con JOIN a detalle_garantia
+            $sql = "SELECT g.id_garantia, g.numero, g.numero_serie_id, g.guia_remision, 
+                    g.fecha_inicio, g.fecha_caducidad, g.id_cliente,
+                    ns.cliente_ruc_dni,
+                    CASE 
+                        WHEN g.id_cliente IS NOT NULL THEN c.datos
+                        ELSE ns.cliente_ruc_dni
+                    END as cliente_nombre,
+                    COUNT(dg.id) as total_series,
+                    GROUP_CONCAT(dg.numero_serie ORDER BY dg.id SEPARATOR ', ') as numeros_serie
+                FROM garantia g
+                JOIN numero_series ns ON g.numero_serie_id = ns.id
+                LEFT JOIN clientes c ON g.id_cliente = c.id_cliente
+                LEFT JOIN detalle_garantia dg ON g.id_garantia = dg.id_garantia";
 
             // Si hay un filtro de búsqueda, añadimos la condición WHERE
+            $whereAdded = false;
             if ($filtro && $tipo_busqueda) {
                 if ($tipo_busqueda == 'serie') {
-                    $sql .= " WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL";
+                    $sql .= " WHERE dg.numero_serie LIKE ?";
+                    $whereAdded = true;
                 } else if ($tipo_busqueda == 'cliente') {
                     $sql .= " WHERE ns.cliente_ruc_dni LIKE ?";
+                    $whereAdded = true;
                 }
             }
 
+            // Agrupar por garantía
+            $sql .= " GROUP BY g.id_garantia, g.numero, g.numero_serie_id, g.guia_remision, 
+                      g.fecha_inicio, g.fecha_caducidad, g.id_cliente, ns.cliente_ruc_dni, c.datos";
+            
             $sql .= " ORDER BY g.id_garantia DESC";
 
             // Ejecutar la consulta
             if ($filtro && $tipo_busqueda) {
                 $stmt = $this->conectar->prepare($sql);
-                $param = $tipo_busqueda == 'serie' ? $filtro : "%$filtro%";
+                $param = "%$filtro%";
                 $stmt->bind_param("s", $param);
                 $stmt->execute();
                 $result = $stmt->get_result();
@@ -368,57 +338,18 @@ if ($columnExists) {
 
             // Verificar si la consulta fue exitosa
             if ($result === false) {
-                // Si la consulta falló, registrar el error y devolver un array vacío
-                error_log("Error en la consulta SQL: " . $this->conectar->error);
+                error_log("Error en la consulta SQL getAllData: " . $this->conectar->error);
                 return [];
             }
 
-            // Procesar los resultados para expandir las series JSON en filas individuales
+            // Procesar los resultados
             $garantias = [];
             while ($row = $result->fetch_assoc()) {
-                // Verificar si numero_serie es un JSON array
-                $numeros_serie_data = json_decode($row['numero_serie'], true);
-
-                if (is_array($numeros_serie_data) && count($numeros_serie_data) > 0) {
-                    // Si es un array JSON, crear una entrada por cada serie
-                    foreach ($numeros_serie_data as $index => $serie_individual) {
-                        $garantia_expandida = $row;
-                        $garantia_expandida['numero_serie_individual'] = $serie_individual;
-                        $garantia_expandida['serie_index'] = $index + 1;
-                        $garantia_expandida['total_series'] = count($numeros_serie_data);
-
-                        // Crear una cadena con todas las series para mostrar en la tabla
-                        $garantia_expandida['numeros_serie'] = implode(', ', $numeros_serie_data);
-
-                        $garantias[] = $garantia_expandida;
-                    }
-                } else {
-                    // Si no es un array JSON, tratar como serie única
-                    $row['numero_serie_individual'] = $row['numero_serie'];
-                    $row['serie_index'] = 1;
-                    $row['total_series'] = 1;
-                    $row['numeros_serie'] = $row['numero_serie'];
-                    $garantias[] = $row;
-                }
+                $garantias[] = $row;
             }
 
-            // Agrupar por garantía para evitar duplicados en la tabla principal
-            $garantias_agrupadas = [];
-            $garantias_procesadas = [];
-
-            foreach ($garantias as $garantia) {
-                $id_garantia = $garantia['id_garantia'];
-
-                if (!isset($garantias_procesadas[$id_garantia])) {
-                    // Primera vez que vemos esta garantía, agregarla
-                    $garantias_agrupadas[] = $garantia;
-                    $garantias_procesadas[$id_garantia] = true;
-                }
-            }
-
-            return $garantias_agrupadas;
+            return $garantias;
         } catch (Exception $e) {
-            // Registrar el error y devolver un array vacío
             error_log("Excepción en getAllData: " . $e->getMessage());
             return [];
         }
@@ -459,71 +390,34 @@ if ($columnExists) {
             echo $e->getTraceAsString();
         }
     }
-    // Añadir este método a la clase Garantia
+    // Método para obtener todas las series de una garantía desde detalle_garantia
     public function obtenerSeries()
     {
         try {
-            // Verificar si tenemos series_ids (para garantías múltiples)
-            if (!empty($this->series_ids)) {
-                $series = [];
-                $seriesIds = json_decode($this->series_ids, true);
-
-                if (is_array($seriesIds) && count($seriesIds) > 0) {
-                    // Consulta para obtener los detalles de todas las series
-                    $placeholders = implode(',', array_fill(0, count($seriesIds), '?'));
-                    $query = "SELECT ds.id as id_serie, ds.numero_serie, 
-                             m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre
-                             FROM detalle_serie ds
-                             LEFT JOIN marcas m ON ds.marca = m.id
-                             LEFT JOIN modelos mo ON ds.modelo = mo.id
-                             LEFT JOIN equipos e ON ds.equipo = e.id
-                             WHERE ds.id IN ($placeholders)";
-
-                    if ($this->conectar instanceof PDO) {
-                        $stmt = $this->conectar->prepare($query);
-                        foreach ($seriesIds as $key => $id) {
-                            $stmt->bindValue($key + 1, $id);
-                        }
-                        $stmt->execute();
-                        $series = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    } else if ($this->conectar instanceof mysqli) {
-                        $stmt = $this->conectar->prepare($query);
-                        $types = str_repeat('i', count($seriesIds));
-                        $params = array_merge([$types], $seriesIds);
-                        call_user_func_array([$stmt, 'bind_param'], $this->refValues($params));
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        $series = $result->fetch_all(MYSQLI_ASSOC);
-                    }
-
-                    return $series;
-                }
-            }
-
-            // Si no hay series_ids o está vacío, intentar obtener la serie única
-            $query = "SELECT ds.id as id_serie, ds.numero_serie, 
+            // Consultar desde detalle_garantia usando el id_garantia
+            $query = "SELECT dg.numero_serie, dg.marca_id, dg.modelo_id, dg.equipo_id,
                      m.nombre as marca_nombre, mo.nombre as modelo_nombre, e.nombre as equipo_nombre
-                     FROM detalle_serie ds
-                     LEFT JOIN marcas m ON ds.marca = m.id
-                     LEFT JOIN modelos mo ON ds.modelo = mo.id
-                     LEFT JOIN equipos e ON ds.equipo = e.id
-                     WHERE ds.id = ?";
+                     FROM detalle_garantia dg
+                     LEFT JOIN marcas m ON dg.marca_id = m.id
+                     LEFT JOIN modelos mo ON dg.modelo_id = mo.id
+                     LEFT JOIN equipos e ON dg.equipo_id = e.id
+                     WHERE dg.id_garantia = ?
+                     ORDER BY dg.id";
 
             if ($this->conectar instanceof PDO) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->execute([$this->detalle_serie_id]);
+                $stmt->execute([$this->id_garantia]);
                 $series = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 return $series;
             } else if ($this->conectar instanceof mysqli) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->bind_param('i', $this->detalle_serie_id);
+                $stmt->bind_param('i', $this->id_garantia);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 $series = $result->fetch_all(MYSQLI_ASSOC);
                 return $series;
             }
 
-            // Si no se encontró nada, devolver un array vacío
             return [];
         } catch (Exception $e) {
             error_log("Error en obtenerSeries: " . $e->getMessage());
@@ -542,109 +436,94 @@ if ($columnExists) {
     }
 
     // Método para obtener el nombre de la marca
-public function getMarcaNombre()
-{
-    try {
-        // <CHANGE> Procesar JSON array de marcas
-        $marcas_ids = json_decode($this->marca, true);
-        if (!is_array($marcas_ids)) {
-            return $this->marca; // Si no es JSON, devolver tal como está
-        }
+    public function getMarcaNombre()
+    {
+        try {
+            if (empty($this->marca)) {
+                return '';
+            }
 
-        $nombres_marcas = [];
-        foreach ($marcas_ids as $marca_id) {
             $query = "SELECT m.nombre FROM marcas m WHERE m.id = ?";
             
             if ($this->conectar instanceof PDO) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->execute([$marca_id]);
+                $stmt->execute([$this->marca]);
                 $result = $stmt->fetch();
-                $nombres_marcas[] = (is_array($result) && isset($result['nombre'])) ? $result['nombre'] : $marca_id;
+                return (is_array($result) && isset($result['nombre'])) ? $result['nombre'] : '';
             } else if ($this->conectar instanceof mysqli) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->bind_param('i', $marca_id);
+                $stmt->bind_param('i', $this->marca);
                 $stmt->execute();
                 $result = $stmt->get_result()->fetch_assoc();
-                $nombres_marcas[] = $result ? $result['nombre'] : $marca_id;
+                return $result ? $result['nombre'] : '';
             }
-        }
 
-        return implode(', ', $nombres_marcas);
-    } catch (Exception $e) {
-        error_log("Error en getMarcaNombre: " . $e->getMessage());
-        return $this->marca;
+            return '';
+        } catch (Exception $e) {
+            error_log("Error en getMarcaNombre: " . $e->getMessage());
+            return '';
+        }
     }
-}
 
     // Método para obtener el nombre del modelo
-public function getModeloNombre()
-{
-    try {
-        // <CHANGE> Procesar JSON array de modelos
-        $modelos_ids = json_decode($this->modelo, true);
-        if (!is_array($modelos_ids)) {
-            return $this->modelo; // Si no es JSON, devolver tal como está
-        }
+    public function getModeloNombre()
+    {
+        try {
+            if (empty($this->modelo)) {
+                return '';
+            }
 
-        $nombres_modelos = [];
-        foreach ($modelos_ids as $modelo_id) {
             $query = "SELECT m.nombre FROM modelos m WHERE m.id = ?";
             
             if ($this->conectar instanceof PDO) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->execute([$modelo_id]);
+                $stmt->execute([$this->modelo]);
                 $result = $stmt->fetch();
-                $nombres_modelos[] = (is_array($result) && isset($result['nombre'])) ? $result['nombre'] : $modelo_id;
+                return (is_array($result) && isset($result['nombre'])) ? $result['nombre'] : '';
             } else if ($this->conectar instanceof mysqli) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->bind_param('i', $modelo_id);
+                $stmt->bind_param('i', $this->modelo);
                 $stmt->execute();
                 $result = $stmt->get_result()->fetch_assoc();
-                $nombres_modelos[] = $result ? $result['nombre'] : $modelo_id;
+                return $result ? $result['nombre'] : '';
             }
-        }
 
-        return implode(', ', $nombres_modelos);
-    } catch (Exception $e) {
-        error_log("Error en getModeloNombre: " . $e->getMessage());
-        return $this->modelo;
+            return '';
+        } catch (Exception $e) {
+            error_log("Error en getModeloNombre: " . $e->getMessage());
+            return '';
+        }
     }
-}
 
     // Método para obtener el nombre del equipo
- public function getEquipoNombre()
-{
-    try {
-        // <CHANGE> Procesar JSON array de equipos
-        $equipos_ids = json_decode($this->equipo, true);
-        if (!is_array($equipos_ids)) {
-            return $this->equipo; // Si no es JSON, devolver tal como está
-        }
+    public function getEquipoNombre()
+    {
+        try {
+            if (empty($this->equipo)) {
+                return '';
+            }
 
-        $nombres_equipos = [];
-        foreach ($equipos_ids as $equipo_id) {
             $query = "SELECT e.nombre FROM equipos e WHERE e.id = ?";
             
             if ($this->conectar instanceof PDO) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->execute([$equipo_id]);
+                $stmt->execute([$this->equipo]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                $nombres_equipos[] = $result ? $result['nombre'] : $equipo_id;
+                return $result ? $result['nombre'] : '';
             } else if ($this->conectar instanceof mysqli) {
                 $stmt = $this->conectar->prepare($query);
-                $stmt->bind_param('i', $equipo_id);
+                $stmt->bind_param('i', $this->equipo);
                 $stmt->execute();
                 $result = $stmt->get_result()->fetch_assoc();
-                $nombres_equipos[] = $result ? $result['nombre'] : $equipo_id;
+                return $result ? $result['nombre'] : '';
             }
-        }
 
-        return implode(', ', $nombres_equipos);
-    } catch (Exception $e) {
-        error_log("Error en getEquipoNombre: " . $e->getMessage());
-        return $this->equipo;
+            return '';
+        } catch (Exception $e) {
+            error_log("Error en getEquipoNombre: " . $e->getMessage());
+            return '';
+        }
     }
-}
 
     // Método para cargar la propiedad equipo desde la base de datos
     public function cargarEquipo()
@@ -673,20 +552,9 @@ public function getModeloNombre()
         }
     }
     public function getNumeroSerieFormateado()
-{
-    try {
-        // <CHANGE> Procesar JSON array de números de serie
-        $numeros_serie = json_decode($this->numero_serie, true);
-        if (!is_array($numeros_serie)) {
-            return $this->numero_serie; // Si no es JSON, devolver tal como está
-        }
-
-        return implode(', ', $numeros_serie);
-    } catch (Exception $e) {
-        error_log("Error en getNumeroSerieFormateado: " . $e->getMessage());
+    {
         return $this->numero_serie;
     }
-}
 
 
 }

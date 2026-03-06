@@ -1,6 +1,6 @@
 <?php
 
-require_once "app/models/Cliente.php";
+require_once 'app/models/Cliente.php';
 
 $c_cliente = new Cliente();
 $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
@@ -111,7 +111,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                                 no
                                                 modifique los campos en el archivo, <span class="fw-bold">click para
                                                     descargar</span> <a
-                                                    href="<?= URL::to("public/templateExcelClientes.xlsx") ?>">template.xlsx</a>
+                                                    href="<?= URL::to('public/templateExcelClientes.xlsx') ?>">template.xlsx</a>
                                             </p>
                                         </div>
                                         <div class="mb-3">
@@ -368,8 +368,8 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                         <th>Email</th>
                                         <th>Télefono</th>
                                         <th>Rubro</th>
-                                        <th>S/ Venta</th>
-                                        <th>Ultima </br> Venta</th>
+                                        <th>Total Ventas</th>
+                                        <th>Última Venta</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -473,8 +473,33 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             return data ? data : '<span class="text-muted">Sin rubro</span>';
                         }
                     },
-                    { data: "ultima_venta", class: "text-center" },
-                    { data: "total_venta", class: "text-center" },
+                    { 
+                        data: "total_venta", 
+                        class: "text-center",
+                        render: function (data) {
+                            if (!data || data == 0) {
+                                return '<span class="text-muted">S/ 0.00</span>';
+                            }
+                            return 'S/ ' + parseFloat(data).toFixed(2);
+                        }
+                    },
+                    { 
+                        data: "ultima_venta", 
+                        class: "text-center",
+                        render: function (data) {
+                            if (!data || data == '1000-01-01' || data.startsWith('1000-01-01')) {
+                                return '<span class="text-muted">Sin ventas</span>';
+                            }
+                            // Formatear fecha y hora de YYYY-MM-DD HH:MM:SS a DD/MM/YYYY HH:MM
+                            const fecha = new Date(data.replace(' ', 'T'));
+                            const dia = String(fecha.getDate()).padStart(2, '0');
+                            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                            const anio = fecha.getFullYear();
+                            const hora = String(fecha.getHours()).padStart(2, '0');
+                            const minutos = String(fecha.getMinutes()).padStart(2, '0');
+                            return `${dia}/${mes}/${anio} ${hora}:${minutos}`;
+                        }
+                    },
                     {
                         data: null,
                         class: "text-center",

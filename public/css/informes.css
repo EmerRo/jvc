@@ -1,0 +1,321 @@
+
+    /* Estilos mejorados para previsualización de imágenes */
+    .image-preview-container {
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        transition: all 0.3s ease;
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .image-preview-container:hover {
+        border-color: #CA3438;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(202, 52, 56, 0.15);
+    }
+
+    .image-preview-container.has-image {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #f8fff9 0%, #e6f7e6 100%);
+        padding: 15px;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 120px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .preview-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .btn-image-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-view {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-remove:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+
+    .upload-placeholder {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        color: #CA3438;
+        margin-bottom: 15px;
+        opacity: 0.7;
+    }
+
+    .image-info {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-top: 8px;
+        font-size: 11px;
+        color: #495057;
+    }
+
+    /* Modal para vista completa */
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .image-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .image-modal img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+
+    .image-modal-close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .image-modal-close:hover {
+        color: #CA3438;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Contenedor de la vista previa del documento */
+    .document-preview {
+        height: 250px;
+        overflow: hidden;
+        display: block;
+        background-color: white;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* Estilo para el canvas de PDF */
+    .pdf-preview-canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Asegurar que los botones sean clickeables */
+    #btn-preview-informe,
+    #btn-save-informe,
+    #btn-preview-template,
+    #btn-save-template,
+    #btn-preview-membretes,
+    #btn-save-membretes,
+    .btn-outline-secondary {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto;
+    }
+
+    /* Asegurar que el editor no sobrepase su contenedor */
+    .ql-container {
+        overflow: visible;
+        z-index: 1;
+    }
+
+    .card-body {
+        overflow: visible;
+    }
+
+    /* Asegurar que los modales tengan el z-index correcto */
+    .modal {
+        z-index: 1050;
+    }
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
+
+    /* Asegurar que los botones del modal sean clickeables */
+    .modal-footer .btn {
+        position: relative;
+        z-index: 1060;
+        pointer-events: auto;
+    }
+
+    /* Solucionar problema de aria-hidden */
+    #editarPlantillaInformeModal {
+        z-index: 1055 !important;
+    }
+
+    #editarPlantillaInformeModal .modal-backdrop {
+        z-index: 1054 !important;
+    }
+
+    /* Prevenir que el layout-wrapper interfiera */
+    #layout-wrapper[aria-hidden="true"] {
+        pointer-events: none;
+    }
+
+    #layout-wrapper[aria-hidden="true"] .modal {
+        pointer-events: auto;
+    }
+
+    /* Asegurar que los botones sean clickeables */
+    #editarPlantillaInformeModal .modal-footer .btn {
+        position: relative;
+        z-index: 1060 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Prevenir focus issues */
+    #editarPlantillaInformeModal.modal.show {
+        display: block !important;
+    }
+
+/* Asegurar que el dropdown de acciones se muestre correctamente */
+.card {
+    overflow: visible !important;
+}
+
+.card-header {
+    overflow: visible !important;
+    position: relative;
+    z-index: 10;
+}
+
+.card-header .dropdown {
+    position: static;
+}
+
+.card-header .dropdown-menu {
+    position: absolute !important;
+    z-index: 1050 !important;
+    margin-top: 0.125rem;
+}
+
+/* Asegurar que el botón de dropdown sea visible y clickeable */
+.card-header .dropdown button {
+    position: relative;
+    z-index: 11;
+    pointer-events: auto;
+}
+
+/* Mejorar visibilidad del botón de 3 puntos */
+.card-header .btn-link {
+    color: #495057 !important;
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.card-header .btn-link:hover {
+    color: #CA3438 !important;
+    background-color: rgba(202, 52, 56, 0.1);
+    border-radius: 4px;
+}
+
+/* Eliminar espacios innecesarios en las pestañas */
+#nuevo-informe,
+#editar-informe {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+#nuevo-informe .card,
+#editar-informe .card {
+    margin-top: 0 !important;
+}
+
+/* Asegurar que no haya espacios antes del contenido */
+.tab-pane {
+    padding-top: 0 !important;
+}
+
+/* Ocultar completamente las pestañas inactivas sin que ocupen espacio */
+.tab-pane:not(.show) {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+.tab-pane.show.active {
+    display: block !important;
+}
+
+/* Asegurar que el contenedor de informes no ocupe espacio cuando está oculto */
+#lista-informes:not(.show) {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}

@@ -1224,6 +1224,10 @@ $(document).ready(() => {
                             data-bs-toggle="tooltip" title="Ver detalles">
                         <i class="fa fa-eye"></i>
                     </button>
+                    <button type="button" class="btn btn-success btn-ver-productos" data-id="${row.id_orden_trabajo}" 
+                            data-bs-toggle="tooltip" title="Ver/Agregar Productos">
+                        <i class="fa fa-cogs"></i>
+                    </button>
                     <button data-id="${row.id_orden_trabajo}" class="btn btn-warning btnEditar" 
                             data-bs-toggle="tooltip" title="Editar">
                         <i class="fa fa-edit"></i>
@@ -1302,41 +1306,24 @@ $(document).ready(() => {
             </div>
           </div>
           
-          <!-- Pestañas para Equipos y Repuestos -->
-          <ul class="nav nav-tabs" id="detallesTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos" type="button" role="tab">
-                <i class="fa fa-laptop me-1"></i> Equipos Registrados
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="repuestos-tab" data-bs-toggle="tab" data-bs-target="#repuestos" type="button" role="tab">
-                <i class="fa fa-cogs me-1"></i> Productos y Repuestos
-              </button>
-            </li>
-          </ul>
-          
-          <div class="tab-content mt-3" id="detallesTabContent">
-            <!-- Tab de Equipos -->
-            <div class="tab-pane fade show active" id="equipos" role="tabpanel">
-              <div id="equipos-content">
-                <div class="card border-danger mb-2">
-                  <div class="card-header bg-secondary p-2">
-                    Equipos Registrados: ${detalles.equipos.length}
-                  </div>
-                  <div class="card-body p-2">
-                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                      <table class="table table-bordered table-striped mb-0">
-                        <thead class="table-danger sticky-top bg-danger">
-                          <tr>
-                            <th>#</th>
-                            <th>Marca</th>
-                            <th>Modelo</th>
-                            <th>Equipo</th>
-                            <th>Número de Serie</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+          <!-- Solo mostrar Equipos Registrados -->
+          <div class="card border-danger mb-2">
+            <div class="card-header bg-secondary p-2">
+              Equipos Registrados: ${detalles.equipos.length}
+            </div>
+            <div class="card-body p-2">
+              <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-bordered table-striped mb-0">
+                  <thead class="table-danger sticky-top bg-danger">
+                    <tr>
+                      <th>#</th>
+                      <th>Marca</th>
+                      <th>Modelo</th>
+                      <th>Equipo</th>
+                      <th>Número de Serie</th>
+                    </tr>
+                  </thead>
+                  <tbody>
         `;
 
           detalles.equipos.forEach((equipo, index) => {
@@ -1352,50 +1339,26 @@ $(document).ready(() => {
           });
 
           contenidoModal += `
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="card border-danger">
-                  <div class="card-header bg-secondary p-2">
-                    Observaciones
-                  </div>
-                  <div class="card-body p-2">
-                    <p class="mb-0">${
-                      detalles.observaciones || "Sin observaciones"
-                    }</p>
-                  </div>
-                </div>
+                  </tbody>
+                </table>
               </div>
             </div>
-            
-            <!-- Tab de Repuestos -->
-            <div class="tab-pane fade" id="repuestos" role="tabpanel">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Repuestos por Máquina</h6>
-                <button type="button" class="btn btn-sm bg-rojo text-white" onclick="abrirModalAgregarRepuesto()">
-                  <i class="fa fa-plus me-1"></i> Agregar Productos
-                </button>
-              </div>
-              <div id="repuestos-content">
-                <div class="text-center text-muted">
-                  <i class="fa fa-cogs fa-3x mb-3"></i>
-                  <p>Cargando repuestos...</p>
-                </div>
-              </div>
+          </div>
+          
+          <div class="card border-danger">
+            <div class="card-header bg-secondary p-2">
+              Observaciones
+            </div>
+            <div class="card-body p-2">
+              <p class="mb-0">${
+                detalles.observaciones || "Sin observaciones"
+              }</p>
             </div>
           </div>
         `;
 
           $("#modalDetalles .modal-body").html(contenidoModal);
           $("#modalDetalles").modal("show");
-
-          // Cargar repuestos cuando se abra la pestaña
-          $("#repuestos-tab").on("shown.bs.tab", function () {
-            cargarRepuestosEnTab();
-          });
         } catch (error) {
           console.error("Error al procesar la respuesta:", error);
           Swal.fire({
@@ -1433,6 +1396,53 @@ $(document).ready(() => {
               '<a href="javascript:location.reload()">Recargar la página</a>',
           });
         }
+        console.error("Error fetching details:", error, xhr, status);
+      },
+      timeout: 15000,
+    });
+  }
+
+  // Nueva función para mostrar el modal de productos directamente
+  function mostrarModalProductos(id) {
+    // Guardar el ID de la orden actual
+    ordenTrabajoActual = id;
+
+    $.ajax({
+      url: _URL + "/ajs/orden-trabajo/detalles",
+      type: "POST",
+      data: { id: id },
+      success: (response) => {
+        try {
+          var detalles =
+            typeof response === "object" ? response : JSON.parse(response);
+
+          // Guardar las máquinas actuales para el modal de repuestos
+          maquinasActuales = detalles.equipos.map((equipo, index) => ({
+            id_detalle: equipo.id_detalle,
+            marca: equipo.marca,
+            modelo: equipo.modelo,
+            equipo: equipo.equipo,
+            numero_serie: equipo.numero_serie,
+          }));
+
+          // Abrir directamente el modal de productos
+          cargarMaquinasEnModal();
+          $("#modalAgregarRepuestos").modal("show");
+        } catch (error) {
+          console.error("Error al procesar la respuesta:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al cargar los productos. " + (error.message || ""),
+          });
+        }
+      },
+      error: (xhr, status, error) => {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudieron cargar los productos. " + error,
+        });
         console.error("Error fetching details:", error, xhr, status);
       },
       timeout: 15000,
@@ -1589,13 +1599,13 @@ $(document).ready(() => {
 
 console.log("[v0] Datos recibidos del registro:", ui.item);
 
-// Decodificar los arrays JSON del registro seleccionado
-const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
-const modelos_ids = JSON.parse(ui.item.modelo || '[]');
-const marcas_ids = JSON.parse(ui.item.marca || '[]');
-const equipos_ids = JSON.parse(ui.item.equipo || '[]');
+// Los datos vienen agrupados con GROUP_CONCAT, separados por comas
+const numeros_serie = ui.item.numero_serie ? ui.item.numero_serie.split(',').map(s => s.trim()) : [];
+const modelos_ids = ui.item.modelo ? ui.item.modelo.split(',').map(s => s.trim()) : [];
+const marcas_ids = ui.item.marca ? ui.item.marca.split(',').map(s => s.trim()) : [];
+const equipos_ids = ui.item.equipo ? ui.item.equipo.split(',').map(s => s.trim()) : [];
 
-console.log("[v0] Arrays parseados:", {
+console.log("[v0] Arrays procesados:", {
     numeros_serie,
     modelos_ids,
     marcas_ids,
@@ -2078,6 +2088,13 @@ Vue.set(app, "cantidadEquipos", numeros_serie.length);
     var id = $(this).data("id");
     mostrarDetalles(id);
   });
+
+  // Event listener para el botón de ver/agregar productos
+  $(document).on("click", ".btn-ver-productos", function () {
+    var id = $(this).data("id");
+    mostrarModalProductos(id);
+  });
+
   // Event listener para el botón de editar
   $(document).on("click", ".btnEditar", function () {
     var id = $(this).data("id");

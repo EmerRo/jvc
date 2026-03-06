@@ -1,5 +1,5 @@
 <!-- resources\views\fragment-views\cliente\ventas.php -->
-<link rel="stylesheet" href="<?= URL::to('public/css/factura.css')  ?>?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= URL::to('public/css/factura.css') ?>?v=<?= time() ?>">
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-md-8">
@@ -8,10 +8,11 @@
             <h6 class="page-title text-center">VENTAS</h6>
             <ol class="breadcrumb m-0 float-start">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
-                <li class="breadcrumb-item active" aria-current="page"  style="font-weight: 500; color: #CA3438;">Ventas</li>
+                <li class="breadcrumb-item active" aria-current="page" style="font-weight: 500; color: #CA3438;">Ventas
+                </li>
             </ol>
         </div>
-    
+
     </div>
 </div>
 
@@ -23,40 +24,122 @@
         <div class="card"
             style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body">
-                <div class="table-responsive">
-                    <h4 class="card-title">Lista de Ventas</h4>
+                <h4 class="card-title">Lista de Ventas</h4>
 
-                    <div class="card-title-desc d-flex flex-wrap gap-2 justify-content-end">
+                <div class="card-title-desc d-flex flex-wrap gap-2 justify-content-end">
+
+                    <!-- Dropdown de Opciones para móvil -->
+                    <div class="opciones-dropdown-ventas">
+                        <div class="dropdown">
+                            <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                id="dropdownOpcionesVentas" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-bars me-1"></i> Opciones
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownOpcionesVentas"
+                                style="min-width: 250px;">
+                                <li>
+                                    <h6 class="dropdown-header">Facturar</h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/ventas/productos">
+                                        <i class="fa fa-plus me-2"></i> Facturar Productos
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/ventas/servicios">
+                                        <i class="fa fa-plus me-2"></i> Facturar Servicios
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/nota/electronica">
+                                        <i class="fa fa-plus me-2"></i> Nota Electrónica
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <h6 class="dropdown-header">Reportes</h6>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-pdf-reporte-v-p">
+                                        <i class="fa fa-file-pdf-o me-2"></i> Ventas por Producto
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-pdf-reporte">
+                                        <i class="fa fa-file-pdf-o me-2"></i> Reporte de Venta
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-pdf-reporteganancia">
+                                        <i class="fa fa-file-pdf-o me-2"></i> Venta Ganancias
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-text-reporte">
+                                        <i class="fa fa-file-text me-2"></i> Exportar TXT
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-xls-reporte">
+                                        <i class="fa fa-file-excel me-2"></i> Exportar XLS
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal"
+                                        data-bs-target="#ventas-xls-reporte-rvta">
+                                        <i class="fa fa-file-excel me-2"></i> Reporte RVTA
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Botones para desktop -->
                     <!-- Reporte Ventas Producto -->
-                    <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
-                    data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
-                 
+                    <button class="btn bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
+
                     <!-- Exportar PDF Reporte de Venta -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporte" class="btn bg-white text-rojo border-rojo"><i
-                            class="fa fa-file-pdf-o"></i> Exportar PDF Reporte de Venta</button>
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporte"
+                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-pdf-o"></i>
+                        Exportar PDF Reporte de Venta</button>
                     <!-- Reporte de Venta Ganancias -->
                     <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporteganancia"
-                            class="btn bg-white text-rojo border-rojo"><i class="fa fa-file-pdf-o"></i>Reporte de Venta Ganancias</button>
+                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i
+                            class="fa fa-file-pdf-o"></i>Reporte de Venta Ganancias</button>
                     <!-- Exportar a TXT -->
-                     <button data-bs-toggle="modal" data-bs-target="#ventas-text-reporte" class="btn bg-white text-rojo border-rojo"><i
-                                class="fa fa-file-text"></i> Exportar TXT</button>
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-text-reporte"
+                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-text"></i>
+                        Exportar TXT</button>
                     <!-- Exportar a formato "xls" -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-xls-reporte" class="btn bg-white text-rojo border-rojo"><i
-                            class="fa fa-file-text"></i> Exportar formato "xls"</button>
+                    <button data-bs-toggle="modal" data-bs-target="#ventas-xls-reporte"
+                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-text"></i>
+                        Exportar formato "xls"</button>
                     <!-- Reporte RVTA "xls" -->
-                    <button class="btn bg-white text-rojo border-rojo" data-bs-toggle="modal"
-                            data-bs-target="#ventas-xls-reporte-rvta">Reporte RVTA "xls"</button>
-                       <!-- Nota Electronica -->
-                       <a href="/nota/electronica" class="btn bg-rojo text-white button-link bordes"><i class="fa fa-plus"></i>Nota Electronica</a>
+                    <button class="btn bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-xls-reporte-rvta">Reporte RVTA "xls"</button>
+                    <!-- Nota Electronica -->
+                    <a href="/nota/electronica" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
+                            class="fa fa-plus"></i>Nota Electronica</a>
                     <!-- Facturar Servicios -->
-                    <a  href="/ventas/servicios" class="btn bg-rojo text-white button-link bordes"><i
-                                class="fa fa-plus"></i> Facturar Servicios</a>
+                    <a href="/ventas/servicios" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
+                            class="fa fa-plus"></i> Facturar Servicios</a>
                     <!-- Facturar Productos -->
-                    <a href="/ventas/productos" class="btn bg-rojo text-white button-link bordes"><i class="fa fa-plus"></i>
+                    <a href="/ventas/productos" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
+                            class="fa fa-plus"></i>
                         Facturar Productos</a>
-                    </div>
+                </div>
+
+                <div class="table-responsive">
                     <table id="datatable" class="table table-bordered dt-responsive nowrap "
-                      style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                        style="border-collapse: collapse; border-spacing: 0; width: 100%;">
 
                         <thead class="table-light">
                             <tr>
@@ -75,7 +158,6 @@
                         <tbody>
                         </tbody>
                     </table>
-
                 </div>
 
 
@@ -83,306 +165,25 @@
         </div>
     </div> <!-- end col -->
 </div>
-<div class="modal fade" id="ventas-pdf-reporteganancia" tabindex="-1" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header text-white bg-rojo">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte de Ventas y Ganancias</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="pdf-generar-resporte-ventas-ganancia">
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Día</label>
-                            <input type="text" name='dia' class='form-control' oninput="process(this)" maxlength="2">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Año</label>
-                            <select name="anio" class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
 
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select name="mes" class="form-control">
-                                <?php
-                                $contador = 0;
-                                $meses = array('TODOS', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
+<!-- Modal de Reporte de Ventas y Ganancias -->
+<?php include __DIR__ . '/modals/ventas/modal-reporte-ganancia.php'; ?>
 
-                        <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn bg-white text-rojo border-rojo ">Generar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Reporte de Ventas -->
+<?php include __DIR__ . '/modals/ventas/reporte-ventas.php'; ?>
+<!-- Modal de Reporte por Producto -->
+<?php include __DIR__ . '/modals/ventas/modal-venta-por-producto.php'; ?>
 
-<div class="modal fade" id="ventas-pdf-reporte" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte de Ventas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="pdf-generar-resporte-ventas">
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Día</label>
-                            <input type="text" name='dia' class='form-control' oninput="process(this)" maxlength="2">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Año</label>
-                            <select name="anio" class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
+<!-- Modal de Reporte TXT -->
+<?php include __DIR__ . '/modals/ventas/modal-reporte-txt.php'; ?>
+<!-- Modal de Reporte Excel -->
+<?php include __DIR__ . '/modals/ventas/modal-excel-reporte.php'; ?>
 
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select name="mes" class="form-control">
-                                <?php
-                                $contador = 0;
-                                $meses = array('TODOS', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Metodos</label>
-                            <select name="metodo" class="form-control">
-                                <option value="0">Todos</option>
-                                <option value="1">TRANSFERENCIA BANCO BCP</option>
-                                <option value="2">TRANSFERENCIA BANCO NACION</option>
-                                <option value="3">TRANSFERENCIA BANCO INTERBANK</option>
-                                <option value="4">TRANSFERENCIA BANCO BBVA</option>
-                                <option value="5">YAPE</option>
-                                <option value="6">PLIN</option>
-                                <option value="10">POS</option>
-                                <option value="11">TRANSFERENCIA SCOTIABANK</option>
-                                <option value="12">EFECTIVO</option>
+<!-- Modal de Reporte Excel RVTA -->
+<?php include __DIR__ . '/modals/ventas/modal-excel-RVTA.php'; ?>
 
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn border-rojo text-rojo bg-white">Generar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="ventas-pdf-reporte-v-p" tabindex="-1" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form target="_blank" action="<?= URL::to('/reporte/ventas/producto/lista/pdf/') ?>" method="get">
-                <div class="modal-header bg-rojo text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Reporte por Producto</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Código De Producto</label>
-                        <input required type="text" name="codprod" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fecha Desde</label>
-                        <input required value="<?= date("Y-m-d") ?>" type="date" name="fecha1" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fecha Hasta</label>
-                        <input type="date" name="fecha2" class="form-control">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn bg-rojo text-white">Generar Reporte</button>
-                    <button type="button" class="btn border bg-white text-rojo" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="ventas-text-reporte" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header text-white bg-rojo">
-                <h5 class="modal-title" id="exampleModalLabel">Txt Libro de Ventas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="txt-generar-resporte-ventas">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Año</label>
-                            <select name="anio" class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select name="mes" class="form-control">
-                                <?php
-                                $contador = 1;
-                                $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn bg-white text-rojo border-rojo">Generar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="ventas-xls-reporte" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header text-white bg-rojo">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte Excel</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="pdf-generar-resporte-ventas-xls">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Año</label>
-                            <select name="anioExcel" id='anioExcel' class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select name="mesExcel" id='mesExcel' class="form-control">
-                                <?php
-                                $contador = 1;
-                                $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn border-rojo text-rojo bg-white">Generar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="ventas-xls-reporte-rvta" tabindex="-1" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="exampleModalLabel">Reporte Excel RVTA</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="pdf-generar-resporte-ventas-xls-rvta">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Año</label>
-                            <select name="anioExcel" id='anioExcel22' class="form-control">
-                                <?php
-                                $anio = date("Y");
-                                for ($i = 0; $i < 10; $i++) {
-                                    echo "<option value='$anio'>$anio</option>";
-                                    $anio--;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Mes</label>
-                            <select name="mesExcel" id='mesExcel22' class="form-control">
-                                <?php
-                                $contador = 1;
-                                $meses = array('ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE');
-                                foreach ($meses as $mes) {
-                                    echo "<option  " . ($contador == date('m') ? 'selected' : '') . " value='" . ($contador < 10 ? '0' . $contador : $contador) . "'>$mes</option>";
-                                    $contador++;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn bg-white text-rojo border-rojo">Generar</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Enviar Comprobante (WhatsApp + Email) -->
+<?php include __DIR__ . '/modals/modal-enviar-comprobante.php'; ?>
 
 
 
@@ -413,31 +214,8 @@
 </div>
 
 
-
-<div class="modal fade" id="modalImprimirComprobante" tabindex="-1" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header text-white bg-rojo">
-                <h5 class="modal-title" id="exampleModalLabel">Imprimir Comprobante</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <a id="ce-t-a4" href="#" target="_blank" class="mt-2 btn bg-rojo text-white"><i class="fa fa-file-pdf"></i>
-                    Hoja A4</a>
-                <a id="ce-t-a4-m" href="#" target="_blank" class="mt-2 btn bg-rojo text-white"><i class="fa fa-file-pdf"></i>
-                    Media Hoja A4</a>
-                <a id="ce-t-8cm" href="#" target="_blank" class="mt-2 btn bg-white border-rojo text-rojo"><i class="fas fa-file-invoice"></i>
-                    Voucher 8cm</a>
-                <a id="ce-t-5_6cm" href="#" target="_blank" class="mt-2 btn bg-white border-rojo text-rojo"><i
-                        class="fas fa-file-invoice"></i> Voucher 5.8cm</a>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- imprimir comporbante -->
+<?php include __DIR__ . '/modals/imprimir-comprobante.php'; ?>
 
 
 
@@ -493,11 +271,6 @@
         </div>
     </div>
 </div>
-
-
-
-
-
 <script>
     function process(input) {
         let value = input.value;
@@ -619,33 +392,33 @@
         })
 
  */
-$("#txt-generar-resporte-ventas").submit(function (evt) {
-    evt.preventDefault();
-    $("#loader-menor").show();
-    
-    $.ajax({
-        url: _URL +"/ajs/generar/txt/ventareporte",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function (resp) {
-            console.log(resp);
-            if (resp.error) {
-                alertError("Error: " + resp.error);
-            } else if (resp.file) {
-                downloadFile(_URL + "/files/temp/" + resp.file);
-                alertExito("Archivo generado correctamente");
-            } else {
-                alertAdvertencia("Respuesta inesperada del servidor");
-            }
-            $("#loader-menor").hide();
-        },
-        error: function(xhr, status, error) {
-            console.error("Error en la solicitud:", error);
-            alertError("Error en la solicitud: " + error);
-            $("#loader-menor").hide();
-        }
-    });
-})
+        $("#txt-generar-resporte-ventas").submit(function (evt) {
+            evt.preventDefault();
+            $("#loader-menor").show();
+
+            $.ajax({
+                url: _URL + "/ajs/generar/txt/ventareporte",
+                type: "POST",
+                data: $(this).serialize(),
+                success: function (resp) {
+                    console.log(resp);
+                    if (resp.error) {
+                        alertError("Error: " + resp.error);
+                    } else if (resp.file) {
+                        downloadFile(_URL + "/files/temp/" + resp.file);
+                        alertExito("Archivo generado correctamente");
+                    } else {
+                        alertAdvertencia("Respuesta inesperada del servidor");
+                    }
+                    $("#loader-menor").hide();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en la solicitud:", error);
+                    alertError("Error en la solicitud: " + error);
+                    $("#loader-menor").hide();
+                }
+            });
+        })
 
         $("#datatable").on("click", ".btn-detalle-vent", function (evt) {
             var trid = $(this).closest('tr').attr('id');
@@ -680,8 +453,8 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
             "processing": true,
             "serverSide": true,
             "sAjaxSource": _URL + "/ajs/ventas",
-            "responsive": true, // Habilitar responsividad
-            "scrollX": false,   // Deshabilitar scroll horizontal
+            "responsive": false, // Deshabilitar responsividad
+            "scrollX": true,   // Habilitar scroll horizontal
             "autoWidth": false, // Deshabilitar auto-ancho
             "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
             "order": [[0, "desc"]],
@@ -701,69 +474,99 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                     "previous": "Anterior"
                 }
             },
-          "columnDefs": [
-    {
-        targets: 0, // sn_v (Documento)
-        render: function (data, type, row) {
-            if (!row[8]) return ''; // Cambiar row[0] por row[8]
-            return '<a class="btn-info-vent" target="_blank" href="' + row[8].split('--')[0] + '">' + (data || '') + '</a>';
-        }
-    },
-    {
-        targets: 6, // doc_ventae (Sunat)
-        render: function (data, type, row) {
-            if (!data) return '';
-
-            try {
-                const dataParts = data.split("-");
-                if (!row[8]) return ''; // Usar row[8] en lugar de row[9]
-
-                const desData = row[8].split('--');
-
-                if (!(desData[1] == '-')) {
-                    if (dataParts[0] == '1') {
-                        return '<span class="badge bg-success">Enviado</span>';
-                    } else {
-                        let bntSend = '';
-                        if (dataParts[1] == '2' || dataParts[1] == '1') {
-                            bntSend = '<i data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>';
-                        }
-                        return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
+            "columnDefs": [
+                {
+                    targets: 0, // sn_v (Documento)
+                    width: "120px",
+                    render: function (data, type, row) {
+                        if (!row[8]) return ''; // Cambiar row[0] por row[8]
+                        return '<a class="btn-info-vent" target="_blank" href="' + row[8].split('--')[0] + '">' + (data || '') + '</a>';
                     }
-                }
-            } catch (e) {
-                console.error('Error procesando datos:', e);
-                return '';
-            }
-            return '';
-        }
-    },
-    {
-        targets: 7, // estado
-        render: function (data, type, row) {
-            if (data == 1) {
-                return '<span class="badge bg-success">Normal</span>';
-            } else if (data == 2) {
-                return '<span class="badge bg-danger">Anulado</span>';
-            }
-            return data || '';
-        }
-    },
-    {
-        targets: 8, // id_venta (Acción)
-        className: 'text-center',
-        render: function (data, type, row) {
-            if (!row[7] || row[7] != 1) return ""; // Usar row[7] para estado
+                },
+                {
+                    targets: 1, // Fecha
+                    width: "100px"
+                },
+                {
+                    targets: 2, // Cliente
+                    width: "200px",
+                    render: function (data, type, row) {
+                        if (type === 'display' && data && data.length > 40) {
+                            return '<span title="' + data + '">' + data.substr(0, 40) + '...</span>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 3, // Subtotal
+                    width: "100px"
+                },
+                {
+                    targets: 4, // IGV
+                    width: "100px"
+                },
+                {
+                    targets: 5, // Total
+                    width: "100px"
+                },
+                {
+                    targets: 6, // doc_ventae (Sunat)
+                    width: "120px",
+                    render: function (data, type, row) {
+                        if (!data) return '';
 
-            try {
-                if (!row[6]) return ""; // Usar row[6] para doc_ventae
-                const estadoSunat = row[6].split("-")[0];
-                if (!data) return "";
-                const desData = data.split("--");
+                        try {
+                            const dataParts = data.split("-");
+                            if (!row[8]) return ''; // Usar row[8] en lugar de row[9]
 
-                const stpan = '<span id="' + desData[0] + '-nom-xml" style="display: none">' + desData[1] + "</span>";
+                            const desData = row[8].split('--');
 
-                return stpan + `
+                            if (!(desData[1] == '-')) {
+                                if (dataParts[0] == '1') {
+                                    return '<span class="badge bg-success">Enviado</span>';
+                                } else {
+                                    let bntSend = '';
+                                    if (dataParts[1] == '2' || dataParts[1] == '1') {
+                                        bntSend = '<i data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>';
+                                    }
+                                    return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error procesando datos:', e);
+                            return '';
+                        }
+                        return '';
+                    }
+                },
+                {
+                    targets: 7, // estado
+                    width: "90px",
+                    render: function (data, type, row) {
+                        if (data == 1) {
+                            return '<span class="badge bg-success">Normal</span>';
+                        } else if (data == 2) {
+                            return '<span class="badge bg-danger">Anulado</span>';
+                        }
+                        return data || '';
+                    }
+                },
+                {
+                    targets: 8, // id_venta (Acción)
+                    width: "80px",
+                    className: 'text-center',
+                    render: function (data, type, row) {
+                        if (!row[7] || row[7] != 1) return ""; // Usar row[7] para estado
+
+                        try {
+                            if (!row[6]) return ""; // Usar row[6] para doc_ventae
+                            const estadoSunat = row[6].split("-")[0];
+                            if (!data) return "";
+                            const desData = data.split("--");
+
+                            const stpan = '<span id="' + desData[0] + '-nom-xml" style="display: none">' + desData[1] + "</span>";
+
+                            return stpan + `
                 <div class="action-menu">
                     <button type="button" class="action-button">
                         <i class="fas fa-bars"></i>
@@ -773,7 +576,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                             <i class="fa fa-print text-primary"></i> Imprimir
                         </a>
                         <a class="btn-send-fac" data-venta="${desData[0]}">
-                            <i class="fas fa-location-arrow text-primary"></i> Enviar
+                            <i class="fas fa-paper-plane text-primary"></i> Enviar Comprobante
                         </a>
                         ${desData[1] != "-" ? `
                             <a href="${_URL}/files/facturacion/xml/20602281761/${desData[1]}.xml" target="_blank">
@@ -798,13 +601,13 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                     </div>
                 </div>
             `;
-            } catch (e) {
-                console.error('Error en render de acciones:', e);
-                return '';
-            }
-        }
-    }
-],
+                        } catch (e) {
+                            console.error('Error en render de acciones:', e);
+                            return '';
+                        }
+                    }
+                }
+            ],
 
             "error": function (xhr, error, thrown) {
                 console.error('Error en DataTables:', error);
@@ -817,95 +620,23 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
 
         $("#datatable").on("click", ".btn-send-fac", function (evt) {
             const venta = $(evt.currentTarget).data('venta');
-            $("#loader-menor").show()
-            _post("/ajs/informacion/venta/fb", {
-                venta
-            },
-                function (resp) {
-                    console.log(resp);
-                    modalFunsns(resp.link, resp.linkd, resp.file_name, resp.numero, resp.mail)
-                }
-            )
+            $("#loader-menor").show();
 
-            function modalFunsns(link, linkd, nameFile, num, email) {
-                const html = `
-        <div class="row text-start">
-            <div class="col-md-12">
-                <form id="from-sen-email" >
-                <div class="form-group">
-                    <label>Enviar Por Email</label>
-                    <div class="input-group mb-3">
-                        <input type="hidden" name="nombrefile" value="${nameFile}">
-                        <input type="hidden" name="link" value="${linkd}">
-                      <input value="${email}" required name="email" type="email" class="form-control" placeholder="ejemplo@gmail.com" >
-                      <div class="input-group-prepend">
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-send"></i> Enviar</button>
-                      </div>
-                    </div>
-                </div>
-                </form>
+            _post("/ajs/informacion/venta/fb", { venta }, function (resp) {
+                $("#loader-menor").hide();
 
-                <form id="from-sen-whatsapp" >
-
-                <div class="form-group">
-                    <label>Enviar a Whatsapp</label>
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">+51 </span>
-                         </div>
-                      <input require name="num" value="${num}" type="text" class="form-control" placeholder="00000" >
-                        <input type="hidden" name="link" value="${link}">
-                      <div class="input-group-prepend">
-                        <button class="btn bg-rojo text-white"><i class="fa fa-send"></i> Enviar</button>
-                      </div>
-                    </div>
-                </div>
-             </form>
-            </div>
-        </div>`;
-                Swal.fire({
-                    title: "Enviar Factura",
-                    html,
-                    didOpen: () => {
-                        //Swal.showLoading()
-                        const formSendEmail = Swal.getHtmlContainer().querySelector('#from-sen-email');
-                        formSendEmail.addEventListener("submit", function (evt) {
-                            evt.preventDefault();
-                            $("#loader-menor").show();
-                            _post("/ajs/send/comprobante/email", $(this).serialize(),
-                                function (resp) {
-                                    console.log(resp);
-                                    if (resp.res) {
-                                        alertExito("Enviado")
-                                    } else {
-                                        alertAdvertencia("No se pudo Enviar")
-                                    }
-                                });
-                        });
-                        const formSendWatsapp = Swal.getHtmlContainer().querySelector('#from-sen-whatsapp');
-                        formSendWatsapp.addEventListener("submit", function (evt) {
-                            evt.preventDefault();
-                            const numero = $(this).find("input[name='num']").val();
-                            const linkVen = $(this).find("input[name='link']").val();
-
-                            var link = "https://api.whatsapp.com/send?phone=";
-                            const cod_ = 51;
-                            const number_ = numero;
-                            const mensaje = linkVen;
-                            if (number_.length > 0) {
-                                link += cod_ + number_
-                                if (mensaje.length > 0) {
-                                    link += "&text=" + encodeURIComponent(mensaje)
-                                }
-                            }
-                            window.open(link);
-                            //console.log($(this).find("input[name='num']"))
-                        });
-                        console.log(formSendEmail);
-                    },
-                })
-                setTimeout(function () { }, 100)
-            }
+                // Usar el componente modal reutilizable
+                abrirModalEnviarComprobante({
+                    tipo: 'venta',
+                    id: venta,
+                    numero: resp.serie ? `${resp.serie}-${resp.numero}` : `Venta #${venta}`,
+                    link: resp.link,
+                    linkDescarga: resp.linkd,
+                    nombreArchivo: resp.file_name,
+                    email: resp.mail || '',
+                    telefono: resp.telefono || ''
+                });
+            });
         })
 
         window.onafterprint = function (e) {
@@ -916,9 +647,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
             document.location.href = _URL
         }
 
-        $(".action-button").click(function () {
-            console.log('imprimir');
-        })
+        // Manejador de action-button eliminado (duplicado)
 
         function closePrintView() {
             document.location.href = 'somewhere.html';
@@ -1001,27 +730,7 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                  }
 
              }); */
-        // Agregar el manejo del menú desplegable
-
-        // Cerrar todos los menús al hacer clic fuera
-        $(document).on("click", (e) => {
-            if (!$(e.target).closest(".action-menu").length) {
-                $(".action-menu").removeClass("show")
-            }
-        })
-
-        // Toggle del menú al hacer clic en el botón
-        $(document).on("click", ".action-button", function (e) {
-            e.stopPropagation()
-            const menu = $(this).closest(".action-menu")
-            $(".action-menu").not(menu).removeClass("show")
-            menu.toggleClass("show")
-        })
-
-        // Cerrar el menú después de hacer clic en una opción
-        $(document).on("click", ".dropdown-actions a", function () {
-            $(this).closest(".action-menu").removeClass("show")
-        })
+        // Manejadores de action-menu movidos fuera del document.ready (ver código al final)
 
 
 
@@ -1052,13 +761,22 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                         iventa
                     }, function (resp) {
                         if (resp.res) {
-                            // Actualizar solo la fila específica en lugar de recargar toda la tabla
-                            const row = tabla.row($(`[data-venta="${iventa}"]`).closest('tr'));
-                            row.data()[8] = 2; // Actualizar el estado a anulado
-                            row.draw(); // Redibujar la fila
-                            alertExito("Venta Anulada!");
+                            // Recargar la tabla para mostrar el estado actualizado
+                            tabla.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Éxito!',
+                                text: 'Venta anulada satisfactoriamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
                         } else {
-                            alertError("No se pudo Anular")
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'No se pudo anular la venta'
+                            });
                         }
                     })
                 }
@@ -1099,28 +817,28 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
 
                     // Encabezado común
                     let headerHTML = 'Fecha : ' + resp.data.fecha_emision +
-                      '<br>Documento : ' + (resp.data.id_tido == '2' ? 'FT' : 'BT') + ' | ' + resp.data.serie + ' - ' + resp.data.numero +
-                      '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos +
-                      '<br>Total : ' + resp.data.montoTotal + '<br><hr>';
+                        '<br>Documento : ' + (resp.data.id_tido == '2' ? 'FT' : 'BT') + ' | ' + resp.data.serie + ' - ' + resp.data.numero +
+                        '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos +
+                        '<br>Total : ' + resp.data.montoTotal + '<br><hr>';
 
                     // Si hay equipos, renderizar agrupado por equipos (sin pestañas)
                     if (resp.data.equipos && resp.data.equipos.length > 0) {
                         let equiposHTML = '<table class="table table-striped">' +
                             '<thead><tr><th>#</th><th>Cod.</th><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>' +
                             '<tbody>';
-                        
+
                         let numeroItem = 1;
-                        resp.data.equipos.forEach(function(eq, equipoIdx) {
+                        resp.data.equipos.forEach(function (eq, equipoIdx) {
                             // Header del equipo
                             equiposHTML += '<tr class="table-secondary">' +
-                                '<td colspan="6"><strong>EQUIPO: ' + 
-                                (eq.marca || '') + ' ' + (eq.equipo || '') + 
+                                '<td colspan="6"><strong>EQUIPO: ' +
+                                (eq.marca || '') + ' ' + (eq.equipo || '') +
                                 ' - Modelo: ' + (eq.modelo || '') + ' - Serie: ' + (eq.numero_serie || '') +
                                 '</strong></td></tr>';
-                            
+
                             // Productos del equipo
                             if (eq.items && eq.items.length > 0) {
-                                eq.items.forEach(function(item) {
+                                eq.items.forEach(function (item) {
                                     let parcial = (parseFloat(item.precio) * parseFloat(item.cantidad)).toFixed(2);
                                     equiposHTML += '<tr>' +
                                         '<td class="text-center">' + numeroItem + '</td>' +
@@ -1135,18 +853,18 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                             } else {
                                 equiposHTML += '<tr><td colspan="6" class="text-center text-muted">Sin items para este equipo</td></tr>';
                             }
-                            
+
                             // Espacio entre equipos (excepto el último)
                             if (equipoIdx < resp.data.equipos.length - 1) {
                                 equiposHTML += '<tr><td colspan="6" style="padding: 5px;"></td></tr>';
                             }
                         });
-                        
+
                         equiposHTML += '</tbody>' +
                             '<tfoot><tr class="table-info"><td colspan="5" class="text-end"><strong>TOTAL VENTA:</strong></td>' +
                             '<td class="text-end"><strong>' + resp.data.montoTotal + '</strong></td>' +
                             '</tr></tfoot></table>';
-                        
+
                         $("#modal_detalle").html(headerHTML + equiposHTML);
                         return;
                     }
@@ -1190,6 +908,78 @@ $("#txt-generar-resporte-ventas").submit(function (evt) {
                     )
                 }
             })
+        });
+
+        // Manejo del menú de acciones (dropdown)
+        $(document).on("click", function(e) {
+            if (!$(e.target).closest(".action-menu").length) {
+                $(".action-menu").removeClass("show");
+            }
+        });
+
+        $(document).on("click", ".action-button", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const menu = $(this).closest(".action-menu");
+            const dropdown = menu.find(".dropdown-actions");
+
+            // Cerrar otros menús
+            $(".action-menu").not(menu).removeClass("show");
+
+            // Toggle el menú actual
+            menu.toggleClass("show");
+
+            if (menu.hasClass("show")) {
+                const buttonRect = this.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const dropdownWidth = 200;
+                const dropdownHeight = 280;
+
+                // En móvil, centrar el dropdown
+                if (viewportWidth <= 768) {
+                    dropdown.css({
+                        'position': 'fixed',
+                        'left': '50%',
+                        'top': '50%',
+                        'transform': 'translate(-50%, -50%)',
+                        'width': '90%',
+                        'max-width': '280px'
+                    });
+                } else {
+                    // En desktop, posicionar cerca del botón
+                    let top = buttonRect.bottom + window.scrollY + 5;
+                    let left = buttonRect.left + window.scrollX - dropdownWidth + 30;
+
+                    // Si no hay espacio abajo, mostrar arriba
+                    if (buttonRect.bottom + dropdownHeight > viewportHeight) {
+                        top = buttonRect.top + window.scrollY - dropdownHeight - 5;
+                    }
+
+                    // Ajustar si se sale por la izquierda
+                    if (left < 10) {
+                        left = 10;
+                    }
+
+                    // Ajustar si se sale por la derecha
+                    if (left + dropdownWidth > viewportWidth - 10) {
+                        left = viewportWidth - dropdownWidth - 10;
+                    }
+
+                    dropdown.css({
+                        'position': 'fixed',
+                        'top': top + 'px',
+                        'left': left + 'px',
+                        'transform': 'none',
+                        'width': dropdownWidth + 'px'
+                    });
+                }
+            }
+        });
+
+        $(document).on("click", ".dropdown-actions a", function() {
+            $(this).closest(".action-menu").removeClass("show");
         });
     })
 </script>

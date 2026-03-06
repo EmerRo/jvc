@@ -293,16 +293,6 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                         <td style="width: 80px; text-align: center;">
                                                             <span v-if="!item.editable">{{item.cantidad}}</span>
                                                             <input v-if="item.editable" v-model="item.cantidad" style="text-align: center; width: 60px;">
-                                                            <!-- NUEVO: Indicador de stock -->
-                                                            <div class="stock-indicator mt-1">
-                                                                <small :class="getStockClass(item)">
-                                                                    <i :class="getStockIcon(item)"></i>
-                                                                    Stock: {{item.stock || 0}}
-                                                                    <span v-if="parseFloat(item.stock) < parseFloat(item.cantidad)" class="text-danger">
-                                                                        (Insuficiente)
-                                                                    </span>
-                                                                </small>
-                                                            </div>
                                                         </td>
                                                         <?php if ($puedeVerPrecios): ?>
                                                             <td>

@@ -360,3 +360,160 @@ textarea.has-duplicates {
         transform: translateY(-1px);
         box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
     }
+ 
+    /* Estilos para las alertas de garantías */
+    .swal2-popup {
+        font-size: 14px;
+    }
+    
+    .swal2-popup .text-start {
+        text-align: left;
+    }
+    
+    .swal2-popup ul {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+    
+    .swal2-popup li {
+        margin: 5px 0;
+    }
+    
+    .swal2-popup .text-danger {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .swal2-popup .text-muted {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    /* Estilos para el botón de eliminar */
+    .btnBorrar {
+        transition: all 0.3s ease;
+    }
+    
+    .btnBorrar:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    /* Estilos para botones de garantía bloqueados */
+    .btn-garantia-bloqueado {
+        cursor: not-allowed !important;
+        opacity: 0.6;
+        position: relative;
+    }
+    
+    .btn-garantia-bloqueado:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .btn-garantia-bloqueado::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+    
+    /* Tooltip personalizado para botones bloqueados */
+    .btn-garantia-bloqueado[title]:hover::before {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 5px;
+    }
+    
+    .btn-garantia-bloqueado[title]:hover::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #333;
+        margin-bottom: -5px;
+        z-index: 1000;
+    }
+    
+    /* Estilos para el indicador de estado de garantía */
+    .indicador-garantia {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .indicador-garantia i {
+        font-size: 8px;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* Mejorar la apariencia de los botones de acción */
+    .btn-group .btn {
+        margin-right: 2px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-group .btn:last-child {
+        margin-right: 0;
+    }
+
+/* Estilos para selector de tipo de máquina */
+.tipo-maquina-option {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.tipo-maquina-option:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.tipo-maquina-option input[type="radio"]:checked + label {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.tipo-maquina-option input[type="radio"]:checked ~ * {
+    border-color: #0d6efd;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.tipo-maquina-option label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.tipo-maquina-option small {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}

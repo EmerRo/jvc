@@ -1102,6 +1102,80 @@ function enviarWhatsApp() {
     });
 }
 
+// Función para mostrar archivos existentes en modo edición
+function mostrarArchivosExistentes(adjuntos) {
+    // Limpiar previews anteriores
+    $('.selected-files').hide().html('');
+    
+    // Mostrar PDF existente
+    if (adjuntos.pdf && adjuntos.pdf.url) {
+        const pdfPreview = $('#pdf_file').closest('.file-upload-container').find('.selected-files');
+        pdfPreview.html(`
+            <div class="alert alert-info mb-0 d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                    <strong>Archivo actual:</strong> ${adjuntos.pdf.url.split('/').pop()}
+                    <br>
+                    <small class="text-muted">Sube un nuevo PDF para reemplazarlo</small>
+                </div>
+                <a href="${_URL}/${adjuntos.pdf.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> Ver
+                </a>
+            </div>
+        `).show();
+    }
+    
+    // Mostrar archivo editable existente
+    if (adjuntos.editable && adjuntos.editable.url) {
+        const editablePreview = $('#editable_file').closest('.file-upload-container').find('.selected-files');
+        const extension = adjuntos.editable.url.split('.').pop().toLowerCase();
+        let icon = 'fa-file';
+        if (['xlsx', 'xls'].includes(extension)) icon = 'fa-file-excel';
+        else if (['doc', 'docx'].includes(extension)) icon = 'fa-file-word';
+        else if (['psd'].includes(extension)) icon = 'fa-file-image';
+        
+        editablePreview.html(`
+            <div class="alert alert-info mb-0 d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fas ${icon} text-primary me-2"></i>
+                    <strong>Archivo actual:</strong> ${adjuntos.editable.url.split('/').pop()}
+                    <br>
+                    <small class="text-muted">Sube un nuevo archivo para reemplazarlo</small>
+                </div>
+                <a href="${_URL}/${adjuntos.editable.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-download"></i> Descargar
+                </a>
+            </div>
+        `).show();
+    }
+    
+    // Mostrar imágenes existentes
+    if (adjuntos.imagenes && adjuntos.imagenes.length > 0) {
+        const imagenesPreview = $('#imagenes_file').closest('.file-upload-container').find('.selected-files');
+        let html = '<div class="alert alert-info mb-0"><strong>Imágenes actuales:</strong><br><small class="text-muted">Sube nuevas imágenes para reemplazarlas</small><div class="row g-2 mt-2">';
+        
+        adjuntos.imagenes.forEach((img, index) => {
+            html += `
+                <div class="col-4">
+                    <div class="position-relative">
+                        <img src="${_URL}/${img.url}" 
+                             class="img-fluid rounded" 
+                             style="height: 80px; width: 100%; object-fit: cover; cursor: pointer;"
+                             onclick="window.open('${_URL}/${img.url}', '_blank')"
+                             title="Click para ver en tamaño completo">
+                        <div class="position-absolute top-0 start-0 bg-dark text-white px-2 py-1 rounded-end" style="font-size: 0.7rem;">
+                            ${index + 1}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div></div>';
+        imagenesPreview.html(html).show();
+    }
+}
+
 // Función para editar una ficha técnica
 function editarFicha(id) {
     // Mostrar loader
@@ -1135,6 +1209,14 @@ function editarFicha(id) {
                     $('#id_producto').val(data.ficha.id_producto);
                 }
                 
+                // Mostrar archivos existentes
+                mostrarArchivosExistentes(data.ficha.adjuntos);
+                
+                // Llenar YouTube si existe
+                if (data.ficha.adjuntos.youtube && data.ficha.adjuntos.youtube.url) {
+                    $('#youtube').val(data.ficha.adjuntos.youtube.url);
+                }
+                
                 // Guardar el ID de la ficha para actualizar (no crear nueva)
                 $('#id-ficha-editar').val(id);
                 
@@ -1145,8 +1227,8 @@ function editarFicha(id) {
                 Swal.fire({
                     icon: 'info',
                     title: 'Modo Edición',
-                    text: 'Modifica los campos necesarios y haz clic en "Actualizar Ficha Técnica"',
-                    timer: 3000,
+                    html: 'Modifica los campos necesarios y haz clic en "Actualizar Ficha Técnica".<br><br><strong>Nota:</strong> Si subes nuevos archivos, reemplazarán los existentes.',
+                    timer: 4000,
                     showConfirmButton: false
                 });
             } else {
@@ -2012,6 +2094,18 @@ window.reiniciarModuloFichas = function() {
     // Recargar fichas
     cargarFichas();
 };
+
+// Exponer funciones al scope global para que puedan ser llamadas desde onclick
+window.editarFicha = editarFicha;
+window.verFicha = verFicha;
+window.eliminarFicha = eliminarFicha;
+window.compartirWhatsApp = compartirWhatsApp;
+window.cargarFichas = cargarFichas;
+window.reiniciarModuloFichas = reiniciarModuloFichas;
+window.ampliarImagen = ampliarImagen;
+window.eliminarImagenSeleccionada = eliminarImagenSeleccionada;
+window.limpiarTodasLasImagenes = limpiarTodasLasImagenes;
+window.mostrarArchivosExistentes = mostrarArchivosExistentes;
 
 })();
 

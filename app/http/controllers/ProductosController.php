@@ -522,6 +522,18 @@ class ProductosController extends Controller
             error_log("DETALLE RECIBIDO: '" . $_POST['detalle'] . "'");
             error_log("LONGITUD DETALLE: " . strlen($_POST['detalle']));
 
+            // ✅ Obtener la cantidad anterior para comparar
+            $sqlGetCantidad = "SELECT cantidad FROM productos WHERE id_producto = ?";
+            $stmtGetCant = $this->conexion->prepare($sqlGetCantidad);
+            $stmtGetCant->bind_param('i', $_POST['id_producto']);
+            $stmtGetCant->execute();
+            $resultCant = $stmtGetCant->get_result();
+            $cantidadAnterior = 0;
+            if ($rowCant = $resultCant->fetch_assoc()) {
+                $cantidadAnterior = $rowCant['cantidad'];
+            }
+            $stmtGetCant->close();
+
             // Obtener la imagen actual antes de actualizarla
             $imagenAnterior = null;
             $sqlGetImagen = "SELECT imagen FROM productos WHERE id_producto = ?";
@@ -677,6 +689,24 @@ $stmt->bind_param($types, ...$params);
 
             if (!$stmt->execute()) {
                 throw new Exception("Error al actualizar producto: " . $stmt->error);
+            }
+
+            // ✅ Registrar cambio de stock en historial si hubo diferencia
+            $cantidadNueva = intval($_POST['cantidad']);
+            $diferencia = $cantidadNueva - $cantidadAnterior;
+            
+            if ($diferencia != 0) {
+                $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+                $tipoMovimiento = $diferencia > 0 ? 'INGRESO' : 'EGRESO';
+                $cantidadMovimiento = abs($diferencia);
+                $observacion = "Edición de producto (Stock anterior: {$cantidadAnterior}, Stock nuevo: {$cantidadNueva})";
+                
+                $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                                 VALUES (?, ?, ?, NOW(), ?, ?)";
+                $stmtHist = $this->conexion->prepare($sqlHistorial);
+                $stmtHist->bind_param('isiss', $_POST['id_producto'], $tipoMovimiento, $cantidadMovimiento, $usuario, $observacion);
+                $stmtHist->execute();
+                $stmtHist->close();
             }
 
             $this->conexion->commit();

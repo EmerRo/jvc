@@ -83,7 +83,7 @@ function _ajaxDOM(url, contenedor_id, callback) {
 
 // FUNCIÓN PARA INICIALIZAR MÓDULOS SEGÚN LA URL
 function inicializarModuloSegunURL(url) {
-    console.log('Inicializando módulo para URL:', url);
+    // console.log('Inicializando módulo para URL:', url);
 
     // NO limpiar módulos para rutas de ventas (interfiere con Vue)
     if (url.includes('/ventas/productos') || url.includes('/ventas')) {
@@ -138,7 +138,7 @@ function inicializarModuloSegunURL(url) {
 
 // FUNCIÓN PARA LIMPIAR MÓDULOS DE DOCUMENTOS
 function limpiarModulosDocumentos() {
-    console.log('Limpiando módulos de documentos...');
+    // console.log('Limpiando módulos de documentos...');
 
     // Limpiar módulo de cartas
     if (window.cartaModuleInstance) {

@@ -826,4 +826,60 @@ class RepuestosController extends Controller
 
         return json_encode($respuesta);
     }
+
+    public function obtenerHistorialStock()
+    {
+        $respuesta = ["res" => false, "data" => []];
+
+        try {
+            $repuesto_id = isset($_POST['repuesto_id']) ? $_POST['repuesto_id'] : null;
+
+            if ($repuesto_id) {
+                // Historial de un repuesto específico
+                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
+                    FROM historial_stock_repuestos h 
+                    INNER JOIN repuestos r ON h.id_repuesto = r.id_repuesto 
+                    WHERE h.id_repuesto = ? 
+                    ORDER BY h.fecha_movimiento DESC";
+
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bind_param('i', $repuesto_id);
+            } else {
+                // Historial general (todos los movimientos de la empresa)
+                $id_empresa = $_SESSION['id_empresa'];
+                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
+                    FROM historial_stock_repuestos h 
+                    INNER JOIN repuestos r ON h.id_repuesto = r.id_repuesto 
+                    WHERE r.id_empresa = ?
+                    ORDER BY h.fecha_movimiento DESC";
+
+                $stmt = $this->conexion->prepare($sql);
+                $stmt->bind_param('i', $id_empresa);
+            }
+
+            $stmt->execute();
+            $resultado = $stmt->get_result();
+
+            while ($row = $resultado->fetch_assoc()) {
+                $respuesta["data"][] = [
+                    "id" => $row['id'],
+                    "repuesto_nombre" => $row['repuesto_nombre'],
+                    "codigo" => $row['codigo'],
+                    "tipo_movimiento" => $row['tipo_movimiento'],
+                    "cantidad" => $row['cantidad'],
+                    "costo_compra" => isset($row['costo_compra']) ? $row['costo_compra'] : null,
+                    "fecha_movimiento" => $row['fecha_movimiento'],
+                    "usuario" => $row['usuario'],
+                    "observaciones" => $row['observaciones']
+                ];
+            }
+
+            $respuesta["res"] = true;
+
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
 }

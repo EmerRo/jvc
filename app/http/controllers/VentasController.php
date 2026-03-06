@@ -414,6 +414,10 @@ class VentasController extends Controller
         /*$c_producto->setIdVenta($this->venta->getIdVenta());
         $c_producto->eliminar();*/
 
+        // Obtener datos de la venta antes de anular
+        $sql = "SELECT id_cliente, total FROM ventas WHERE id_venta = '{$this->venta->getIdVenta()}'";
+        $ventaData = $this->conexion->query($sql)->fetch_assoc();
+
         $c_anulada->setIdVenta($this->venta->getIdVenta());
         $c_anulada->setFecha(date("Y-m-d"));
         $c_anulada->setMotivo("-");
@@ -422,7 +426,13 @@ class VentasController extends Controller
             $resultado['res'] = true;
             $c_anulada->insertar();
 
-
+            // ✅ Actualizar total_venta del cliente (restar el monto anulado)
+            if ($ventaData) {
+                $sql = "UPDATE clientes SET 
+                        total_venta = GREATEST(0, COALESCE(total_venta, 0) - {$ventaData['total']})
+                        WHERE id_cliente = '{$ventaData['id_cliente']}'";
+                $this->conexion->query($sql);
+            }
         }
         return json_encode($resultado);
     }
@@ -1154,6 +1164,13 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     $sql = "UPDATE guia_remision SET id_venta = '{$c_venta->getIdVenta()}' WHERE id_guia_remision = '{$_POST['idGuia']}'";
                     $this->conexion->query($sql);
                 }
+
+                // ✅ Actualizar ultima_venta y total_venta del cliente con fecha y hora actual
+                $sql = "UPDATE clientes SET 
+                        ultima_venta = NOW(),
+                        total_venta = COALESCE(total_venta, 0) + {$c_venta->getTotal()}
+                        WHERE id_cliente = '{$c_cliente->getIdCliente()}'";
+                $this->conexion->query($sql);
 
                 $resultado["res"] = true;
                 $array_detalle = isset($_POST['listaPro']) ? json_decode($_POST['listaPro'], true) : [];

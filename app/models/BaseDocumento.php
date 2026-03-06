@@ -11,6 +11,8 @@ abstract class BaseDocumento
     protected $contenido;
     protected $header_image;
     protected $footer_image;
+    protected $imagen1;
+    protected $imagen2;
     protected $estado;
     protected $fecha_creacion;
     protected $fecha_modificacion;
@@ -109,6 +111,26 @@ abstract class BaseDocumento
     public function setFooterImage($footer_image)
     {
         $this->footer_image = $footer_image;
+    }
+    
+    public function getImagen1()
+    {
+        return $this->imagen1;
+    }
+    
+    public function setImagen1($imagen1)
+    {
+        $this->imagen1 = $imagen1;
+    }
+    
+    public function getImagen2()
+    {
+        return $this->imagen2;
+    }
+    
+    public function setImagen2($imagen2)
+    {
+        $this->imagen2 = $imagen2;
     }
     
     public function getEstado()
@@ -268,36 +290,40 @@ abstract class BaseDocumento
     protected function buildInsertQuery()
     {
         if ($this->tableName === 'cartas') {
-            return "INSERT INTO {$this->tableName} (id_cliente, id_usuario, tipo, titulo, contenido, header_image, footer_image, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} (id_cliente, id_usuario, tipo, titulo, contenido, header_image, footer_image, imagen1, imagen2, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            return "INSERT INTO {$this->tableName} (titulo, tipo, id_cliente, usuario_id, contenido, header_image, footer_image, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} (titulo, tipo, id_cliente, usuario_id, contenido, header_image, footer_image, imagen1, imagen2, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
     }
     
     protected function bindInsertParams($stmt)
     {
         if ($this->tableName === 'cartas') {
-            $stmt->bind_param("iissssss", 
+            $stmt->bind_param("iissssssss", 
                 $this->id_cliente, 
                 $this->usuario_id, 
                 $this->tipo, 
                 $this->titulo, 
                 $this->contenido, 
                 $this->header_image, 
-                $this->footer_image, 
+                $this->footer_image,
+                $this->imagen1,
+                $this->imagen2,
                 $this->estado
             );
         } else {
-            $stmt->bind_param("ssiissss", 
+            $stmt->bind_param("ssiissssss", 
                 $this->titulo, 
                 $this->tipo, 
                 $this->id_cliente,
                 $this->usuario_id, 
                 $this->contenido, 
                 $this->header_image, 
-                $this->footer_image, 
+                $this->footer_image,
+                $this->imagen1,
+                $this->imagen2,
                 $this->estado
             );
         }
@@ -317,11 +343,11 @@ abstract class BaseDocumento
             return "UPDATE {$this->tableName} 
                     SET id_cliente = ?, id_usuario = ?, tipo = ?, titulo = ?, 
                         contenido = ?, header_image = ?, footer_image = ?, 
-                        estado = ? 
+                        imagen1 = ?, imagen2 = ?, estado = ? 
                     WHERE id = ?";
         } else {
             return "UPDATE {$this->tableName} 
-                    SET titulo = ?, tipo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, estado = ? 
+                    SET titulo = ?, tipo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, imagen1 = ?, imagen2 = ?, estado = ? 
                     WHERE id = ?";
         }
     }
@@ -329,25 +355,29 @@ abstract class BaseDocumento
     protected function bindUpdateParams($stmt)
     {
         if ($this->tableName === 'cartas') {
-            $stmt->bind_param("iissssssi", 
+            $stmt->bind_param("iisssssssi", 
                 $this->id_cliente, 
                 $this->usuario_id, 
                 $this->tipo, 
                 $this->titulo, 
                 $this->contenido, 
                 $this->header_image, 
-                $this->footer_image, 
+                $this->footer_image,
+                $this->imagen1,
+                $this->imagen2,
                 $this->estado, 
                 $this->id
             );
         } else {
-            $stmt->bind_param("sssisssi", 
+            $stmt->bind_param("ssissssssi", 
                 $this->titulo, 
                 $this->tipo, 
                 $this->id_cliente, 
                 $this->contenido, 
                 $this->header_image, 
-                $this->footer_image, 
+                $this->footer_image,
+                $this->imagen1,
+                $this->imagen2,
                 $this->estado, 
                 $this->id
             );

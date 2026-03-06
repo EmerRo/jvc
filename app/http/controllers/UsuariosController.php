@@ -11,11 +11,48 @@ class UsuariosController extends Controller
         $this->conectar = (new Conexion())->getConexion();
     }
 
+    /**
+     * Genera un código único de 3 dígitos para el usuario
+     * El código va desde 001 hasta 999
+     */
+    private function generarCodigoUnico()
+    {
+        // Obtener el último código usado
+        $sql = "SELECT MAX(CAST(codigo AS UNSIGNED)) as ultimo_codigo FROM usuarios WHERE codigo IS NOT NULL";
+        $result = mysqli_query($this->conectar, $sql);
+        $row = mysqli_fetch_assoc($result);
+
+        $ultimoCodigo = $row['ultimo_codigo'] ? (int)$row['ultimo_codigo'] : 0;
+        $nuevoCodigo = $ultimoCodigo + 1;
+
+        // Verificar que no exceda 999
+        if ($nuevoCodigo > 999) {
+            // Buscar un código disponible (por si hay huecos)
+            $sql = "SELECT codigo FROM usuarios WHERE codigo IS NOT NULL ORDER BY CAST(codigo AS UNSIGNED)";
+            $result = mysqli_query($this->conectar, $sql);
+            $codigosUsados = [];
+            while ($row = mysqli_fetch_assoc($result)) {
+                $codigosUsados[] = (int)$row['codigo'];
+            }
+
+            for ($i = 1; $i <= 999; $i++) {
+                if (!in_array($i, $codigosUsados)) {
+                    $nuevoCodigo = $i;
+                    break;
+                }
+            }
+        }
+
+        // Formatear a 3 dígitos con ceros a la izquierda
+        return str_pad($nuevoCodigo, 3, '0', STR_PAD_LEFT);
+    }
+
     public function render()
     {
         $sql = "SELECT
                     ROW_NUMBER() OVER (ORDER BY usuario_id) as item,
                     usuario_id,
+                    u.codigo,
                     r.nombre,
                     usuario,
                     email,
@@ -43,6 +80,7 @@ class UsuariosController extends Controller
     {
         $sql = "SELECT
                     usuario_id,
+                    codigo,
                     num_doc,
                     id_rol,
                     usuario,
@@ -63,28 +101,54 @@ class UsuariosController extends Controller
     public function insertar()
     {
         try {
+            // Preparar datos para validación
+            $ndoc = mysqli_real_escape_string($this->conectar, $_POST['ndoc']);
+            $email = mysqli_real_escape_string($this->conectar, $_POST['email']);
+            $usuario = mysqli_real_escape_string($this->conectar, $_POST['usuario']);
+
+            // Validar si el número de documento ya existe
+            $sqlCheckDoc = "SELECT usuario_id FROM usuarios WHERE num_doc = '$ndoc'";
+            $resultDoc = mysqli_query($this->conectar, $sqlCheckDoc);
+            if (mysqli_num_rows($resultDoc) > 0) {
+                return json_encode(['success' => false, 'error' => 'El número de documento ya está registrado']);
+            }
+
+            // Validar si el email ya existe
+            $sqlCheckEmail = "SELECT usuario_id FROM usuarios WHERE email = '$email'";
+            $resultEmail = mysqli_query($this->conectar, $sqlCheckEmail);
+            if (mysqli_num_rows($resultEmail) > 0) {
+                return json_encode(['success' => false, 'error' => 'El correo electrónico ya está registrado']);
+            }
+
+            // Validar si el nombre de usuario ya existe
+            $sqlCheckUsuario = "SELECT usuario_id FROM usuarios WHERE usuario = '$usuario'";
+            $resultUsuario = mysqli_query($this->conectar, $sqlCheckUsuario);
+            if (mysqli_num_rows($resultUsuario) > 0) {
+                return json_encode(['success' => false, 'error' => 'El nombre de usuario ya está registrado']);
+            }
+
             // Manejar la subida de foto
             $fotoPerfil = null;
             if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
                 $fotoPerfil = $this->subirFoto($_FILES['foto_perfil']);
             }
 
+            // Generar código único de 3 dígitos
+            $codigo = $this->generarCodigoUnico();
+
             // Preparar datos del usuario
             $rol = mysqli_real_escape_string($this->conectar, $_POST['rol']);
             $nombres = mysqli_real_escape_string($this->conectar, $_POST['nombres']);
-            $ndoc = mysqli_real_escape_string($this->conectar, $_POST['ndoc']);
-            $usuario = mysqli_real_escape_string($this->conectar, $_POST['usuario']);
             $clave = sha1($_POST['clave']);
             $telefono = mysqli_real_escape_string($this->conectar, $_POST['telefono']);
-            $email = mysqli_real_escape_string($this->conectar, $_POST['email']);
             $rotativo = isset($_POST['rotativo']) ? (int)$_POST['rotativo'] : 0;
             $idEmpresa = $_SESSION['id_empresa'];
 
             $sql = "INSERT INTO usuarios (
-                        id_empresa, id_rol, num_doc, usuario, clave,
+                        codigo, id_empresa, id_rol, num_doc, usuario, clave,
                         email, nombres, telefono, sucursal, rotativo, foto_perfil
                     ) VALUES (
-                        '$idEmpresa', '$rol', '$ndoc', '$usuario', '$clave',
+                        '$codigo', '$idEmpresa', '$rol', '$ndoc', '$usuario', '$clave',
                         '$email', '$nombres', '$telefono', 1, '$rotativo', '$fotoPerfil'
                     )";
 
@@ -134,6 +198,32 @@ class UsuariosController extends Controller
     public function editar()
     {
         try {
+            $idUsuario = intval($_POST["idCliente"]);
+            $doc = mysqli_real_escape_string($this->conectar, $_POST["doc"]);
+            $email = mysqli_real_escape_string($this->conectar, $_POST["emailEditar"]);
+            $usuarioNombre = mysqli_real_escape_string($this->conectar, $_POST["usuariou"]);
+
+            // Validar si el número de documento ya existe en OTRO usuario
+            $sqlCheckDoc = "SELECT usuario_id FROM usuarios WHERE num_doc = '$doc' AND usuario_id != $idUsuario";
+            $resultDoc = mysqli_query($this->conectar, $sqlCheckDoc);
+            if (mysqli_num_rows($resultDoc) > 0) {
+                return json_encode(['success' => false, 'error' => 'El número de documento ya está registrado en otro usuario']);
+            }
+
+            // Validar si el email ya existe en OTRO usuario
+            $sqlCheckEmail = "SELECT usuario_id FROM usuarios WHERE email = '$email' AND usuario_id != $idUsuario";
+            $resultEmail = mysqli_query($this->conectar, $sqlCheckEmail);
+            if (mysqli_num_rows($resultEmail) > 0) {
+                return json_encode(['success' => false, 'error' => 'El correo electrónico ya está registrado en otro usuario']);
+            }
+
+            // Validar si el nombre de usuario ya existe en OTRO usuario
+            $sqlCheckUsuario = "SELECT usuario_id FROM usuarios WHERE usuario = '$usuarioNombre' AND usuario_id != $idUsuario";
+            $resultUsuario = mysqli_query($this->conectar, $sqlCheckUsuario);
+            if (mysqli_num_rows($resultUsuario) > 0) {
+                return json_encode(['success' => false, 'error' => 'El nombre de usuario ya está registrado en otro usuario']);
+            }
+
             $udp = "";
             if (isset($_POST["claveu"]) && !empty($_POST["claveu"])) {
                 $clave = sha1($_POST["claveu"]);
@@ -165,7 +255,9 @@ class UsuariosController extends Controller
                     WHERE usuario_id = {$_POST["idCliente"]}";
 
             if (mysqli_query($this->conectar, $sql)) {
-                // Si se editó el usuario actual, actualizar la sesión
+                $response = ['success' => true, 'message' => 'Usuario actualizado correctamente'];
+
+                // Si se editó el usuario actual, actualizar la sesión Y generar nuevo token
                 if (isset($_SESSION['usuario_id']) && $_SESSION['usuario_id'] == $_POST["idCliente"]) {
                     // Obtener los datos actualizados del usuario
                     $sqlUsuario = "SELECT foto_perfil, nombres FROM usuarios WHERE usuario_id = {$_POST["idCliente"]}";
@@ -174,10 +266,14 @@ class UsuariosController extends Controller
                         // Actualizar la sesión con los nuevos datos
                         $_SESSION['foto_perfil'] = $rowUsuario['foto_perfil'];
                         $_SESSION['nombres'] = $rowUsuario['nombres'];
+
+                        // Generar nuevo token con los datos actualizados para el cliente
+                        $response['new_token'] = Tools::encryptText(json_encode($_SESSION));
+                        $response['foto_perfil'] = $rowUsuario['foto_perfil'];
                     }
                 }
 
-                return json_encode(['success' => true, 'message' => 'Usuario actualizado correctamente']);
+                return json_encode($response);
             } else {
                 return json_encode(['success' => false, 'error' => 'Error al actualizar: ' . mysqli_error($this->conectar)]);
             }

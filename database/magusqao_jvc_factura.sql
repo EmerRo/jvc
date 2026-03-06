@@ -1,18 +1,21 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : localhist
+ Source Server         : facturacion
  Source Server Type    : MySQL
- Source Server Version : 80030 (8.0.30)
- Source Host           : localhost:3306
- Source Schema         : factura_jvc
+ Source Server Version : 100624 (10.6.24-MariaDB-cll-lve)
+ Source Host           : 104.243.32.64:3306
+ Source Schema         : magusqao_jvc_factura
 
  Target Server Type    : MySQL
- Target Server Version : 80030 (8.0.30)
+ Target Server Version : 100624 (10.6.24-MariaDB-cll-lve)
  File Encoding         : 65001
 
- Date: 05/12/2025 08:37:27
+ Date: 08/01/2026 16:25:03
 */
+DROP DATABASE IF EXISTS magusqao_jvc_factura;
+CREATE DATABASE magusqao_jvc_factura;
+USE magusqao_jvc_factura;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -31,14 +34,14 @@ CREATE TABLE `archivos_internos`  (
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
   `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'borrador',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `cliente_id`(`cliente_id` ASC) USING BTREE,
   INDEX `usuario_id`(`usuario_id` ASC) USING BTREE,
   CONSTRAINT `archivos_internos_ibfk_1` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id_cliente`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `archivos_internos_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of archivos_internos
@@ -54,10 +57,10 @@ CREATE TABLE `archivos_internos_plantillas`  (
   `contenido` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of archivos_internos_plantillas
@@ -72,10 +75,10 @@ CREATE TABLE `asuntos_coti`  (
   `id_asunto` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
   `id_empresa` int NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_asunto`) USING BTREE,
   INDEX `id_empresa`(`id_empresa` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 42 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of asuntos_coti
@@ -108,6 +111,19 @@ INSERT INTO `asuntos_coti` VALUES (25, 'EDUARDO5', 12, '2025-10-06 20:09:35');
 INSERT INTO `asuntos_coti` VALUES (26, 'EDUARDO6', 12, '2025-10-06 20:13:23');
 INSERT INTO `asuntos_coti` VALUES (27, 'SR EDUARDO 1', 12, '2025-10-14 12:23:00');
 INSERT INTO `asuntos_coti` VALUES (28, 'SR EDUARDO 2', 12, '2025-10-14 13:22:07');
+INSERT INTO `asuntos_coti` VALUES (29, 'Sr Judy 2', 12, '2025-11-18 11:36:37');
+INSERT INTO `asuntos_coti` VALUES (30, 'Sr Judy 1', 12, '2025-11-18 11:37:25');
+INSERT INTO `asuntos_coti` VALUES (31, 'Sr Judy 4', 12, '2025-11-18 11:48:37');
+INSERT INTO `asuntos_coti` VALUES (32, 'Sr Judy 5', 12, '2025-11-18 11:51:29');
+INSERT INTO `asuntos_coti` VALUES (33, 'Sr Judy 6', 12, '2025-11-18 11:53:55');
+INSERT INTO `asuntos_coti` VALUES (34, 'Judy', 12, '2025-11-18 12:09:20');
+INSERT INTO `asuntos_coti` VALUES (35, 'Sr Judy 8', 12, '2025-11-18 12:11:52');
+INSERT INTO `asuntos_coti` VALUES (36, 'Sr Judy 9', 12, '2025-11-18 12:16:08');
+INSERT INTO `asuntos_coti` VALUES (37, 'Sr judy 10', 12, '2025-11-18 12:27:48');
+INSERT INTO `asuntos_coti` VALUES (38, 'Sr 11', 12, '2025-11-18 12:35:54');
+INSERT INTO `asuntos_coti` VALUES (39, 'Sr Judy 12', 12, '2025-11-18 12:37:31');
+INSERT INTO `asuntos_coti` VALUES (40, 'SR EDUARDO1', 12, '2025-12-02 19:31:04');
+INSERT INTO `asuntos_coti` VALUES (41, 'SR EDUARDO 7', 12, '2025-12-03 18:40:20');
 
 -- ----------------------------
 -- Table structure for caja_chica
@@ -122,15 +138,17 @@ CREATE TABLE `caja_chica`  (
   `entrada` double(15, 2) NULL DEFAULT NULL,
   `salida` double(15, 2) NULL DEFAULT NULL,
   `metodo` char(1) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL COMMENT '1 = EFECTIVO 2 =TARJETAS 3 =TRANSFERENCIAS',
+  `documento` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`caja_chica_id`) USING BTREE,
   INDEX `id_caja_empresa`(`id_caja_empresa` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 162 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 166 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of caja_chica
 -- ----------------------------
-INSERT INTO `caja_chica` VALUES (160, 68, '10:14 AM', 'Apertura de caja', 'a', 3000.00, 0.00, '1');
-INSERT INTO `caja_chica` VALUES (161, 69, '03:43 PM', 'Apertura de caja', 'a', 2000.00, 0.00, '1');
+INSERT INTO `caja_chica` VALUES (160, 68, '10:14 AM', 'Apertura de caja', 'a', 3000.00, 0.00, '1', NULL);
+INSERT INTO `caja_chica` VALUES (161, 69, '03:43 PM', 'Apertura de caja', 'a', 2000.00, 0.00, '1', NULL);
+INSERT INTO `caja_chica` VALUES (162, 70, '06:38 PM', 'Apertura de caja', 'a', 200.00, 0.00, '1', NULL);
 
 -- ----------------------------
 -- Table structure for caja_empresa
@@ -148,13 +166,15 @@ CREATE TABLE `caja_empresa`  (
   `salida` varchar(200) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `estado` char(1) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT '1',
   PRIMARY KEY (`caja_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 70 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 72 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of caja_empresa
 -- ----------------------------
 INSERT INTO `caja_empresa` VALUES (68, 'CA-001', 12, 1, 'apertura 25', '2025-08-25', '2025-08-25 11:14:33', '3000', '0', '0');
 INSERT INTO `caja_empresa` VALUES (69, 'CA-069', 12, 1, 'APERTURA CAJA HOY 17', '2025-10-17', NULL, '', '', '1');
+INSERT INTO `caja_empresa` VALUES (70, 'CA-070', 12, 1, 'LUNES', '2025-12-02', NULL, '', '', '1');
+INSERT INTO `caja_empresa` VALUES (71, 'CA-071', 12, 1, 'fbds', '2025-12-05', '2025-12-05 12:28:58', '0', '0', '0');
 
 -- ----------------------------
 -- Table structure for carta_templates
@@ -167,15 +187,16 @@ CREATE TABLE `carta_templates`  (
   `header_image` longtext CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `footer_image` longtext CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` datetime NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of carta_templates
 -- ----------------------------
-INSERT INTO `carta_templates` VALUES (1, 'CARTA', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', 'files/cartas/1756990498_68b98c22eac38.jpg', 'files/cartas/1756990499_68b98c233fbe8.jpg', 1, '2025-05-15 18:21:03', '2025-09-04 08:54:59');
+INSERT INTO `carta_templates` VALUES (1, 'CARTA', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', 'files/cartas/1756990498_68b98c22eac38.jpg', 'files/cartas/1756990499_68b98c233fbe8.jpg', 0, '2025-05-15 18:21:03', '2025-12-03 17:59:37');
+INSERT INTO `carta_templates` VALUES (2, 'CARTA', '<p><strong>Estimados señores:</strong></p><p> Presente.</p><p>Por medio de la presente, me permito dirigirme a ustedes para comunicar lo siguiente, en relación al asunto que motiva esta carta.</p><p><br></p>', 'files/cartas/1756990498_68b98c22eac38.jpg', 'files/cartas/1756990499_68b98c233fbe8.jpg', 1, '2025-12-03 17:59:37', '2025-12-03 17:59:37');
 
 -- ----------------------------
 -- Table structure for carta_tipos
@@ -186,10 +207,10 @@ CREATE TABLE `carta_tipos`  (
   `nombre` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `descripcion` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` datetime NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of carta_tipos
@@ -213,20 +234,20 @@ CREATE TABLE `cartas`  (
   `header_image` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `footer_image` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `estado` enum('borrador','finalizado') CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'borrador',
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` datetime NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_cliente`(`id_cliente` ASC) USING BTREE,
   INDEX `id_usuario`(`id_usuario` ASC) USING BTREE,
   CONSTRAINT `cartas_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `cartas_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`usuario_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cartas
 -- ----------------------------
-INSERT INTO `cartas` VALUES (14, 18, 40, 'FORMAL', 'dgfvbfgdgfdb', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', NULL, NULL, 'borrador', '2025-09-02 12:42:53', '2025-09-02 12:42:53');
-INSERT INTO `cartas` VALUES (15, 14, 40, 'FORMAL', 'sopa res', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', NULL, NULL, 'borrador', '2025-09-02 12:44:17', '2025-09-02 12:44:17');
+INSERT INTO `cartas` VALUES (14, NULL, 40, 'FORMAL', 'dgfvbfgdgfdb', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', NULL, NULL, 'borrador', '2025-09-02 12:42:53', '2025-09-02 12:42:53');
+INSERT INTO `cartas` VALUES (15, NULL, 40, 'FORMAL', 'sopa res', '<p>Las estrategias de este tipo funcionan por otro motivo, también: refuerzan la identidad que quieres construir. Si apareces en el gimnasio cinco días seguidos —incluso si es durante solamente dos minutos—, estás sumando puntos para tu nueva identidad. No estás preocupándote por ponerte en forma. Te estás enfocando en convertirte en el tipo de persona que no falta a sus entrenamientos. Estás tomando la acción mínima necesaria para confirmar el tipo de persona que quieres llegar a ser. Raramente pensamos en el cambio de esta manera porque todos están enfocados en la meta final. Pero una lagartija es mejor que no hacer nada de ejercicio. Un minuto de práctica de guitarra es mejor que nada de práctica. Un minuto de lectura es mejor que nunca abrir un libro. Es mejor hacer menos de lo que te propusiste que no hacer nada. En algún momento, una vez que has establecido el hábito y estás cumpliendo diariamente con hacerlo, puedes empezar a combinar la regla de los dos minutos con una técnica que llamamos modelado de hábitos, 7 de tal forma que puedas elevar tu hábito hasta la meta que te habías propuesto originalmente. Empieza por dominar los primeros dos minutos de la versión más sencilla de la conducta que quieres convertir en hábito. Luego, avanza hasta un paso intermedio y repite el proceso —enfócate solamente en los primeros dos minutos hasta que domines esa etapa antes de avanzar al siguiente nivel—. Finalmente, terminarás dominando el hábito que originalmente habías deseado desarrollar mientras sigues manteniendo tu atención donde debe estar: en los primeros dos minutos de la conducta</p>', NULL, NULL, 'borrador', '2025-09-02 12:44:17', '2025-09-02 12:44:17');
 
 -- ----------------------------
 -- Table structure for categorias
@@ -235,9 +256,9 @@ DROP TABLE IF EXISTS `categorias`;
 CREATE TABLE `categorias`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `creado_el` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creado_el` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of categorias
@@ -248,6 +269,8 @@ INSERT INTO `categorias` VALUES (8, 'MAQUINA SPEED POWER', '2024-09-12 11:53:52'
 INSERT INTO `categorias` VALUES (20, 'MAQUINA MASTER FOG', '2025-08-14 10:32:15');
 INSERT INTO `categorias` VALUES (21, 'MAQUINA MASTER GREEN', '2025-08-14 10:32:24');
 INSERT INTO `categorias` VALUES (22, 'MAQUINA TVX', '2025-08-14 10:32:47');
+INSERT INTO `categorias` VALUES (23, 'CEPILLOS', '2025-12-02 17:28:52');
+INSERT INTO `categorias` VALUES (24, 'PORTA PAD', '2025-12-02 17:28:58');
 
 -- ----------------------------
 -- Table structure for categorias_repuestos
@@ -256,7 +279,7 @@ DROP TABLE IF EXISTS `categorias_repuestos`;
 CREATE TABLE `categorias_repuestos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `creado_el` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creado_el` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -282,7 +305,7 @@ CREATE TABLE `certificado_templates`  (
   `fecha_modificacion` datetime NOT NULL,
   `activo` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of certificado_templates
@@ -296,7 +319,7 @@ DROP TABLE IF EXISTS `cliente_venta`;
 CREATE TABLE `cliente_venta`  (
   `id_cliente` int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id_cliente`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cliente_venta
@@ -327,21 +350,61 @@ CREATE TABLE `clientes`  (
   INDEX `fk_clientes_empresas_idx`(`id_empresa` ASC) USING BTREE,
   INDEX `fk_cliente_rubro`(`id_rubro` ASC) USING BTREE,
   CONSTRAINT `fk_cliente_rubro` FOREIGN KEY (`id_rubro`) REFERENCES `rubros` (`id_rubro`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 34 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of clientes
 -- ----------------------------
-INSERT INTO `clientes` VALUES (5, '72314107', 'YURI MARTIN MARROQUIN MEJIA', '', '', NULL, NULL, NULL, 12, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO `clientes` VALUES (11, '42799312', 'MANUEL HIPOLITO AGUADO SIERRA', '', '', '', '', '', 12, '1000-01-01', 0.00, NULL, NULL, NULL, NULL, NULL);
-INSERT INTO `clientes` VALUES (14, '76877537', 'EDUARDO ANTONY CRISOSTOMO RODRIGUEZ', 'Calle La Lealtad', '', NULL, NULL, NULL, 12, NULL, NULL, NULL, '', '', '', '');
-INSERT INTO `clientes` VALUES (16, '77425200', 'EMER RODRIGO YARLEQUE ZAPATA', '', '', '', '', '', 12, NULL, NULL, NULL, '', '', '', '');
-INSERT INTO `clientes` VALUES (18, '10774252008', 'YARLEQUE ZAPATA EMER RODRIGO', 'H.A 2 DE AGOISTPO', '', '', '', '', 12, '1000-01-01', 0.00, NULL, '', '', '', '');
-INSERT INTO `clientes` VALUES (22, '20609630818', 'SAMURAI S.A.C.', 'AV. LOS CHANCAS NRO. 247 COO. LOS CHANCAS DE ANDAHUAYLA LIMA LIMA SANTA ANITA', 'SR EDUARDO CR - ASUNTO: COTIZACION DE MAQUINAS TAURO', '', '', '', 12, NULL, NULL, NULL, '', '', '', '');
-INSERT INTO `clientes` VALUES (23, '20100128056', 'SAGA FALABELLA S A', 'AV. PASEO DE LA REPUBLICA NRO 3220 URB. JARDIN ', '', '993321920', '', 'rotecciondedatospersonales@gmail.com', 12, NULL, NULL, 7, '', '', '', '');
-INSERT INTO `clientes` VALUES (26, '10806464584', 'CHUMBES SAFORAS OLINDA', '-', NULL, NULL, NULL, NULL, 12, NULL, NULL, NULL, '', '', '', '');
-INSERT INTO `clientes` VALUES (28, '20601212472', 'LIM KIT CORPORACION E.I.R.L.', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', 'SR Eduardo', '928891883', '', '', 12, '1000-01-01', 0.00, 6, '', '', '', '');
-INSERT INTO `clientes` VALUES (29, '20612837423', 'GREEN CHUYA S.A.C.', 'PJ. FRANCISCO BRENER NRO. 158 FND. OYAGUE LIMA LIMA JESUS MARIA', NULL, NULL, NULL, NULL, 12, NULL, NULL, NULL, '150113', 'LIMA', 'LIMA', 'JESUS MARIA');
+INSERT INTO `clientes` VALUES (31, '20100070970', 'SUPERMERCADOS PERUANOS SOCIEDAD ANONIMA \'O \' S.P.S.A.', 'CAL. MORELLI NRO. 181 INT. P-2 LIMA LIMA SAN BORJA', NULL, NULL, NULL, NULL, 12, '2025-12-15', 0.00, NULL, '150130', 'LIMA', 'LIMA', 'SAN BORJA');
+INSERT INTO `clientes` VALUES (32, '20601212472', 'LIM KIT CORPORACION E.I.R.L.', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', NULL, NULL, NULL, NULL, 12, '2025-12-17', 3894.00, NULL, '', '', '', '');
+INSERT INTO `clientes` VALUES (33, '70830096', 'ANTHONY KENER GUSTAVO MIRANDA PUN', '', NULL, '', NULL, '', 12, '1000-01-01', 0.00, NULL, NULL, NULL, NULL, NULL);
+
+-- ----------------------------
+-- Table structure for compra
+-- ----------------------------
+DROP TABLE IF EXISTS `compra`;
+CREATE TABLE `compra`  (
+  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo_documento` enum('01','03','nv','in','sa','rc') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'nv',
+  `serie` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `numero` int NULL DEFAULT NULL,
+  `descripcion` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `forma_de_pago` enum('co','cr') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'co',
+  `tipo_moneda` enum('s','d') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 's',
+  `tipo_de_cambio` decimal(9, 4) NOT NULL DEFAULT 1.0000,
+  `percepcion` decimal(9, 4) NOT NULL DEFAULT 0.0000,
+  `numero_dias` int NULL DEFAULT NULL,
+  `fecha_vencimiento` datetime(3) NULL DEFAULT NULL,
+  `fecha` datetime(3) NOT NULL,
+  `guia` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `estado_de_compra` enum('cr','ee','an','pr') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'cr',
+  `egreso_dinero_id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `despliegue_de_pago_id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `user_id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `almacen_id` int NOT NULL,
+  `created_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `updated_at` datetime(3) NOT NULL,
+  `proveedor_id` int NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `Compra_serie_numero_proveedor_id_key`(`serie` ASC, `numero` ASC, `proveedor_id` ASC) USING BTREE,
+  INDEX `Compra_fecha_idx`(`fecha` ASC) USING BTREE,
+  INDEX `Compra_estado_de_compra_idx`(`estado_de_compra` ASC) USING BTREE,
+  INDEX `Compra_proveedor_id_idx`(`proveedor_id` ASC) USING BTREE,
+  INDEX `Compra_almacen_id_idx`(`almacen_id` ASC) USING BTREE,
+  INDEX `Compra_user_id_idx`(`user_id` ASC) USING BTREE,
+  INDEX `Compra_created_at_idx`(`created_at` ASC) USING BTREE,
+  INDEX `Compra_despliegue_de_pago_id_fkey`(`despliegue_de_pago_id` ASC) USING BTREE,
+  INDEX `Compra_egreso_dinero_id_fkey`(`egreso_dinero_id` ASC) USING BTREE,
+  CONSTRAINT `Compra_almacen_id_fkey` FOREIGN KEY (`almacen_id`) REFERENCES `almacen` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `Compra_despliegue_de_pago_id_fkey` FOREIGN KEY (`despliegue_de_pago_id`) REFERENCES `desplieguedepago` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `Compra_egreso_dinero_id_fkey` FOREIGN KEY (`egreso_dinero_id`) REFERENCES `egresodinero` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `Compra_proveedor_id_fkey` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedor` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `Compra_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of compra
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for compras
@@ -363,18 +426,20 @@ CREATE TABLE `compras`  (
   `moneda` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `sucursal` int NULL DEFAULT NULL,
   `id_usuario` int NULL DEFAULT NULL,
+  `estado` varchar(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT '1' COMMENT 'Estado de la compra: 1=Activa, 0=Anulada',
   PRIMARY KEY (`id_compra`) USING BTREE,
   INDEX `id_empresa`(`id_empresa` ASC) USING BTREE,
   INDEX `id_tipo_pago`(`id_tipo_pago` ASC) USING BTREE,
   INDEX `id_tido`(`id_tido` ASC) USING BTREE,
   INDEX `id_proveedor`(`id_proveedor` ASC) USING BTREE,
   INDEX `id_usuario`(`id_usuario` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of compras
 -- ----------------------------
-INSERT INTO `compras` VALUES (4, 12, 2, 57, '2025-08-25', '2025-10-24', NULL, '-', 'OC', '003', '300', 12, '1', 1, 40);
+INSERT INTO `compras` VALUES (7, 12, 1, 71, '2025-12-16', '2025-12-17', NULL, '-', 'OC', '006', '1320', 12, '1', 1, 40, '0');
+INSERT INTO `compras` VALUES (8, 12, 1, 601, '2026-01-08', '2026-01-09', NULL, '-', 'OC', '007', '3852', 12, '1', 1, 40, '0');
 
 -- ----------------------------
 -- Table structure for condicion
@@ -401,7 +466,7 @@ CREATE TABLE `condiciones_cotizacion`  (
   `condiciones` text CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
   PRIMARY KEY (`id_condicion_cotizacion`) USING BTREE,
   INDEX `id_cotizacion`(`id_cotizacion` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 138 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 154 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of condiciones_cotizacion
@@ -540,8 +605,24 @@ INSERT INTO `condiciones_cotizacion` VALUES (132, 1852, '• Precios unitarios N
 INSERT INTO `condiciones_cotizacion` VALUES (133, 1853, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
 INSERT INTO `condiciones_cotizacion` VALUES (134, 1854, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: <span style=\"background-color: rgb(255, 255, 0);\">12 meses defecto de fabrica</span>\n');
 INSERT INTO `condiciones_cotizacion` VALUES (135, 1855, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
-INSERT INTO `condiciones_cotizacion` VALUES (136, 1856, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de <span style=\"background-color: rgb(255, 255, 0);\">Cotización: 07 días hábiles ok¡?ssss</span>\n• Garantia: 12 meses defecto de fabrica\n');
-INSERT INTO `condiciones_cotizacion` VALUES (137, 1857, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 m<span style=\"background-color: rgb(255, 153, 0);\">eses defecto de fabrica dfbhnfdnghn</span>\n• fghythnfg\n');
+INSERT INTO `condiciones_cotizacion` VALUES (136, 1856, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (137, 1857, '• <span style=\"background-color: rgb(255, 255, 0);\">Precios unitarios No Incluyen I.G.V.</span>\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (138, 1858, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• <span style=\"background-color: rgb(255, 255, 0);\">Garantia: 12 meses defecto de fabrica</span>\n');
+INSERT INTO `condiciones_cotizacion` VALUES (139, 1859, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (140, 1860, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (141, 1861, '• Precios unitarios No Incluyen I.G.V.\n• <span style=\"background-color: rgb(255, 153, 0);\">• Forma de Pago: Contado y/o tramite de factura</span>\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• <span style=\"background-color: rgb(255, 255, 0);\">• Tiempo de Entrega: 100 días hábiles luego de recibir OS.</span>\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (142, 1862, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (143, 1863, '• <em>• Precios unitarios No Incluyen I.G.V.</em>\n• <u>• Forma de Pago: Contado y/o tramite de factura</u>\n• <span style=\"background-color: rgb(230, 0, 0);\">• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.</span>\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (144, 1864, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (145, 1865, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (146, 1866, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (147, 1867, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (148, 1868, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (149, 1869, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 <span style=\"background-color: rgb(255, 255, 0);\">meses defecto de fabrica</span>\n');
+INSERT INTO `condiciones_cotizacion` VALUES (150, 1870, '• <span style=\"background-color: rgb(255, 255, 0);\">• Precios unitarios No Incluyen I.G.V.</span>\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábilessss\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (151, 1871, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (152, 1872, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
+INSERT INTO `condiciones_cotizacion` VALUES (153, 1873, '• Precios unitarios No Incluyen I.G.V.\n• Forma de Pago: Contado y/o tramite de factura\n• Emitir Orden de Servicio a nombre de Comercial &amp; Industrial J.V.C. S.A.C.\n• Tiempo de Entrega: 04 días hábiles luego de recibir OS.\n• Validez de Cotización: 07 días hábiles\n• Garantia: 12 meses defecto de fabrica\n');
 
 -- ----------------------------
 -- Table structure for constancias
@@ -557,19 +638,19 @@ CREATE TABLE `constancias`  (
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
   `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'borrador',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `cliente_id`(`id_cliente` ASC) USING BTREE,
   INDEX `usuario_id`(`usuario_id` ASC) USING BTREE,
   CONSTRAINT `constancias_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `constancias_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of constancias
 -- ----------------------------
-INSERT INTO `constancias` VALUES (1, 'constancia ehgresa', 'MANTENIMIENTO', 16, 40, '<p>sdcsdacascsd fsdfsda fsdaf</p>', NULL, NULL, 'borrador', '2025-08-27 17:32:16', '2025-08-27 17:32:16');
+INSERT INTO `constancias` VALUES (1, 'constancia ehgresa', 'MANTENIMIENTO', NULL, 40, '<p>sdcsdacascsd fsdfsda fsdaf</p>', NULL, NULL, 'borrador', '2025-08-27 17:32:16', '2025-08-27 17:32:16');
 
 -- ----------------------------
 -- Table structure for constancias_plantillas
@@ -581,10 +662,10 @@ CREATE TABLE `constancias_plantillas`  (
   `contenido` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of constancias_plantillas
@@ -621,23 +702,14 @@ CREATE TABLE `cotizaciones`  (
   INDEX `id_cliente`(`id_cliente` ASC) USING BTREE,
   INDEX `id_asunto`(`id_asunto` ASC) USING BTREE,
   CONSTRAINT `fk_cotizaciones_asuntos` FOREIGN KEY (`id_asunto`) REFERENCES `asuntos_coti` (`id_asunto`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1858 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1874 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cotizaciones
 -- ----------------------------
-INSERT INTO `cotizaciones` VALUES (1846, 1, 2, 1, '2025-10-06', '', '1', 28, 4484.00, '2', 12, 1, 5, 1, '', 63, 0.00, 1, 21);
-INSERT INTO `cotizaciones` VALUES (1847, 2, 2, 1, '2025-10-06', '', '1', 28, 3420.00, '2', 12, 1, 5, 1, '', 63, 0.00, 0, 22);
-INSERT INTO `cotizaciones` VALUES (1848, 3, 2, 1, '2025-10-06', '', '1', 28, 3800.00, '2', 12, 1, 5, 1, '', 63, 0.00, 0, 23);
-INSERT INTO `cotizaciones` VALUES (1849, 4, 2, 1, '2025-10-06', '', '1', 28, 4484.00, '2', 12, 1, 5, 1, '', 63, 0.00, 1, 24);
-INSERT INTO `cotizaciones` VALUES (1850, 5, 2, 1, '2025-10-06', '', '1', 28, 4304.64, '2', 12, 1, 5, 1, '', 63, 4.00, 1, 25);
-INSERT INTO `cotizaciones` VALUES (1851, 6, 2, 2, '2025-10-06', '2025-11-05,2025-12-05', '1', 28, 3800.00, '2', 12, 1, 5, 1, '', 63, 0.00, 0, 26);
-INSERT INTO `cotizaciones` VALUES (1852, 7, 2, 2, '2025-10-06', '2025-11-05,2025-12-05', '1', 28, 4484.00, '2', 12, 1, 5, 1, '', 63, 0.00, 1, 26);
-INSERT INTO `cotizaciones` VALUES (1853, 8, 1, 1, '2025-10-11', '', '1', 16, 3658.00, '2', 12, 1, 5, 1, '', 40, 0.00, 1, NULL);
-INSERT INTO `cotizaciones` VALUES (1854, 9, 2, 1, '2025-10-14', '', '1', 28, 1062.00, '2', 12, 1, 5, 1, '', 63, 0.00, 1, 27);
-INSERT INTO `cotizaciones` VALUES (1855, 10, 2, 1, '2025-10-14', '', '1', 28, 900.00, '2', 12, 1, 5, 1, '', 63, 0.00, 0, 28);
-INSERT INTO `cotizaciones` VALUES (1856, 11, 1, 1, '2025-12-05', '', '1', 16, 3894.00, '0', 12, 1, 1, 1, '', 40, 0.00, 1, NULL);
-INSERT INTO `cotizaciones` VALUES (1857, 12, 1, 1, '2025-12-05', '', '1', 14, 3894.00, '1', 12, 1, 1, 1, '', 40, 0.00, 1, NULL);
+INSERT INTO `cotizaciones` VALUES (1871, 1, 2, 1, '2025-12-15', '', '1', 31, 387.50, '1', 12, 1, 5, 1, '', 40, 0.00, 1, NULL);
+INSERT INTO `cotizaciones` VALUES (1872, 2, 2, 1, '2025-12-16', '', '1', 32, 3894.00, '1', 12, 1, 5, 1, '', 40, 0.00, 1, NULL);
+INSERT INTO `cotizaciones` VALUES (1873, 3, 2, 1, '2025-12-17', '', '1', 32, 3958.00, '0', 12, 1, 5, 1, '', 40, 0.00, 1, NULL);
 
 -- ----------------------------
 -- Table structure for cuotas_cotizacion
@@ -652,49 +724,47 @@ CREATE TABLE `cuotas_cotizacion`  (
   `tipo` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'cuota',
   PRIMARY KEY (`cuota_coti_id`) USING BTREE,
   INDEX `id_coti`(`id_coti` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 133 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 152 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cuotas_cotizacion
 -- ----------------------------
-INSERT INTO `cuotas_cotizacion` VALUES (114, 1846, 0.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (115, 1847, 0.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (116, 1848, 0.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (117, 1849, 0.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (118, 1850, 0.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (119, 1851, 1000.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (120, 1851, 1400.000, '2025-11-05', '0', 'cuota');
-INSERT INTO `cuotas_cotizacion` VALUES (121, 1851, 1400.000, '2025-12-05', '0', 'cuota');
-INSERT INTO `cuotas_cotizacion` VALUES (122, 1852, 1000.000, '2025-10-06', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (123, 1852, 1742.000, '2025-11-05', '0', 'cuota');
-INSERT INTO `cuotas_cotizacion` VALUES (124, 1852, 1742.000, '2025-12-05', '0', 'cuota');
-INSERT INTO `cuotas_cotizacion` VALUES (125, 1853, 0.000, '2025-10-11', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (126, 1854, 0.000, '2025-10-14', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (127, 1855, 0.000, '2025-10-14', '0', 'inicial');
-INSERT INTO `cuotas_cotizacion` VALUES (130, 1856, 0.000, '2025-12-05', '0', 'cuota');
-INSERT INTO `cuotas_cotizacion` VALUES (132, 1857, 0.000, '2025-12-05', '0', 'cuota');
+INSERT INTO `cuotas_cotizacion` VALUES (149, 1871, 0.000, '2025-12-15', '0', 'inicial');
+INSERT INTO `cuotas_cotizacion` VALUES (150, 1872, 0.000, '2025-12-16', '0', 'inicial');
+INSERT INTO `cuotas_cotizacion` VALUES (151, 1873, 0.000, '2025-12-17', '0', 'inicial');
 
 -- ----------------------------
 -- Table structure for detalle_serie
 -- ----------------------------
 DROP TABLE IF EXISTS `detalle_serie`;
-CREATE TABLE `detalle_serie`  (
+CREATE TABLE `detalle_serie` (
   `id` int NOT NULL AUTO_INCREMENT,
   `numero_serie_id` int NOT NULL,
-  `modelo` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL,
-  `marca` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL,
-  `numero_serie` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `estado` enum('disponible','en_garantia') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'disponible',
-  `estado_prealerta` enum('disponible','en_trabajo','culminado') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'disponible',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `numero_serie_unique`(`numero_serie` ASC) USING BTREE,
-  INDEX `numero_serie_id`(`numero_serie_id` ASC) USING BTREE,
-  CONSTRAINT `detalle_serie_ibfk_1` FOREIGN KEY (`numero_serie_id`) REFERENCES `numero_series` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+  `modelo_id` int DEFAULT NULL,
+  `marca_id` int DEFAULT NULL,
+  `equipo_id` int DEFAULT NULL,
+  `numero_serie` varchar(100) DEFAULT NULL,
+  `estado` enum('disponible','en_garantia') NOT NULL DEFAULT 'disponible',
+  `estado_prealerta` enum('disponible','en_trabajo','culminado') NOT NULL DEFAULT 'disponible',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `numero_serie_unique` (`numero_serie`),
+  KEY `numero_serie_id` (`numero_serie_id`),
+  KEY `modelo_id` (`modelo_id`),
+  KEY `marca_id` (`marca_id`),
+  KEY `equipo_id` (`equipo_id`),
+  CONSTRAINT `detalle_serie_ibfk_1` FOREIGN KEY (`numero_serie_id`) REFERENCES `numero_series` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `detalle_serie_ibfk_2` FOREIGN KEY (`modelo_id`) REFERENCES `modelos` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `detalle_serie_ibfk_3` FOREIGN KEY (`marca_id`) REFERENCES `marcas` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `detalle_serie_ibfk_4` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id`) ON DELETE SET NULL
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of detalle_serie
 -- ----------------------------
+-- Datos de prueba eliminados - tabla limpia para nueva estructura
+INSERT INTO `detalle_serie` VALUES (12, 14, '[\"8\",\"8\",\"8\"]', '[\"1\",\"1\",\"1\"]', '[\"51115\",\"51116\",\"51117\"]', '[\"3\",\"3\",\"3\"]', 'disponible', 'disponible');
+INSERT INTO `detalle_serie` VALUES (13, 15, '[\"8\"]', '[\"6\"]', '[\"51118\"]', '[\"3\"]', 'disponible', 'disponible');
+INSERT INTO `detalle_serie` VALUES (14, 16, '[\"11\"]', '[\"2\"]', '[\"51119\"]', '[\"5\"]', 'disponible', 'disponible');
 
 -- ----------------------------
 -- Table structure for diagnostico_repuestos
@@ -704,9 +774,9 @@ CREATE TABLE `diagnostico_repuestos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of diagnostico_repuestos
@@ -725,13 +795,15 @@ CREATE TABLE `dias_compras`  (
   `estado` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`dias_compra_id`) USING BTREE,
   INDEX `id_compra`(`id_compra` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of dias_compras
 -- ----------------------------
 INSERT INTO `dias_compras` VALUES (3, 4, 150.000, '2025-09-24', '1');
 INSERT INTO `dias_compras` VALUES (4, 4, 150.000, '2025-10-24', '0');
+INSERT INTO `dias_compras` VALUES (5, 6, 112.500, '2026-01-02', '0');
+INSERT INTO `dias_compras` VALUES (6, 6, 112.500, '2026-02-02', '0');
 
 -- ----------------------------
 -- Table structure for dias_ventas
@@ -745,11 +817,24 @@ CREATE TABLE `dias_ventas`  (
   `estado` char(1) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT '0',
   PRIMARY KEY (`dias_venta_id`) USING BTREE,
   INDEX `id_venta`(`id_venta` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of dias_ventas
 -- ----------------------------
+INSERT INTO `dias_ventas` VALUES (1, 11, 0.000, '2025-11-18', '0');
+INSERT INTO `dias_ventas` VALUES (2, 14, 200.000, '2026-01-02', '0');
+INSERT INTO `dias_ventas` VALUES (3, 14, 200.000, '2026-02-02', '0');
+INSERT INTO `dias_ventas` VALUES (4, 15, 245.150, '2026-01-02', '0');
+INSERT INTO `dias_ventas` VALUES (5, 15, 245.150, '2026-02-02', '0');
+INSERT INTO `dias_ventas` VALUES (6, 16, 300.980, '2026-01-02', '0');
+INSERT INTO `dias_ventas` VALUES (7, 16, 300.970, '2026-02-02', '0');
+INSERT INTO `dias_ventas` VALUES (8, 18, 100.000, '2025-12-02', '0');
+INSERT INTO `dias_ventas` VALUES (9, 18, 366.250, '2026-01-01', '0');
+INSERT INTO `dias_ventas` VALUES (10, 18, 366.240, '2026-02-01', '0');
+INSERT INTO `dias_ventas` VALUES (11, 20, 0.000, '2025-12-15', '0');
+INSERT INTO `dias_ventas` VALUES (12, 21, 0.000, '2025-12-15', '0');
+INSERT INTO `dias_ventas` VALUES (13, 22, 0.000, '2025-12-16', '0');
 
 -- ----------------------------
 -- Table structure for documentos_empresas
@@ -768,19 +853,19 @@ CREATE TABLE `documentos_empresas`  (
 -- ----------------------------
 -- Records of documentos_empresas
 -- ----------------------------
-INSERT INTO `documentos_empresas` VALUES (12, 1, 1, 'B001', 609);
-INSERT INTO `documentos_empresas` VALUES (12, 2, 1, 'F001', 2381);
+INSERT INTO `documentos_empresas` VALUES (12, 1, 1, 'B001', 610);
+INSERT INTO `documentos_empresas` VALUES (12, 2, 1, 'F001', 2395);
 INSERT INTO `documentos_empresas` VALUES (12, 3, 1, 'F001', 13);
 INSERT INTO `documentos_empresas` VALUES (12, 4, 1, 'F001', 1);
-INSERT INTO `documentos_empresas` VALUES (12, 6, 1, 'NV01', 2949);
-INSERT INTO `documentos_empresas` VALUES (12, 11, 1, 'T001', 1133);
+INSERT INTO `documentos_empresas` VALUES (12, 6, 1, 'NV01', 2951);
+INSERT INTO `documentos_empresas` VALUES (12, 11, 1, 'T001', 1135);
 INSERT INTO `documentos_empresas` VALUES (12, 1, 2, 'B002', 595);
 INSERT INTO `documentos_empresas` VALUES (12, 2, 2, 'F002', 2359);
 INSERT INTO `documentos_empresas` VALUES (12, 3, 2, 'F002', 6);
 INSERT INTO `documentos_empresas` VALUES (12, 4, 2, 'F002', 1);
 INSERT INTO `documentos_empresas` VALUES (12, 6, 2, 'NV02', 2945);
 INSERT INTO `documentos_empresas` VALUES (12, 11, 2, 'T002', 1025);
-INSERT INTO `documentos_empresas` VALUES (12, 12, 1, 'OC', 4);
+INSERT INTO `documentos_empresas` VALUES (12, 12, 1, 'OC', 8);
 
 -- ----------------------------
 -- Table structure for documentos_sunat
@@ -886,7 +971,7 @@ CREATE TABLE `garantia`  (
   INDEX `idx_id_cliente`(`id_cliente` ASC) USING BTREE,
   CONSTRAINT `fk_garantia_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_garantia_detalle_serie` FOREIGN KEY (`detalle_serie_id`) REFERENCES `detalle_serie` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 42 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 43 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of garantia
@@ -911,7 +996,7 @@ CREATE TABLE `gestion_activos`  (
   `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `estado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'PENDIENTE' COMMENT 'Estados posibles: PENDIENTE, CONFIRMADO',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gestion_activos
@@ -919,7 +1004,8 @@ CREATE TABLE `gestion_activos`  (
 INSERT INTO `gestion_activos` VALUES (14, 'GA-01', 'LIM KIT CORPORACION E.I.R.L.', 'PRESTAMOS', 'TAURO', 'LUSTRADORA', 'TD-12N', '123456', '2025-03-14', '2025-03-07', 'con pad y porta pad', 'CONFIRMADO');
 INSERT INTO `gestion_activos` VALUES (15, 'GA-02', 'EMER RODRIGO YARLEQUE ZAPATA', 'REMPLAZO', 'MASTER GOLDS', 'ASPIRADORA', 'AMG-15L', '159123', '2025-03-18', '2025-03-15', 'hello wpord', 'CONFIRMADO');
 INSERT INTO `gestion_activos` VALUES (16, 'GA-03', 'EMER RODRIGO YARLEQUE ZAPATA', 'ALQUILER', 'MASTER GOLDS', 'ASPIRADORA', 'AMG-15L', '159123', '2025-03-23', '2025-03-15', 'aspiradora detaller aqui', 'CONFIRMADO');
-INSERT INTO `gestion_activos` VALUES (17, '', 'BRENDY YOSELY ZAPATA TORRES', 'ALQUILER', 'MASTER GOLDS', 'LUSTRADORA', 'AMG-15L', '1549416', '2025-01-05', '2025-07-07', '', 'PENDIENTE');
+INSERT INTO `gestion_activos` VALUES (17, '', 'BRENDY YOSELY ZAPATA TORRES', 'ALQUILER', 'MASTER GOLDS', 'LUSTRADORA', 'AMG-15L', '1549416', '0000-00-00', '2025-07-07', '', 'PENDIENTE');
+INSERT INTO `gestion_activos` VALUES (18, 'GA-04', 'LIM KIT CORPORACION E.I.R.L.', 'ALQUILER', 'MASTER GOLDS', 'LUSTRADORA', 'AMG-15L', '1549416', '2025-12-04', '2025-12-03', '1 DIA DE ALQUILER', 'PENDIENTE');
 
 -- ----------------------------
 -- Table structure for gestion_adjuntos
@@ -928,7 +1014,7 @@ DROP TABLE IF EXISTS `gestion_adjuntos`;
 CREATE TABLE `gestion_adjuntos`  (
   `id_adjunto` int NOT NULL AUTO_INCREMENT,
   `id_archivo` int NOT NULL,
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
   `url_pdf` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL COMMENT 'Ruta del archivo PDF',
   `url_editable` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL COMMENT 'Ruta del archivo editable (Word, Excel, etc.)',
   `url_imagen` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL COMMENT 'Ruta de la imagen',
@@ -944,7 +1030,7 @@ CREATE TABLE `gestion_adjuntos`  (
   INDEX `idx_url_imagen_2`(`url_imagen_2` ASC) USING BTREE,
   INDEX `idx_url_imagen_3`(`url_imagen_3` ASC) USING BTREE,
   CONSTRAINT `gestion_adjuntos_ibfk_1` FOREIGN KEY (`id_archivo`) REFERENCES `gestion_archivos` (`id_archivo`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gestion_adjuntos
@@ -968,8 +1054,8 @@ CREATE TABLE `gestion_archivos`  (
   `titulo` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `tipo` varchar(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'ficha_tecnica, manual, informe, carta, constancia, interno, otro',
   `id_producto` int NULL DEFAULT NULL COMMENT 'Relación con producto (opcional)',
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` datetime NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   `version` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT '1.0',
   `estado` tinyint(1) NULL DEFAULT 1,
   `id_empresa` int NOT NULL,
@@ -977,20 +1063,20 @@ CREATE TABLE `gestion_archivos`  (
   PRIMARY KEY (`id_archivo`) USING BTREE,
   INDEX `id_producto`(`id_producto` ASC) USING BTREE,
   CONSTRAINT `gestion_archivos_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gestion_archivos
 -- ----------------------------
-INSERT INTO `gestion_archivos` VALUES (9, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 10:54:45', '2025-08-25 11:54:45', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (10, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 10:57:13', '2025-08-25 11:57:13', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (11, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 10:58:49', '2025-08-25 11:58:49', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (12, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 11:17:40', '2025-08-25 12:17:40', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (13, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 11:21:04', '2025-08-25 12:21:04', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (14, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23\" - MARCA: CRIS-TAURO', 'ficha_tecnica', NULL, '2025-08-25 11:22:12', '2025-08-25 12:22:12', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (15, 'FICHA TECNICA ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 6 GALONES', 'ficha_tecnica', NULL, '2025-08-25 11:24:07', '2025-08-25 12:24:07', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (16, 'FICHA TECNICA ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 8 GALONES', 'ficha_tecnica', NULL, '2025-08-25 11:24:39', '2025-08-25 12:24:39', '1.0', 1, 12, '1');
-INSERT INTO `gestion_archivos` VALUES (17, 'informe tec', 'ficha_tecnica', NULL, '2025-08-27 15:09:48', '2025-08-27 16:09:48', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (9, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 18, '2025-08-25 10:54:45', '2025-08-25 11:54:45', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (10, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 20, '2025-08-25 10:57:13', '2025-08-25 11:57:13', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (11, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 21, '2025-08-25 10:58:49', '2025-08-25 11:58:49', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (12, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 28, '2025-08-25 11:17:40', '2025-08-25 12:17:40', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (13, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 30, '2025-08-25 11:21:04', '2025-08-25 12:21:04', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (14, 'FICHA TECNICA LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23\" - MARCA: CRIS-TAURO', 'ficha_tecnica', 31, '2025-08-25 11:22:12', '2025-08-25 12:22:12', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (15, 'FICHA TECNICA ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 6 GALONES', 'ficha_tecnica', 33, '2025-08-25 11:24:07', '2025-08-25 12:24:07', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (16, 'FICHA TECNICA ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 8 GALONES', 'ficha_tecnica', 34, '2025-08-25 11:24:39', '2025-08-25 12:24:39', '1.0', 1, 12, '1');
+INSERT INTO `gestion_archivos` VALUES (17, 'informe tec', 'ficha_tecnica', 42, '2025-08-27 15:09:48', '2025-08-27 16:09:48', '1.0', 1, 12, '1');
 
 -- ----------------------------
 -- Table structure for gestion_metadatos
@@ -1004,7 +1090,7 @@ CREATE TABLE `gestion_metadatos`  (
   PRIMARY KEY (`id_metadato`) USING BTREE,
   INDEX `id_archivo`(`id_archivo` ASC) USING BTREE,
   CONSTRAINT `gestion_metadatos_ibfk_1` FOREIGN KEY (`id_archivo`) REFERENCES `gestion_archivos` (`id_archivo`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gestion_metadatos
@@ -1022,7 +1108,7 @@ CREATE TABLE `gestion_plantillas`  (
   `id_empresa` int NOT NULL,
   `estado` tinyint(1) NULL DEFAULT 1,
   PRIMARY KEY (`id_plantilla`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gestion_plantillas
@@ -1036,13 +1122,13 @@ CREATE TABLE `gestion_versiones`  (
   `id_version` int NOT NULL AUTO_INCREMENT,
   `id_archivo` int NOT NULL,
   `version` varchar(10) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
   `contenido` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `id_usuario` int NULL DEFAULT NULL,
   PRIMARY KEY (`id_version`) USING BTREE,
   INDEX `id_archivo`(`id_archivo` ASC) USING BTREE,
   CONSTRAINT `gestion_versiones_ibfk_1` FOREIGN KEY (`id_archivo`) REFERENCES `gestion_archivos` (`id_archivo`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gestion_versiones
@@ -1057,8 +1143,8 @@ CREATE TABLE `guia_choferes`  (
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `dni` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `telefono` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -1081,19 +1167,18 @@ CREATE TABLE `guia_conductor_configuraciones`  (
   `vehiculo_placa` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `vehiculo_marca` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `licencia_numero` varchar(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `fecha_registro` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_registro` datetime NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_chofer_id`(`chofer_id` ASC) USING BTREE,
   INDEX `idx_chofer_dni`(`chofer_dni` ASC) USING BTREE,
   INDEX `idx_vehiculo_placa`(`vehiculo_placa` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guia_conductor_configuraciones
 -- ----------------------------
 INSERT INTO `guia_conductor_configuraciones` VALUES (1, 14, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', 'donato', 'dfsvsdv', '124312', '2025-06-23 08:56:19');
-INSERT INTO `guia_conductor_configuraciones` VALUES (2, 15, 'EMER YARLEQUE ZAPATA', '77425201', 'sdcsa', 'sdacsacde2', 'sacdsa22', '2025-06-23 08:58:16');
-INSERT INTO `guia_conductor_configuraciones` VALUES (3, 14, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', 'asdvsdvfc', 'dfsvfds', 'fdvsfdvdf', '2025-12-04 21:57:11');
+INSERT INTO `guia_conductor_configuraciones` VALUES (2, 15, 'EMER YARLEQUE ZAPATA', '77425201', 'sdcsa', 'sdacsac', 'sacdsa', '2025-06-23 08:58:16');
 
 -- ----------------------------
 -- Table structure for guia_detalles
@@ -1114,16 +1199,18 @@ CREATE TABLE `guia_detalles`  (
   INDEX `id_guia`(`id_guia` ASC) USING BTREE,
   INDEX `fk_guia_detalles_equipo`(`id_guia_equipo` ASC) USING BTREE,
   CONSTRAINT `fk_guia_detalles_equipo` FOREIGN KEY (`id_guia_equipo`) REFERENCES `guia_equipos` (`id_guia_equipo`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of guia_detalles
 -- ----------------------------
 INSERT INTO `guia_detalles` VALUES (7, 3, 18, NULL, 'producto', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 'NIU', 1, 3658.00000, NULL);
-INSERT INTO `guia_detalles` VALUES (8, 4, 2538, NULL, 'producto', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO SERIE -23543', 'NIU', 1, 3894.00000, NULL);
-INSERT INTO `guia_detalles` VALUES (9, 5, 2538, NULL, 'producto', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO SERIE -23543', 'NIU', 1, 3894.00000, NULL);
-INSERT INTO `guia_detalles` VALUES (10, 6, 2538, NULL, 'producto', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO SERIE -23543', 'NIU', 1, 3894.00000, NULL);
-INSERT INTO `guia_detalles` VALUES (11, 7, 2538, NULL, 'producto', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO SERIE -23543', 'NIU', 1, 3894.00000, NULL);
+INSERT INTO `guia_detalles` VALUES (8, 4, 44, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 'UNIDAD', 1, 767.00000, NULL);
+INSERT INTO `guia_detalles` VALUES (9, 5, 44, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 'UNIDAD', 1, 500.00000, NULL);
+INSERT INTO `guia_detalles` VALUES (10, 6, 44, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 'UNIDAD', 1, 500.00000, NULL);
+INSERT INTO `guia_detalles` VALUES (11, 7, 44, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 'UNIDAD', 1, 690.30000, NULL);
+INSERT INTO `guia_detalles` VALUES (12, 8, 44, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 'UNIDAD', 1, 690.30000, NULL);
+INSERT INTO `guia_detalles` VALUES (13, 9, 45, NULL, 'producto', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 15 LT - MARCA: MASTER GOLDS // SERIE: 147258369', 'UNIDAD', 1, 944.00000, NULL);
 
 -- ----------------------------
 -- Table structure for guia_equipos
@@ -1137,11 +1224,11 @@ CREATE TABLE `guia_equipos`  (
   `equipo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `modelo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `numero_serie` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_guia_equipo`) USING BTREE,
   INDEX `fk_guia_equipos_guia`(`id_guia` ASC) USING BTREE,
   CONSTRAINT `fk_guia_equipos_guia` FOREIGN KEY (`id_guia`) REFERENCES `guia_remision` (`id_guia_remision`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of guia_equipos
@@ -1154,8 +1241,8 @@ DROP TABLE IF EXISTS `guia_licencias`;
 CREATE TABLE `guia_licencias`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `numero` varchar(15) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -1198,19 +1285,22 @@ CREATE TABLE `guia_remision`  (
   `estado` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `id_empresa` int NULL DEFAULT NULL,
   `sucursal` int NULL DEFAULT NULL,
+  `id_usuario` int NULL DEFAULT NULL,
   `ref_orden_compra` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id_guia_remision`) USING BTREE,
   INDEX `fk_guia_remision_ventas1_idx`(`id_venta` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of guia_remision
 -- ----------------------------
-INSERT INTO `guia_remision` VALUES (3, NULL, NULL, NULL, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', '2025-10-17', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '200501', '1', '', '', 'donato', '124312', 'EMER RODRIGO YARLEQUE ZAPATA', '', '', '0', '', '', 'T001', 1128, 1.00, 1, '1', 12, 1, '');
-INSERT INTO `guia_remision` VALUES (4, NULL, 1857, NULL, NULL, NULL, '2025-12-05', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'Calle La Lealtad', '010202', '1', '', '', '', '', '', '', '', '0', '', '', 'T001', 1129, 1.00, 1, '1', 12, 1, '');
-INSERT INTO `guia_remision` VALUES (5, NULL, 1857, NULL, NULL, NULL, '2025-12-05', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'Calle La Lealtad', '010202', '1', '', '', '', '', '', '', '', '0', '', '', 'T001', 1130, 1.00, 1, '1', 12, 1, '');
-INSERT INTO `guia_remision` VALUES (6, NULL, 1857, NULL, NULL, NULL, '2025-12-05', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'Calle La Lealtad', '010202', '1', '', '', '', '', '', '', '', '0', '', '', 'T001', 1131, 1.00, 1, '1', 12, 1, '');
-INSERT INTO `guia_remision` VALUES (7, NULL, 1857, NULL, NULL, NULL, '2025-12-05', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'Calle La Lealtad', '010202', '1', '', '', '', '', '', '', '', '0', '', '', 'T001', 1132, 1.00, 1, '1', 12, 1, '');
+INSERT INTO `guia_remision` VALUES (3, NULL, NULL, NULL, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', '2025-10-17', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '200501', '1', '', '', 'donato', '124312', 'EMER RODRIGO YARLEQUE ZAPATA', '', '', '0', '', '', 'T001', 1128, 1.00, 1, '1', 12, 1, 63, '');
+INSERT INTO `guia_remision` VALUES (4, 10, 1856, NULL, NULL, NULL, '2025-12-02', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '150201', '1', '', '', 'donato', '124312', 'EMER RODRIGO YARLEQUE ZAPATA', 'ENTREGA HOY', '', '0', '', '', 'T001', 1129, 1.00, 1, '1', 12, 1, 63, 'NP-0001');
+INSERT INTO `guia_remision` VALUES (5, 12, 1859, NULL, NULL, NULL, '2025-12-02', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '010202', '1', '', '', 'sdcsa', 'sacdsa', 'EMER YARLEQUE ZAPATA', 'PRUEBA 3', '', '0', '', '', 'T001', 1130, 2.00, 2, '1', 12, 1, 63, '');
+INSERT INTO `guia_remision` VALUES (6, 14, 1860, NULL, NULL, NULL, '2025-12-02', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '010202', '1', '', '', 'donato', '124312', 'EMER RODRIGO YARLEQUE ZAPATA', 'PRUEBA 4', '', '0', '', '', 'T001', 1131, 1.00, 1, '1', 12, 1, 63, '');
+INSERT INTO `guia_remision` VALUES (7, 15, 1861, NULL, NULL, NULL, '2025-12-02', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '010202', '1', '', '', 'sdcsa', 'sacdsa', 'EMER YARLEQUE ZAPATA', '', '', '0', '', '', 'T001', 1132, 25.00, 25, '1', 12, 1, 63, 'MP16');
+INSERT INTO `guia_remision` VALUES (8, NULL, 1862, NULL, NULL, NULL, '2025-12-02', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '010202', '1', '', '', '', '', '', '', '', '0', '', '', 'T001', 1133, 1.00, 1, '1', 12, 1, 63, '');
+INSERT INTO `guia_remision` VALUES (9, 17, 1870, NULL, NULL, NULL, '2025-12-03', 'AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE', '1', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', '150103', '1', '', '', 'donato', '124312', 'EMER RODRIGO YARLEQUE ZAPATA', 'ENTREGA URGENTE', '', '0', '', '', 'T001', 1134, 7.00, 7, '1', 12, 1, 63, '10');
 
 -- ----------------------------
 -- Table structure for guia_sunat
@@ -1228,10 +1318,12 @@ CREATE TABLE `guia_sunat`  (
 -- Records of guia_sunat
 -- ----------------------------
 INSERT INTO `guia_sunat` VALUES (3, '', '20538381978-09-T001-1128', '20538381978|09|T001-1128|0.00|0.00|2025-10-17|1|77425200');
-INSERT INTO `guia_sunat` VALUES (4, '', '20538381978-09-T001-1129', '20538381978|09|T001-1129|0.00|0.00|2025-12-05|1|76877537');
-INSERT INTO `guia_sunat` VALUES (5, '', '20538381978-09-T001-1130', '20538381978|09|T001-1130|0.00|0.00|2025-12-05|1|76877537');
-INSERT INTO `guia_sunat` VALUES (6, '', '20538381978-09-T001-1131', '20538381978|09|T001-1131|0.00|0.00|2025-12-05|1|76877537');
-INSERT INTO `guia_sunat` VALUES (7, '', '20538381978-09-T001-1132', '20538381978|09|T001-1132|0.00|0.00|2025-12-05|1|76877537');
+INSERT INTO `guia_sunat` VALUES (4, '', '20538381978-09-T001-1129', '20538381978|09|T001-1129|0.00|0.00|2025-12-02|6|20601212472');
+INSERT INTO `guia_sunat` VALUES (5, '', '20538381978-09-T001-1130', '20538381978|09|T001-1130|0.00|0.00|2025-12-02|6|20601212472');
+INSERT INTO `guia_sunat` VALUES (6, '', '20538381978-09-T001-1131', '20538381978|09|T001-1131|0.00|0.00|2025-12-02|6|20601212472');
+INSERT INTO `guia_sunat` VALUES (7, '', '20538381978-09-T001-1132', '20538381978|09|T001-1132|0.00|0.00|2025-12-02|6|20601212472');
+INSERT INTO `guia_sunat` VALUES (8, '', '20538381978-09-T001-1133', '20538381978|09|T001-1133|0.00|0.00|2025-12-02|6|20601212472');
+INSERT INTO `guia_sunat` VALUES (9, '', '20538381978-09-T001-1134', '20538381978|09|T001-1134|0.00|0.00|2025-12-03|6|20601212472');
 
 -- ----------------------------
 -- Table structure for guia_vehiculos
@@ -1242,8 +1334,8 @@ CREATE TABLE `guia_vehiculos`  (
   `placa` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `marca` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `modelo` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -1265,17 +1357,24 @@ CREATE TABLE `historial_stock`  (
   `id_producto` int NOT NULL,
   `tipo_movimiento` enum('INGRESO','EGRESO') CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `cantidad` int NOT NULL,
+  `costo_compra` decimal(10, 2) NULL DEFAULT NULL,
   `fecha_movimiento` datetime NOT NULL,
   `usuario` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `observaciones` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_producto`(`id_producto` ASC) USING BTREE,
   CONSTRAINT `historial_stock_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of historial_stock
 -- ----------------------------
+INSERT INTO `historial_stock` VALUES (1, 18, 'INGRESO', 10, NULL, '2025-06-20 12:50:48', 'Sistema', NULL);
+INSERT INTO `historial_stock` VALUES (2, 18, 'INGRESO', 2, NULL, '2025-06-25 09:32:10', 'Sistema', NULL);
+INSERT INTO `historial_stock` VALUES (3, 18, 'INGRESO', 1, NULL, '2025-07-21 10:46:17', 'Sistema', NULL);
+INSERT INTO `historial_stock` VALUES (4, 18, 'INGRESO', 1, NULL, '2025-08-14 10:32:29', 'Administrador', NULL);
+INSERT INTO `historial_stock` VALUES (5, 42, 'INGRESO', 1, NULL, '2025-10-06 17:36:36', 'Administrador', NULL);
+INSERT INTO `historial_stock` VALUES (6, 20, 'EGRESO', 1, NULL, '2025-12-17 19:02:06', 'Sistema', 'Venta F001-2394');
 
 -- ----------------------------
 -- Table structure for informe_template
@@ -1287,15 +1386,15 @@ CREATE TABLE `informe_template`  (
   `contenido` longtext CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `header_image` longtext CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
   `footer_image` longtext CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of informe_template
 -- ----------------------------
-INSERT INTO `informe_template` VALUES (1, 'INFORME', '<p>Contenido del informe por defecto.</p>', 'files/informes/membretes/1756990784_68b98d40596cb.jpg', 'files/informes/membretes/1756990784_68b98d409b74e.jpg', '2025-05-15 18:15:53', '2025-09-04 08:59:44');
+INSERT INTO `informe_template` VALUES (1, 'INFORME', '<p><strong>Estimados señores:</strong></p><p>Presente.</p><p>Por medio del presente, me permito poner a su consideración el <strong>informe correspondiente</strong>, elaborado con la finalidad de comunicar de manera clara y objetiva la información relevante relacionada al tema evaluado.</p>', 'files/informes/membretes/1756990784_68b98d40596cb.jpg', 'files/informes/membretes/1756990784_68b98d409b74e.jpg', '2025-05-15 18:15:53', '2025-12-03 17:45:51');
 
 -- ----------------------------
 -- Table structure for informes
@@ -1311,14 +1410,15 @@ CREATE TABLE `informes`  (
   `cliente_id` int NULL DEFAULT NULL,
   `persona_entregar` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `usuario_id` int NULL DEFAULT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of informes
 -- ----------------------------
 INSERT INTO `informes` VALUES (0, 'INFORME DE DIAGNÓSTICO TÉCNICO', 'INFORME', '<p>Contenido del informe por defecto.</p>', 'files/informes/1756990645_68b98cb5294e2.jpg', 'files/informes/1756990645_68b98cb53e43c.jpg', 16, '', 1, '2025-09-04 08:57:25', '2025-09-04 08:57:25');
+INSERT INTO `informes` VALUES (0, 'INFORME DE MANTENIMIENTO PREVENTIVO', 'INFORME', '<p><strong>Estimados señores:</strong></p><p>Presente.</p><p>Por medio del presente, me permito poner a su consideración el <strong>informe correspondiente</strong>, elaborado con la finalidad de comunicar de manera clara y objetiva la información relevante relacionada al tema evaluado.</p><p>SE LE ADJUNTA  QUE ESTO ES VALIDO</p><p><br></p>', 'files/informes/1764794833_6930a1d18a8b6.jpg', 'files/informes/1764794834_6930a1d26ed77.jpg', 28, 'EDUARDO 1', 63, '2025-12-03 17:47:15', '2025-12-03 17:47:15');
 
 -- ----------------------------
 -- Table structure for ingreso_egreso
@@ -1334,8 +1434,8 @@ CREATE TABLE `ingreso_egreso`  (
   `id_usuario` int NULL DEFAULT NULL,
   `estado` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT '2' COMMENT '2 = solo ingreso',
   `observaciones` text CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL,
-  `fecha_creacion` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` datetime NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`intercambio_id`) USING BTREE,
   INDEX `id_usuario`(`id_usuario` ASC) USING BTREE,
   INDEX `id_producto`(`id_producto` ASC) USING BTREE
@@ -1411,7 +1511,7 @@ CREATE TABLE `mes`  (
   `id` int NOT NULL,
   `nombre` varchar(12) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = MyISAM CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of mes
@@ -1444,7 +1544,7 @@ CREATE TABLE `metas_empresa`  (
   `estado` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT '1',
   PRIMARY KEY (`id_meta_empresa`) USING BTREE,
   INDEX `idx_empresa_mes_anio`(`id_empresa` ASC, `mes` ASC, `anio` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of metas_empresa
@@ -1463,14 +1563,14 @@ CREATE TABLE `metas_vendedores`  (
   `meta_individual` decimal(10, 2) NOT NULL,
   `mes` int NOT NULL,
   `anio` int NOT NULL,
-  `fecha_creacion` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
   `fecha_actualizacion` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `estado` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT '1',
   PRIMARY KEY (`id_meta_vendedor`) USING BTREE,
   INDEX `idx_empresa_vendedor_periodo`(`id_empresa` ASC, `usuario_id` ASC, `mes` ASC, `anio` ASC) USING BTREE,
   INDEX `idx_vendedor`(`usuario_id` ASC) USING BTREE,
   CONSTRAINT `fk_metas_vendedores_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of metas_vendedores
@@ -1568,8 +1668,8 @@ DROP TABLE IF EXISTS `motivos_guia`;
 CREATE TABLE `motivos_guia`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   `es_defecto` tinyint(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
@@ -1642,7 +1742,7 @@ CREATE TABLE `numero_series`  (
   `tiene_cliente` tinyint(1) NULL DEFAULT 1 COMMENT '1=con cliente, 0=sin cliente',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_numero`(`numero` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of numero_series
@@ -1650,6 +1750,9 @@ CREATE TABLE `numero_series`  (
 INSERT INTO `numero_series` VALUES (11, 1, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', '2025-08-25', 1, 1);
 INSERT INTO `numero_series` VALUES (12, 2, NULL, NULL, '2025-08-25', 3, 0);
 INSERT INTO `numero_series` VALUES (13, 3, 'YESLITP YOSELI MELGAREJO REMIGIO', '77426790', '2025-08-27', 2, 1);
+INSERT INTO `numero_series` VALUES (14, 4, NULL, NULL, '2025-12-02', 3, 0);
+INSERT INTO `numero_series` VALUES (15, 5, 'LIM KIT CORPORACION E.I.R.L.', '20601212472', '2025-12-30', 1, 1);
+INSERT INTO `numero_series` VALUES (16, 6, 'EMER RODRIGO YARLEQUE ZAPATA', '77425200', '2026-01-08', 1, 1);
 
 -- ----------------------------
 -- Table structure for observacion
@@ -1659,7 +1762,7 @@ CREATE TABLE `observacion`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `detalle` text CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of observacion
@@ -1676,12 +1779,13 @@ CREATE TABLE `observaciones_compra`  (
   `observaciones` text CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_compra`(`id_compra` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of observaciones_compra
 -- ----------------------------
 INSERT INTO `observaciones_compra` VALUES (1, 4, '• Los productos deben entregarse en perfecto estado y con su embalaje original.\n• El proveedor debe cumplir con los plazos<span style=\"color: rgb(255, 194, 102);\"> de entrega establecidos</span><span style=\"color: rgb(255, 255, 102);\">.</span>\n• Cualquier producto defectuoso será devuelto y deberá ser reemplazado sin costo adicional.\n• La factura debe incluir el número de orden de compra como referencia.\n• El pago se realizará según los términos acordados una vez verificada la mercancía.\n• El proveedor debe proporcionar garantía para todos los productos suministrados.\n• Los precios acordados no pueden ser modificados sin previo aviso por escrito.\n');
+INSERT INTO `observaciones_compra` VALUES (2, 5, '• <span style=\"background-color: rgb(255, 255, 0);\">• Los productos deben entregarse en perfecto estado y con su embalaje original.</span>\n• El proveedor debe cumplir con los plazos de entrega establecidos.\n• Cualquier producto defectuoso será devuelto y deberá ser reemplazado sin costo adicional.\n• La factura debe incluir el número de orden de compra como referencia.\n• El pago se realizará según los términos acordados una vez verificada la mercancía.\n• El proveedor debe proporcionar garantía para todos los productos suministrados.\n• Los precios acordados no pueden ser modificados sin previo aviso por escrito.\n');
 
 -- ----------------------------
 -- Table structure for orden_servicio_detalles
@@ -1697,11 +1801,13 @@ CREATE TABLE `orden_servicio_detalles`  (
   PRIMARY KEY (`id_detalle`) USING BTREE,
   INDEX `fk_orden_servicio`(`id_orden_servicio` ASC) USING BTREE,
   CONSTRAINT `fk_orden_servicio_detalles` FOREIGN KEY (`id_orden_servicio`) REFERENCES `orden_servicio_pre` (`id_orden_servicio`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orden_servicio_detalles
 -- ----------------------------
+INSERT INTO `orden_servicio_detalles` VALUES (13, 12, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '1234');
+INSERT INTO `orden_servicio_detalles` VALUES (14, 12, 'MASTER GOLDS', 'LUSTRADORA', 'ASJ12', '12345');
 
 -- ----------------------------
 -- Table structure for orden_servicio_pre
@@ -1718,17 +1824,18 @@ CREATE TABLE `orden_servicio_pre`  (
   `tiene_cotizacion` tinyint(1) NULL DEFAULT 0,
   `estado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'PENDIENTE',
   `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_orden_servicio`) USING BTREE,
   INDEX `idx_cliente_ruc`(`cliente_ruc` ASC) USING BTREE,
   INDEX `idx_fecha_ingreso`(`fecha_ingreso` ASC) USING BTREE,
   INDEX `idx_estado`(`estado` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orden_servicio_pre
 -- ----------------------------
+INSERT INTO `orden_servicio_pre` VALUES (12, 'OS-01', 'LIM KIT CORPORACION E.I.R.L.', '20601212472', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', 'EDUARDO', '2025-12-03', 1, 'PENDIENTE', 'MOTOR NO ENCIENDE', '2025-12-03 16:16:04', '2025-12-03 16:28:52');
 
 -- ----------------------------
 -- Table structure for orden_trabajo_detalles
@@ -1744,11 +1851,19 @@ CREATE TABLE `orden_trabajo_detalles`  (
   PRIMARY KEY (`id_detalle`) USING BTREE,
   INDEX `fk_orden_trabajo`(`id_orden_trabajo` ASC) USING BTREE,
   CONSTRAINT `fk_orden_trabajo_detalles` FOREIGN KEY (`id_orden_trabajo`) REFERENCES `orden_trabajo_pre` (`id_orden_trabajo`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 50 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orden_trabajo_detalles
 -- ----------------------------
+INSERT INTO `orden_trabajo_detalles` VALUES (42, 13, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51115');
+INSERT INTO `orden_trabajo_detalles` VALUES (43, 13, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51116');
+INSERT INTO `orden_trabajo_detalles` VALUES (44, 13, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51117');
+INSERT INTO `orden_trabajo_detalles` VALUES (45, 14, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51115');
+INSERT INTO `orden_trabajo_detalles` VALUES (46, 14, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51116');
+INSERT INTO `orden_trabajo_detalles` VALUES (47, 14, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '51117');
+INSERT INTO `orden_trabajo_detalles` VALUES (48, 15, 'SPEED POWER', 'ASPIRADORA', 'AG-06', '51118');
+INSERT INTO `orden_trabajo_detalles` VALUES (49, 16, 'SPEED POWER', 'ASPIRADORA', 'AG-06', '51118');
 
 -- ----------------------------
 -- Table structure for orden_trabajo_pre
@@ -1766,17 +1881,21 @@ CREATE TABLE `orden_trabajo_pre`  (
   `tiene_cotizacion` tinyint(1) NULL DEFAULT 0,
   `estado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'PENDIENTE',
   `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_orden_trabajo`) USING BTREE,
   INDEX `idx_cliente_ruc`(`cliente_ruc` ASC) USING BTREE,
   INDEX `idx_fecha_ingreso`(`fecha_ingreso` ASC) USING BTREE,
   INDEX `idx_estado`(`estado` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orden_trabajo_pre
 -- ----------------------------
+INSERT INTO `orden_trabajo_pre` VALUES (13, 'OT-02', 'COMERCIAL & INDUSTRIAL J. V. C. S.A.C.', '20538381978', NULL, 'EDUARDO', '2025-12-02', '2025-12-09', 0, 'PENDIENTE', 'TENER LISTO CON ACCESORIO', '2025-12-02 19:43:11', '2025-12-02 19:43:11');
+INSERT INTO `orden_trabajo_pre` VALUES (14, 'OT-03', 'COMERCIAL & INDUSTRIAL J. V. C. S.A.C.', '20538381978', NULL, 'EDUARDO', '2025-12-02', '2025-12-09', 0, 'PENDIENTE', 'TENER LISTO CON ACCESORIO', '2025-12-02 19:43:21', '2025-12-02 19:43:21');
+INSERT INTO `orden_trabajo_pre` VALUES (15, 'OT-04', 'LIM KIT CORPORACION E.I.R.L.', '20601212472', NULL, 'EDUARDO', '2025-12-30', '2026-01-06', 0, 'PENDIENTE', '', '2025-12-30 18:36:23', '2025-12-30 18:36:23');
+INSERT INTO `orden_trabajo_pre` VALUES (16, 'OT-05', 'LIM KIT CORPORACION E.I.R.L.', '20601212472', NULL, 'EDUARDO', '2025-12-30', '2026-01-06', 0, 'PENDIENTE', 'hola', '2025-12-30 18:36:32', '2025-12-30 18:36:32');
 
 -- ----------------------------
 -- Table structure for orden_trabajo_repuestos
@@ -1792,7 +1911,7 @@ CREATE TABLE `orden_trabajo_repuestos`  (
   `cantidad` int NOT NULL,
   `precio_unitario` decimal(10, 2) NOT NULL,
   `precio_total` decimal(10, 2) NOT NULL,
-  `fecha_agregado` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_agregado` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_repuesto_orden`) USING BTREE,
   INDEX `idx_orden_trabajo_repuestos_orden`(`id_orden_trabajo` ASC) USING BTREE,
   INDEX `idx_orden_trabajo_repuestos_detalle`(`id_detalle_maquina` ASC) USING BTREE,
@@ -1802,7 +1921,7 @@ CREATE TABLE `orden_trabajo_repuestos`  (
   CONSTRAINT `orden_trabajo_repuestos_ibfk_2` FOREIGN KEY (`id_detalle_maquina`) REFERENCES `orden_trabajo_detalles` (`id_detalle`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `orden_trabajo_repuestos_ibfk_3` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `orden_trabajo_repuestos_ibfk_4` FOREIGN KEY (`id_repuesto`) REFERENCES `repuestos` (`id_repuesto`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of orden_trabajo_repuestos
@@ -1823,14 +1942,14 @@ CREATE TABLE `otros_archivos`  (
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
   `estado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'activo',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `cliente_id`(`id_cliente` ASC) USING BTREE,
   INDEX `usuario_id`(`usuario_id` ASC) USING BTREE,
   CONSTRAINT `otros_archivos_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `otros_archivos_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of otros_archivos
@@ -1846,10 +1965,10 @@ CREATE TABLE `otros_archivos_plantillas`  (
   `contenido` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `header_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de cabecera en base64',
   `footer_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT 'Imagen de pie en base64',
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of otros_archivos_plantillas
@@ -1911,11 +2030,20 @@ CREATE TABLE `producto_precios`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_producto_precios_productos`(`id_producto` ASC) USING BTREE,
   CONSTRAINT `fk_producto_precios_productos` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of producto_precios
 -- ----------------------------
+INSERT INTO `producto_precios` VALUES (12, 45, 'EDUARDO', 800.00);
+INSERT INTO `producto_precios` VALUES (14, 43, 'EDUARDO', 700.00);
+INSERT INTO `producto_precios` VALUES (15, 46, 'EDUARDO', 750.00);
+INSERT INTO `producto_precios` VALUES (16, 42, 'EDUARDO', 3000.00);
+INSERT INTO `producto_precios` VALUES (23, 18, 'NG1', 2700.00);
+INSERT INTO `producto_precios` VALUES (24, 18, 'EDU1', 2600.00);
+INSERT INTO `producto_precios` VALUES (27, 44, 'EDUARDO', 500.00);
+INSERT INTO `producto_precios` VALUES (28, 20, 'NG1', 2900.00);
+INSERT INTO `producto_precios` VALUES (29, 20, 'EDU1', 2800.00);
 
 -- ----------------------------
 -- Table structure for productos
@@ -1952,347 +2080,370 @@ CREATE TABLE `productos`  (
   `descripcion` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `unidad` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `moneda` enum('PEN','USD') CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT 'PEN',
-  `fecha_registro` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_registro` datetime NULL DEFAULT current_timestamp(),
   `fecha_ultimo_ingreso` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id_producto`) USING BTREE,
   INDEX `fk_productos_empresas1_idx`(`id_empresa` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2736 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 376 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of productos
 -- ----------------------------
-INSERT INTO `productos` VALUES (2404, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 10\" (NACIONAL)', 100.24, 20.00, 20, 0, 12, 1, '1000-01-01', '0', '0', '0', 90.22, 85.20, NULL, NULL, '1', '1', 85.20, 0.00, 0.00, 100.24, 'CEP-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2405, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 11\" (NACIONAL)', 101.80, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 91.62, 86.53, NULL, NULL, '1', '1', 86.53, 0.00, 0.00, 101.80, 'CEP-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2406, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 12\" (NACIONAL)', 104.91, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 94.42, 89.18, NULL, NULL, '1', '1', 89.18, 0.00, 0.00, 104.91, 'CEP-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2407, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 13\" (NACIONAL)', 109.46, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 98.51, 93.04, NULL, NULL, '1', '1', 93.04, 0.00, 0.00, 109.46, 'CEP-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2408, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 14\" (NACIONAL)', 112.57, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.31, 95.69, NULL, NULL, '1', '1', 95.69, 0.00, 0.00, 112.57, 'CEP-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2409, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 15\" (NACIONAL)', 117.11, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 105.40, 99.55, NULL, NULL, '1', '1', 99.55, 0.00, 0.00, 117.11, 'CEP-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2410, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 16\" (NACIONAL)', 121.79, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 109.61, 103.52, NULL, NULL, '1', '1', 103.52, 0.00, 0.00, 121.79, 'CEP-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2411, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 17\" (NACIONAL)', 130.87, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 117.79, 111.24, NULL, NULL, '1', '1', 111.24, 0.00, 0.00, 130.87, 'CEP-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2412, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 18\" (NACIONAL)', 135.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 121.99, 115.21, NULL, NULL, '1', '1', 115.21, 0.00, 0.00, 135.55, 'CEP-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2413, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 19\" (NACIONAL)', 146.19, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.57, 124.26, NULL, NULL, '1', '1', 124.26, 0.00, 0.00, 146.19, 'CEP-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2414, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 20\" (NACIONAL)', 153.85, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 138.46, 130.77, NULL, NULL, '1', '1', 130.77, 0.00, 0.00, 153.85, 'CEP-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2415, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 21\" (NACIONAL)', 158.52, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 142.67, 134.74, NULL, NULL, '1', '1', 134.74, 0.00, 0.00, 158.52, 'CEP-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2416, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 22\" (NACIONAL)', 161.51, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 145.36, 137.28, NULL, NULL, '1', '1', 137.28, 0.00, 0.00, 161.51, 'CEP-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2417, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 11\" (NACIONAL)', 100.24, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 90.22, 85.20, NULL, NULL, '1', '1', 85.20, 0.00, 0.00, 100.24, 'CEP-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2418, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 12\" (NACIONAL)', 101.80, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 91.62, 86.53, NULL, NULL, '1', '1', 86.53, 0.00, 0.00, 101.80, 'CEP-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2419, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 13\" (NACIONAL)', 104.91, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 94.42, 89.18, NULL, NULL, '1', '1', 89.18, 0.00, 0.00, 104.91, 'CEP-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2420, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 14\" (NACIONAL)', 109.46, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 98.51, 93.04, NULL, NULL, '1', '1', 93.04, 0.00, 0.00, 109.46, 'CEP-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2421, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 15\" (NACIONAL)', 112.57, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.31, 95.69, NULL, NULL, '1', '1', 95.69, 0.00, 0.00, 112.57, 'CEP-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2422, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 16\" (NACIONAL)', 117.11, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 105.40, 99.55, NULL, NULL, '1', '1', 99.55, 0.00, 0.00, 117.11, 'CEP-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2423, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 17\" (NACIONAL)', 121.79, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 109.61, 103.52, NULL, NULL, '1', '1', 103.52, 0.00, 0.00, 121.79, 'CEP-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2424, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 18\" (NACIONAL)', 130.87, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 117.79, 111.24, NULL, NULL, '1', '1', 111.24, 0.00, 0.00, 130.87, 'CEP-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2425, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 19\" (NACIONAL)', 135.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 121.99, 115.21, NULL, NULL, '1', '1', 115.21, 0.00, 0.00, 135.55, 'CEP-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2426, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 20\" (NACIONAL)', 146.19, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.57, 124.26, NULL, NULL, '1', '1', 124.26, 0.00, 0.00, 146.19, 'CEP-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2427, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 21\" (NACIONAL)', 153.85, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 138.46, 130.77, NULL, NULL, '1', '1', 130.77, 0.00, 0.00, 153.85, 'CEP-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2428, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 22\" (NACIONAL)', 158.52, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 142.67, 134.74, NULL, NULL, '1', '1', 134.74, 0.00, 0.00, 158.52, 'CEP-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2429, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (IMPORTADO)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPI-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2430, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 15\" (IMPORTADO)', 160.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 160.00, 'CEPI-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2431, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 16\" (IMPORTADO)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPI-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2432, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 17\" (IMPORTADO)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPI-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2433, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 18\" (IMPORTADO)', 194.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 175.23, 165.50, NULL, NULL, '1', '1', 165.50, 0.00, 0.00, 194.70, 'CEPI-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2434, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 19\" (IMPORTADO)', 194.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 175.23, 165.50, NULL, NULL, '1', '1', 165.50, 0.00, 0.00, 194.70, 'CEPI-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2435, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (FREGADORA ADVANCE)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2436, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (FREGADORA TENNANT)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2437, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 16\" (FREGADORA TENNANT)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2438, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 14\" (FREGADORA VIPER)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2439, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (AZUL)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2440, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (ROJO)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2441, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (VERDE)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2442, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (AZUL)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2443, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (ROJO)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2444, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (VERDE)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2445, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (AZUL)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2446, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (ROJO)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2447, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (VERDE)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2448, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (AZUL)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2449, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (ROJO)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2450, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (VERDE)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2451, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (AZUL)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2452, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (ROJO)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2453, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (VERDE)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2454, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (AZUL)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2455, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (ROJO)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2456, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (VERDE)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2457, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (AZUL)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2458, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (ROJO)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2459, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (VERDE)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2460, NULL, 'BALDE PRENSA MOPA DE 36 LT DOBLE CUBO (18 LT C/U)', 387.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 348.75, 329.38, NULL, NULL, '1', '1', 329.38, 0.00, 0.00, 387.50, 'IMPLE-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2461, NULL, 'BALDE PRENSA MOPA DE 36 LTS', 252.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 227.25, 214.62, NULL, NULL, '1', '1', 214.62, 0.00, 0.00, 252.50, 'IMPLE-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2462, NULL, 'BALDE PRENSA MOPA DE 36 LTS', 260.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 234.00, 221.00, NULL, NULL, '1', '1', 221.00, 0.00, 0.00, 260.00, 'IMPLE-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2463, NULL, 'BALDE PRENSA MOPA DE 36 LTS (DOBLE CUBO)', 336.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 302.85, 286.02, NULL, NULL, '1', '1', 286.02, 0.00, 0.00, 336.50, 'IMPLE-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2464, NULL, 'BALDE PRENSA MOPA PREMIUM DE 81 LT + 3 BALDES + BANDEJA', 548.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 493.20, 465.80, NULL, NULL, '1', '1', 465.80, 0.00, 0.00, 548.00, 'IMPLE-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2465, NULL, 'BANDEJA ORGANIZADORA DE IMPLEMENTOS DE LIMPIEZA', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2466, NULL, 'COCHE PORTA MATERIALES (AZUL)', 360.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 324.00, 306.00, NULL, NULL, '1', '1', 306.00, 0.00, 0.00, 360.00, 'IMPLE-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2467, NULL, 'COCHE PORTA MATERIALES (GRIS Y AZUL)', 330.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 297.00, 280.50, NULL, NULL, '1', '1', 280.50, 0.00, 0.00, 330.00, 'IMPLE-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2468, NULL, 'COCHE PORTA IMPLEMENTOS DE LIMPIEZA (LINEA INSTITUCIONAL)', 650.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 585.00, 552.50, NULL, NULL, '1', '1', 552.50, 0.00, 0.00, 650.00, 'IMPLE-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2469, NULL, 'COCHE PORTA IMPLEMENTOS DE LIMPIEZA (LINEA HOSPITALARIA, INSTITUCIONAL, HOTELERA)', 1100.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 990.00, 935.00, NULL, NULL, '1', '1', 935.00, 0.00, 0.00, 1100.00, 'IMPLE-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2470, NULL, 'COCHE PORTA IMPLEMENTOS (REPUESTO BOLSA 60 LT)', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2471, NULL, 'COCHE PORTA IMPLEMENTOS C/ CIERRE (REPUESTO BOLSA X LT)', 78.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 70.20, 66.30, NULL, NULL, '1', '1', 66.30, 0.00, 0.00, 78.00, 'IMPLE-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2472, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 3 MTS (AZUL)', 65.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 58.50, 55.25, NULL, NULL, '1', '1', 55.25, 0.00, 0.00, 65.00, 'IMPLE-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2473, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 3 MTS (ESPECIAL - NEGRO)', 75.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 67.50, 63.75, NULL, NULL, '1', '1', 63.75, 0.00, 0.00, 75.00, 'IMPLE-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2474, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 4 MTS (NEGRO Y AZUL)', 80.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 72.00, 68.00, NULL, NULL, '1', '1', 68.00, 0.00, 0.00, 80.00, 'IMPLE-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2475, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 4.5 MTS (NEGRO)', 95.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 85.50, 80.75, NULL, NULL, '1', '1', 80.75, 0.00, 0.00, 95.00, 'IMPLE-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2476, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 6 MTS (3 SECCIONES) (AZUL)', 118.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 106.20, 100.30, NULL, NULL, '1', '1', 100.30, 0.00, 0.00, 118.00, 'IMPLE-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2477, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 9 MTS (3 SECCIONES) (AZUL)', 146.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.40, 124.10, NULL, NULL, '1', '1', 124.10, 0.00, 0.00, 146.00, 'IMPLE-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2478, NULL, 'HUMEDECEDOR DE LUNAS P/EXTENSIÓN TELESCOPICA DE 40 CM (AZUL)', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2479, NULL, 'HUMEDECEDOR DE LUNAS P/EXTENSIÓN TELESCOPICA DE 45 CM (NEGRO)', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2480, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE ACERO ZINCADO DE 60 CM', 78.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 70.65, 66.72, NULL, NULL, '1', '1', 66.72, 0.00, 0.00, 78.50, 'IMPLE-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2481, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE ACERO ZINCADO DE 100 CM', 88.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 79.65, 75.22, NULL, NULL, '1', '1', 75.22, 0.00, 0.00, 88.50, 'IMPLE-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2482, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE PLÁSTICA DE 55 CM', 33.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 30.15, 28.48, NULL, NULL, '1', '1', 28.48, 0.00, 0.00, 33.50, 'IMPLE-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2483, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE PLÁSTICA DE 75 CM', 38.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 34.65, 32.73, NULL, NULL, '1', '1', 32.73, 0.00, 0.00, 38.50, 'IMPLE-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2484, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE ACERO INOX 55CM', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2485, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE ACERO INOX 75CM', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-026', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2486, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE PROPILENO DE 60 CM (INDUSTRIA HOSPITALARIA - ALIMENTARIA)', 75.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 67.50, 63.75, NULL, NULL, '1', '1', 63.75, 0.00, 0.00, 75.00, 'IMPLE-027', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2487, NULL, 'LETRERO PREVENTIVO \"CUIDADO PISO MOJADO\"', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-028', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2488, NULL, 'LETRERO PREVENTIVO EN FORMA DE CONO \"CUIDADO PISO MOJADO\"', 45.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 40.50, 38.25, NULL, NULL, '1', '1', 38.25, 0.00, 0.00, 45.00, 'IMPLE-029', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2489, NULL, 'LIMPIADOR DE LUNAS DE 35 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-030', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2490, NULL, 'LIMPIADOR DE LUNAS DE 40 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-031', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2491, NULL, 'LIMPIADOR DE LUNAS DE 45 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-032', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2492, NULL, 'LIMPIADOR DE LUNAS DUAL P/EXTENSIÓN TELESCÓPICA (HUMEDECEDOR Y JALADOR DE GOMA)', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-033', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2493, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 60 CM C/MANGO DE ALUMINIO (COMPLETO)', 36.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 32.85, 31.02, NULL, NULL, '1', '1', 31.02, 0.00, 0.00, 36.50, 'IMPLE-034', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2494, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 60 CM (REPUESTO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-035', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2495, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 90 CM C/MANGO DE ALUMINIO (COMPLETO)', 58.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 52.20, 49.30, NULL, NULL, '1', '1', 49.30, 0.00, 0.00, 58.00, 'IMPLE-036', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2496, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 90 CM (REPUESTO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-037', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2497, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 110 CM C/MANGO DE ALUMINIO (COMPLETO)', 79.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 71.10, 67.15, NULL, NULL, '1', '1', 67.15, 0.00, 0.00, 79.00, 'IMPLE-038', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2498, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 110 CM (REPUESTO)', 67.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 60.75, 57.38, NULL, NULL, '1', '1', 57.38, 0.00, 0.00, 67.50, 'IMPLE-039', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2499, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 60 CM C/MANGO DE ACERO INOX (COMPLETO)', 51.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 45.90, 43.35, NULL, NULL, '1', '1', 43.35, 0.00, 0.00, 51.00, 'IMPLE-040', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2500, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 60 CM (REPUESTO)', 28.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.65, 24.22, NULL, NULL, '1', '1', 24.22, 0.00, 0.00, 28.50, 'IMPLE-041', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2501, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 90 CM C/MANGO DE ACERO INOX (COMPLETO)', 72.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 64.80, 61.20, NULL, NULL, '1', '1', 61.20, 0.00, 0.00, 72.00, 'IMPLE-042', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2502, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 90 CM (REPUESTO)', 39.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.10, 33.15, NULL, NULL, '1', '1', 33.15, 0.00, 0.00, 39.00, 'IMPLE-043', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2503, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 110 CM C/MANGO DE ACERO INOX (COMPLETO)', 95.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 85.95, 81.18, NULL, NULL, '1', '1', 81.18, 0.00, 0.00, 95.50, 'IMPLE-044', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2504, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 110 CM (REPUESTO)', 51.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 45.90, 43.35, NULL, NULL, '1', '1', 43.35, 0.00, 0.00, 51.00, 'IMPLE-045', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2505, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 60 CM C/MANGO DE ALUMINIO (COMPLETO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-046', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2506, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 60 CM (REPUESTO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-047', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2507, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 90 CM C/MANGO DE ALUMINIO (COMPLETO)', 67.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 60.75, 57.38, NULL, NULL, '1', '1', 57.38, 0.00, 0.00, 67.50, 'IMPLE-048', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2508, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 90 CM (REPUESTO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-049', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2509, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 110 CM C/MANGO DE ALUMINIO (COMPLETO)', 88.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 79.65, 75.22, NULL, NULL, '1', '1', 75.22, 0.00, 0.00, 88.50, 'IMPLE-050', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2510, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 110 CM (REPUESTO)', 72.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 64.80, 61.20, NULL, NULL, '1', '1', 61.20, 0.00, 0.00, 72.00, 'IMPLE-051', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2511, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM (PALO CON SUJETADOR) (MOJADO O SECO)', 95.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 85.50, 80.75, NULL, NULL, '1', '1', 80.75, 0.00, 0.00, 95.00, 'IMPLE-052', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2512, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: AZUL)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-053', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2513, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: ROJO)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-054', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2514, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: VERDE)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-055', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2515, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: AMARILLO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-056', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2516, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: AZUL)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-057', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2517, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: ROJO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-058', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2518, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: VERDE)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-059', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2519, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: AMARILLO)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-060', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2520, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: AZUL)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-061', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2521, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: ROJO)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-062', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2522, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: VERDE)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-063', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2523, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: AMARILLO)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-064', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2524, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: AZUL)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-065', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2525, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: ROJO)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-066', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2526, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: VERDE)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-067', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2527, NULL, 'RECOGEDOR Y ESCOBA LOBBY (COMPLETO)', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-068', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2528, NULL, 'TRAPEADOR MECHÓN DE 500 GR', 8.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 7.20, 6.80, NULL, NULL, '1', '1', 6.80, 0.00, 0.00, 8.00, 'IMPLE-069', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2529, NULL, 'TRAPEADOR MECHÓN BLANCO DE 450 GR (IMPORTADO)', 16.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.40, 13.60, NULL, NULL, '1', '1', 13.60, 0.00, 0.00, 16.00, 'IMPLE-070', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2530, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: AZUL)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-071', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2531, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: ROJO)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-072', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2532, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: VERDE)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-073', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2533, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - AZUL', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-074', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2534, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - ROJO', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-075', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2535, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - VERDE', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-076', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2536, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3292.20, 3109.30, '1', '1', '1', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-001', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', 20, NULL, 'null', 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2537, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3958.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3610.80, 3410.20, NULL, NULL, '1', '1', 3410.20, 0.00, 0.00, 3958.00, 'JVC-001-1', NULL, 'Modelo: TD-12N Potencia de motor: 2.0 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2538, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 3894.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3504.60, 3309.90, NULL, NULL, '1', '1', 3309.90, 0.00, 0.00, 3894.00, 'JVC-002', NULL, 'Modelo: TD-14N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2539, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 4194.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3823.20, 3610.80, NULL, NULL, '1', '1', 3610.80, 0.00, 0.00, 4194.00, 'JVC-002-1', NULL, 'Modelo: TD-14N Potencia de motor: 2.0 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2540, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 4130.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3717.00, 3510.50, NULL, NULL, '1', '1', 3510.50, 0.00, 0.00, 4130.00, 'JVC-003', NULL, 'Modelo: TD-16N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 15\" y Cepillo de Lustrar de 15\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2541, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 4430.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4035.60, 3811.40, NULL, NULL, '1', '1', 3811.40, 0.00, 0.00, 4430.00, 'JVC-003-1', NULL, 'Modelo: TD-16N Potencia de motor: 2.0 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2542, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 4366.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3929.40, 3711.10, '1', '1', '1', '1', 3711.10, 0.00, 0.00, 4366.00, 'JVC-004', NULL, 'Modelo: TD-18N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 17\" y Cepillo de Lustrar de 17\"', 5, NULL, '14', 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2543, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 4666.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4248.00, 4012.00, NULL, NULL, '1', '1', 4012.00, 0.00, 0.00, 4666.00, 'JVC-004-1', NULL, 'Modelo: TD-18N Potencia de motor: 2.0 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2544, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 4602.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4141.80, 3911.70, NULL, NULL, '1', '1', 3911.70, 0.00, 0.00, 4602.00, 'JVC-005', NULL, 'Modelo: TD-20N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM Motor: KDS del Grupo Imperial. Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 20\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 19\" y Cepillo de Lustrar de 19\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2545, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 4902.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4460.40, 4212.60, NULL, NULL, '1', '1', 4212.60, 0.00, 0.00, 4902.00, 'JVC-005-1', NULL, 'Modelo: TD-20N Potencia de motor: 2.0 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2546, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23\" - MARCA: CRIS-TAURO', 5310.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4779.00, 4513.50, NULL, NULL, '1', '1', 4513.50, 0.00, 0.00, 5310.00, 'JVC-006', NULL, 'Modelo: TD-23N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 22\" y Cepillo de Lustrar de 22\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2547, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 6 GALONES - MARCA: CRIS-TAURO', 2183.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1964.70, 1855.55, NULL, NULL, '1', '1', 1855.55, 0.00, 0.00, 2183.00, 'JVC-007', NULL, 'Modelo: AD-06G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 06 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2548, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 8 GALONES - MARCA: CRIS-TAURO', 2596.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2336.40, 2206.60, NULL, NULL, '1', '1', 2206.60, 0.00, 0.00, 2596.00, 'JVC-008', NULL, 'Modelo: AD-08G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 08 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2549, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 10 GALONES - MARCA: CRIS-TAURO', 3009.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2708.10, 2557.65, NULL, NULL, '1', '1', 2557.65, 0.00, 0.00, 3009.00, 'JVC-009', NULL, 'Modelo: AD-10G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 10 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2550, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO', 3422.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3079.80, 2908.70, NULL, NULL, '1', '1', 2908.70, 0.00, 0.00, 3422.00, 'JVC-010', NULL, 'Modelo: AD-12G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 12 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2551, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 15 GALONES - MARCA: CRIS-TAURO', 3835.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3451.50, 3259.75, NULL, NULL, '1', '1', 3259.75, 0.00, 0.00, 3835.00, 'JVC-011', NULL, 'Modelo: AD-15G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 15 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2552, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 20 GALONES - MARCA: CRIS-TAURO', 4248.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3823.20, 3610.80, NULL, NULL, '1', '1', 3610.80, 0.00, 0.00, 4248.00, 'JVC-012', NULL, 'Modelo: AD-20G Motor: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 20 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2553, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 25 GALONES (DOBLE MOTOR) - MARCA: CRIS-TAURO', 4661.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4194.90, 3961.85, NULL, NULL, '1', '1', 3961.85, 0.00, 0.00, 4661.00, 'JVC-013', NULL, 'Modelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de vidrio de 15 Galones Cable Vulcanizado Homologado de 3x14: 10 metros INCLUYE: Kit completo de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2554, NULL, 'LAVADORA DE ALFOMBRAS INDUSTRIAL 16\" (SISTEMA CONVENSIONAL) - MARCA: CRIS- TAURO', 4543.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4088.70, 3861.55, NULL, NULL, '1', '1', 3861.55, 0.00, 0.00, 4543.00, 'JVC-014', NULL, 'Modelo: LTC-16C Motor: 1.5HP - 60Hz / 1750 RPM Motor de Mezcla: 1200W - 60 Hz Sistema de lavado: Sistema de inyección por gravedad Capacidad del Tanque: 12 Litros polietileno Incluye: Cepillo ranurado de lavar alfombras de 15\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2555, NULL, 'LAVADORA DE ALFOMBRAS INDUSTRIAL 16\" (SISTEMA INYECCIÓN A ESPUMA) - MARCA: CRIS-TAURO', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5841.00, 5516.50, NULL, NULL, '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-015', NULL, 'Modelo: LTC-16A Motor: 1.5HP - 60Hz / 1750 RPM Sistema de lavado: Sistema generador de espuma Tanque: 12 Litros de fibra de vidrio Incluye: Cepillo ranurado de lavar alfombras de 15\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2556, NULL, 'ABRILLANTADOR INDUSTRIAL PARA PISOS DE 20\" - MARCA: MASTER GOLDS', 4484.00, 0.00, 1, 0, 12, 1, '1000-01-01', '0', '0', '0', 4035.60, 3811.40, NULL, NULL, '1', '1', 3811.40, 0.00, 0.00, 4484.00, 'JVC-016', NULL, 'Modelo: AMG-1500A Motor: 2.0 HP Inducido Estructura: Polipropileno de alta densidad Plato: Polipropileno de 20\" Cable: Vulcanizado x 10 metros Incluye: Porta pad y disco pad de 20\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2557, NULL, 'ABRILLANTADORA INDUSTRIAL DE PISOS Y VINILES DE 20\" - MARCA MASTER GOLDS', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 6490.00, 'JVC-016-1', NULL, 'Modelo: AMG-1500C Motor: 2.0 HP Inducido Estructura: Acero Plato en Acero de 20\" Cable: Vulcanizado x 10 metros Incluye: Porta pad y disco pad de 20\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2558, NULL, 'ASPIRADORA PROFESIONAL DE POLVO DE 6 LITROS (TIPO MOCHILA) - MARCA: MASTER GOLDS', 979.40, 0.00, 1, 0, 12, 1, '1000-01-01', '0', '0', '0', 881.46, 832.49, NULL, NULL, '1', '1', 832.49, 0.00, 0.00, 979.40, 'JVC-017', NULL, 'Modelo: AMG-6L Motor: 1000W LAMB AMETEK Capacidad: 6 LT Aspirado: Polvo Cable: Vulcanizado x 10 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2559, NULL, 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 767.00, 0.00, 1, 0, 12, 1, '1000-01-01', '0', '0', '0', 690.30, 651.95, NULL, NULL, '1', '1', 651.95, 0.00, 0.00, 767.00, 'JVC-018', NULL, 'Modelo: AMG-10L Motor: 1000W LAMB AMETEK Capacidad: 10 LT Aspirado: Polvo Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2560, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 15 LT - MARCA: MASTER GOLDS', 944.00, 0.00, 1, 0, 12, 1, '1000-01-01', '0', '0', '0', 849.60, 802.40, NULL, NULL, '1', '1', 802.40, 0.00, 0.00, 944.00, 'JVC-019', NULL, 'Modelo: AMG-15L Motor: 1000W LAMB AMETEK Capacidad: 15 LT Estructura: Tanque de acero Aspirado: Polvo y Agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2561, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 25 LT - MARCA: MASTER GOLDS', 1062.00, 0.00, 1, 0, 12, 1, '1000-01-01', '0', '0', '0', 955.80, 902.70, NULL, NULL, '1', '1', 902.70, 0.00, 0.00, 1062.00, 'JVC-020', NULL, 'Modelo: AMG-25L Motor: 1000W LAMB AMETEK Capacidad: 25 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2562, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 30 LT - MARCA: MASTER GOLDS', 1180.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1062.00, 1003.00, NULL, NULL, '1', '1', 1003.00, 0.00, 0.00, 1180.00, 'JVC-021', NULL, 'Modelo: AMG-30L Motor: 1000W LAMB AMETEK Capacidad: 30 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2563, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: MASTER GOLDS', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1168.20, 1103.30, NULL, NULL, '1', '1', 1103.30, 0.00, 0.00, 1298.00, 'JVC-022', NULL, 'Modelo: AMG-38L Motor: 1000W LAMB AMETEK Capacidad: 38 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios. dvfd', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2564, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 10 GALONES - MARCA: MASTER GOLDS', 1593.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1433.70, 1354.05, NULL, NULL, '1', '1', 1354.05, 0.00, 0.00, 1593.00, 'JVC-023', NULL, 'Modelo: AMG-10G Motor: 1200W ITALY Capacidad: 10 GALONES Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Con manija de transporte Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2565, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 12 GALONES - MARCA: MASTER GOLDS', 2065.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1858.50, 1755.25, NULL, NULL, '1', '1', 1755.25, 0.00, 0.00, 2065.00, 'JVC-024', NULL, 'Modelo: AMG-12G Motor: 3000W (2 de 1500W) LAMB AMETEK Capacidad: 12 GALONES Estructura: Tanque de acero con manija de transporte Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2566, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 60 LT - MARCA: MASTER GOLDS', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2442.60, 2306.90, NULL, NULL, '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-025', NULL, 'Modelo: AMG-60L Motor: 2000W (2 de 1000W) LAMB AMETEK Capacidad: 60 LT Estructura: Tanque de acero con manija de transporte Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2567, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 70 LT - MARCA: MASTER GOLDS', 2891.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2601.90, 2457.35, NULL, NULL, '1', '1', 2457.35, 0.00, 0.00, 2891.00, 'JVC-026', NULL, 'Modelo: AMG-70L Motor: 2000W (2 de 1000W) LAMB AMETEK Capacidad: 70 LT Estructura: Tanque de acero con manija de transporte Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2568, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 80 LT - MARCA: MASTER GOLDS', 3363.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3026.70, 2858.55, NULL, NULL, '1', '1', 2858.55, 0.00, 0.00, 3363.00, 'JVC-027', NULL, 'Modelo: AMG-80L Motor: 3000W (3 de 1000W) LAMB AMETEK Capacidad: 80 LT Estructura: Tanque de acero con manija de transporte Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2569, NULL, 'LIMPIADOR MULTIFUNCIONAL DE ALFOMBRAS Y SOFAS DE 20 LT- MARCA: MASTER GOLDS', 3540.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3186.00, 3009.00, NULL, NULL, '1', '1', 3009.00, 0.00, 0.00, 3540.00, 'JVC-028', NULL, 'Modelo: LMS-20SF Motor de Aspirado: 1079W Motor de Lavado: 34W Capacidad: 20 LT Estructura: Tanque de acero Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2570, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 25 LT - MARCA: SPEED POWER', 684.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 615.96, 581.74, NULL, NULL, '1', '1', 581.74, 0.00, 0.00, 684.40, 'JVC-029', NULL, 'Modelo: ASP-25L Motor: 1200W Capacidad: 25 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2571, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: SPEED POWER', 802.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 722.16, 682.04, NULL, NULL, '1', '1', 682.04, 0.00, 0.00, 802.40, 'JVC-030', NULL, 'Modelo: ASP-38L Motor: 1500W Capacidad: 38 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2572, NULL, 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: SPEED POWER', 1003.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 902.70, 852.55, NULL, NULL, '1', '1', 852.55, 0.00, 0.00, 1003.00, 'JVC-031', NULL, 'Modelo: ASP-30LA Motor: 1000W Capacidad: 38 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 10 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2573, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: SPEED POWER', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2655.00, 2507.50, NULL, NULL, '1', '1', 2507.50, 0.00, 0.00, 2950.00, 'JVC-032', NULL, 'Modelo: LPS-14 Motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Estrucura: Acero inoxidable Plato: Acero revestido de 14\" Cable: Vulcanizado x 12 metros Incluye: Cepillo de lavar y lustrar de 13\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2574, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: SPEED POWER', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2973.60, 2808.40, NULL, NULL, '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-033', NULL, 'Modelo: LPS-18 Motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Estrucura: Acero inoxidable Plato: Acero revestido de 18\" Cable: Vulcanizado x 12 metros Incluye: Cepillo de lavar y lustrar de 16\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2575, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: SPEED POWER', 3540.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3186.00, 3009.00, NULL, NULL, '1', '1', 3009.00, 0.00, 0.00, 3540.00, 'JVC-034', NULL, 'Modelo: LPS-20 Motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Estrucura: Acero inoxidable Plato: Acero revestido de 20\" Cable: Vulcanizado x 12 metros Incluye: Cepillo de lavar y lustrar de 19\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2576, NULL, 'LAVADORA DE ALFOMBRAS DE 18\" (SISTEMA CONVESIONAL) - MARCA: SPEED POWER', 3894.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3504.60, 3309.90, NULL, NULL, '1', '1', 3309.90, 0.00, 0.00, 3894.00, 'JVC-035', NULL, 'Modelo: LSP-16C Motor: 1.5HP / 1710 RPM Sistema de lavado: Sistema de inyección por gravedad Capacidad del Tanque: 12 Litros polietileno Estructura: Acero Plato: 18\" Cable: Vulcanizado de 12 metros Incluye: Cepillo ranurado de lavar alfombras 16\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2577, NULL, 'LAVADORA DE ALFOMBRAS DE 18\" (SISTEMA GENERADOR ESPUMA) - MARCA: SPEED POWER', 4484.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4035.60, 3811.40, NULL, NULL, '1', '1', 3811.40, 0.00, 0.00, 4484.00, 'JVC-036', NULL, 'Modelo: LSP-15A Motor: 1.5HP / 1710 RPM Sistema de lavado: Sistema generador de espuma Capacidad del Tanque: 12 Litros Estructura: Acero Plato: 18\" Cable: Vulcanizado de 12 metros Incluye: Cepillo ranurado de lavar alfombras 16\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2578, NULL, 'LIMPIADOR Y SECADOR DE ALFOMBRAS (AZUL) - MARCA: MASTER GOLDS', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5841.00, 5516.50, NULL, NULL, '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-037-1', NULL, 'Modelo: LIE-J4-A Motor: 3290W Motor de succión: 1000W Tanque de agua limpia: 20 L Tanque de agua residual: 18L Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2579, NULL, 'LIMPIADOR Y SECADOR DE ALFOMBRAS (PLOMO) - MARCA: MASTER GOLDS', 7552.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 6796.80, 6419.20, NULL, NULL, '1', '1', 6419.20, 0.00, 0.00, 7552.00, 'JVC-037-2', NULL, 'Modelo: LAMG Motor: 3290W Motor de succión: 1000W Tanque de agua limpia: 20 L Tanque de agua residual: 18L Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2580, NULL, 'LIMPIADOR INDUSTRIAL DE ESCALERAS ELÉCTRICAS (CON CABLE) - MARCA: MASTER GOLDS', 6962.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 6265.80, 5917.70, NULL, NULL, '1', '1', 5917.70, 0.00, 0.00, 6962.00, 'JVC-038-1', NULL, 'Modelo: MLE-SC450 Motor: 1000W Voltaje: 220-240V/60Hz Ancho de trabajo: 450mm Capacidad: 20L Cable vulcanizado', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2581, NULL, 'LIMPIADOR INDUSTRIAL DE ESCALERAS ELÉCTRICAS (A BATERÍA) - MARCA: MASTER GOLDS', 8142.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 7327.80, 6920.70, NULL, NULL, '1', '1', 6920.70, 0.00, 0.00, 8142.00, 'JVC-038-2', NULL, 'Modelo: MLE-SC450D Energía: 500W Voltaje: 24V Ancho de trabajo: 450mm Capacidad: 20L Batería: 2 x 12V Horas de trabajo: 2 horas aprox.', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2582, NULL, 'LAVADORA Y SECADORA DE MUEBLES Y COLCHONES (LAVA BUTACAS) - MARCA: MASTER GOLDS', 5664.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5097.60, 4814.40, NULL, NULL, '1', '1', 4814.40, 0.00, 0.00, 5664.00, 'JVC-039', NULL, 'Modelo: MLC-730 Motor: 1000W Motor Cepillo: 32 V Capacidad tanque solución: 16L Capacidad tanque recuperación: 12L Manguera: 1.5 metros Cable: vulcanizado de 8 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2583, NULL, 'SECADORA INDUSTRIAL DE PISOS Y ALFOMBRAS DE 350W (BLOWER) - MARCA: SPEED POWER', 885.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 796.50, 752.25, NULL, NULL, '1', '1', 752.25, 0.00, 0.00, 885.00, 'JVC-040', NULL, 'Modelo: SSL-350 Potencia: 350W Caudales regulables: Baja - Media - Alta Velocidad: 3 Temporizador: 30 - 60 - 90 minutos Cable: vulcanizado de 8 metros', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2584, NULL, 'SECADORA INDUSTRIAL DE PISOS Y ALFOMBRAS DE 850W (RUEDA DE TRANSPORTE) - MARCA: GAOMEI', 1180.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1062.00, 1003.00, NULL, NULL, '1', '1', 1003.00, 0.00, 0.00, 1180.00, 'JVC-040-1', NULL, 'Modelo: B-3 Potencia: 850W Caudales regulables: 2500 - 3400 - 4200 m3/h Cable: vulcanizado de 7 metros', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2585, NULL, 'SECADORA INDUSTRIAL DE ALFOMBRAS Y PASADIZOS DE 900W - MARCA: MASTER GOLDS', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1168.20, 1103.30, NULL, NULL, '1', '1', 1103.30, 0.00, 0.00, 1298.00, 'JVC-041', NULL, 'Modelo: SMG-900 Potencia: 900W Caudales regulables: 2500 - 3400 - 4200 m3/h Velocidades: 3 Cable: vulcanizado de 7 metros', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2586, NULL, 'SECADORA INDUSTRIAL DE ALFOMBRAS Y PASADIZOS DE 900W (RUEDA DE TRANSPORTE) - MARCA: MASTER GOLDS', 1475.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1327.50, 1253.75, NULL, NULL, '1', '1', 1253.75, 0.00, 0.00, 1475.00, 'JVC-042', NULL, 'Modelo: SMG-900B Potencia: 900W Caudales regulables: 2500 - 3400 - 4200 m3/h Velocidades: 3 Cable: vulcanizado de 7 metros Con manija de transporte', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2587, NULL, 'VAPORIZADORA DE ALTA PRESIÓN DE 2200W - MARCA: MASTER GOLDS', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2973.60, 2808.40, NULL, NULL, '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-043', NULL, 'Modelo: VMG-1800 Potencia: 2200W Nivel de vapor: 02 Depósito de agua: 2L Material: ABS, Acero inox Cable: Vulcanizado de 5 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2588, NULL, 'VAPORIZADOR DE ALTA PRESIÓN DE 2200W - MARCA: MASTER GOLDS', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2655.00, 2507.50, NULL, NULL, '1', '1', 2507.50, 0.00, 0.00, 2950.00, 'JVC-044', NULL, 'Modelo: VMG-1800 Potencia: 2200W Nivel de vapor: 04 Depósito de agua: 5L Material: ABS, Acero inox Cable: Vulcanizado de 5 metros Incluye: Kit de accesorios', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2589, NULL, 'BARREDORA INDUSTRIAL MECÁNICA (HOMBRE ANDANTE) - MARCA: MASTER GOLDS', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2442.60, 2306.90, NULL, NULL, '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-045', NULL, 'Modelo: BMG-B40L Eficiencia de trabajo: 3680 m2/h Ancho de limpieza: 920 mm Volumen de basura: 40L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2590, NULL, 'BARREDORA INDUSTRIAL (HOMBRE ANDANTE) CAPACIDAD 45 LT - MASTER GOLDS', 11210.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 10089.00, 9528.50, NULL, NULL, '1', '1', 9528.50, 0.00, 0.00, 11210.00, 'JVC-045-1', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2591, NULL, 'BARREDORA INDUSTRIAL (HOMBRE ANDANTE) CAPACIDAD 35 LT - MASTER GOLDS', 10620.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 9558.00, 9027.00, NULL, NULL, '1', '1', 9027.00, 0.00, 0.00, 10620.00, 'JVC-046', NULL, 'Modelo: MG-60', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2592, NULL, 'BARREDORA INDUSTRIAL 180LT (HOMBRE ABORDO) - MARCA: MASTER GOLDS', 25960.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 23364.00, 22066.00, NULL, NULL, '1', '1', 22066.00, 0.00, 0.00, 25960.00, 'JVC-047', NULL, 'Modelo: BEM-1800 Potencia de motor: 1200W Batería: 8 x 48V Productividad de trabajo: 12500 m2/h Tanque de recolección: 180L Cantidad Cepillos: 5 unidades Horas de trabajo: 5 - 6 horas (PRECIO EN DOLAR)', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2593, NULL, 'HIDROLAVADORA INDUSTRIAL (MONOFÁSICA) - MARCA: MASTER GOLDS', 4956.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4460.40, 4212.60, NULL, NULL, '1', '1', 4212.60, 0.00, 0.00, 4956.00, 'JVC-048', NULL, 'Modelo: HMG6-15CL Potencia KW: 3.1KW Voltaje/Hz: 220V/60Hz Flujo de agua: 560 L/H Barra de presión: 150bar', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2594, NULL, 'HIDROLAVADORA INDUSTRIAL (TRIFÁSICA) - MARCA: MASTER GOLDS', 6844.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 6159.60, 5817.40, NULL, NULL, '1', '1', 5817.40, 0.00, 0.00, 6844.00, 'JVC-049', NULL, 'Modelo: HMG7-18CL Potencia KW: 4.7KW Voltaje/Hertz: 380V/60Hz Flujo de agua: 700 L/H Barra de presión: 180bar', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2595, NULL, 'FREGADORA SEMI INDUSTRIAL ELÉCTRICA (CEPILLO 14\') - MARCA: MASTER GOLDS', 5900.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5310.00, 5015.00, NULL, NULL, '1', '1', 5015.00, 0.00, 0.00, 5900.00, 'JVC-050', NULL, 'Modelo: FMG-K201 Potencia: 550W Voltaje/Hz: 220V/60Hz Capacidad de trabajo: 1100 m2/h Capacidad de tanque de solución: 11.8L Capacidad de tanque de recuperación: 13.4L Cable: Vulcanizado 25 metros', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2596, NULL, 'FREGADORA INDUSTRIAL DE PISOS DE 19\" A BATERIA - MARCA: SPEED POWER', 15930.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14337.00, 13540.50, NULL, NULL, '1', '1', 13540.50, 0.00, 0.00, 15930.00, 'JVC-051', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2597, NULL, 'FREGADORA INDUSTRIAL DE PISOS DE 18\" A BATERIA - MARCA: MASTER GOLDS', 17110.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 15399.00, 14543.50, NULL, NULL, '1', '1', 14543.50, 0.00, 0.00, 17110.00, 'JVC-052', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2598, NULL, 'FREGADORA INDUSTRIAL DE PISOS DE 19\" A BATERIA - MARCA: MASTER GOLDS', 20650.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 18585.00, 17552.50, NULL, NULL, '1', '1', 17552.50, 0.00, 0.00, 20650.00, 'JVC-053', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2599, NULL, 'LAVADORA SECADORA PROFESIONAL DE PISOS CON MOTOR DE TRACCIÓN DE 19\" (HOMBRE ANDANTE) - MARCA: TVX', 7734.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 6961.41, 6574.66, NULL, NULL, '1', '1', 6574.66, 0.00, 0.00, 7734.90, 'JVC-054-1', NULL, 'Modelo: T55BT Batería : 2 x 12V Capacidad de trabajo: 2250 m2/h Ancho de área de trabajo: 510 mm Capacidad de tanque de solución: 55L Capacidad de tanque de recuperación: 65L Incluye: Cepillo y porta pad de 19\" (PRECIO EN DOLAR)', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2600, NULL, 'LAVADORA SECADORA PROFESIONAL DE PISOS CON MOTOR DE TRACCIÓN DE 21\" (HOMBRE A BORDO) - MARCA: TVX', 10413.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 9372.15, 8851.48, NULL, NULL, '1', '1', 8851.48, 0.00, 0.00, 10413.50, 'JVC-054-2', NULL, 'Modelo: T90 Batería : 2 x 12V Capacidad de trabajo: 2800 m2/h Ancho de área de trabajo: 560 mm Capacidad de tanque de solución: 90L Capacidad de tanque de recuperación: 100L Incluye: Cepillo y porta pad de 21\" (PRECIO EN DOLARES)', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2601, NULL, 'LAVADORA SECADORA PROFESIONAL DE PISOS DE 16\" DOBLE (HOMBRE A BORDO) - MARCA: TVX', 15133.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 13620.15, 12863.47, NULL, NULL, '1', '1', 12863.47, 0.00, 0.00, 15133.50, 'JVC-054-3', NULL, 'Modelo: T130 (DOBLE CEPILLO) Batería : 24V / 200AH Capacidad de trabajo: 5590 m2/h Ancho de área de trabajo: 860 mm Capacidad de tanque de solución: 120L Capacidad de tanque de recuperación: 130L Incluye: 2 cepillos y porta pad de 16\"', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2602, NULL, 'LAVADORA SECADORA PROFESIONAL DE PISOS DE 16\" DOBLE (HOMBRE A BORDO) - MARCA: TVX', 18673.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 16806.15, 15872.47, NULL, NULL, '1', '1', 15872.47, 0.00, 0.00, 18673.50, 'JVC-054-4', NULL, 'Modelo: T150 (DOBLE CEPILLO) Batería : 12V * 3 Capacidad de trabajo: 5590 m2/h Ancho de área de trabajo: 860 mm Capacidad de tanque de solución: 150L Capacidad de tanque de recuperación: 170L Incluye: Cepillo y porta pad de 16\" (PRECIO EN DOLARES)', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2603, NULL, 'TERMONEBULIZADORA (CAÑON CORTO) - MARCA: MASTER GOLDS', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5841.00, 5516.50, NULL, NULL, '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-055', NULL, 'Modelo: TMG-T34 Fuente de alimentación: 4 x 1.5V Caudal Max: 25L/H Capacidad de tanque de solución: 6L Capacidad de tanque de combustión: 2L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2604, NULL, 'TERMONEBULIZADORA (CAÑON LARGO) - MARCA: MASTER GOLDS', 5900.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 5310.00, 5015.00, NULL, NULL, '1', '1', 5015.00, 0.00, 0.00, 5900.00, 'JVC-056', NULL, 'Modelo: TMG-BW-20 Fuente de alimentación: 4 x 1.5V Caudal Max: 45L/H Capacidad de tanque de solución: 6L Capacidad de tanque de combustión: 2L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2605, NULL, 'MÁQUINA ULV 2.5 LITROS (A BATERÍA) - MARCA: MASTER GOLDS', 5310.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4779.00, 4513.50, NULL, NULL, '1', '1', 4513.50, 0.00, 0.00, 5310.00, 'JVC-057', NULL, 'Modelo: UMG-3600B Motor eléctrico: 450W Boquilla de nebulización: Contrarotativas Capacidad del tanque: 2.5L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2606, NULL, 'MÁQUINA ULV 2.5 LITROS (ELÉCTRICO) - MARCA: MASTER GOLDS', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2442.60, 2306.90, NULL, NULL, '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-058', NULL, 'Modelo: UMG-3600E Motor eléctrico: 800W - 220V Boquilla de nebulización: Contrarotativas Capacidad del tanque: 2.5L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2607, NULL, 'MÁQUINA ULV DE 5 LITROS (A BATERÍA) - MARCA: MASTER GOLDS', 7670.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 6903.00, 6519.50, NULL, NULL, '1', '1', 6519.50, 0.00, 0.00, 7670.00, 'JVC-059', NULL, 'Modelo: PIONEER Motor eléctrico: 450W Boquilla de nebulización: Giratoria Capacidad del tanque: 5L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2608, NULL, 'MÁQUINA ULV 6 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 2478.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2230.20, 2106.30, NULL, NULL, '1', '1', 2106.30, 0.00, 0.00, 2478.00, 'JVC-060', NULL, 'Modelo: UMG-2680A Motor eléctrico: 800W - 220V/60Hz Boquilla de nebulización: Contrarotativas Capacidad del tanque: 6L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2609, NULL, 'MÁQUINA ULV DE 10 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 2625.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2256.75, 2131.38, NULL, NULL, '1', '1', 2131.38, 0.00, 0.00, 2625.50, 'JVC-061', NULL, 'Modelo: UMG-1500 Motor eléctrico: 1400W - 220V/60Hz Boquilla de nebulización: Tipo remolino Capacidad del tanque: 10L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2610, NULL, 'MÁQUINA ULV DE 12 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 2743.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2362.95, 2231.67, NULL, NULL, '1', '1', 2231.67, 0.00, 0.00, 2743.50, 'JVC-062', NULL, 'Modelo: UMG-1500E Motor eléctrico: 1400W - 220V/60Hz Boquilla de nebulización: Tipo remolino Capacidad del tanque: 12L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2611, NULL, 'MÁQUINA ULV DE 16 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 295.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2469.15, 2331.97, NULL, NULL, '1', '1', 2331.97, 0.00, 0.00, 295.00, 'JVC-063', NULL, 'Modelo: UMG-1500MP Motor eléctrico: 1400W - 220V/60Hz Boquilla de nebulización: Tipo remolino Capacidad del tanque: 16L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2612, NULL, 'MOCHILA PULVERIZADORA DE 20 LITROS (MANUAL) - MARCA: MASTER GOLDS', 2507.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 265.50, 250.75, NULL, NULL, '1', '1', 250.75, 0.00, 0.00, 2507.50, 'JVC-064', NULL, 'Modelo: PMG-20L Manguera: 13500 mm Lanza: 600 mm Capacidad del tanque: 20L Material del tanque: Polipropileno', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2613, NULL, 'MOTO ATOMIZADORA DE 14 LITROS (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2301.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2070.90, 1955.85, NULL, NULL, '1', '1', 1955.85, 0.00, 0.00, 2301.00, 'JVC-065', NULL, 'Modelo: NTS420 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 56.5cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 6000rpm Capacidad del tanque de combustible: 1.5L Cacidad del tanque Quimico: 14L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2614, NULL, 'MOTO PULVERIZADORA DE 25 LITROS (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 1947.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1752.30, 1654.95, NULL, NULL, '1', '1', 1654.95, 0.00, 0.00, 1947.00, 'JVC-066', NULL, 'Modelo: NTS-768 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 26cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 7500rpm Capacidad del tanque de combustible: 0.9L Cacidad del tanque Quimico: 25L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2615, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2832.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2548.80, 2407.20, NULL, NULL, '1', '1', 2407.20, 0.00, 0.00, 2832.00, 'JVC-067', NULL, 'Modelo: 541RS Motor: 2.2 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 43cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2616, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2655.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2389.50, 2256.75, NULL, NULL, '1', '1', 2256.75, 0.00, 0.00, 2655.00, 'JVC-068', NULL, 'Modelo: 143R-II Motor: 1.4 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 41.5cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2617, NULL, 'MÁQUINA DESBROZADORA DE CESPED 4 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2183.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 1964.70, 1855.55, NULL, NULL, '1', '1', 1855.55, 0.00, 0.00, 2183.00, 'JVC-069', NULL, 'Modelo: GX50 Motor: 2.2 HP Tipo de motor: 4 tiempos Cilindro de desplazamiento: 47.9cc Potencia de salida: 1.47kW Velocidad máxima del motor: 9500rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2618, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 16\" (4 TIEMPOS) - MARCA: NEWTOP', 3068.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2761.20, 2607.80, NULL, NULL, '1', '1', 2607.80, 0.00, 0.00, 3068.00, 'JVC-070', NULL, 'Modelo: NTLM16 Motor: 3.5 HP / 3600rpm Ancho de corte: 16\" / 410mm Pasos de altura de corte: 6 posiciones Capacidad del tanque de combusteble: 0.75L Capacidad del colector: 40L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2619, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 18\"(4 TIEMPOS) - MARCA: NEWTOP', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 2973.60, 2808.40, NULL, NULL, '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-071', NULL, 'Modelo: NTLM18 Motor: 4.0 HP / 3600rpm Ancho de corte: 18\" / 460mm Pasos de altura de corte: 10 posiciones Capacidad del tanque de combusteble: 0.8L Capacidad del colector: 60L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2620, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 21\"(4 TIEMPOS) - MARCA: NEWTOP', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 3292.20, 3109.30, NULL, NULL, '1', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-072', NULL, 'Modelo: NTLM21 Motor: 6.0 HP / 3600rpm Ancho de corte: 21\" / 460mm Pasos de altura de corte: 8 posiciones Capacidad del tanque de combusteble: 1.0L Capacidad del colector: 65L', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2621, NULL, 'MOTOSIERRA INDUSTRIAL CON ESPADA DE 20\" - MARCA: NEWTOP - MODELO: NT5800', 1700.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1700.00, 'JVC-073', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2622, NULL, 'DISCO PAD 3M DE 17\" COLOR: BLANCO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 52.63, 49.71, NULL, NULL, '1', '1', 49.71, 0.00, 0.00, 58.48, 'P3M-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2623, NULL, 'DISCO PAD 3M DE 17\" COLOR: ROJO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 52.63, 49.71, NULL, NULL, '1', '1', 49.71, 0.00, 0.00, 58.48, 'P3M-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2624, NULL, 'DISCO PAD 3M DE 20\" COLOR: BLANCO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 56.39, 53.26, NULL, NULL, '1', '1', 53.26, 0.00, 0.00, 62.66, 'P3M-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2625, NULL, 'DISCO PAD 3M DE 20\" COLOR: ROJO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 56.39, 53.26, NULL, NULL, '1', '1', 53.26, 0.00, 0.00, 62.66, 'P3M-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2626, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2627, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2628, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2629, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2630, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2631, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2632, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2633, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2634, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2635, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2636, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2637, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2638, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2639, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2640, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2641, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2642, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2643, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2644, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2645, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2646, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2647, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2648, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2649, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2650, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2651, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2652, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2653, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2654, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2655, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2656, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2657, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2658, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2659, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 18\" LIMKIT CLEANER', 36.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 36.00, 'PAD-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2660, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-026', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2661, NULL, 'DISCO PAD PARA LAVADO DECAPADO DE PISOS COLOR DORADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-027', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2662, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-028', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2663, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-029', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2664, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-030', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2665, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-031', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2666, NULL, 'DISCO PAD PARA LIMPIEZA Y ABRILLANTADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-032', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2667, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2668, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2669, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2670, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2671, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2672, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-02', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2673, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-03', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2674, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-04', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2675, NULL, 'PAÑO DE LIMPIEZA LIMPALL X 90', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PL-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2676, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 10 \"', 111.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.26, 94.69, NULL, NULL, '1', '1', 94.69, 0.00, 0.00, 111.40, 'PORT-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2677, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 11 \"', 112.96, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.67, 96.02, NULL, NULL, '1', '1', 96.02, 0.00, 0.00, 112.96, 'PORT-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2678, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 12 \"', 115.95, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 104.35, 98.55, NULL, NULL, '1', '1', 98.55, 0.00, 0.00, 115.95, 'PORT-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2679, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 13 \"', 120.62, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 108.56, 102.53, NULL, NULL, '1', '1', 102.53, 0.00, 0.00, 120.62, 'PORT-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2680, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 14 \"', 123.60, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.24, 105.06, NULL, NULL, '1', '1', 105.06, 0.00, 0.00, 123.60, 'PORT-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2681, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 15 \"', 126.72, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 114.05, 107.71, NULL, NULL, '1', '1', 107.71, 0.00, 0.00, 126.72, 'PORT-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2682, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 16 \"', 132.82, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 119.54, 112.90, NULL, NULL, '1', '1', 112.90, 0.00, 0.00, 132.82, 'PORT-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2683, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 17 \"', 142.04, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 127.83, 120.73, NULL, NULL, '1', '1', 120.73, 0.00, 0.00, 142.04, 'PORT-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2684, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 18 \"', 146.58, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.92, 124.59, NULL, NULL, '1', '1', 124.59, 0.00, 0.00, 146.58, 'PORT-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2685, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 19 \"', 157.35, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 141.62, 133.75, NULL, NULL, '1', '1', 133.75, 0.00, 0.00, 157.35, 'PORT-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2686, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 20 \"', 165.01, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 148.51, 140.26, NULL, NULL, '1', '1', 140.26, 0.00, 0.00, 165.01, 'PORT-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2687, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 21 \"', 169.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 152.60, 144.12, NULL, NULL, '1', '1', 144.12, 0.00, 0.00, 169.55, 'PORT-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2688, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 22 \"', 172.67, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 155.40, 146.77, NULL, NULL, '1', '1', 146.77, 0.00, 0.00, 172.67, 'PORT-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2689, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 15 \"', 165.20, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 148.68, 140.42, NULL, NULL, '1', '1', 140.42, 0.00, 0.00, 165.20, 'PORTI-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2690, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 16 \"', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'PORTI-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2691, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 17 \"', 200.60, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 180.54, 170.51, NULL, NULL, '1', '1', 170.51, 0.00, 0.00, 200.60, 'PORTI-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2692, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 19 \"', 218.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 196.47, 185.55, NULL, NULL, '1', '1', 185.55, 0.00, 0.00, 218.30, 'PORTI-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2693, NULL, 'PORTA PAD IMPORTA C/ BRAQUETA P/ LUSTRADORA KARCHER MOD:BDS-43/180C DE 15\"', 188.80, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 169.92, 160.48, NULL, NULL, '1', '1', 160.48, 0.00, 0.00, 188.80, 'PORTI-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-30 11:11:17', NULL);
-INSERT INTO `productos` VALUES (2694, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 122.00, 23.00, 32, 0, 12, 1, '1000-01-01', '3443', '0', '0', 343.00, 234.00, '', '', '1', '1', 234.00, 0.00, 0.00, 122.00, 'JVC-001-2', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP Voltaje\r\n / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: \r\n175 RPM. Motor: KDS del Grupo Imperial Estructura e\r\nn Acero Inoxidable Anticorrosivo Base de Motor \r\nen Aluminio Fundido anticorrosivo Plato en Acero\r\n Inoxidable (calidad 304) de 12\" Cable Vulcanizado \r\nHomologado de 3x14: 15 metros Incluye: Cepillo \r\nde Lavar de 11\" y Cepillo de Lustrar de 11\"', 8, NULL, '14', 'PEN', '2025-10-31 08:41:37', NULL);
-INSERT INTO `productos` VALUES (2695, NULL, 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO', 110.00, 110.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 110.00, 110.00, NULL, NULL, '1', '1', 110.00, 0.00, 0.00, 110.00, 'CEP -001', NULL, '\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\naccesorios\n\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\naccesorios\n\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\naccesorios\n', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:32', NULL);
-INSERT INTO `productos` VALUES (2696, NULL, 'MÁQUINA ULV DE 16 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 2743.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2743.50, 'JVC-074', NULL, 'Modelo: UMG-1500MP Motor eléctrico: 1400W - 220V/60Hz Boquilla de nebulización: Tipo remolino Capacidad del tanque: 16L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2697, NULL, 'MOTO ATOMIZADORA DE 12L (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2773.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2773.00, 'JVC-075', NULL, 'Modelo: NTS423 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 72.3cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 5700rpm Capacidad del tanque de combustible: 1.4L Cacidad del tanque Quimico: 12L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2698, NULL, 'MOTO ATOMIZADORA DE 14L (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2596.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2596.00, 'JVC-076', NULL, 'Modelo: NTS420 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 56.5cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 6000rpm Capacidad del tanque de combustible: 1.5L Cacidad del tanque Quimico: 14L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2699, NULL, 'MOTO PULVERIZADORA DE 25 LITROS (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2360.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2360.00, 'JVC-077', NULL, 'Modelo: NTS-768 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 26cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 7500rpm Capacidad del tanque de combustible: 0.9L Cacidad del tanque Quimico: 25L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2700, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 4 TIEMPOS (MOTO GUADAÑA) - MARCA: NEWTOP', 1652.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1652.00, 'JVC-078', NULL, 'Modelo: NTS139CG Tipo de motor: 4 tiempos Cilindro de desplazamiento: 31.3cc Potencia de salida: 0.7kW/0.9hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 500 ml', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2701, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 4 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1770.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1770.00, 'JVC-079', NULL, 'Modelo: NTS140CG Tipo de motor: 4 tiempos Cilindro de desplazamiento: 35.8cc Potencia de salida: 0.7kW/1.0hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 500 ml', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2702, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2950.00, 'JVC-080', NULL, 'Modelo: NTB143 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 41.5cc Potencia de salida: 1.5kW/2.0hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 1300 ml', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2703, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1298.00, 'JVC-081', NULL, 'Modelo: NTB260A Tipo de motor: 2 tiempos Cilindro de desplazamiento: 26cc Potencia de salida: 0.7kW/0.9hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 650 ml', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2704, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1416.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1416.00, 'JVC-082', NULL, 'Modelo: NTB330A Tipo de motor: 2 tiempos Cilindro de desplazamiento: 32.6cc Potencia de salida: 0.9kW/1.2hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 850 ml', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2705, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2950.00, 'JVC-083', NULL, 'Modelo: 541RS Motor: 2.2 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 43cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2706, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2655.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 2655.00, 'JVC-084', NULL, 'Modelo: 143R-II Motor: 1.4 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 41.5cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2707, NULL, 'MÁQUINA DESBROZADORA DE CESPED (4 TIEMPOS) (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 1947.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1947.00, 'JVC-085', NULL, 'Modelo: GX50 Motor: 2.2 HP Tipo de motor: 4 tiempos Cilindro de desplazamiento: 47.9cc Potencia de salida: 1.47kW Velocidad máxima del motor: 9500rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2708, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 16\" (4 TIEMPOS) - MARCA: NEWTOP', 3068.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 3068.00, 'JVC-086', NULL, 'Modelo: NTLM16 Motor: 3.5 HP / 3600rpm Ancho de corte: 16\" / 410mm Pasos de altura de corte: 6 posiciones Capacidad del tanque de combusteble: 0.75L Capacidad del colector: 40L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2709, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 18\"(4 TIEMPOS) - MARCA: NEWTOP', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 3304.00, 'JVC-087', NULL, 'Modelo: NTLM18 Motor: 4.0 HP / 3600rpm Ancho de corte: 18\" / 460mm Pasos de altura de corte: 10 posiciones Capacidad del tanque de combusteble: 0.8L Capacidad del colector: 60L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2710, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 21\"(4 TIEMPOS) - MARCA: NEWTOP', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 3658.00, 'JVC-088', NULL, 'Modelo: NTLM21 Motor: 6.0 HP / 3600rpm Ancho de corte: 21\" / 460mm Pasos de altura de corte: 8 posiciones Capacidad del tanque de combusteble: 1.0L Capacidad del colector: 65L', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2711, NULL, 'MOTOSIERRA INDUSTRIAL CON ESPADA DE 20\" - MARCA: NEWTOP - MODELO: NT5800', 1700.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 1700.00, 'JVC-089', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2712, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-033', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2713, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-034', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2714, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-035', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2715, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-036', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2716, NULL, 'DISCO PAD PARA LIMPIEZA Y ABRILLANTADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-037', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2717, NULL, 'DISCO PAD 3M DE 17\" COLOR: BLANCO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 58.48, 'PAD-038', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2718, NULL, 'DISCO PAD 3M DE 17\" COLOR: ROJO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 58.48, 'PAD-040', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2719, NULL, 'DISCO PAD 3M DE 20\" COLOR: BLANCO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 62.66, 'PAD-041', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2720, NULL, 'DISCO PAD 3M DE 20\" COLOR: ROJO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 62.66, 'PAD-043', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2721, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 15', 100.00, 90.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 150.00, 90.00, NULL, NULL, '1', '1', 90.00, 0.00, 0.00, 100.00, 'PRUE 001', NULL, 'MARCA: CRIS-TAURO\nModelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz\nVelocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de\nLavar de 11\" y Cepillo de Lustrar de 11\"', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2722, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 85.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 85.00, 'PT-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2723, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X ROLLO (LINEA INSTITUCIONAL)', 21.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 21.25, 'PT-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2724, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 77.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 77.00, 'PT-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2725, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X ROLLO (LINEA INSTITUCIONAL)', 19.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 19.25, 'PT-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2726, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE DE 200 HOJAS X 20 PAQUETES (LINEA INSTITUCIONAL)', 120.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 120.00, 'PT-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2727, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE X 200 HOJAS (LINEA INSTITUCIONAL)', 6.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 6.00, 'PT-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2728, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 85.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 85.00, 'PT-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2729, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X 2 ROLLOS (LINEA INSTITUCIONAL)', 42.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 42.50, 'PT-02', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2730, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X ROLLO (LINEA INSTITUCIONAL)', 21.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 21.25, 'PT-03', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2731, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 77.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 77.00, 'PT-04', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2732, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X 2 ROLLOS (LINEA INSTITUCIONAL)', 38.20, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 38.20, 'PT-05', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2733, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X ROLLO (LINEA INSTITUCIONAL)', 19.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 19.25, 'PT-06', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2734, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE DE 200 HOJAS X 20 PAQUETES (LINEA INSTITUCIONAL)', 120.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 120.00, 'PTI-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
-INSERT INTO `productos` VALUES (2735, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE X 200 HOJAS (LINEA INSTITUCIONAL)', 6.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 6.00, 'PTI-02', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-10 18:17:33', NULL);
+INSERT INTO `productos` VALUES (15, '', 'prueba', 0.00, 1.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 12.00, 2.00, 'LABORATORIOS CLINICOS MULTIPLES S.A.C.', '20554454276', '0', '1', 0.00, 0.00, 0.00, 1.00, '123', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP', NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (16, '', 'dsadsad', 12.00, 12.00, 0, 0, 12, 1, '1000-01-01', '12', '0', '0', 12.00, 12.00, 'LABORATORIOS CLINICOS MULTIPLES S.A.C.', '20554454276', '0', '2', 12.00, 21.00, 12.00, 12.00, 'asdas', NULL, 'sdadsad', 1, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (17, '', 'prueba', 0.00, 1.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 12.00, 2.00, 'LABORATORIOS CLINICOS MULTIPLES S.A.C.', '20554454276', '0', '1', 0.00, 0.00, 0.00, 1.00, '123', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP', 2, 'Modelo: TD-12N Potencia de motor: 1.5 HP', NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (18, 'JVC-001', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '1', 3292.20, 3109.30, '1', '1', '0', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-001', '1754351623_FOTOS MAQUINAS JVC LIMPIAS (3).png', 'Modelo: TD-12N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial. \nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 12\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\".', 5, 'Modelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidabl', '14', 'PEN', '2025-06-10 17:07:44', '2025-08-14 10:32:29');
+INSERT INTO `productos` VALUES (19, NULL, 'prueba', 0.00, 1.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 1.00, 1.00, '', '', '0', '1', 0.00, 0.00, 0.00, 1.00, '123', NULL, 'Modelo: TD-12N Potencia de motor: 1.5 HP', 1, 'Modelo: TD-12N Potencia de motor: 1.5 HP', NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (20, 'JVC-002', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 3894.00, 0.00, 3, 0, 12, 1, '1000-01-01', '0', '1', '1', 3504.60, 3309.90, '1', '1', '1', '1', 3309.90, 0.00, 0.00, 3894.00, 'JVC-002', '1754351675_FOTOS MAQUINAS JVC LIMPIAS (35).jpg', 'Modelo: TD-14N \r\nPotencia de motor: 1.5 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial \r\nEstructura en Acero Inoxidable Anticorrosivo. \r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 14\".\r\nCable Vulcanizado Homologado de 3x14: 15 metros.\r\nIncluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\".', 5, 'ADASD SAD ASD ASD', '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (21, 'JVC-003', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 4130.00, 321.00, 12, 0, 12, 1, '1000-01-01', '32423', '1', '0', 3717.00, 3510.50, '1', '1', '1', '1', 3510.50, 0.00, 0.00, 4130.00, 'JVC-003', '1754667793_FOTOS MAQUINAS JVC LIMPIAS (35).jpg', 'Modelo: TD-16N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial.\nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 16\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 15\" y Cepillo de Lustrar de 15\".', 5, 'VCGH YUVUYH', '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (28, 'JVC-004', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 4366.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3929.40, 3711.10, '1', '1', '1', '1', 3711.10, 0.00, 0.00, 4366.00, 'JVC-004', '1754339695_FOTOS MAQUINAS JVC LIMPIAS (36).jpg', 'Modelo: TD-18N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial.\nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 18\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 17\" y Cepillo de Lustrar de 17\"', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (29, '', 'aspirado', 1400.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 1400.00, 'jvc ', NULL, 'sadasd\r\nddasdas\r\nasdasdasd\r\nasdsd', 4, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (30, 'JVC-005', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 4602.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4141.80, 3911.70, '1', '1', '1', '1', 3911.70, 0.00, 0.00, 4602.00, 'JVC-005', '1754665173_FOTOS MAQUINAS JVC LIMPIAS (37).jpg', 'Modelo: TD-20N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial.\nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 20\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 19\" y Cepillo de Lustrar de 19\"', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (31, 'JVC-006', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 23\" - MARCA: CRIS-TAURO', 5310.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4779.00, 4513.50, '1', '1', '1', '1', 4513.50, 0.00, 0.00, 5310.00, 'JVC-006', '1754665673_FOTOS MAQUINAS JVC LIMPIAS (37).jpg', 'Modelo: TD-23N \nPotencia de motor: 2.0 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial.\nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 23\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 22\" y Cepillo de Lustrar de 22\".', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (32, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS (2HP)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 0.00, 'JVC-006-1', NULL, 'Modelo: TD-23N Potencia de motor: 2 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM Motor: KDS del Grupo Imperial. Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 23\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye cepillo de lavar y lustrar', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (33, 'JVC-007', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 6 GALONES - MARCA: CRIS-TAURO', 2183.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1964.70, 1855.55, '1', '1', '1', '1', 1855.55, 0.00, 0.00, 2183.00, 'JVC-007', '1754667858_FOTOS-LIMPIAS-JVC-2024-09-10T155819.415.png', 'Modelo: AD-06G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 06 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (34, 'JVC-008', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 8 GALONES - MARCA: CRIS-TAURO', 2596.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2336.40, 2206.60, '1', '1', '1', '1', 2206.60, 0.00, 0.00, 2596.00, 'JVC-008', '1754667894_FOTOS-LIMPIAS-JVC-2024-09-10T162628.808 (1).png', 'Modelo: AD-08G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 08 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (35, 'JVC-009', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 10 GALONES - MARCA: CRIS-TAURO', 3009.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2708.10, 2557.65, '1', '1', '1', '1', 2557.65, 0.00, 0.00, 3009.00, 'JVC-009', '1749570088_FOTOS-LIMPIAS-JVC-2024-09-10T163234.726.png', 'Modelo: AD-10G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 10 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (36, 'JVC-010', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO', 3422.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3079.80, 2908.70, '1', '1', '1', '1', 2908.70, 0.00, 0.00, 3422.00, 'JVC-010', '1754668006_FOTOS-LIMPIAS-JVC-2024-09-10T164256.537 (1).png', 'Modelo: AD-12G \r\nMotor: 1200W - 60Hz / 18000 RPM\r\nAspirado: Polvo y Agua\r\nTanque: Fibra de vidrio de 12 Galones.\r\nCable Vulcanizado Homologado de 3x14: 10 metros.\r\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (37, 'JVC-011', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 15 GALONES - MARCA: CRIS-TAURO', 3835.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3451.50, 3259.75, '1', '1', '1', '1', 3259.75, 0.00, 0.00, 3835.00, 'JVC-011', '1754665805_aspiradora 15g.png', 'Modelo: AD-15G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 15 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (38, 'JVC-012', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 20 GALONES - MARCA: CRIS-TAURO', 4248.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3823.20, 3610.80, '1', '1', '1', '1', 3610.80, 0.00, 0.00, 4248.00, 'JVC-012', '1754665833_FOTOS-LIMPIAS-JVC-2024-09-16T092619.035 (1).png', 'Modelo: AD-20G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 20 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (39, 'JVC-013', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 25 GALONES (DOBLE MOTOR) - MARCA: CRIS-TAURO', 4661.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4194.90, 3961.85, '1', '1', '1', '1', 3961.85, 0.00, 0.00, 4661.00, 'JVC-013', '1754665859_FOTOS-LIMPIAS-JVC-2024-09-19T151353.562 (1).png', 'Modelo: AD-25G \nMotor: 1200W - 60Hz / 18000 RPM\nAspirado: Polvo y Agua\nTanque: Fibra de vidrio de 25 Galones.\nCable Vulcanizado Homologado de 3x14: 10 metros.\nIncluye: Kit completo de accesorios', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (40, 'JVC-014', 'LAVADORA DE ALFOMBRAS INDUSTRIAL 16\" (SISTEMA CONVENSIONAL) - MARCA: CRIS- TAURO', 4543.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4088.70, 3861.55, '1', '1', '1', '1', 3861.55, 0.00, 0.00, 4543.00, 'JVC-014', '1749572471_FOTOS MAQUINAS LIMPIAS (1).png', 'Modelo: LTC-16C \nMotor: 1.5HP - 60Hz / 1750 RPM\nSistema de lavado: Sistema de inyección por gravedad.\nCapacidad del Tanque: 12 Litros polietileno.\nIncluye: Cepillo ranurado de lavar alfombras de 15\".', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (41, 'JVC-015', 'LAVADORA DE ALFOMBRAS INDUSTRIAL 16\" (SISTEMA INYECCIÓN A ESPUMA) - MARCA: CRIS-TAURO', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 5841.00, 5516.50, '1', '1', '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-015', '1749572884_FOTOS-LIMPIAS-JVC-2024-09-16T093209.815.png', 'Modelo: LTC-16A \nMotor: 1.5HP - 60Hz / 1750 RPM \nMotor de Mezcla: 1200W - 60 Hz \nSistema de lavado: Sistema generador de espuma.\nTanque: 12 Litros de fibra de vidrio.\nIncluye: Cepillo ranurado de lavar alfombras de 15\".', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (42, 'JVC-016', 'ABRILLANTADOR INDUSTRIAL PARA PISOS DE 20\" - MARCA: MASTER GOLDS', 4484.00, 0.00, 1, 0, 12, 1, '1000-01-01', '', '1', '1', 4035.60, 3811.40, '1', '1', '1', '1', 3811.40, 0.00, 0.00, 4484.00, 'JVC-016', '1754665981_FOTOS MAQUINAS JVC LIMPIAS (10).jpg', 'Modelo: AMG-1500A \nMotor: 2.0 HP \nInducido Estructura: Polipropileno de alta densidad.\nPlato: Polipropileno de 20\" \nCable: Vulcanizado x 10 metros.\nIncluye: Porta Pad 20\" y Disco Pad 20\".', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', '2025-10-06 17:36:36');
+INSERT INTO `productos` VALUES (43, 'JVC-017', 'ASPIRADORA PROFESIONAL DE POLVO DE 6 LITROS (TIPO MOCHILA) - MARCA: MASTER GOLDS', 979.40, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '1', 881.46, 832.49, '1', '1', '1', '1', 832.49, 0.00, 0.00, 979.40, 'JVC-017', '1759790355_FOTOS-LIMPIAS-JVC-2024-09-09T153944.086.png', 'Modelo: AMG-6L \nMotor: 1000W LAMB AMETEK \nCapacidad: 6 LT \nAspirado: Polvo \nCable: Vulcanizado x 10 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (44, 'JVC-018', 'ASPIRADORA PROFESIONAL DE POLVO DE 10 LITROS (LINEA HOTELERA) - MARCA: MASTER GOLDS', 767.00, 0.00, -7, 0, 12, 1, '1000-01-01', '', '1', '1', 690.30, 651.95, '1', '1', '1', '1', 651.95, 0.00, 0.00, 767.00, 'JVC-018', '1755116433_FOTOS MAQUINAS JVC LIMPIAS (39).jpg', 'Modelo: AMG-10L \nMotor: 1000W LAMB AMETEK \nCapacidad: 10 LT \nAspirado: Polvo \nCable: Vulcanizado x 7 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (45, 'JVC-019', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 15 LT - MARCA: MASTER GOLDS', 944.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '1', 849.60, 802.40, '1', '1', '1', '1', 802.40, 0.00, 0.00, 944.00, 'JVC-019', '1755116234_FOTOS MAQUINAS JVC LIMPIAS (38).jpg', 'Modelo: AMG-15L \nMotor: 1000W LAMB AMETEK \nCapacidad: 15 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 7 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (46, 'JVC-020', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 25 LT - MARCA: MASTER GOLDS', 1062.00, 0.00, 1, 0, 12, 1, '1000-01-01', '', '1', '1', 955.80, 902.70, '1', '1', '1', '1', 902.70, 0.00, 0.00, 1062.00, 'JVC-020', '1759790504_FOTOS-LIMPIAS-JVC-5-scaled.png', 'Modelo: AMG-25L \nMotor: 1000W LAMB AMETEK \nCapacidad: 25 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 7 metros \nIncluye: Kit de accesorios.', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (47, 'JVC-021', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 30 LT - MARCA: MASTER GOLDS', 1180.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1062.00, 1003.00, '1', '1', '1', '1', 1003.00, 0.00, 0.00, 1180.00, 'JVC-021', NULL, 'Modelo: AMG-30L \nMotor: 1000W LAMB AMETEK \nCapacidad: 30 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 7 metros.\nIncluye: Kit de accesorios.', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (48, 'JVC-022', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: MASTER GOLDS', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1168.20, 1103.30, '1', '1', '1', '1', 1103.30, 0.00, 0.00, 1298.00, 'JVC-022', NULL, 'Modelo: AMG-38L \nMotor: 1000W LAMB AMETEK \nCapacidad: 38 LT \nEstructura: Tanque de acero\nAspirado: Polvo y agua\nCable: Vulcanizado x 7 metros.\nIncluye: Kit de accesorios.', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (49, 'JVC-023', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 10 GALONES - MARCA: MASTER GOLDS', 1593.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1433.70, 1354.05, '1', '1', '1', '1', 1354.05, 0.00, 0.00, 1593.00, 'JVC-023', NULL, 'Modelo: AMG-10G \r\nMotor: 1200W ITALY \r\nCapacidad: 10 GALONES \r\nEstructura: Tanque de acero con manija de transporte \r\nAspirado: Polvo y Agua \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (50, 'JVC-024', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 12 GALONES - MARCA: MASTER GOLDS', 2065.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1858.50, 1755.25, '1', '1', '1', '1', 1755.25, 0.00, 0.00, 2065.00, 'JVC-024', NULL, 'Modelo: AMG-12G \r\nMotor: 3000W (2 de 1500W) LAMB AMETEK \r\nCapacidad: 12 GALONES \r\nEstructura: Tanque de acero con manija de transporte\r\nAspirado: Polvo y Agua \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (51, 'JVC-025', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 60 LT - MARCA: MASTER GOLDS', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2442.60, 2306.90, '1', '1', '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-025', NULL, 'Modelo: AMG-60L \r\nMotor: 2000W (2 de 1000W) LAMB AMETEK \r\nCapacidad: 60 LT \r\nEstructura: Tanque de acero con manija de transporte \r\nAspirado: Polvo y Agua \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (52, 'JVC-026', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 70 LT - MARCA: MASTER GOLDS', 2891.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2601.90, 2457.35, '1', '1', '1', '1', 2457.35, 0.00, 0.00, 2891.00, 'JVC-026', NULL, 'Modelo: AMG-70L \r\nMotor: 2000W (2 de 1000W) LAMB AMETEK \r\nCapacidad: 70 LT \r\nEstructura: Tanque de acero con manija de transporte \r\nAspirado: Polvo y Agua \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (53, 'JVC-027', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 80 LT - MARCA: MASTER GOLDS', 3363.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3026.70, 2858.55, '1', '1', '1', '1', 2858.55, 0.00, 0.00, 3363.00, 'JVC-027', NULL, 'Modelo: AMG-80L \r\nMotor: 3000W (3 de 1000W) LAMB AMETEK \r\nCapacidad: 80 LT \r\nEstructura: Tanque de acero con manija de transporte \r\nAspirado: Polvo y Agua \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (54, 'JVC-028', 'LIMPIADOR MULTIFUNCIONAL DE ALFOMBRAS Y SOFAS DE 20 LT- MARCA: MASTER GOLDS', 3540.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3186.00, 3009.00, '1', '1', '1', '1', 3009.00, 0.00, 0.00, 3540.00, 'JVC-028', NULL, 'Modelo: LMS-20SF \r\nMotor de Aspirado: 1079W \r\nMotor de Lavado: 34W \r\nCapacidad: 20 LT \r\nEstructura: Tanque de acero \r\nCable: Vulcanizado x 7 metros \r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (55, 'JVC-029', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 25 LT - MARCA: SPEED POWER', 684.40, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 615.96, 581.74, '1', '1', '1', '1', 581.74, 0.00, 0.00, 684.40, 'JVC-029', NULL, 'Modelo: ASP-25L \nMotor: 1200W \nCapacidad: 25 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 7 metros \nIncluye: Kit de accesorios', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (56, 'JVC-030', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: SPEED POWER', 802.40, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 722.16, 682.04, '1', '1', '1', '1', 682.04, 0.00, 0.00, 802.40, 'JVC-030', '', 'Modelo: ASP-38L \nMotor: 1500W \nCapacidad: 38 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 7 metros \nIncluye: Kit de accesorios', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (57, 'JVC-031', 'ASPIRADORA PROFESIONAL DE POLVO Y AGUA DE 38 LT - MARCA: SPEED POWER', 1003.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 902.70, 852.55, '1', '1', '1', '1', 852.55, 0.00, 0.00, 1003.00, 'JVC-031', NULL, 'Modelo: ASP-30LA \nMotor: 1000W \nCapacidad: 38 LT \nEstructura: Tanque de acero \nAspirado: Polvo y Agua \nCable: Vulcanizado x 10 metros \nIncluye: Kit de accesorios', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (58, 'JVC-032', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: SPEED POWER', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2655.00, 2507.50, '1', '1', '1', '1', 2507.50, 0.00, 0.00, 2950.00, 'JVC-032', NULL, 'Modelo: LPS-14 \nMotor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nEstrucura: Acero inoxidable \nPlato: Acero inox de 14\" \nCable: Vulcanizado x 12 metros \nIncluye: Cepillo de lavar 13\" y lustrar de 13\"', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (59, 'JVC-033', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: SPEED POWER', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2973.60, 2808.40, '1', '1', '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-033', NULL, 'Modelo: LPS-18 \nMotor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nEstrucura: Acero inoxidable \nPlato: Acero revestido de 18\" \nCable: Vulcanizado x 12 metros \nIncluye: Cepillo de lavar 16\" y lustrar de 16\"', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (60, 'JVC-034', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: SPEED POWER', 3540.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3186.00, 3009.00, '1', '1', '1', '1', 3009.00, 0.00, 0.00, 3540.00, 'JVC-034', NULL, 'Modelo: LPS-20 \nMotor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nEstrucura: Acero inoxidable \nPlato: Acero revestido de 20\" \nCable: Vulcanizado x 12 metros \nIncluye: Cepillo de lavar y lustrar de 19\"', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (61, 'JVC-035', 'LAVADORA DE ALFOMBRAS DE 18\" (SISTEMA CONVESIONAL) - MARCA: SPEED POWER', 3894.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3504.60, 3309.90, '1', '1', '1', '1', 3309.90, 0.00, 0.00, 3894.00, 'JVC-035', NULL, 'Modelo: LSP-16C \nMotor: 1.5HP / 1710 RPM \nSistema de lavado: Sistema de inyección por gravedad \nCapacidad del Tanque: 12 Litros polietileno \nEstructura: Acero Plato: 18\" \nCable: Vulcanizado de 12 metros \nIncluye: Cepillo ranurado de lavar alfombras 16\"', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (62, 'JVC-036', 'LAVADORA DE ALFOMBRAS DE 18\" (SISTEMA GENERADOR ESPUMA) - MARCA: SPEED POWER', 4484.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4035.60, 3811.40, '1', '1', '1', '1', 3811.40, 0.00, 0.00, 4484.00, 'JVC-036', '1755119023_Sin título-1.png', 'Modelo: LSP-15A \nMotor: 1.5HP / 1710 RPM \nSistema de lavado: Sistema generador de espuma \nCapacidad del Tanque: 12 Litros \nEstructura: Acero Plato: 18\" \nCable: Vulcanizado de 12 metros \nIncluye: Cepillo ranurado de lavar alfombras 16\"', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (63, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: SPEED POWER', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2950.00, 'JVC-037', NULL, 'Modelo: LPS-14 Motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Estrucura: Acero inoxidable Plato: Acero revestido Cable: Vulcanizado x 12 metros Incluye: Cepillo de lavar y lustrar de 13\"', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (64, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: SPEED POWER', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 3304.00, 'JVC-038', NULL, 'Modelo: LPS-18 Motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Estrucura: Acero inoxidable Plato: Acero revestido Cable: Vulcanizado x 12 metros Incluye: Cepillo de lavar y lustrar de 16\"', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (65, 'JVC-039', 'LAVADORA Y SECADORA DE MUEBLES Y COLCHONES (LAVA BUTACAS) - MARCA: MASTER GOLDS', 5664.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 5097.60, 4814.40, '1', '1', '1', '1', 4814.40, 0.00, 0.00, 5664.00, 'JVC-039', NULL, 'Modelo: MLC-730 \nMotor: 1000W \nMotor Cepillo: 32 V \nCapacidad tanque solución: 16L \nCapacidad tanque recuperación: 12L \nManguera: 1.5 metros \nCable: vulcanizado de 8 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (66, 'JVC-040', 'SECADORA INDUSTRIAL DE PISOS Y ALFOMBRAS DE 350W (BLOWER) - MARCA: SPEED POWER', 885.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 796.50, 752.25, '1', '1', '1', '1', 752.25, 0.00, 0.00, 885.00, 'JVC-040', NULL, 'Modelo: SSL-350 \nPotencia: 350W \nCaudales regulables: Baja - Media - Alta \nVelocidad: 3 Temporizador: 30 - 60 - 90 minutos \nCable: Vulcanizado de 8 metros', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (67, 'JVC-040-1', 'SECADORA INDUSTRIAL DE PISOS Y ALFOMBRAS DE 850W (RUEDA DE TRANSPORTE) - MARCA: GAOMEI', 1180.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1062.00, 1003.00, '1', '1', '1', '1', 1003.00, 0.00, 0.00, 1180.00, 'JVC-040-1', NULL, 'Modelo: B-3 \nPotencia: 850W \nCaudales regulables: 2500 - 3400 - 4200 m3/h \nCable: Vulcanizado de 7 metros', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (68, 'JVC-041', 'SECADORA INDUSTRIAL DE ALFOMBRAS Y PASADIZOS DE 900W - MARCA: MASTER GOLDS', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1168.20, 1103.30, '1', '1', '1', '1', 1103.30, 0.00, 0.00, 1298.00, 'JVC-041', NULL, 'Modelo: SMG-900 \nPotencia: 900W \nVelocidades: 3\nCaudales regulables: 2500 - 3400 - 4200 m3/h \nCable: Vulcanizado de 7 metros', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (69, 'JVC-042', 'SECADORA INDUSTRIAL DE ALFOMBRAS Y PASADIZOS DE 900W (RUEDA DE TRANSPORTE) - MARCA: MASTER GOLDS', 1475.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1327.50, 1253.75, '1', '1', '1', '1', 1253.75, 0.00, 0.00, 1475.00, 'JVC-042', '1755120671_FOTOS MAQUINAS JVC LIMPIAS (40).jpg', 'Modelo: SMG-900B \nPotencia: 900W \nVelocidades: 3\nCaudales regulables: 2500 - 3400 - 4200 m3/h \nCon manija de transporte\nCable: vulcanizado de 7 metros ', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (70, 'JVC-043', 'VAPORIZADORA DE ALTA PRESIÓN DE 2200W - MARCA: MASTER GOLDS', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2973.60, 2808.40, '1', '1', '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-043', NULL, 'Modelo: VMG-1800 \nPotencia: 2200W \nNivel de vapor: 02 \nDepósito de agua: 2L \nMaterial: ABS, Acero inox \nCable: Vulcanizado de 5 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (71, 'JVC-044', 'VAPORIZADOR DE ALTA PRESIÓN DE 2200W - MARCA: MASTER GOLDS', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2655.00, 2507.50, '1', '1', '1', '1', 2507.50, 0.00, 0.00, 2950.00, 'JVC-044', NULL, 'Modelo: VMG-1800 \nPotencia: 2200W \nNivel de vapor: 04 \nDepósito de agua: 5L Material: ABS, Acero inox \nCable: Vulcanizado de 5 metros \nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (72, 'JVC-045', 'BARREDORA INDUSTRIAL MECÁNICA (HOMBRE ANDANTE) - MARCA: MASTER GOLDS', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2442.60, 2306.90, '1', '1', '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-045', '1755120896_BARREDORA GRISS MG.jpg', 'Modelo: BMG-B40L \nEficiencia de trabajo: 3680 m2/h \nAncho de limpieza: 920 mm \nVolumen de basura: 40L', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (73, 'JVC-046', 'BARREDORA INDUSTRIAL (HOMBRE ANDANTE) CAPACIDAD 35 LT - MASTER GOLDS', 10620.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 9558.00, 9027.00, '1', '1', '1', '1', 9027.00, 0.00, 0.00, 10620.00, 'JVC-046', NULL, 'Modelo: MG-60', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (74, 'JVC-047', 'BARREDORA INDUSTRIAL 180 LT (HOMBRE ABORDO) - MARCA: MASTER GOLDS', 25960.00, 0.00, 1, 0, 12, 1, '1000-01-01', '', '1', '0', 23364.00, 22066.00, '1', '1', '1', '1', 22066.00, 0.00, 0.00, 25960.00, 'JVC-047', '1755121325_FOTOS MAQUINAS JVC LIMPIAS (41).jpg', 'Modelo: BEM-1800 \r\nPotencia de motor: 1200W \r\nBatería: 8 x 48V \r\nProductividad de trabajo: 12500 m2/h \r\nTanque de recolección: 180L \r\nCantidad Cepillos: 5 unidades \r\nHoras de trabajo: 5 - 6 horas', 6, NULL, '14', 'USD', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (75, 'JVC-048', 'HIDROLAVADORA INDUSTRIAL (MONOFÁSICA) - MARCA: MASTER GOLDS', 4956.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4460.40, 4212.60, '1', '1', '1', '1', 4212.60, 0.00, 0.00, 4956.00, 'JVC-048', '1755121916_FOTOS MAQUINAS JVC LIMPIAS (42).jpg', 'Modelo: HMG6-15CL \nPotencia KW: 3.1KW \nVoltaje/Hz: 220V/60Hz \nFlujo de agua: 560 L/H \nBarra de presión: 150 bar', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (76, 'JVC-049', 'HIDROLAVADORA INDUSTRIAL (TRIFÁSICA) - MARCA: MASTER GOLDS', 6844.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 6159.60, 5817.40, '1', '1', '1', '1', 5817.40, 0.00, 0.00, 6844.00, 'JVC-049', '1755179376_FOTOS MAQUINAS JVC LIMPIAS (43).jpg', 'Modelo: HMG7-18CL \nPotencia KW: 4.7KW \nVoltaje/Hz: 380V/60Hz \nFlujo de agua: 700 L/H \nBarra de presión: 180 bar', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (77, 'JVC-050', 'FREGADORA SEMI INDUSTRIAL ELÉCTRICA (CEPILLO 14\') - MARCA: MASTER GOLDS', 5900.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 5310.00, 5015.00, '1', '1', '1', '1', 5015.00, 0.00, 0.00, 5900.00, 'JVC-050', '1755179633_FOTOS MAQUINAS JVC LIMPIAS (44).jpg', 'Modelo: FMG-K201 \nPotencia: 550W \nVoltaje/Hz: 220V/60Hz \nCapacidad de trabajo: 1100 m2/h \nCapacidad de tanque de solución: 11.8L \nCapacidad de tanque de recuperación: 13.4L \nCable: Vulcanizado 25 metros', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (78, 'JVC-051', 'FREGADORA INDUSTRIAL DE PISOS DE 19\" A BATERIA - MARCA: SPEED POWER', 15930.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 14337.00, 13540.50, '1', '1', '1', '1', 13540.50, 0.00, 0.00, 15930.00, 'JVC-051', '1755179978_FOTOS MAQUINAS JVC LIMPIAS (45).jpg', '', 8, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (79, 'JVC-052', 'FREGADORA INDUSTRIAL DE PISOS DE 18\" A BATERIA - MARCA: MASTER GOLDS', 17110.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 15399.00, 14543.50, '1', '1', '1', '1', 14543.50, 0.00, 0.00, 17110.00, 'JVC-052', '1755180124_FOTOS MAQUINAS JVC LIMPIAS (46).jpg', '', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (80, 'JVC-053', 'FREGADORA INDUSTRIAL DE PISOS DE 19\" A BATERIA - MARCA: MASTER GOLDS', 20650.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 18585.00, 17552.50, '1', '1', '1', '1', 17552.50, 0.00, 0.00, 20650.00, 'JVC-053', '1755180261_FOTOS MAQUINAS JVC LIMPIAS (47).jpg', '', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (81, NULL, 'HIDROLAVADORA INDUSTRIAL (TRIFÁSICA) - MARCA: MASTER GOLDS', 7670.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 7670.00, 'JVC-054', NULL, 'Modelo: HMG7-18CL Potencia KW: 4.7KW Voltaje/Hertz: 380V/60Hz Flujo de agua: 700 L/H Barra de presión: 180bar', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (82, 'JVC-055', 'TERMONEBULIZADORA (CAÑON CORTO) - MARCA: MASTER FOG', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 5841.00, 5516.50, '1', '1', '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-055', NULL, 'Modelo: TMG-T34 \r\nFuente de alimentación: 4 x 1.5V \r\nCaudal Max: 25L/H \r\nCapacidad de tanque de solución: 6 LT \r\nCapacidad de tanque de combustión: 2 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (83, 'JVC-056', 'TERMONEBULIZADORA (CAÑON LARGO) - MARCA: MASTER FOG', 5900.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 5310.00, 5015.00, '1', '1', '1', '1', 5015.00, 0.00, 0.00, 5900.00, 'JVC-056', NULL, 'Modelo: TMG-BW-20 \r\nFuente de alimentación: 4 x 1.5V \r\nCaudal Max: 45L/H \r\nCapacidad de tanque de solución: 6 LT \r\nCapacidad de tanque de combustión: 2 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (84, 'JVC-057', 'MÁQUINA ULV 2.5 LITROS (A BATERÍA) - MARCA: MASTER FOG', 5310.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 4779.00, 4513.50, '1', '1', '1', '1', 4513.50, 0.00, 0.00, 5310.00, 'JVC-057', '1755182518_FOTOS MAQUINAS JVC LIMPIAS (53).jpg', 'Modelo: UMG-3600B \r\nMotor eléctrico: 450W \r\nBoquilla de nebulización: Contrarotativas\r\nCapacidad del tanque: 2.5L', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (85, 'JVC-058', 'MÁQUINA ULV 2.5 LITROS (ELÉCTRICO) - MARCA: MASTER FOG', 2714.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2442.60, 2306.90, '1', '1', '1', '1', 2306.90, 0.00, 0.00, 2714.00, 'JVC-058', '1755182628_FOTOS MAQUINAS JVC LIMPIAS (54).jpg', 'Modelo: UMG-3600E \r\nMotor eléctrico: 800W - 220V \r\nBoquilla de nebulización: Contrarotativas \r\nCapacidad del tanque: 2.5 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (86, 'JVC-059', 'MÁQUINA ULV DE 5 LITROS (A BATERÍA) - MARCA: MASTER FOG', 7670.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 6903.00, 6519.50, '1', '1', '1', '1', 6519.50, 0.00, 0.00, 7670.00, 'JVC-059', '1755184105_FOTOS MAQUINAS JVC LIMPIAS (55).jpg', 'Modelo: PIONEER \r\nMotor eléctrico: 450W \r\nBoquilla de nebulización: Giratoria \r\nCapacidad del tanque: 5 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (87, 'JVC-060', 'MÁQUINA ULV 6 LITROS (ÉLECTRICO) - MARCA: MASTER FOG', 2478.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2230.20, 2106.30, '1', '1', '1', '1', 2106.30, 0.00, 0.00, 2478.00, 'JVC-060', '1755184161_FOTOS MAQUINAS JVC LIMPIAS (52).jpg', 'Modelo: UMG-2680A \r\nMotor eléctrico: 800W - 220V/60Hz \r\nBoquilla de nebulización: Contrarotativas \r\nCapacidad del tanque: 6 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (88, 'JVC-061', 'MÁQUINA ULV DE 10 LITROS (ÉLECTRICO) - MARCA: MASTER FOG', 2507.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2256.75, 2131.38, '1', '1', '1', '1', 2131.38, 0.00, 0.00, 2507.50, 'JVC-061', NULL, 'Modelo: UMG-1500 \r\nMotor eléctrico: 1400W - 220V/60Hz \r\nBoquilla de nebulización: Tipo remolino \r\nCapacidad del tanque: 10 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (89, 'JVC-062', 'MÁQUINA ULV DE 12 LITROS (ÉLECTRICO) - MARCA: MASTER FOG', 2625.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2362.95, 2231.68, '1', '1', '1', '1', 2231.68, 0.00, 0.00, 2625.50, 'JVC-062', NULL, 'Modelo: UMG-1500E \r\nMotor eléctrico: 1400W - 220V/60Hz \r\nBoquilla de nebulización: Tipo remolino \r\nCapacidad del tanque: 12L', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (90, 'JVC-063', 'MÁQUINA ULV DE 16 LITROS (ÉLECTRICO) - MARCA: MASTER FOG', 2743.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2469.15, 2331.98, '1', '1', '1', '1', 2331.98, 0.00, 0.00, 2743.50, 'JVC-063', NULL, 'Modelo: UMG-1500MP \r\nMotor eléctrico: 1400W - 220V/60Hz \r\nBoquilla de nebulización: Tipo remolino \r\nCapacidad del tanque: 16 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (91, 'JVC-064', 'MOCHILA PULVERIZADORA DE 20 LITROS (MANUAL) - MARCA: MASTER FOG', 295.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 265.50, 250.75, '1', '1', '1', '1', 250.75, 0.00, 0.00, 295.00, 'JVC-064', NULL, 'Modelo: PMG-20L \r\nManguera: 13500 mm \r\nLanza: 600 mm \r\nCapacidad del tanque: 20 LT \r\nMaterial del tanque: Polipropileno', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (92, 'JVC-065', 'MOTO ATOMIZADORA DE 14 LITROS (MOTOR 2 TIEMPOS) - MARCA: MASTER FOG', 2301.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2070.90, 1955.85, '1', '1', '1', '1', 1955.85, 0.00, 0.00, 2301.00, 'JVC-065', NULL, 'Modelo: NTS420 \r\nTipo de motor: 2 tiempos \r\nCilindro de desplazamiento: 56.5cc \r\nPotencia de salida: 3.0kW/4.0hp \r\nVelocidad máxima del motor: 6000rpm \r\nCapacidad del tanque de combustible: 1.5 LT \r\nCacidad del tanque Quimico: 14 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (93, 'JVC-066', 'MOTO PULVERIZADORA DE 25 LITROS (MOTOR 2 TIEMPOS) - MARCA: MASTER FOG', 1947.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 1752.30, 1654.95, '1', '1', '1', '1', 1654.95, 0.00, 0.00, 1947.00, 'JVC-066', NULL, 'Modelo: NTS-768 \r\nTipo de motor: 2 tiempos \r\nCilindro de desplazamiento: 26cc \r\nPotencia de salida: 3.0kW/4.0hp \r\nVelocidad máxima del motor: 7500rpm \r\nCapacidad del tanque de combustible: 0.9 LT \r\nCacidad del tanque Quimico: 25 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (94, 'JVC-067', 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GREEN', 2832.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 2548.80, 2407.20, '1', '1', '1', '1', 2407.20, 0.00, 0.00, 2832.00, 'JVC-067', NULL, 'Modelo: 541RS \r\nMotor: 2.2 HP \r\nTipo de motor: 2 tiempos \r\nCilindro de desplazamiento: 43cc \r\nPotencia de salida: 1.47kW \r\nVelocidad máxima del motor: 7000rpm \r\nCapacidad de combustible: 950 ml \r\nIncluye: Cuchilla 2T', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (95, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GREEN', 2655.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 2389.50, 2256.75, '1', '1', '1', '1', 2256.75, 0.00, 0.00, 2655.00, 'JVC-068', NULL, 'Modelo: 143R-II \r\nMotor: 1.4 HP \r\nTipo de motor: 2 tiempos \r\nCilindro de desplazamiento: 41.5cc \r\nPotencia de salida: 1.47kW \r\nVelocidad máxima del motor: 7000rpm \r\nCapacidad de combustible: 950 ml \r\nIncluye: Cuchilla 2T', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (96, NULL, 'MÁQUINA DESBROZADORA 4 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GREEN', 2183.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 1964.70, 1855.55, '1', '1', '1', '1', 1855.55, 0.00, 0.00, 2183.00, 'JVC-069', NULL, 'Modelo: GX50 \r\nMotor: 2.2 HP \r\nTipo de motor: 4 tiempos \r\nCilindro de desplazamiento: 47.9cc \r\nPotencia de salida: 1.47kW \r\nVelocidad máxima del motor: 9500rpm \r\nCapacidad de combustible: 950 ml \r\nIncluye: Cuchilla 2T', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (97, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 16\" (4 TIEMPOS) - MARCA: NEWTOP', 3068.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 2761.20, 2607.80, '1', '1', '1', '1', 2607.80, 0.00, 0.00, 3068.00, 'JVC-070', NULL, 'Modelo: NTLM16 \r\nMotor: 3.5 HP / 3600rpm \r\nAncho de corte: 16\" / 410mm \r\nPasos de altura de corte: 6 posiciones \r\nCapacidad del tanque de combusteble: 0.75 LT\r\nCapacidad del colector: 40 LT', 20, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (98, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 18\"(4 TIEMPOS) - MARCA: NEWTOP', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 2973.60, 2808.40, '1', '1', '1', '1', 2808.40, 0.00, 0.00, 3304.00, 'JVC-071', NULL, 'Modelo: NTLM18 \r\nMotor: 4.0 HP / 3600rpm \r\nAncho de corte: 18\" / 460mm \r\nPasos de altura de corte: 10 posiciones \r\nCapacidad del tanque de combusteble: 0.8 LT \r\nCapacidad del colector: 60 LT', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (99, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 21\"(4 TIEMPOS) - MARCA: NEWTOP', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 3292.20, 3109.30, '1', '1', '1', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-072', NULL, 'Modelo: NTLM21 \r\nMotor: 6.0 HP / 3600rpm \r\nAncho de corte: 21\" / 460mm \r\nPasos de altura de corte: 8 posiciones \r\nCapacidad del tanque de combusteble: 1.0 LT \r\nCapacidad del colector: 65 LT', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (100, NULL, 'MOTOSIERRA INDUSTRIAL CON ESPADA DE 20\" - MARCA: NEWTOP - MODELO: NT5800', 1700.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 1700.00, 'JVC-073', NULL, '', 21, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (101, NULL, 'MÁQUINA ULV DE 16 LITROS (ÉLECTRICO) - MARCA: MASTER GOLDS', 2743.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2743.50, 'JVC-074', NULL, 'Modelo: UMG-1500MP Motor eléctrico: 1400W - 220V/60Hz Boquilla de nebulización: Tipo remolino Capacidad del tanque: 16L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (102, NULL, 'MOTO ATOMIZADORA DE 12L (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2773.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2773.00, 'JVC-075', NULL, 'Modelo: NTS423 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 72.3cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 5700rpm Capacidad del tanque de combustible: 1.4L Cacidad del tanque Quimico: 12L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (103, NULL, 'MOTO ATOMIZADORA DE 14L (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2596.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2596.00, 'JVC-076', NULL, 'Modelo: NTS420 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 56.5cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 6000rpm Capacidad del tanque de combustible: 1.5L Cacidad del tanque Quimico: 14L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (104, NULL, 'MOTO PULVERIZADORA DE 25 LITROS (MOTOR 2 TIEMPOS) - MARCA: NEWTOP', 2360.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2360.00, 'JVC-077', NULL, 'Modelo: NTS-768 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 26cc Potencia de salida: 3.0kW/4.0hp Velocidad máxima del motor: 7500rpm Capacidad del tanque de combustible: 0.9L Cacidad del tanque Quimico: 25L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (105, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 4 TIEMPOS (MOTO GUADAÑA) - MARCA: NEWTOP', 1652.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1652.00, 'JVC-078', NULL, 'Modelo: NTS139CG Tipo de motor: 4 tiempos Cilindro de desplazamiento: 31.3cc Potencia de salida: 0.7kW/0.9hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 500 ml', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (106, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 4 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1770.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1770.00, 'JVC-079', NULL, 'Modelo: NTS140CG Tipo de motor: 4 tiempos Cilindro de desplazamiento: 35.8cc Potencia de salida: 0.7kW/1.0hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 500 ml', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (107, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2950.00, 'JVC-080', NULL, 'Modelo: NTB143 Tipo de motor: 2 tiempos Cilindro de desplazamiento: 41.5cc Potencia de salida: 1.5kW/2.0hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 1300 ml', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (108, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1298.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1298.00, 'JVC-081', NULL, 'Modelo: NTB260A Tipo de motor: 2 tiempos Cilindro de desplazamiento: 26cc Potencia de salida: 0.7kW/0.9hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 650 ml', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (109, NULL, 'MÁQUINA DESBROZADORA DE CESPED DE 2 TIEMPOS (MOTOGUADAÑA) - MARCA: NEWTOP', 1416.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1416.00, 'JVC-082', NULL, 'Modelo: NTB330A Tipo de motor: 2 tiempos Cilindro de desplazamiento: 32.6cc Potencia de salida: 0.9kW/1.2hp Velocidad máxima del motor: 9000rpm Capacidad de combustible: 850 ml', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (110, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2950.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2950.00, 'JVC-083', NULL, 'Modelo: 541RS Motor: 2.2 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 43cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (111, NULL, 'MÁQUINA DESBROZADORA 2 TIEMPOS (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 2655.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 2655.00, 'JVC-084', NULL, 'Modelo: 143R-II Motor: 1.4 HP Tipo de motor: 2 tiempos Cilindro de desplazamiento: 41.5cc Potencia de salida: 1.47kW Velocidad máxima del motor: 7000rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (112, NULL, 'MÁQUINA DESBROZADORA DE CESPED (4 TIEMPOS) (MOTOGUADAÑA) - MARCA: MASTER GOLDS', 1947.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1947.00, 'JVC-085', NULL, 'Modelo: GX50 Motor: 2.2 HP Tipo de motor: 4 tiempos Cilindro de desplazamiento: 47.9cc Potencia de salida: 1.47kW Velocidad máxima del motor: 9500rpm Capacidad de combustible: 950 ml Incluye: Cuchilla 2T', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (113, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 16\" (4 TIEMPOS) - MARCA: NEWTOP', 3068.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 3068.00, 'JVC-086', NULL, 'Modelo: NTLM16 Motor: 3.5 HP / 3600rpm Ancho de corte: 16\" / 410mm Pasos de altura de corte: 6 posiciones Capacidad del tanque de combusteble: 0.75L Capacidad del colector: 40L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (114, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 18\"(4 TIEMPOS) - MARCA: NEWTOP', 3304.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 3304.00, 'JVC-087', NULL, 'Modelo: NTLM18 Motor: 4.0 HP / 3600rpm Ancho de corte: 18\" / 460mm Pasos de altura de corte: 10 posiciones Capacidad del tanque de combusteble: 0.8L Capacidad del colector: 60L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (115, NULL, 'MÁQUINA CORTADORA DE CÉSPED DE 21\"(4 TIEMPOS) - MARCA: NEWTOP', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 3658.00, 'JVC-088', NULL, 'Modelo: NTLM21 Motor: 6.0 HP / 3600rpm Ancho de corte: 21\" / 460mm Pasos de altura de corte: 8 posiciones Capacidad del tanque de combusteble: 1.0L Capacidad del colector: 65L', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (116, NULL, 'MOTOSIERRA INDUSTRIAL CON ESPADA DE 20\" - MARCA: NEWTOP - MODELO: NT5800', 1700.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, NULL, NULL, '0', '1', 0.00, 0.00, 0.00, 1700.00, 'JVC-089', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (117, 'JVC-001', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3658.00, 0.00, -2, 0, 12, 1, '1000-01-01', '0', '1', '0', 3292.20, 3109.30, '1', '1', '1', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-001', NULL, 'Modelo: TD-12N \r\nPotencia de motor: 1.5 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial. \r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 12\".\r\nCable Vulcanizado Homologado de 3x14: 15 metros.\r\nIncluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\".', 5, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (118, '', 'BALDE PRENSA MOPA DE 36 LT DOBLE CUBO (18 LT C/U)', 387.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 348.75, 329.38, '1', '1', '1', '1', 329.38, 0.00, 0.00, 387.50, 'IMPLE-001', '', '', 0, NULL, '5', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (119, '', 'BALDE PRENSA MOPA DE 36 LTS', 252.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 227.25, 214.62, '1', '1', '1', '1', 214.62, 0.00, 0.00, 252.50, 'IMPLE-002', '', '', 0, NULL, '15', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (120, '', 'BALDE PRENSA MOPA DE 36 LTS', 260.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 234.00, 221.00, '1', '1', '1', '1', 221.00, 0.00, 0.00, 260.00, 'IMPLE-003', '', '', 0, NULL, '5', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (121, '', 'BALDE PRENSA MOPA DE 36 LTS (DOBLE CUBO)', 336.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 302.85, 286.02, '1', '1', '1', '1', 286.02, 0.00, 0.00, 336.50, 'IMPLE-004', '', '', 0, NULL, '6', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (122, '', 'BALDE PRENSA MOPA PREMIUM DE 81 LT + 3 BALDES + BANDEJA', 548.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 493.20, 465.80, '1', '1', '1', '1', 465.80, 0.00, 0.00, 548.00, 'IMPLE-005', '', '', 17, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (123, '', 'BANDEJA ORGANIZADORA DE IMPLEMENTOS DE LIMPIEZA', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 37.35, 35.27, '1', '1', '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-006', '', '', 0, NULL, '8', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (124, '', 'COCHE PORTA MATERIALES (AZUL)', 360.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 324.00, 306.00, '1', '1', '1', '1', 306.00, 0.00, 0.00, 360.00, 'IMPLE-007', '', '', 6, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (125, '', 'COCHE PORTA MATERIALES (GRIS Y AZUL)', 330.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 297.00, 280.50, '1', '1', '1', '1', 280.50, 0.00, 0.00, 330.00, 'IMPLE-008', '', '', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (126, '', 'COCHE PORTA IMPLEMENTOS DE LIMPIEZA (LINEA INSTITUCIONAL)', 650.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 585.00, 552.50, '1', '1', '1', '1', 552.50, 0.00, 0.00, 650.00, 'IMPLE-009', '', '', 0, NULL, '7', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (127, '', 'COCHE PORTA IMPLEMENTOS DE LIMPIEZA (LINEA HOSPITALARIA, INSTITUCIONAL, HOTELERA)', 1100.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 990.00, 935.00, '1', '1', '1', '1', 935.00, 0.00, 0.00, 1100.00, 'IMPLE-010', '', '', 7, NULL, 'undefined', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (128, NULL, 'COCHE PORTA IMPLEMENTOS (REPUESTO BOLSA 60 LT)', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (129, NULL, 'COCHE PORTA IMPLEMENTOS C/ CIERRE (REPUESTO BOLSA X LT)', 78.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 70.20, 66.30, NULL, NULL, '1', '1', 66.30, 0.00, 0.00, 78.00, 'IMPLE-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (130, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 3 MTS (AZUL)', 65.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 58.50, 55.25, NULL, NULL, '1', '1', 55.25, 0.00, 0.00, 65.00, 'IMPLE-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (131, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 3 MTS (ESPECIAL - NEGRO)', 75.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 67.50, 63.75, NULL, NULL, '1', '1', 63.75, 0.00, 0.00, 75.00, 'IMPLE-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (132, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 4 MTS (NEGRO Y AZUL)', 80.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 72.00, 68.00, NULL, NULL, '1', '1', 68.00, 0.00, 0.00, 80.00, 'IMPLE-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (133, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 4.5 MTS (NEGRO)', 95.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 85.50, 80.75, NULL, NULL, '1', '1', 80.75, 0.00, 0.00, 95.00, 'IMPLE-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (134, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 6 MTS (3 SECCIONES) (AZUL)', 118.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 106.20, 100.30, NULL, NULL, '1', '1', 100.30, 0.00, 0.00, 118.00, 'IMPLE-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (135, NULL, 'EXTENSIÓN TELESCÓPICA REGULABLE DE ALUMINIO DE 9 MTS (3 SECCIONES) (AZUL)', 146.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 131.40, 124.10, NULL, NULL, '1', '1', 124.10, 0.00, 0.00, 146.00, 'IMPLE-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (136, NULL, 'HUMEDECEDOR DE LUNAS P/EXTENSIÓN TELESCOPICA DE 40 CM (AZUL)', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (137, NULL, 'HUMEDECEDOR DE LUNAS P/EXTENSIÓN TELESCOPICA DE 45 CM (NEGRO)', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (138, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE ACERO ZINCADO DE 60 CM', 78.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 70.65, 66.72, NULL, NULL, '1', '1', 66.72, 0.00, 0.00, 78.50, 'IMPLE-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (139, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE ACERO ZINCADO DE 100 CM', 88.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 79.65, 75.22, NULL, NULL, '1', '1', 75.22, 0.00, 0.00, 88.50, 'IMPLE-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (140, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE PLÁSTICA DE 55 CM', 33.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 30.15, 28.48, NULL, NULL, '1', '1', 28.48, 0.00, 0.00, 33.50, 'IMPLE-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (141, NULL, 'JALADOR DE AGUA DOBLE GOMA C/MANGO DE ALUMINIO Y BASE PLÁSTICA DE 75 CM', 38.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 34.65, 32.73, NULL, NULL, '1', '1', 32.73, 0.00, 0.00, 38.50, 'IMPLE-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (142, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE ACERO INOX 55CM', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (143, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE ACERO INOX 75CM', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-026', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (144, NULL, 'JALADOR DE AGUA DOBLE GOMA EBA C/MANGO DE ALUMINIO ESTRIADO Y BASE DE PROPILENO DE 60 CM (INDUSTRIA HOSPITALARIA - ALIMENTARIA)', 75.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 67.50, 63.75, NULL, NULL, '1', '1', 63.75, 0.00, 0.00, 75.00, 'IMPLE-027', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (145, NULL, 'LETRERO PREVENTIVO \"CUIDADO PISO MOJADO\"', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-028', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (146, NULL, 'LETRERO PREVENTIVO EN FORMA DE CONO \"CUIDADO PISO MOJADO\"', 45.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 40.50, 38.25, NULL, NULL, '1', '1', 38.25, 0.00, 0.00, 45.00, 'IMPLE-029', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (147, NULL, 'LIMPIADOR DE LUNAS DE 35 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-030', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (148, NULL, 'LIMPIADOR DE LUNAS DE 40 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 47.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 42.75, 40.38, NULL, NULL, '1', '1', 40.38, 0.00, 0.00, 47.50, 'IMPLE-031', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (149, NULL, 'LIMPIADOR DE LUNAS DE 45 CM C/BASE DE METAL P/EXTENSIÓN TELESCÓPICA', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-032', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (150, NULL, 'LIMPIADOR DE LUNAS DUAL P/EXTENSIÓN TELESCÓPICA (HUMEDECEDOR Y JALADOR DE GOMA)', 53.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 48.15, 45.47, NULL, NULL, '1', '1', 45.47, 0.00, 0.00, 53.50, 'IMPLE-033', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (151, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 60 CM C/MANGO DE ALUMINIO (COMPLETO)', 36.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 32.85, 31.02, NULL, NULL, '1', '1', 31.02, 0.00, 0.00, 36.50, 'IMPLE-034', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (152, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 60 CM (REPUESTO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-035', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (153, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 90 CM C/MANGO DE ALUMINIO (COMPLETO)', 58.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 52.20, 49.30, NULL, NULL, '1', '1', 49.30, 0.00, 0.00, 58.00, 'IMPLE-036', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (154, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 90 CM (REPUESTO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-037', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (155, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 110 CM C/MANGO DE ALUMINIO (COMPLETO)', 79.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 71.10, 67.15, NULL, NULL, '1', '1', 67.15, 0.00, 0.00, 79.00, 'IMPLE-038', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (156, NULL, 'MOPA DE BARRIDO DE ALGODÓN DE 110 CM (REPUESTO)', 67.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 60.75, 57.38, NULL, NULL, '1', '1', 57.38, 0.00, 0.00, 67.50, 'IMPLE-039', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (157, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 60 CM C/MANGO DE ACERO INOX (COMPLETO)', 51.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 45.90, 43.35, NULL, NULL, '1', '1', 43.35, 0.00, 0.00, 51.00, 'IMPLE-040', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (158, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 60 CM (REPUESTO)', 28.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 25.65, 24.22, NULL, NULL, '1', '1', 24.22, 0.00, 0.00, 28.50, 'IMPLE-041', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (159, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 90 CM C/MANGO DE ACERO INOX (COMPLETO)', 72.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 64.80, 61.20, NULL, NULL, '1', '1', 61.20, 0.00, 0.00, 72.00, 'IMPLE-042', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (160, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 90 CM (REPUESTO)', 39.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 35.10, 33.15, NULL, NULL, '1', '1', 33.15, 0.00, 0.00, 39.00, 'IMPLE-043', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (161, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 110 CM C/MANGO DE ACERO INOX (COMPLETO)', 95.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 85.95, 81.18, NULL, NULL, '1', '1', 81.18, 0.00, 0.00, 95.50, 'IMPLE-044', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (162, NULL, 'MOPA DE BARRIDO ACRÍLICO DE 110 CM (REPUESTO)', 51.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 45.90, 43.35, NULL, NULL, '1', '1', 43.35, 0.00, 0.00, 51.00, 'IMPLE-045', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (163, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 60 CM C/MANGO DE ALUMINIO (COMPLETO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-046', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (164, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 60 CM (REPUESTO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-047', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (165, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 90 CM C/MANGO DE ALUMINIO (COMPLETO)', 67.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 60.75, 57.38, NULL, NULL, '1', '1', 57.38, 0.00, 0.00, 67.50, 'IMPLE-048', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (166, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 90 CM (REPUESTO)', 46.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 41.40, 39.10, NULL, NULL, '1', '1', 39.10, 0.00, 0.00, 46.00, 'IMPLE-049', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (167, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 110 CM C/MANGO DE ALUMINIO (COMPLETO)', 88.50, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 79.65, 75.22, NULL, NULL, '1', '1', 75.22, 0.00, 0.00, 88.50, 'IMPLE-050', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (168, NULL, 'MOPA DE BARRIDO DE MICROFIBRA DE 110 CM (REPUESTO)', 72.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 64.80, 61.20, NULL, NULL, '1', '1', 61.20, 0.00, 0.00, 72.00, 'IMPLE-051', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (169, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM (PALO CON SUJETADOR) (MOJADO O SECO)', 95.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 85.50, 80.75, NULL, NULL, '1', '1', 80.75, 0.00, 0.00, 95.00, 'IMPLE-052', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (170, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: AZUL)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-053', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (171, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: ROJO)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-054', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (172, NULL, 'MOPA PLANTA DE MICROFIBRA DE 69 CM P/ PISO MOJADO O SECO - (REPUESTO) (COLOR: VERDE)', 35.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 31.50, 29.75, NULL, NULL, '1', '1', 29.75, 0.00, 0.00, 35.00, 'IMPLE-055', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (173, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: AMARILLO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-056', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (174, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: AZUL)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-057', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (175, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: ROJO)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-058', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (176, NULL, 'BASE DE TRAPEADOR MECHÓN IMPORTADO C/ MANGO DE ALUMINIO 120 CM (COLOR: VERDE)', 25.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 22.50, 21.25, NULL, NULL, '1', '1', 21.25, 0.00, 0.00, 25.00, 'IMPLE-059', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (177, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: AMARILLO)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-060', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (178, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: AZUL)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-061', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (179, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: ROJO)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-062', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (180, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 120 CM (COLOR: VERDE)', 28.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 25.20, 23.80, NULL, NULL, '1', '1', 23.80, 0.00, 0.00, 28.00, 'IMPLE-063', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (181, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: AMARILLO)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-064', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (182, NULL, 'prueba', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '123', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 0.00, '12234646', NULL, 'prueb', 5, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (183, NULL, 'prueba', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '123', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 0.00, '0', NULL, 'qqwewq', 5, NULL, '6', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (184, NULL, 'EDU', 1.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 2.00, 2.00, '', '', '0', '1', 2.00, 0.00, 0.00, 1.00, 'EDU1', NULL, 'SAD\r\nDAS', 17, NULL, 'undefined', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (185, NULL, 'sdfsdvds', 100.00, 90.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 45.00, 40.00, '', '', '0', '1', 40.00, 0.00, 0.00, 100.00, '2', NULL, 'fsdsdfdf', 0, NULL, 'undefined', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (186, '', 'CVCVXB', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '0', '1', 0.00, 0.00, 0.00, 0.00, '0', '', 'CBVBCVC', 17, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (187, NULL, 'FFDGCV', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 0.00, '0', NULL, '', 17, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (188, NULL, 'ngfhngfddfgn', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 0.00, 'IMPLE 54', NULL, 'gfngf', 7, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (189, '', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 15', 100.00, 90.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 150.00, 90.00, '1', '1', '1', '1', 90.00, 0.00, 0.00, 100.00, 'PRUE 001', 'hola231.jpg', 'MARCA: CRIS-TAURO\r\nModelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz\r\nVelocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de\r\nLavar de 11\" y Cepillo de Lustrar de 11\"', 0, NULL, '', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (190, '', 'HOLA ESTE ES UN PRODUCTO', 30.00, 20.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 10.00, 9.00, '1', '1', '0', '1', 9.00, 0.00, 0.00, 30.00, '001', '', 'diuwscbuisdfbujbefv', 0, NULL, '5', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (191, '', 'dgfva', 2183.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', NULL, NULL, '1', '1', '0', '1', NULL, 0.00, 0.00, 2183.00, '001', '', 'null', 0, NULL, '5', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (192, '', 'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO', 110.00, 110.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 110.00, 110.00, '1', '1', '0', '1', 110.00, 0.00, 0.00, 110.00, 'CEP -001', '', '\r\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\r\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\r\naccesorios\r\n\r\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\r\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\r\naccesorios\r\n\r\nModelo: AD-25G Motor doble: 1200W - 60Hz / 18000 RPM Tanque: Fibra de\r\nvidrio de 15 Galones Cable: Vulcanizado x 15 metros INCLUYE: Kit completo de\r\naccesorios\r\n', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (193, 'JVC-016-1', 'ABRILLANTADORA INDUSTRIAL DE PISOS Y VINILES DE 20\" - MARCA MASTER GOLDS', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 6490.00, 'JVC-016-1', NULL, 'Modelo: AMG-1500C \r\nMotor: 2.0 HP Inducido \r\nEstructura: Acero Plato en Acero de 20\".\r\nCable: Vulcanizado x 10 metros. \r\nIncluye: Porta Pad 20\" y Disco Pad 20\".', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (194, 'JVC-037-1', 'LIMPIADOR Y SECADOR DE ALFOMBRAS (AZUL) - MARCA: MASTER GOLDS', 6490.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 5841.00, 5516.50, '1', '1', '1', '1', 5516.50, 0.00, 0.00, 6490.00, 'JVC-037-1', NULL, 'Modelo: LIE-J4-A \r\nMotor: 3290W \r\nMotor de succión: 1000W \r\nTanque de agua limpia: 20 LT\r\nTanque de agua residual: 18 LT\r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (195, 'JVC-037-2', 'LIMPIADOR Y SECADOR DE ALFOMBRAS (PLOMO) - MARCA: MASTER GOLDS', 7552.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 6796.80, 6419.20, '1', '1', '1', '1', 6419.20, 0.00, 0.00, 7552.00, 'JVC-037-2', NULL, 'Modelo: LAMG \r\nMotor: 3290W \r\nMotor de succión: 1000W \r\nTanque de agua limpia: 20 LT\r\nTanque de agua residual: 18 LT\r\nIncluye: Kit de accesorios', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (196, 'JVC-038-1', 'LIMPIADOR INDUSTRIAL DE ESCALERAS ELÉCTRICAS (CON CABLE) - MARCA: MASTER GOLDS', 6962.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 6265.80, 5917.70, '1', '1', '1', '1', 5917.70, 0.00, 0.00, 6962.00, 'JVC-038-1', NULL, 'Modelo: MLE-SC450 \nMotor: 1000W \nVoltaje: 220-240V/60Hz \nAncho de trabajo: 450mm \nCapacidad: 20 LT\nCable vulcanizado', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (197, 'JVC-038-2', 'LIMPIADOR INDUSTRIAL DE ESCALERAS ELÉCTRICAS (A BATERÍA) - MARCA: MASTER GOLDS', 8142.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 7327.80, 6920.70, '1', '1', '1', '1', 6920.70, 0.00, 0.00, 8142.00, 'JVC-038-2', NULL, 'Modelo: MLE-SC450D \nEnergía: 500W \nVoltaje: 24V \nAncho de trabajo: 450mm \nCapacidad: 20L \nBatería: 2 x 12V \nHoras de trabajo: 2 horas aprox.', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (198, NULL, 'BARREDORA INDUSTRIAL (HOMBRE ANDANTE) CAPACIDAD 45 LT - MASTER GOLDS', 11210.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 10089.00, 9528.50, '1', '1', '1', '1', 9528.50, 0.00, 0.00, 11210.00, 'JVC-045-1', NULL, '', 6, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (199, 'JVC-054-1', 'LAVADORA SECADORA PROFESIONAL DE PISOS CON MOTOR DE TRACCIÓN DE 19\" (HOMBRE ANDANTE) - MARCA: TVX', 7734.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 6961.41, 6574.66, '1', '1', '1', '1', 6574.66, 0.00, 0.00, 7734.90, 'JVC-054-1', '1755180524_FOTOS MAQUINAS JVC LIMPIAS (48).jpg', 'Modelo: T55BT \r\nBatería : 2 x 12V \r\nCapacidad de trabajo: 2250 m2/h \r\nAncho de área de trabajo: 510 mm \r\nCapacidad de tanque de solución: 55L \r\nCapacidad de tanque de recuperación: 65L \r\nIncluye: Cepillo y Porta Pad de 19\" ', 22, NULL, '14', 'USD', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (200, 'JVC-054-2', 'LAVADORA SECADORA PROFESIONAL DE PISOS CON MOTOR DE TRACCIÓN DE 21\" (HOMBRE A BORDO) - MARCA: TVX', 10413.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 9372.15, 8851.48, '1', '1', '1', '1', 8851.48, 0.00, 0.00, 10413.50, 'JVC-054-2', '1755180678_FOTOS MAQUINAS JVC LIMPIAS (49).jpg', 'Modelo: T90 \r\nBatería : 2 x 12V \r\nCapacidad de trabajo: 2800 m2/h \r\nAncho de área de trabajo: 560 mm \r\nCapacidad de tanque de solución: 90L \r\nCapacidad de tanque de recuperación: 100L \r\nIncluye: Cepillo y Porta Pad de 21\" ', 22, NULL, '14', 'USD', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (201, 'JVC-054-3', 'LAVADORA SECADORA PROFESIONAL DE PISOS DE 16\" DOBLE (HOMBRE A BORDO) - MARCA: TVX', 15133.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 13620.15, 12863.47, '1', '1', '1', '1', 12863.47, 0.00, 0.00, 15133.50, 'JVC-054-3', '1755181574_FOTOS MAQUINAS JVC LIMPIAS (50).jpg', 'Modelo: T130 (DOBLE CEPILLO) \r\nBatería : 24V / 200AH \r\nCapacidad de trabajo: 5590 m2/h \r\nAncho de área de trabajo: 860 mm \r\nCapacidad de tanque de solución: 120L \r\nCapacidad de tanque de recuperación: 130L \r\nIncluye: 2 cepillos y Porta Pad de 16\"', 22, NULL, '14', 'USD', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (202, 'JVC-054-4', 'LAVADORA SECADORA PROFESIONAL DE PISOS DE 16\" DOBLE (HOMBRE A BORDO) - MARCA: TVX', 18673.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 16806.15, 15872.47, '1', '1', '1', '1', 15872.47, 0.00, 0.00, 18673.50, 'JVC-054-4', '1755181764_FOTOS MAQUINAS JVC LIMPIAS (51).jpg', 'Modelo: T150 (DOBLE CEPILLO) \r\nBatería : 3 x 12V\r\nCapacidad de trabajo: 5590 m2/h \r\nAncho de área de trabajo: 860 mm \r\nCapacidad de tanque de solución: 150L \r\nCapacidad de tanque de recuperación: 170L \r\nIncluye: Cepillo y Porta Pad de 16\"', 22, NULL, '14', 'USD', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (203, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: AZUL)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-065', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (204, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: ROJO)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-066', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (205, NULL, 'BASE DE TRAPEADOR MECHÓN NACIONAL C/ MANGO DE HIERRO REVESTIDO CON PINTURA URETANO 140 CM (COLOR: VERDE)', 33.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 29.70, 28.05, NULL, NULL, '1', '1', 28.05, 0.00, 0.00, 33.00, 'IMPLE-067', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (206, NULL, 'RECOGEDOR Y ESCOBA LOBBY (COMPLETO)', 41.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 37.35, 35.27, NULL, NULL, '1', '1', 35.27, 0.00, 0.00, 41.50, 'IMPLE-068', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (207, NULL, 'TRAPEADOR MECHÓN DE 500 GR', 8.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 7.20, 6.80, NULL, NULL, '1', '1', 6.80, 0.00, 0.00, 8.00, 'IMPLE-069', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (208, NULL, 'TRAPEADOR MECHÓN BLANCO DE 450 GR (IMPORTADO)', 16.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.40, 13.60, NULL, NULL, '1', '1', 13.60, 0.00, 0.00, 16.00, 'IMPLE-070', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (209, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: AZUL)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-071', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (210, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: ROJO)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-072', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (211, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 10\" (NACIONAL)', 100.24, 25.00, 10, 0, 12, 1, '1000-01-01', '0', '0', '0', 90.22, 85.20, '1', '1', '1', '1', 85.20, 0.00, 0.00, 100.24, 'CEP-001', NULL, '', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (212, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 11\" (NACIONAL)', 101.80, 25.00, 11, 0, 12, 1, '1000-01-01', '0', '0', '0', 91.62, 86.53, NULL, NULL, '1', '1', 86.53, 0.00, 0.00, 101.80, 'CEP-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (213, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 12\" (NACIONAL)', 104.91, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 94.42, 89.18, NULL, NULL, '1', '1', 89.18, 0.00, 0.00, 104.91, 'CEP-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (214, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 13\" (NACIONAL)', 109.46, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 98.51, 93.04, NULL, NULL, '1', '1', 93.04, 0.00, 0.00, 109.46, 'CEP-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (215, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 14\" (NACIONAL)', 112.57, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.31, 95.69, NULL, NULL, '1', '1', 95.69, 0.00, 0.00, 112.57, 'CEP-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (216, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 15\" (NACIONAL)', 117.11, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 105.40, 99.55, NULL, NULL, '1', '1', 99.55, 0.00, 0.00, 117.11, 'CEP-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (217, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 16\" (NACIONAL)', 121.79, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 109.61, 103.52, NULL, NULL, '1', '1', 103.52, 0.00, 0.00, 121.79, 'CEP-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (218, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 17\" (NACIONAL)', 130.87, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 117.79, 111.24, NULL, NULL, '1', '1', 111.24, 0.00, 0.00, 130.87, 'CEP-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (219, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 18\" (NACIONAL)', 135.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 121.99, 115.21, NULL, NULL, '1', '1', 115.21, 0.00, 0.00, 135.55, 'CEP-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (220, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 19\" (NACIONAL)', 146.19, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.57, 124.26, NULL, NULL, '1', '1', 124.26, 0.00, 0.00, 146.19, 'CEP-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (221, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 20\" (NACIONAL)', 153.85, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 138.46, 130.77, NULL, NULL, '1', '1', 130.77, 0.00, 0.00, 153.85, 'CEP-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (222, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 21\" (NACIONAL)', 158.52, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 142.67, 134.74, NULL, NULL, '1', '1', 134.74, 0.00, 0.00, 158.52, 'CEP-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (223, NULL, 'CEPILLO PARA LAVAR PISO C/ BRAQUETA DE 22\" (NACIONAL)', 161.51, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 145.36, 137.28, NULL, NULL, '1', '1', 137.28, 0.00, 0.00, 161.51, 'CEP-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (224, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 11\" (NACIONAL)', 100.24, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 90.22, 85.20, NULL, NULL, '1', '1', 85.20, 0.00, 0.00, 100.24, 'CEP-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (225, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 12\" (NACIONAL)', 101.80, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 91.62, 86.53, NULL, NULL, '1', '1', 86.53, 0.00, 0.00, 101.80, 'CEP-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (226, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 13\" (NACIONAL)', 104.91, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 94.42, 89.18, NULL, NULL, '1', '1', 89.18, 0.00, 0.00, 104.91, 'CEP-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (227, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 14\" (NACIONAL)', 109.46, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 98.51, 93.04, NULL, NULL, '1', '1', 93.04, 0.00, 0.00, 109.46, 'CEP-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (228, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 15\" (NACIONAL)', 112.57, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.31, 95.69, NULL, NULL, '1', '1', 95.69, 0.00, 0.00, 112.57, 'CEP-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (229, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 16\" (NACIONAL)', 117.11, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 105.40, 99.55, NULL, NULL, '1', '1', 99.55, 0.00, 0.00, 117.11, 'CEP-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (230, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 17\" (NACIONAL)', 121.79, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 109.61, 103.52, NULL, NULL, '1', '1', 103.52, 0.00, 0.00, 121.79, 'CEP-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (231, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 18\" (NACIONAL)', 130.87, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 117.79, 111.24, NULL, NULL, '1', '1', 111.24, 0.00, 0.00, 130.87, 'CEP-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (232, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 19\" (NACIONAL)', 135.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 121.99, 115.21, NULL, NULL, '1', '1', 115.21, 0.00, 0.00, 135.55, 'CEP-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (233, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 20\" (NACIONAL)', 146.19, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.57, 124.26, NULL, NULL, '1', '1', 124.26, 0.00, 0.00, 146.19, 'CEP-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (234, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 21\" (NACIONAL)', 153.85, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 138.46, 130.77, NULL, NULL, '1', '1', 130.77, 0.00, 0.00, 153.85, 'CEP-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (235, NULL, 'CEPILLO PARA LUSTRAR PISO C/ BRAQUETA DE 22\" (NACIONAL)', 158.52, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 142.67, 134.74, NULL, NULL, '1', '1', 134.74, 0.00, 0.00, 158.52, 'CEP-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (236, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (IMPORTADO)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPI-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (237, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 15\" (IMPORTADO)', 160.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 160.00, 'CEPI-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (238, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 16\" (IMPORTADO)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPI-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (239, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 17\" (IMPORTADO)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPI-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (240, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 18\" (IMPORTADO)', 194.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 175.23, 165.50, NULL, NULL, '1', '1', 165.50, 0.00, 0.00, 194.70, 'CEPI-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (241, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 19\" (IMPORTADO)', 194.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 175.23, 165.50, NULL, NULL, '1', '1', 165.50, 0.00, 0.00, 194.70, 'CEPI-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (242, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (FREGADORA ADVANCE)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (243, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 13\" (FREGADORA TENNANT)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (244, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 16\" (FREGADORA TENNANT)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (245, NULL, 'CEPILLO PARA LAVAR PISOS C/ BRAQUETA DE 14\" (FREGADORA VIPER)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'CEPI-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (246, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (AZUL)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (247, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (ROJO)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (248, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 13\" (VERDE)', 112.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.89, 95.28, NULL, NULL, '1', '1', 95.28, 0.00, 0.00, 112.10, 'CEPIR-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (249, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (AZUL)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (250, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (ROJO)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (251, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 14\" (VERDE)', 123.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.51, 105.31, NULL, NULL, '1', '1', 105.31, 0.00, 0.00, 123.90, 'CEPIR-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (252, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (AZUL)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (253, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (ROJO)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (254, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 15\" (VERDE)', 135.70, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 122.13, 115.34, NULL, NULL, '1', '1', 115.34, 0.00, 0.00, 135.70, 'CEPIR-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (255, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (AZUL)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (256, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (ROJO)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (257, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 16\" (VERDE)', 147.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 132.75, 125.38, NULL, NULL, '1', '1', 125.38, 0.00, 0.00, 147.50, 'CEPIR-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (258, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (AZUL)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (259, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (ROJO)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (260, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 17\" (VERDE)', 159.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 143.37, 135.41, NULL, NULL, '1', '1', 135.41, 0.00, 0.00, 159.30, 'CEPIR-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (261, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (AZUL)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (262, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (ROJO)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (263, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 18\" (VERDE)', 171.10, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 153.99, 145.44, NULL, NULL, '1', '1', 145.44, 0.00, 0.00, 171.10, 'CEPIR-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (264, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (AZUL)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (265, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (ROJO)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (266, NULL, 'CEPILLO PARA LAVAR ALFOMBRA RANURADO NACIONAL DE 19\" (VERDE)', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 164.61, 155.47, NULL, NULL, '1', '1', 155.47, 0.00, 0.00, 182.90, 'CEPIR-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (267, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (268, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (269, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (270, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (271, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 14\" LIMKIT CLEANER', 28.32, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 25.49, 24.07, NULL, NULL, '1', '1', 24.07, 0.00, 0.00, 28.32, 'PAD-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (272, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (273, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (274, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (275, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (276, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 15\" LIMKIT CLEANER', 31.86, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 28.67, 27.08, NULL, NULL, '1', '1', 27.08, 0.00, 0.00, 31.86, 'PAD-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (277, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (278, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (279, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (280, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-014', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (281, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 16\" LIMKIT CLEANER', 35.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 31.86, 30.09, NULL, NULL, '1', '1', 30.09, 0.00, 0.00, 35.40, 'PAD-015', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (282, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-016', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (283, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-017', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (284, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-018', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (285, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-019', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (286, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 17\" LIMKIT CLEANER', 38.94, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 35.05, 33.10, NULL, NULL, '1', '1', 33.10, 0.00, 0.00, 38.94, 'PAD-020', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (287, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-021', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (288, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-022', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (289, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-023', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (290, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 18\" LIMKIT CLEANER', 42.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 42.48, 'PAD-024', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (291, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 18\" LIMKIT CLEANER', 36.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 38.23, 36.11, NULL, NULL, '1', '1', 36.11, 0.00, 0.00, 36.00, 'PAD-025', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (292, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-026', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (293, NULL, 'DISCO PAD PARA LAVADO DECAPADO DE PISOS COLOR DORADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-027', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (294, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-028', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (295, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-029', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (296, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-030', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (297, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-031', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (298, NULL, 'DISCO PAD PARA LIMPIEZA Y ABRILLANTADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 41.42, 39.12, NULL, NULL, '1', '1', 39.12, 0.00, 0.00, 46.02, 'PAD-032', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (299, NULL, 'DISCO PAD PARA LAVADO PROFUNDO DECAPADO COLOR MARRON DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-033', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (300, NULL, 'DISCO PAD PARA LAVADO PROFUNDO COLOR NEGRO DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-034', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (301, NULL, 'DISCO PAD PARA LAVAR Y/O ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-035', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (302, NULL, 'DISCO PAD PARA LAVAR COLOR VERDE 20\" LIMKIT CLEANER ', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-036', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (303, NULL, 'DISCO PAD PARA LIMPIEZA Y ABRILLANTADO DE 20\" LIMKIT CLEANER', 46.02, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 46.02, 'PAD-037', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (304, NULL, 'DISCO PAD 3M DE 17\" COLOR: BLANCO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 58.48, 'PAD-038', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (305, NULL, 'DISCO PAD 3M DE 17\" COLOR: ROJO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 58.48, 'PAD-040', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (306, NULL, 'DISCO PAD 3M DE 20\" COLOR: BLANCO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 62.66, 'PAD-041', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (307, NULL, 'DISCO PAD 3M DE 20\" COLOR: ROJO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 62.66, 'PAD-043', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (308, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 10 \"', 111.40, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 100.26, 94.69, '1', '1', '1', '1', 94.69, 0.00, 0.00, 111.40, 'PORT-001', NULL, '', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (309, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 11 \"', 112.96, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 101.67, 96.02, NULL, NULL, '1', '1', 96.02, 0.00, 0.00, 112.96, 'PORT-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (310, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 12 \"', 115.95, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 104.35, 98.55, NULL, NULL, '1', '1', 98.55, 0.00, 0.00, 115.95, 'PORT-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (311, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 13 \"', 120.62, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 108.56, 102.53, NULL, NULL, '1', '1', 102.53, 0.00, 0.00, 120.62, 'PORT-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (312, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 14 \"', 123.60, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 111.24, 105.06, '1', '1', '1', '1', 105.06, 0.00, 0.00, 123.60, 'PORT-005', '1755118149_banner-horizontal-geometrico-diseno-plano_23-2149968375.jpg', '', 0, NULL, 'null', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (313, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 15 \"', 126.72, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 114.05, 107.71, '1', '1', '1', '1', 107.71, 0.00, 0.00, 126.72, 'PORT-006', NULL, '', 0, NULL, 'null', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (314, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 16 \"', 132.82, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 119.54, 112.90, NULL, NULL, '1', '1', 112.90, 0.00, 0.00, 132.82, 'PORT-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (315, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 17 \"', 142.04, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 127.83, 120.73, NULL, NULL, '1', '1', 120.73, 0.00, 0.00, 142.04, 'PORT-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (316, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 18 \"', 146.58, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 131.92, 124.59, NULL, NULL, '1', '1', 124.59, 0.00, 0.00, 146.58, 'PORT-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (317, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 19 \"', 157.35, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 141.62, 133.75, NULL, NULL, '1', '1', 133.75, 0.00, 0.00, 157.35, 'PORT-010', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (318, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 20 \"', 165.01, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 148.51, 140.26, NULL, NULL, '1', '1', 140.26, 0.00, 0.00, 165.01, 'PORT-011', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (319, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 21 \"', 169.55, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 152.60, 144.12, NULL, NULL, '1', '1', 144.12, 0.00, 0.00, 169.55, 'PORT-012', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (320, NULL, 'PORTA PAD NACIONAL C/ BRAQUETA DE 22 \"', 172.67, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 155.40, 146.77, NULL, NULL, '1', '1', 146.77, 0.00, 0.00, 172.67, 'PORT-013', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (321, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 15 \"', 165.20, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 148.68, 140.42, NULL, NULL, '1', '1', 140.42, 0.00, 0.00, 165.20, 'PORTI-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (322, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 16 \"', 182.90, 0.00, 0, 0, 12, 1, '1000-01-01', '123', '0', '0', 164.61, 155.47, '1', '1', '1', '1', 155.47, 0.00, 0.00, 182.90, 'PORTI-002', '1755117222_banner-horizontal-geometrico-diseno-plano_23-2149968375.jpg', '', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (323, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 17 \"', 200.60, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 180.54, 170.51, '1', '1', '1', '1', 170.51, 0.00, 0.00, 200.60, 'PORTI-003', '1755117183_banner-horizontal-geometrico-diseno-plano_23-2149968375.jpg', '', 0, NULL, '15', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (324, NULL, 'PORTA PAD IMPORTADO C/ BRAQUETA DE 19 \"', 218.30, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 196.47, 185.55, NULL, NULL, '1', '1', 185.55, 0.00, 0.00, 218.30, 'PORTI-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (325, NULL, 'PORTA PAD IMPORTA C/ BRAQUETA P/ LUSTRADORA KARCHER MOD:BDS-43/180C DE 15\"', 188.80, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 169.92, 160.48, NULL, NULL, '1', '1', 160.48, 0.00, 0.00, 188.80, 'PORTI-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (326, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-01', NULL, '', 0, NULL, '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (327, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-02', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (328, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-03', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (329, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-04', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (330, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X 2 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (331, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-02', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (332, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X 2 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-03', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (333, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-04', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (334, NULL, 'PAPEL TOALLA INTERFOLIADO X CAJA DE 20 PQT', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-05', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (335, NULL, 'PAPEL TOALLA INTERFOLIADO PQT X 200 HOJAS', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PT-06', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (336, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE DE 200 HOJAS X 20 PAQUETES (LINEA INSTITUCIONAL)', 120.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 120.00, 'PTI-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (337, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE X 200 HOJAS (LINEA INSTITUCIONAL)', 6.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 6.00, 'PTI-02', '1760053507_1759340213_68dd66b50a5bb.jpg', '', 0, NULL, 'null', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (338, '', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3658.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3292.20, 3109.30, '1', '1', '0', '1', 3109.30, 0.00, 0.00, 3658.00, 'JVC-001', '', 'Modelo: TD-12N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial. \nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 12\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\".', 8, 'Modelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidabl', '14', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (339, NULL, 'ascsac', 10.00, 10.00, 0, 0, 12, 1, '1000-01-01', 'dvs324', '0', '0', 10.00, 10.00, '', '', '0', '1', 10.00, 0.00, 0.00, 10.00, '0001', 'not-foto.png', 'sdvcsdafv', 5, NULL, '15', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (340, NULL, 'pc gamer ', 10.00, 10.00, 0, 0, 12, 1, '1000-01-01', '312dsw', '0', '0', 10.00, 10.00, '', '', '0', '1', 10.00, 0.00, 0.00, 10.00, '0007', NULL, 'dfsvsdv', 6, NULL, '15', 'PEN', '2025-06-10 17:07:44', NULL);
+INSERT INTO `productos` VALUES (341, 'JVC-001-1', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 3958.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '1', '0', 3610.80, 3410.20, '1', '1', '1', '1', 3410.20, 0.00, 0.00, 3958.00, 'JVC-001-1', NULL, 'Modelo: TD-12N \r\nPotencia de motor: 2.0 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial.\r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 12\" \r\nCable Vulcanizado Homologado de 3x14: 15 metros \r\nIncluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', 5, NULL, '14', 'PEN', '2025-08-14 12:28:00', NULL);
+INSERT INTO `productos` VALUES (342, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12 MARCA: CRIS-TAURO', 232.00, 232.00, 0, 0, 12, 1, '1000-01-01', '43', '0', '0', 223.00, 222.00, '1', '1', '0', '1', 222.00, 0.00, 0.00, 232.00, 'jvc-977', '1360763.jpeg', 'dddd', 5, NULL, '14', 'USD', '2025-09-24 17:28:30', NULL);
+INSERT INTO `productos` VALUES (343, NULL, 'TRAPEADOR MECHÓN HÚMEDO 50% ANTIBACTERIAL DE 350 GR HÚMEDO (IMPORTADO) (COLOR: VERDE)', 16.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 14.85, 14.02, NULL, NULL, '1', '1', 14.02, 0.00, 0.00, 16.50, 'IMPLE-073', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (344, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - AZUL', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-074', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (345, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - ROJO', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-075', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (346, NULL, 'TRAPEADOR MECHÓN HÚMEDO DE ALGODÓN DE 350 GR (IMPORTADO) - VERDE', 27.50, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 24.75, 23.37, NULL, NULL, '1', '1', 23.37, 0.00, 0.00, 27.50, 'IMPLE-076', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (347, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (348, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (349, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 16\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (350, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (351, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (352, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 18\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (353, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR BLANCO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-007', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (354, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR NEGRO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-008', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (355, NULL, 'DISCO PAD PARA ABRILLANTAR COLOR ROJO DE 20\" LIMKIT CLEANER 5M', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'P5M-009', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (356, NULL, 'DISCO PAD 3M DE 17\" COLOR: BLANCO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 52.63, 49.71, NULL, NULL, '1', '1', 49.71, 0.00, 0.00, 58.48, 'P3M-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (357, NULL, 'DISCO PAD 3M DE 17\" COLOR: ROJO', 58.48, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 52.63, 49.71, NULL, NULL, '1', '1', 49.71, 0.00, 0.00, 58.48, 'P3M-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (358, NULL, 'DISCO PAD 3M DE 20\" COLOR: BLANCO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 56.39, 53.26, NULL, NULL, '1', '1', 53.26, 0.00, 0.00, 62.66, 'P3M-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (359, NULL, 'DISCO PAD 3M DE 20\" COLOR: ROJO', 62.66, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 56.39, 53.26, NULL, NULL, '1', '1', 53.26, 0.00, 0.00, 62.66, 'P3M-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (360, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (361, NULL, 'PAPEL HIGIENICO JUMBO DE 550 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (362, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X 6 ROLLOS (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (363, NULL, 'PAPEL HIGIENICO JUMBO DE 400 METROS X ROLLO (LINEA INSTITUCIONAL)', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PH-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (364, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 85.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 85.00, 'PT-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (365, NULL, 'PAPEL TOALLA JUMBO DE 300 METROS X ROLLO (LINEA INSTITUCIONAL)', 21.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 21.25, 'PT-002', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (366, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X 4 ROLLOS (LINEA INSTITUCIONAL)', 77.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 77.00, 'PT-003', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (367, NULL, 'PAPEL TOALLA JUMBO DE 200 METROS X ROLLO (LINEA INSTITUCIONAL)', 19.25, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 19.25, 'PT-004', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (368, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE DE 200 HOJAS X 20 PAQUETES (LINEA INSTITUCIONAL)', 120.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 120.00, 'PT-005', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (369, NULL, 'PAPEL TOALLA INTERFOLIADO PAQUETE X 200 HOJAS (LINEA INSTITUCIONAL)', 6.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', NULL, NULL, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 6.00, 'PT-006', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (370, NULL, 'PAÑO DE LIMPIEZA LIMPALL X 90', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PL-001', NULL, '', NULL, NULL, NULL, 'PEN', '2025-10-11 11:44:26', NULL);
+INSERT INTO `productos` VALUES (371, 'JVC-002-1', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 4194.00, 0.00, 4, 0, 12, 1, '1000-01-01', '0', '1', '0', 3823.20, 3610.80, '1', '1', '1', '1', 3610.80, 0.00, 0.00, 4194.00, 'JVC-002-1', NULL, 'Modelo: TD-14N \r\nPotencia de motor: 2.0 HP\r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial \r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 14\".\r\nCable Vulcanizado Homologado de 3x14: 15 metros.\r\nIncluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\".', 5, NULL, '14', 'PEN', '2025-10-21 19:16:14', NULL);
+INSERT INTO `productos` VALUES (372, NULL, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 16\" - MARCA: CRIS-TAURO', 4430.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 4035.60, 3811.40, '1', '1', '1', '1', 3811.40, 0.00, 0.00, 4430.00, 'JVC-003-1', NULL, 'Modelo: TD-16N \nPotencia de motor: 2.0 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial.\nEstructura en Acero Inoxidable Anticorrosivo.\nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 16\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 15\" y Cepillo de Lustrar de 15\"', 5, NULL, '14', 'PEN', '2025-10-21 19:16:14', NULL);
+INSERT INTO `productos` VALUES (373, 'JVC-004-1', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 18\" - MARCA: CRIS-TAURO', 4666.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 4248.00, 4012.00, '1', '1', '1', '1', 4012.00, 0.00, 0.00, 4666.00, 'JVC-004-1', NULL, 'Modelo: TD-18N \r\nPotencia de motor: 2.0 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial.\r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 18\".\r\nCable Vulcanizado Homologado de 3x14: 15 metros.\r\nIncluye: Cepillo de Lavar de 17\" y Cepillo de Lustrar de 17\"', 5, NULL, '14', 'PEN', '2025-10-21 19:16:14', NULL);
+INSERT INTO `productos` VALUES (374, 'JVC-005-1', 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 20\" - MARCA: CRIS-TAURO', 4902.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '1', '0', 4460.40, 4212.60, '1', '1', '1', '1', 4212.60, 0.00, 0.00, 4902.00, 'JVC-005-1', NULL, 'Modelo: TD-20N \r\nPotencia de motor: 2.0 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial.\r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 20\".\r\nCable Vulcanizado Homologado de 3x14: 15 metros. \r\nIncluye: Cepillo de Lavar de 19\" y Cepillo de Lustrar de 19\"', 5, NULL, '14', 'PEN', '2025-10-21 19:16:14', NULL);
+INSERT INTO `productos` VALUES (375, NULL, 'PAÑO DE LIMPIEZA LIMPALL X 90', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '0', '0', '0', 0.00, 0.00, NULL, NULL, '1', '1', 0.00, 0.00, 0.00, 0.00, 'PL-01', NULL, '', NULL, NULL, NULL, 'PEN', '2025-11-18 13:46:53', NULL);
 
 -- ----------------------------
 -- Table structure for productos_compras
@@ -2308,12 +2459,15 @@ CREATE TABLE `productos_compras`  (
   PRIMARY KEY (`id_producto_venta`) USING BTREE,
   INDEX `id_producto`(`id_producto` ASC) USING BTREE,
   INDEX `id_compra`(`id_compra` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of productos_compras
 -- ----------------------------
 INSERT INTO `productos_compras` VALUES (4, 20, 4, '1', 300.000, NULL);
+INSERT INTO `productos_compras` VALUES (5, 211, 5, '10', 25.000, NULL);
+INSERT INTO `productos_compras` VALUES (6, 212, 6, '11', 25.000, NULL);
+INSERT INTO `productos_compras` VALUES (7, 21, 8, '12', 321.000, NULL);
 
 -- ----------------------------
 -- Table structure for productos_cotis
@@ -2333,23 +2487,14 @@ CREATE TABLE `productos_cotis`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_coti`(`id_coti` ASC) USING BTREE,
   INDEX `idx_producto_coti`(`id_producto` ASC, `id_coti` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 336 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 351 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of productos_cotis
 -- ----------------------------
-INSERT INTO `productos_cotis` VALUES (321, 42, NULL, NULL, 1846, 1, 3800.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (322, 42, NULL, NULL, 1847, 1, 3420.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (323, 42, NULL, NULL, 1848, 1, 3800.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (324, 42, NULL, NULL, 1849, 1, 3800.00000, 0.00000, 3799.00, 'producto');
-INSERT INTO `productos_cotis` VALUES (325, 42, NULL, NULL, 1850, 1, 3800.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (326, 42, NULL, NULL, 1851, 1, 3800.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (327, 42, NULL, NULL, 1852, 1, 3800.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (328, 18, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO', 'Modelo: TD-12N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\" dd', 1853, 1, 3658.00000, 1.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (329, 46, NULL, 'Modelo: AMG-25L Motor: 1000W LAMB AMETEK Capacidad: 25 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', 1854, 1, 1062.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (330, 46, NULL, 'Modelo: AMG-25L Motor: 1000W LAMB AMETEK Capacidad: 25 LT Estructura: Tanque de acero Aspirado: Polvo y agua Cable: Vulcanizado x 7 metros Incluye: Kit de accesorios', 1855, 1, 1062.00000, 0.00000, NULL, 'producto');
-INSERT INTO `productos_cotis` VALUES (333, 2538, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 'Modelo: TD-14N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\"', 1856, 1, 3894.00000, 0.00000, 0.00, 'producto');
-INSERT INTO `productos_cotis` VALUES (335, 2538, 'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO', 'Modelo: TD-14N Potencia de motor: 1.5 HP Voltaje / Frecuencia: 220 V/60 Hz. Velocidad de Rotación: 175 RPM. Motor: KDS del Grupo Imperial Estructura en Acero Inoxidable Anticorrosivo Base de Motor en Aluminio Fundido anticorrosivo Plato en Acero Inoxidable (calidad 304) de 12\" Cable Vulcanizado Homologado de 3x14: 15 metros Incluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\"', 1857, 1, 3894.00000, 0.00000, 0.00, 'producto');
+INSERT INTO `productos_cotis` VALUES (348, 118, NULL, '', 1871, 1, 387.50000, 0.00000, NULL, 'producto');
+INSERT INTO `productos_cotis` VALUES (349, 20, NULL, 'Modelo: TD-14N \nPotencia de motor: 1.5 HP \nVoltaje / Frecuencia: 220 V/60 Hz. \nVelocidad de Rotación: 175 RPM. \nMotor: KDS del Grupo Imperial \nEstructura en Acero Inoxidable Anticorrosivo. \nBase de Motor en Aluminio Fundido anticorrosivo.\nPlato en Acero Inoxidable (calidad 304) de 14\".\nCable Vulcanizado Homologado de 3x14: 15 metros.\nIncluye: Cepillo de Lavar de 13\" y Cepillo de Lustrar de 13\".', 1872, 1, 3894.00000, 0.00000, NULL, 'producto');
+INSERT INTO `productos_cotis` VALUES (350, 341, NULL, 'Modelo: TD-12N \r\nPotencia de motor: 2.0 HP \r\nVoltaje / Frecuencia: 220 V/60 Hz. \r\nVelocidad de Rotación: 175 RPM. \r\nMotor: KDS del Grupo Imperial.\r\nEstructura en Acero Inoxidable Anticorrosivo.\r\nBase de Motor en Aluminio Fundido anticorrosivo.\r\nPlato en Acero Inoxidable (calidad 304) de 12\" \r\nCable Vulcanizado Homologado de 3x14: 15 metros \r\nIncluye: Cepillo de Lavar de 11\" y Cepillo de Lustrar de 11\"', 1873, 1, 3958.00000, 0.00000, NULL, 'producto');
 
 -- ----------------------------
 -- Table structure for productos_cotis_copy1
@@ -2476,14 +2621,14 @@ CREATE TABLE `productos_ventas`  (
   INDEX `idx_pv_id_venta_equipo`(`id_venta_equipo` ASC) USING BTREE,
   INDEX `idx_pv_id_coti_equipo`(`id_cotizacion_equipo` ASC) USING BTREE,
   CONSTRAINT `fk_pv_venta_equipo` FOREIGN KEY (`id_venta_equipo`) REFERENCES `ventas_equipos` (`id_venta_equipo`) ON DELETE SET NULL ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of productos_ventas
 -- ----------------------------
-INSERT INTO `productos_ventas` VALUES (7, 18, 3, 1, 3100.00, 1.00, NULL, NULL, '5');
-INSERT INTO `productos_ventas` VALUES (8, 18, 4, 1, 3658.00, 1.00, NULL, NULL, '5');
-INSERT INTO `productos_ventas` VALUES (9, 20, 5, 1, 3894.00, 0.00, NULL, NULL, '5');
+INSERT INTO `productos_ventas` VALUES (24, 118, 20, 1, 387.50, 0.00, NULL, NULL, '5');
+INSERT INTO `productos_ventas` VALUES (25, 118, 21, 1, 387.50, 0.00, NULL, NULL, '5');
+INSERT INTO `productos_ventas` VALUES (26, 20, 22, 1, 3894.00, 0.00, NULL, NULL, '5');
 
 -- ----------------------------
 -- Table structure for productos_ventas_backup
@@ -2559,7 +2704,7 @@ CREATE TABLE `proveedores`  (
   `provincia` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `distrito` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `ubigeo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `fecha_create` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_create` timestamp NULL DEFAULT current_timestamp(),
   `estado` int NULL DEFAULT 1,
   PRIMARY KEY (`proveedor_id`) USING BTREE,
   UNIQUE INDEX `ruc`(`ruc` ASC) USING BTREE
@@ -2619,13 +2764,13 @@ CREATE TABLE `repuesto_precios`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_repuesto_precios_repuestos`(`id_repuesto` ASC) USING BTREE,
   CONSTRAINT `fk_repuesto_precios_repuestos` FOREIGN KEY (`id_repuesto`) REFERENCES `repuestos` (`id_repuesto`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of repuesto_precios
 -- ----------------------------
-INSERT INTO `repuesto_precios` VALUES (9, 1, 'plaza', 1000.00);
-INSERT INTO `repuesto_precios` VALUES (10, 1, 'ED', 900.00);
+INSERT INTO `repuesto_precios` VALUES (13, 1, 'plaza', 1000.00);
+INSERT INTO `repuesto_precios` VALUES (14, 1, 'ED', 900.00);
 
 -- ----------------------------
 -- Table structure for repuestos
@@ -2670,14 +2815,14 @@ CREATE TABLE `repuestos`  (
 -- ----------------------------
 -- Records of repuestos
 -- ----------------------------
-INSERT INTO `repuestos` VALUES (1, 'REP-001', 'CARBURADOR', 25.00, 100.00, 0, 0, 12, 1, '1000-01-01', '', '1', '1', 1000.00, 1500.00, '1', '1', '1', '1', 1500.00, 0.00, 0.00, 25.00, 'REP-001', '', 'TAURO, TVX', 21, NULL, '15', 'PEN', 8);
-INSERT INTO `repuestos` VALUES (2, NULL, 'CARBONES', 42.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '1', '1', 0.00, 0.00, 0.00, 42.00, 'REP-002', NULL, 'TVX, CHASQUY', 0, NULL, '14', 'PEN', NULL);
-INSERT INTO `repuestos` VALUES (3, NULL, 'RESORTES', 60.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '1', '1', 0.00, 0.00, 0.00, 60.00, 'REP-003', NULL, 'TVX, TAURO ', 0, NULL, '14', 'PEN', NULL);
-INSERT INTO `repuestos` VALUES (4, '', 'BATERIA', 90.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 90.00, 'REP-004', '', 'TVX ', 0, NULL, '14', 'PEN', NULL);
+INSERT INTO `repuestos` VALUES (1, 'REP-001', 'CARBURADOR', 25.00, 100.00, 9, 0, 12, 1, '1000-01-01', '', '1', '1', 1000.00, 1500.00, '1', '1', '1', '1', 1500.00, 0.00, 0.00, 25.00, 'REP-001', '', 'TAURO, TVX', 21, NULL, '14', 'PEN', 8);
+INSERT INTO `repuestos` VALUES (2, NULL, 'CARBONES', 42.00, 0.00, 8, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 42.00, 'REP-002', NULL, 'TVX, CHASQUY', 21, NULL, '14', 'PEN', 9);
+INSERT INTO `repuestos` VALUES (3, NULL, 'RESORTES', 60.00, 0.00, 10, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 60.00, 'REP-003', NULL, 'TVX, TAURO ', 21, NULL, '14', 'PEN', 8);
+INSERT INTO `repuestos` VALUES (4, '', 'BATERIA', 90.00, 330.00, 4, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '1', '1', '1', '1', 0.00, 0.00, 0.00, 90.00, 'REP-004', '', 'TVX ', 0, NULL, '14', 'PEN', NULL);
 INSERT INTO `repuestos` VALUES (5, NULL, 'dfssf', 0.00, 0.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 0.00, 0.00, '', '', '0', '1', 0.00, 0.00, 0.00, 0.00, '0', NULL, '', 21, NULL, '14', 'PEN', NULL);
 INSERT INTO `repuestos` VALUES (6, '', 'REPUESTO DE PRUEBA ', 120.00, 210.00, 0, 0, 12, 1, '1000-01-01', '', '1', '1', 0.00, 0.00, '1', '1', '0', '1', 0.00, 0.00, 0.00, 120.00, 'REP-0044', NULL, 'HELOSCDSDCVD', 21, NULL, '15', 'PEN', 8);
 INSERT INTO `repuestos` VALUES (7, NULL, 'REPUESTO DE PRUEBA	', 211.00, 22.00, 0, 0, 12, 1, '1000-01-01', '', '0', '0', 222.00, 222.00, '', '', '0', '1', 222.00, 0.00, 0.00, 211.00, 'REP-032', NULL, 'FGBNGF', 21, NULL, '14', 'PEN', 8);
-INSERT INTO `repuestos` VALUES (8, NULL, 'REPUESTO DE PRUEBA	', 222.00, 222.00, 0, 0, 12, 1, '1000-01-01', '223', '0', '0', 22.00, 23.00, '1', '1', '1', '1', 23.00, 0.00, 0.00, 222.00, 'rep-02', NULL, 'gfcngfhngf', 21, NULL, '16', 'USD', 9);
+INSERT INTO `repuestos` VALUES (8, NULL, 'REPUESTO DE PRUEBA	', 222.00, 222.00, 0, 0, 12, 1, '1000-01-01', '223', '0', '0', 22.00, 23.00, '1', '1', '1', '1', 23.00, 0.00, 0.00, 222.00, 'rep-02', NULL, 'gfcngfhngf', 21, NULL, '15', 'USD', 9);
 
 -- ----------------------------
 -- Table structure for repuestos_compras
@@ -2693,11 +2838,12 @@ CREATE TABLE `repuestos_compras`  (
   PRIMARY KEY (`id_repuesto_compra`) USING BTREE,
   INDEX `id_repuesto`(`id_repuesto` ASC) USING BTREE,
   INDEX `id_compra`(`id_compra` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of repuestos_compras
 -- ----------------------------
+INSERT INTO `repuestos_compras` VALUES (1, 4, 7, '4', 330.000, NULL);
 
 -- ----------------------------
 -- Table structure for resumen_diario
@@ -2730,7 +2876,7 @@ CREATE TABLE `rol_permisos`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `unique_permiso`(`rol_id` ASC, `modulo_id` ASC, `submodulo_id` ASC) USING BTREE,
   CONSTRAINT `rol_permisos_ibfk_1` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`rol_id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 37 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rol_permisos
@@ -2808,7 +2954,7 @@ CREATE TABLE `rubros`  (
   `estado` tinyint(1) NULL DEFAULT 1,
   PRIMARY KEY (`id_rubro`) USING BTREE,
   INDEX `fk_rubro_empresa`(`id_empresa` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of rubros
@@ -2830,7 +2976,7 @@ CREATE TABLE `subcategorias_repuestos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `categoria_id` int NOT NULL,
-  `creado_el` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creado_el` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_subcategoria_categoria`(`categoria_id` ASC) USING BTREE,
   CONSTRAINT `fk_subcategoria_categoria` FOREIGN KEY (`categoria_id`) REFERENCES `categorias_repuestos` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
@@ -2873,12 +3019,12 @@ CREATE TABLE `taller_condiciones_cotizacion`  (
   `id_condicion` int NOT NULL AUTO_INCREMENT,
   `id_cotizacion` int NOT NULL,
   `condiciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_condicion`) USING BTREE,
   UNIQUE INDEX `unique_cotizacion`(`id_cotizacion` ASC) USING BTREE,
   INDEX `fk_condiciones_cotizacion`(`id_cotizacion` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of taller_condiciones_cotizacion
@@ -2893,10 +3039,10 @@ CREATE TABLE `taller_condiciones_globales`  (
   `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `condiciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of taller_condiciones_globales
@@ -2930,7 +3076,7 @@ CREATE TABLE `taller_cotizaciones`  (
   PRIMARY KEY (`id_cotizacion`) USING BTREE,
   INDEX `fk_prealerta`(`id_prealerta` ASC) USING BTREE,
   INDEX `fk_taller_cotizaciones_clientes`(`id_cliente` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of taller_cotizaciones
@@ -2940,6 +3086,7 @@ INSERT INTO `taller_cotizaciones` VALUES (15, 2, 1, 1, '2025-08-25', '', '1', 16
 INSERT INTO `taller_cotizaciones` VALUES (16, 3, 1, 1, '2025-08-25', '', '1', 16, 3900.00, '0', 'T001-1127', 12, 1, 5, 1, '', 40, 11, 0.00, 'ORD TRABAJO');
 INSERT INTO `taller_cotizaciones` VALUES (17, 4, 1, 1, '2025-08-25', '', '1', 16, 3300.00, '0', NULL, 12, 1, 5, 1, '', 40, 11, 0.00, 'ORD TRABAJO');
 INSERT INTO `taller_cotizaciones` VALUES (18, 5, 2, 1, '2025-09-22', '', '1', 28, 132.00, '0', NULL, 12, 1, 5, 1, '', 63, 11, 0.00, 'ORD SERVICIO');
+INSERT INTO `taller_cotizaciones` VALUES (19, 6, 2, 1, '2025-12-03', '', '1', 28, 0.00, '0', NULL, 12, 1, 5, 1, '', 62, 12, 0.00, 'ORD SERVICIO');
 
 -- ----------------------------
 -- Table structure for taller_cotizaciones_equipos
@@ -2955,7 +3102,7 @@ CREATE TABLE `taller_cotizaciones_equipos`  (
   PRIMARY KEY (`id_cotizacion_equipo`) USING BTREE,
   INDEX `fk_cotizacion`(`id_cotizacion` ASC) USING BTREE,
   CONSTRAINT `fk_cotizacion` FOREIGN KEY (`id_cotizacion`) REFERENCES `taller_cotizaciones` (`id_cotizacion`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 110 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 112 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of taller_cotizaciones_equipos
@@ -2973,6 +3120,8 @@ INSERT INTO `taller_cotizaciones_equipos` VALUES (106, 17, 'CRIS-TAURO', 'ASPIRA
 INSERT INTO `taller_cotizaciones_equipos` VALUES (107, 17, 'MASTER GOLDS', 'LUSTRADORA', 'AG-08', '51111');
 INSERT INTO `taller_cotizaciones_equipos` VALUES (108, 17, 'SPEED POWER', 'FREGADORA', 'ASJ12', '51112');
 INSERT INTO `taller_cotizaciones_equipos` VALUES (109, 18, 'CRIS-TAURO', 'ASPIRADORA', 'AG-08', '1510');
+INSERT INTO `taller_cotizaciones_equipos` VALUES (110, 19, 'CRIS-TAURO', 'ASPIRADORA', 'AG-06', '1234');
+INSERT INTO `taller_cotizaciones_equipos` VALUES (111, 19, 'MASTER GOLDS', 'LUSTRADORA', 'ASJ12', '12345');
 
 -- ----------------------------
 -- Table structure for taller_cotizaciones_fotos
@@ -2999,12 +3148,12 @@ CREATE TABLE `taller_diagnosticos_cotizacion`  (
   `id_diagnostico` int NOT NULL AUTO_INCREMENT,
   `id_cotizacion` int NOT NULL,
   `diagnostico` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_diagnostico`) USING BTREE,
   UNIQUE INDEX `unique_cotizacion_diagnostico`(`id_cotizacion` ASC) USING BTREE,
   INDEX `fk_diagnosticos_cotizacion`(`id_cotizacion` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of taller_diagnosticos_cotizacion
@@ -3019,10 +3168,10 @@ CREATE TABLE `taller_diagnosticos_globales`  (
   `nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `diagnostico` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of taller_diagnosticos_globales
@@ -3036,12 +3185,12 @@ CREATE TABLE `taller_observaciones_cotizacion`  (
   `id_observacion` int NOT NULL AUTO_INCREMENT,
   `id_cotizacion` int NOT NULL,
   `observaciones` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_observacion`) USING BTREE,
   UNIQUE INDEX `unique_cotizacion_observacion`(`id_cotizacion` ASC) USING BTREE,
   INDEX `fk_observaciones_cotizacion`(`id_cotizacion` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of taller_observaciones_cotizacion
@@ -3069,7 +3218,7 @@ CREATE TABLE `taller_repuestos_cotis`  (
   CONSTRAINT `fk_cotizacion_equipo` FOREIGN KEY (`id_cotizacion_equipo`) REFERENCES `taller_cotizaciones_equipos` (`id_cotizacion_equipo`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `taller_repuestos_cotis_ibfk_1` FOREIGN KEY (`id_coti`) REFERENCES `taller_cotizaciones` (`id_cotizacion`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `taller_repuestos_cotis_ibfk_2` FOREIGN KEY (`id_repuesto`) REFERENCES `repuestos` (`id_repuesto`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 135 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 138 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of taller_repuestos_cotis
@@ -3084,6 +3233,9 @@ INSERT INTO `taller_repuestos_cotis` VALUES (131, 16, NULL, 18, 'producto', 1, 3
 INSERT INTO `taller_repuestos_cotis` VALUES (132, 16, NULL, 30, 'producto', 1, 3900.00, 0.00, NULL, 105);
 INSERT INTO `taller_repuestos_cotis` VALUES (133, 18, 2, NULL, 'repuesto', 1, 42.00, 0.00, NULL, 109);
 INSERT INTO `taller_repuestos_cotis` VALUES (134, 18, 4, NULL, 'repuesto', 1, 90.00, 0.00, NULL, 109);
+INSERT INTO `taller_repuestos_cotis` VALUES (135, 19, 2, NULL, 'repuesto', 1, 0.00, 0.00, NULL, 110);
+INSERT INTO `taller_repuestos_cotis` VALUES (136, 19, 1, NULL, 'repuesto', 1, 0.00, 0.00, NULL, 110);
+INSERT INTO `taller_repuestos_cotis` VALUES (137, 19, 2, NULL, 'repuesto', 1, 0.00, 0.00, NULL, 111);
 
 -- ----------------------------
 -- Table structure for tamsporte_persona
@@ -3129,9 +3281,9 @@ CREATE TABLE `terminos_repuestos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of terminos_repuestos
@@ -3161,11 +3313,11 @@ DROP TABLE IF EXISTS `tipos_archivo_interno`;
 CREATE TABLE `tipos_archivo_interno`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `nombre`(`nombre` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tipos_archivo_interno
@@ -3182,11 +3334,11 @@ DROP TABLE IF EXISTS `tipos_carta`;
 CREATE TABLE `tipos_carta`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `nombre`(`nombre` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tipos_carta
@@ -3200,11 +3352,11 @@ DROP TABLE IF EXISTS `tipos_costancia`;
 CREATE TABLE `tipos_costancia`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `nombre`(`nombre` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tipos_costancia
@@ -3223,11 +3375,11 @@ CREATE TABLE `tipos_informe`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `activo` tinyint(1) NULL DEFAULT 1,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `nombre`(`nombre` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tipos_informe
@@ -3246,11 +3398,11 @@ DROP TABLE IF EXISTS `tipos_otros_archivos`;
 CREATE TABLE `tipos_otros_archivos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
-  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `nombre`(`nombre` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tipos_otros_archivos
@@ -5360,7 +5512,7 @@ DROP TABLE IF EXISTS `unidades`;
 CREATE TABLE `unidades`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `creado_el` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creado_el` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -5368,7 +5520,6 @@ CREATE TABLE `unidades`  (
 -- Records of unidades
 -- ----------------------------
 INSERT INTO `unidades` VALUES (14, 'UNIDAD', '2024-12-26 12:35:12');
-INSERT INTO `unidades` VALUES (18, 'CAJA X 12', '2025-08-14 11:33:26');
 
 -- ----------------------------
 -- Table structure for unidades_repuestos
@@ -5377,7 +5528,7 @@ DROP TABLE IF EXISTS `unidades_repuestos`;
 CREATE TABLE `unidades_repuestos`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
-  `creado_el` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `creado_el` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
@@ -5437,7 +5588,7 @@ CREATE TABLE `venta_anexo`  (
   `idventa` int NOT NULL,
   `texto` varchar(245) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   PRIMARY KEY (`idventa`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = MyISAM CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of venta_anexo
@@ -5476,20 +5627,38 @@ CREATE TABLE `ventas`  (
   `cm_tc` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `id_coti` varchar(11) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `id_vendedor` int NULL DEFAULT NULL,
+  `created_at` datetime NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_venta`) USING BTREE,
   INDEX `fk_ventas_documentos_sunat1_idx`(`id_tido` ASC) USING BTREE,
   INDEX `fk_ventas_clientes1_idx`(`id_cliente` ASC) USING BTREE,
   INDEX `fk_ventas_empresas1_idx`(`id_empresa` ASC) USING BTREE,
   INDEX `id_tipo_pago`(`id_tipo_pago` ASC) USING BTREE,
   INDEX `medoto_pago_id`(`medoto_pago_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ventas
 -- ----------------------------
-INSERT INTO `ventas` VALUES (3, 1, 1, '2025-10-09', '2025-10-09', '', '-', 'B001', 607, 16, 3100.00, '1', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', 'NULL', 40);
-INSERT INTO `ventas` VALUES (4, 1, 1, '2025-10-17', '2025-10-17', '', '-', 'B001', 608, 16, 3658.00, '2', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', 'NULL', 40);
-INSERT INTO `ventas` VALUES (5, 2, 1, '2025-10-17', '2025-10-17', '', 'H.A 2 DE AGOISTPO', 'F001', 2380, 18, 3894.00, '2', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', 'NULL', 40);
+INSERT INTO `ventas` VALUES (20, 2, 1, '2025-12-15', '2025-12-15', '', 'CAL. MORELLI NRO. 181 INT. P-2 LIMA LIMA SAN BORJA', 'F001', 2392, 31, 387.50, '2', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', '1871', 40, '2025-12-15 13:46:35');
+INSERT INTO `ventas` VALUES (21, 2, 1, '2025-12-15', '2025-12-15', '', 'CAL. MORELLI NRO. 181 INT. P-2 LIMA LIMA SAN BORJA', 'F001', 2393, 31, 387.50, '2', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', '1871', 40, '2025-12-15 13:48:04');
+INSERT INTO `ventas` VALUES (22, 2, 1, '2025-12-17', '2025-12-17', '', 'OTR. SANT A CLARA MZA. E1 LOTE. 1 A.V. CENTRO POBLADO PRIMERO DE LIMA LIMA ATE', 'F001', 2394, 32, 3894.00, '1', '0', 12, 1, '1', '', '', 0.18, 12, '', '1', 12, '', 1, '1', '1872', 40, '2025-12-17 19:02:06');
+
+-- ----------------------------
+-- Table structure for ventas_anuladas
+-- ----------------------------
+DROP TABLE IF EXISTS `ventas_anuladas`;
+CREATE TABLE `ventas_anuladas`  (
+  `id_venta` int NOT NULL,
+  `fecha` date NOT NULL,
+  `motivo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id_venta`) USING BTREE,
+  CONSTRAINT `ventas_anuladas_ibfk_1` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of ventas_anuladas
+-- ----------------------------
+INSERT INTO `ventas_anuladas` VALUES (21, '2025-12-15', '-');
 
 -- ----------------------------
 -- Table structure for ventas_equipos
@@ -5507,7 +5676,7 @@ CREATE TABLE `ventas_equipos`  (
   INDEX `idx_ve_id_venta`(`id_venta` ASC) USING BTREE,
   INDEX `idx_ve_id_coti_equipo`(`id_cotizacion_equipo` ASC) USING BTREE,
   CONSTRAINT `fk_ve_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of ventas_equipos
@@ -5524,7 +5693,7 @@ CREATE TABLE `ventas_pagos`  (
   `monto` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   `npago` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ventas_pagos
@@ -5559,7 +5728,7 @@ CREATE TABLE `ventas_servicios`  (
   `cantidad` double(9, 2) NOT NULL,
   `codsunat` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   PRIMARY KEY (`id_venta`, `id_item`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = MyISAM CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ventas_servicios
@@ -5575,74 +5744,74 @@ CREATE TABLE `ventas_sunat`  (
   `nombre_xml` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   `qr_data` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id_venta`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_spanish_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of ventas_sunat
 -- ----------------------------
-INSERT INTO `ventas_sunat` VALUES (3, 'tsp8/qFNSoL9aMGvp2K7FuAsrg4=', '20538381978-03-B001-607', '20538381978|03|B001-607|472.88|3100.00|2025-10-09|1|77425200');
-INSERT INTO `ventas_sunat` VALUES (4, 'uEFMZV+BrIFBkW4hXT5cpcd7OUs=', '20538381978-03-B001-608', '20538381978|03|B001-608|558.00|3658.00|2025-10-17|1|77425200');
-INSERT INTO `ventas_sunat` VALUES (5, 'Qnuq7RB5+uyxm1FRESChCm6WbNE=', '20538381978-01-F001-2380', '20538381978|03|F001-2380|594.00|3894.00|2025-10-17|06|10774252008');
+INSERT INTO `ventas_sunat` VALUES (20, 'Cxj8RIN96IlqKMRT+dLhQXdjGUA=', '20538381978-01-F001-2392', '20538381978|03|F001-2392|59.11|387.50|2025-12-15|06|20100070970');
+INSERT INTO `ventas_sunat` VALUES (21, 'S95R1xx+nOzkAr1qx6VK9PihHGc=', '20538381978-01-F001-2393', '20538381978|03|F001-2393|59.11|387.50|2025-12-15|06|20100070970');
+INSERT INTO `ventas_sunat` VALUES (22, 'EKrK0brbT/J+2X/YpTtULl8AamQ=', '20538381978-01-F001-2394', '20538381978|03|F001-2394|594.00|3894.00|2025-12-17|06|20601212472');
 
 -- ----------------------------
 -- View structure for temp_filtered_ventas
 -- ----------------------------
 DROP VIEW IF EXISTS `temp_filtered_ventas`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `temp_filtered_ventas` AS select `v`.`id_venta` AS `cod_v`,concat(`ds`.`abreviatura`,' | ',`v`.`serie`,' - ',`v`.`numero`) AS `sn_v`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `datos_cl`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),round(if((`v`.`apli_igv` = '1'),(`v`.`total` / (`v`.`igv` + 1)),`v`.`total`),2)) AS `subtotal`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),round(if((`v`.`apli_igv` = '1'),((`v`.`total` / (`v`.`igv` + 1)) * `v`.`igv`),0),2)) AS `igv_v`,concat(`v`.`enviado_sunat`,'-',`v`.`id_tido`,'-',`v`.`id_venta`) AS `doc_ventae`,concat(`v`.`id_venta`,'--',`vs`.`nombre_xml`) AS `id_venta`,`v`.`fecha_emision` AS `fecha_emision`,`ds`.`abreviatura` AS `abreviatura`,`v`.`apli_igv` AS `apli_igv`,`v`.`igv` AS `igv`,`v`.`id_tido` AS `id_tido`,`v`.`serie` AS `serie`,`v`.`numero` AS `numero`,`c`.`documento` AS `documento`,`c`.`datos` AS `datos`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),`v`.`total`) AS `total`,`v`.`estado` AS `estado`,`v`.`enviado_sunat` AS `enviado_sunat`,`vs`.`nombre_xml` AS `nombre_xml` from (((`ventas` `v` left join `documentos_sunat` `ds` on((`v`.`id_tido` = `ds`.`id_tido`))) left join `clientes` `c` on((`v`.`id_cliente` = `c`.`id_cliente`))) left join `ventas_sunat` `vs` on((`v`.`id_venta` = `vs`.`id_venta`))) where (`v`.`id_empresa` = '12') order by `v`.`fecha_emision`,`v`.`numero`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `temp_filtered_ventas` AS select `v`.`id_venta` AS `cod_v`,concat(`ds`.`abreviatura`,' | ',`v`.`serie`,' - ',`v`.`numero`) AS `sn_v`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `datos_cl`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),round(if(`v`.`apli_igv` = '1',`v`.`total` / (`v`.`igv` + 1),`v`.`total`),2)) AS `subtotal`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),round(if(`v`.`apli_igv` = '1',`v`.`total` / (`v`.`igv` + 1) * `v`.`igv`,0),2)) AS `igv_v`,concat(`v`.`enviado_sunat`,'-',`v`.`id_tido`,'-',`v`.`id_venta`) AS `doc_ventae`,concat(`v`.`id_venta`,'--',`vs`.`nombre_xml`) AS `id_venta`,`v`.`fecha_emision` AS `fecha_emision`,`ds`.`abreviatura` AS `abreviatura`,`v`.`apli_igv` AS `apli_igv`,`v`.`igv` AS `igv`,`v`.`id_tido` AS `id_tido`,`v`.`serie` AS `serie`,`v`.`numero` AS `numero`,`c`.`documento` AS `documento`,`c`.`datos` AS `datos`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),`v`.`total`) AS `total`,`v`.`estado` AS `estado`,`v`.`enviado_sunat` AS `enviado_sunat`,`vs`.`nombre_xml` AS `nombre_xml` from (((`ventas` `v` left join `documentos_sunat` `ds` on(`v`.`id_tido` = `ds`.`id_tido`)) left join `clientes` `c` on(`v`.`id_cliente` = `c`.`id_cliente`)) left join `ventas_sunat` `vs` on(`v`.`id_venta` = `vs`.`id_venta`)) where `v`.`id_empresa` = '12' order by `v`.`fecha_emision`,`v`.`numero`;
 
 -- ----------------------------
 -- View structure for view_cotizaciones
 -- ----------------------------
 DROP VIEW IF EXISTS `view_cotizaciones`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_cotizaciones` AS select `v`.`cotizacion_id` AS `cotizacion_id`,`v`.`numero` AS `numero`,`v`.`fecha` AS `fecha`,`v`.`moneda` AS `moneda`,`v`.`cm_tc` AS `cm_tc`,`v`.`id_tido` AS `id_tido`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `documento`,`c`.`datos` AS `datos`,`v`.`total` AS `total`,`v`.`estado` AS `estado`,`v`.`aplicar_igv` AS `aplicar_igv`,(case when ((`u`.`nombres` is not null) and (`u`.`apellidos` is not null)) then concat(`u`.`nombres`,' ',`u`.`apellidos`) when (`u`.`nombres` is not null) then `u`.`nombres` else `u`.`usuario` end) AS `vendedor`,`v`.`id_usuario` AS `usuario` from (((`cotizaciones` `v` left join `documentos_sunat` `ds` on((`v`.`id_tido` = `ds`.`id_tido`))) left join `clientes` `c` on((`v`.`id_cliente` = `c`.`id_cliente`))) left join `usuarios` `u` on((`u`.`usuario_id` = `v`.`id_usuario`))) where ((`v`.`id_empresa` = '12') and (`v`.`estado` <> '2')) order by `v`.`fecha` desc;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_cotizaciones` AS select `v`.`cotizacion_id` AS `cotizacion_id`,`v`.`numero` AS `numero`,`v`.`fecha` AS `fecha`,`v`.`moneda` AS `moneda`,`v`.`cm_tc` AS `cm_tc`,`v`.`id_tido` AS `id_tido`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `documento`,`c`.`datos` AS `datos`,`v`.`total` AS `total`,`v`.`estado` AS `estado`,`v`.`aplicar_igv` AS `aplicar_igv`,case when `u`.`nombres` is not null and `u`.`apellidos` is not null then concat(`u`.`nombres`,' ',`u`.`apellidos`) when `u`.`nombres` is not null then `u`.`nombres` else `u`.`usuario` end AS `vendedor`,`v`.`id_usuario` AS `usuario` from (((`cotizaciones` `v` left join `documentos_sunat` `ds` on(`v`.`id_tido` = `ds`.`id_tido`)) left join `clientes` `c` on(`v`.`id_cliente` = `c`.`id_cliente`)) left join `usuarios` `u` on(`u`.`usuario_id` = `v`.`id_usuario`)) where `v`.`id_empresa` = '12' and `v`.`estado` <> '2' order by `v`.`fecha` desc;
 
 -- ----------------------------
 -- View structure for view_productos_1
 -- ----------------------------
 DROP VIEW IF EXISTS `view_productos_1`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_1` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on((`categorias`.`id` = `productos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `productos`.`unidad`))) where ((`productos`.`id_empresa` = 12) and (`productos`.`sucursal` = '1') and (`productos`.`estado` = '1') and (`productos`.`almacen` = '1')) order by `productos`.`id_producto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_1` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on(`categorias`.`id` = `productos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `productos`.`unidad`)) where `productos`.`id_empresa` = 12 and `productos`.`sucursal` = '1' and `productos`.`estado` = '1' and `productos`.`almacen` = '1' order by `productos`.`id_producto`;
 
 -- ----------------------------
 -- View structure for view_productos_2
 -- ----------------------------
 DROP VIEW IF EXISTS `view_productos_2`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_2` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on((`categorias`.`id` = `productos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `productos`.`unidad`))) where ((`productos`.`id_empresa` = 12) and (`productos`.`sucursal` = '1') and (`productos`.`estado` = '1') and (`productos`.`almacen` = '2')) order by `productos`.`id_producto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_2` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on(`categorias`.`id` = `productos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `productos`.`unidad`)) where `productos`.`id_empresa` = 12 and `productos`.`sucursal` = '1' and `productos`.`estado` = '1' and `productos`.`almacen` = '2' order by `productos`.`id_producto`;
 
 -- ----------------------------
 -- View structure for view_productos_3
 -- ----------------------------
 DROP VIEW IF EXISTS `view_productos_3`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_3` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on((`categorias`.`id` = `productos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `productos`.`unidad`))) where ((`productos`.`id_empresa` = 12) and (`productos`.`sucursal` = '1') and (`productos`.`estado` = '1') and (`productos`.`almacen` = '3')) order by `productos`.`id_producto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_productos_3` AS select `productos`.`id_producto` AS `id_producto`,`productos`.`cod_barra` AS `cod_barra`,`productos`.`nombre` AS `nombre`,`productos`.`precio` AS `precio`,`productos`.`costo` AS `costo`,`productos`.`cantidad` AS `cantidad`,`productos`.`iscbp` AS `iscbp`,`productos`.`id_empresa` AS `id_empresa`,`productos`.`sucursal` AS `sucursal`,`productos`.`ultima_salida` AS `ultima_salida`,`productos`.`codsunat` AS `codsunat`,`productos`.`usar_barra` AS `usar_barra`,`productos`.`precio_mayor` AS `precio_mayor`,`productos`.`precio_menor` AS `precio_menor`,`productos`.`razon_social` AS `razon_social`,`productos`.`ruc` AS `ruc`,`productos`.`estado` AS `estado`,`productos`.`almacen` AS `almacen`,`productos`.`precio2` AS `precio2`,`productos`.`precio3` AS `precio3`,`productos`.`precio4` AS `precio4`,`productos`.`precio_unidad` AS `precio_unidad`,`productos`.`codigo` AS `codigo`,`productos`.`imagen` AS `imagen`,`productos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`productos`.`moneda` AS `moneda` from ((`productos` left join `categorias` on(`categorias`.`id` = `productos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `productos`.`unidad`)) where `productos`.`id_empresa` = 12 and `productos`.`sucursal` = '1' and `productos`.`estado` = '1' and `productos`.`almacen` = '3' order by `productos`.`id_producto`;
 
 -- ----------------------------
 -- View structure for view_repuestos_1
 -- ----------------------------
 DROP VIEW IF EXISTS `view_repuestos_1`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_1` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on((`categorias`.`id` = `repuestos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `repuestos`.`unidad`))) where ((`repuestos`.`id_empresa` = 12) and (`repuestos`.`sucursal` = '1') and (`repuestos`.`estado` = '1') and (`repuestos`.`almacen` = '1')) order by `repuestos`.`id_repuesto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_1` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on(`categorias`.`id` = `repuestos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `repuestos`.`unidad`)) where `repuestos`.`id_empresa` = 12 and `repuestos`.`sucursal` = '1' and `repuestos`.`estado` = '1' and `repuestos`.`almacen` = '1' order by `repuestos`.`id_repuesto`;
 
 -- ----------------------------
 -- View structure for view_repuestos_2
 -- ----------------------------
 DROP VIEW IF EXISTS `view_repuestos_2`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_2` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on((`categorias`.`id` = `repuestos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `repuestos`.`unidad`))) where ((`repuestos`.`id_empresa` = 12) and (`repuestos`.`sucursal` = '1') and (`repuestos`.`estado` = '1') and (`repuestos`.`almacen` = '2')) order by `repuestos`.`id_repuesto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_2` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on(`categorias`.`id` = `repuestos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `repuestos`.`unidad`)) where `repuestos`.`id_empresa` = 12 and `repuestos`.`sucursal` = '1' and `repuestos`.`estado` = '1' and `repuestos`.`almacen` = '2' order by `repuestos`.`id_repuesto`;
 
 -- ----------------------------
 -- View structure for view_repuestos_3
 -- ----------------------------
 DROP VIEW IF EXISTS `view_repuestos_3`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_3` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on((`categorias`.`id` = `repuestos`.`categoria`))) left join `unidades` on((`unidades`.`id` = `repuestos`.`unidad`))) where ((`repuestos`.`id_empresa` = 12) and (`repuestos`.`sucursal` = '1') and (`repuestos`.`estado` = '1') and (`repuestos`.`almacen` = '3')) order by `repuestos`.`id_repuesto`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_repuestos_3` AS select `repuestos`.`id_repuesto` AS `id_repuesto`,`repuestos`.`cod_barra` AS `cod_barra`,`repuestos`.`nombre` AS `nombre`,`repuestos`.`precio` AS `precio`,`repuestos`.`costo` AS `costo`,`repuestos`.`cantidad` AS `cantidad`,`repuestos`.`iscbp` AS `iscbp`,`repuestos`.`id_empresa` AS `id_empresa`,`repuestos`.`sucursal` AS `sucursal`,`repuestos`.`ultima_salida` AS `ultima_salida`,`repuestos`.`codsunat` AS `codsunat`,`repuestos`.`usar_barra` AS `usar_barra`,`repuestos`.`precio_mayor` AS `precio_mayor`,`repuestos`.`precio_menor` AS `precio_menor`,`repuestos`.`razon_social` AS `razon_social`,`repuestos`.`ruc` AS `ruc`,`repuestos`.`estado` AS `estado`,`repuestos`.`almacen` AS `almacen`,`repuestos`.`precio2` AS `precio2`,`repuestos`.`precio3` AS `precio3`,`repuestos`.`precio4` AS `precio4`,`repuestos`.`precio_unidad` AS `precio_unidad`,`repuestos`.`codigo` AS `codigo`,`repuestos`.`imagen` AS `imagen`,`repuestos`.`detalle` AS `detalle`,`categorias`.`nombre` AS `categoria`,`unidades`.`nombre` AS `unidad`,`repuestos`.`moneda` AS `moneda` from ((`repuestos` left join `categorias` on(`categorias`.`id` = `repuestos`.`categoria`)) left join `unidades` on(`unidades`.`id` = `repuestos`.`unidad`)) where `repuestos`.`id_empresa` = 12 and `repuestos`.`sucursal` = '1' and `repuestos`.`estado` = '1' and `repuestos`.`almacen` = '3' order by `repuestos`.`id_repuesto`;
 
 -- ----------------------------
 -- View structure for view_taller_cotizaciones
 -- ----------------------------
 DROP VIEW IF EXISTS `view_taller_cotizaciones`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_taller_cotizaciones` AS select `tc`.`id_cotizacion` AS `cotizacion_id`,`tc`.`numero` AS `numero`,`tc`.`fecha` AS `fecha`,`tc`.`moneda` AS `moneda`,`tc`.`cm_tc` AS `cm_tc`,`tc`.`id_tido` AS `id_tido`,`tc`.`tipo_origen` AS `tipo_origen`,(case when (`pa`.`id_preAlerta` is not null) then convert(concat(`pa`.`cliente_razon_social`,' | ',`pa`.`cliente_ruc`) using utf8mb3) else concat(`c`.`documento`,' | ',`c`.`datos`) end) AS `documento`,(case when (`pa`.`id_preAlerta` is not null) then convert(`pa`.`cliente_razon_social` using utf8mb3) else `c`.`datos` end) AS `datos`,`tc`.`total` AS `total`,`tc`.`estado` AS `estado`,`tc`.`guia_numero` AS `guia_numero`,`u`.`usuario` AS `vendedor`,`tc`.`id_usuario` AS `usuario`,`tc`.`sucursal` AS `sucursal`,coalesce(convert(`pa`.`atencion_encargado` using utf8mb3),`c`.`direccion2`) AS `atencion_encargado` from (((`taller_cotizaciones` `tc` left join `pre_alerta` `pa` on((`tc`.`id_prealerta` = `pa`.`id_preAlerta`))) left join `clientes` `c` on((`tc`.`id_cliente` = `c`.`id_cliente`))) left join `usuarios` `u` on((`u`.`usuario_id` = `tc`.`id_usuario`))) where ((`tc`.`id_empresa` = '12') and (`tc`.`estado` <> '2'));
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_taller_cotizaciones` AS select `tc`.`id_cotizacion` AS `cotizacion_id`,`tc`.`numero` AS `numero`,`tc`.`fecha` AS `fecha`,`tc`.`moneda` AS `moneda`,`tc`.`cm_tc` AS `cm_tc`,`tc`.`id_tido` AS `id_tido`,`tc`.`tipo_origen` AS `tipo_origen`,case when `pa`.`id_preAlerta` is not null then concat(`pa`.`cliente_razon_social`,' | ',`pa`.`cliente_ruc`) else concat(`c`.`documento`,' | ',`c`.`datos`) end AS `documento`,case when `pa`.`id_preAlerta` is not null then `pa`.`cliente_razon_social` else `c`.`datos` end AS `datos`,`tc`.`total` AS `total`,`tc`.`estado` AS `estado`,`tc`.`guia_numero` AS `guia_numero`,`u`.`usuario` AS `vendedor`,`tc`.`id_usuario` AS `usuario`,`tc`.`sucursal` AS `sucursal`,coalesce(`pa`.`atencion_encargado`,`c`.`direccion2`) AS `atencion_encargado` from (((`taller_cotizaciones` `tc` left join `pre_alerta` `pa` on(`tc`.`id_prealerta` = `pa`.`id_preAlerta`)) left join `clientes` `c` on(`tc`.`id_cliente` = `c`.`id_cliente`)) left join `usuarios` `u` on(`u`.`usuario_id` = `tc`.`id_usuario`)) where `tc`.`id_empresa` = '12' and `tc`.`estado` <> '2';
 
 -- ----------------------------
 -- View structure for view_ventas
 -- ----------------------------
 DROP VIEW IF EXISTS `view_ventas`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_ventas` AS select `v`.`id_venta` AS `cod_v`,concat(`ds`.`abreviatura`,' | ',`v`.`serie`,' - ',`v`.`numero`) AS `sn_v`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `datos_cl`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),round(if((`v`.`apli_igv` = '1'),(`v`.`total` / (`v`.`igv` + 1)),`v`.`total`),2)) AS `subtotal`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),round(if((`v`.`apli_igv` = '1'),((`v`.`total` / (`v`.`igv` + 1)) * `v`.`igv`),0),2)) AS `igv_v`,concat(`v`.`enviado_sunat`,'-',`v`.`id_tido`,'-',`v`.`id_venta`) AS `doc_ventae`,concat(`v`.`id_venta`,'--',`vs`.`nombre_xml`) AS `id_venta`,`v`.`fecha_emision` AS `fecha_emision`,`ds`.`abreviatura` AS `abreviatura`,`v`.`apli_igv` AS `apli_igv`,`v`.`igv` AS `igv`,`v`.`id_tido` AS `id_tido`,`v`.`serie` AS `serie`,`v`.`numero` AS `numero`,`c`.`documento` AS `documento`,`c`.`datos` AS `datos`,concat(if((`v`.`moneda` = 1),'S/ ','$ '),`v`.`total`) AS `total`,`v`.`estado` AS `estado`,`v`.`enviado_sunat` AS `enviado_sunat`,`vs`.`nombre_xml` AS `nombre_xml` from (((`ventas` `v` left join `documentos_sunat` `ds` on((`v`.`id_tido` = `ds`.`id_tido`))) left join `clientes` `c` on((`v`.`id_cliente` = `c`.`id_cliente`))) left join `ventas_sunat` `vs` on((`v`.`id_venta` = `vs`.`id_venta`))) where (`v`.`id_empresa` = '12') order by `v`.`fecha_emision`,`v`.`numero`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `view_ventas` AS select `v`.`id_venta` AS `cod_v`,concat(`ds`.`abreviatura`,' | ',`v`.`serie`,' - ',`v`.`numero`) AS `sn_v`,concat(`c`.`documento`,' | ',`c`.`datos`) AS `datos_cl`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),round(if(`v`.`apli_igv` = '1',`v`.`total` / (`v`.`igv` + 1),`v`.`total`),2)) AS `subtotal`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),round(if(`v`.`apli_igv` = '1',`v`.`total` / (`v`.`igv` + 1) * `v`.`igv`,0),2)) AS `igv_v`,concat(`v`.`enviado_sunat`,'-',`v`.`id_tido`,'-',`v`.`id_venta`) AS `doc_ventae`,concat(`v`.`id_venta`,'--',`vs`.`nombre_xml`) AS `id_venta`,`v`.`fecha_emision` AS `fecha_emision`,`ds`.`abreviatura` AS `abreviatura`,`v`.`apli_igv` AS `apli_igv`,`v`.`igv` AS `igv`,`v`.`id_tido` AS `id_tido`,`v`.`serie` AS `serie`,`v`.`numero` AS `numero`,`c`.`documento` AS `documento`,`c`.`datos` AS `datos`,concat(if(`v`.`moneda` = 1,'S/ ','$ '),`v`.`total`) AS `total`,`v`.`estado` AS `estado`,`v`.`enviado_sunat` AS `enviado_sunat`,`vs`.`nombre_xml` AS `nombre_xml` from (((`ventas` `v` left join `documentos_sunat` `ds` on(`v`.`id_tido` = `ds`.`id_tido`)) left join `clientes` `c` on(`v`.`id_cliente` = `c`.`id_cliente`)) left join `ventas_sunat` `vs` on(`v`.`id_venta` = `vs`.`id_venta`)) where `v`.`id_empresa` = '12' order by `v`.`fecha_emision`,`v`.`numero`;
 
 -- ----------------------------
 -- View structure for vista_ordenes_unificada

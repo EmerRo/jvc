@@ -70,6 +70,9 @@ $("#submitRegistro").click(function () {
     const tieneCliente = $("#tiene_cliente").is(":checked");
     const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "";
     const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "";
+    
+    // Obtener el tipo de máquina seleccionado
+    const tipoMaquina = $('input[name="tipo_maquina"]:checked').val() || 'fabricada';
 
     // Enviar los datos al servidor
     $.ajax({
@@ -79,6 +82,7 @@ $("#submitRegistro").click(function () {
         cliente_ruc_dni: clienteRucDni,
         cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion").val(),
+        tipo_maquina: tipoMaquina,
         equipos: JSON.stringify(equiposData),
       },
       success: function (response) {
@@ -196,11 +200,15 @@ $("#submitRegistro").click(function () {
     const tieneCliente = $("#tiene_cliente").is(":checked");
     const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
     const clienteDocumento = tieneCliente ? $("#cliente_documento").val() : "20538381978";
+    
+    // Obtener el tipo de máquina seleccionado
+    const tipoMaquina = $('input[name="tipo_maquina"]:checked').val() || 'fabricada';
 
     console.log("Datos a enviar:", {
       cliente_ruc_dni: clienteRucDni,
       cliente_documento: clienteDocumento,
       fecha_creacion: $("#fecha_creacion").val(),
+      tipo_maquina: tipoMaquina,
       equipos: JSON.stringify(equiposData),
     });
 
@@ -212,6 +220,7 @@ $("#submitRegistro").click(function () {
         cliente_ruc_dni: clienteRucDni,
         cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion").val(),
+        tipo_maquina: tipoMaquina,
         equipos: JSON.stringify(equiposData),
       },
       success: function (response) {
@@ -275,6 +284,19 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
         // Configurar el checkbox de cliente según si tiene datos de cliente
         const tieneCliente = registro.tiene_cliente && (registro.cliente_ruc_dni && registro.cliente_ruc_dni !== "Sin Cliente" && registro.cliente_ruc_dni !== null);
         $("#tiene_cliente_u").prop("checked", tieneCliente);
+
+        // Configurar el tipo de máquina
+        const tipoMaquina = registro.tipo_maquina || 'fabricada';
+        $(`input[name="tipo_maquina_u"][value="${tipoMaquina}"]`).prop("checked", true);
+        
+        // Mostrar/ocultar mensajes según el tipo
+        if (tipoMaquina === 'fabricada') {
+          $('#mensaje_tipo_fabricada_u').show();
+          $('#mensaje_tipo_importada_u').hide();
+        } else {
+          $('#mensaje_tipo_fabricada_u').hide();
+          $('#mensaje_tipo_importada_u').show();
+        }
 
         // Siempre mostrar la sección cliente
         $("#seccion_cliente_u").removeClass("oculta");
@@ -540,6 +562,9 @@ $("#updateRegistroBtn").click(function () {
     const tieneCliente = $("#tiene_cliente_u").is(":checked");
     const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
     const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "20538381978";
+    
+    // Obtener el tipo de máquina seleccionado
+    const tipoMaquina = $('input[name="tipo_maquina_u"]:checked').val() || 'fabricada';
 
     // Enviar los datos al servidor
     $.ajax({
@@ -550,6 +575,7 @@ $("#updateRegistroBtn").click(function () {
         cliente_ruc_dni: clienteRucDni,
         cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion_u").val(),
+        tipo_maquina: tipoMaquina,
         equipos: JSON.stringify(equiposData),
       },
       success: function (response) {
@@ -658,6 +684,9 @@ $("#updateRegistroBtn").click(function () {
     const tieneCliente = $("#tiene_cliente_u").is(":checked");
     const clienteRucDni = tieneCliente ? $("#cliente_ruc_dni_u").val() : "COMERCIAL & INDUSTRIAL J. V. C. S.A.C.";
     const clienteDocumento = tieneCliente ? $("#cliente_documento_u").val() : "20538381978";
+    
+    // Obtener el tipo de máquina seleccionado
+    const tipoMaquina = $('input[name="tipo_maquina_u"]:checked').val() || 'fabricada';
 
     // Enviar los datos al servidor
     $.ajax({
@@ -668,6 +697,7 @@ $("#updateRegistroBtn").click(function () {
         cliente_ruc_dni: clienteRucDni,
         cliente_documento: clienteDocumento,
         fecha_creacion: $("#fecha_creacion_u").val(),
+        tipo_maquina: tipoMaquina,
         equipos: JSON.stringify(equiposData),
       },
       success: function (response) {

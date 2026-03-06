@@ -4,19 +4,16 @@ require_once 'utils/lib/vendor/autoload.php';
 require_once 'utils/lib/mpdf/vendor/autoload.php';
 require_once 'utils/lib/exel/vendor/autoload.php';
 
-
-
 class GenerarReporte extends Controller
 {
     private $conexion;
-    /*  private $mpdf; */
+    /* private $mpdf; */
 
     public function __construct()
     {
-        /*  $this->mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']); */
+        /* $this->mpdf = new \Mpdf\Mpdf(['mode' => 'utf-8', 'format' => 'A4']); */
         $this->conexion = (new Conexion())->getConexion();
     }
-
 
     public function ingresosEgresos($id)
     {
@@ -27,22 +24,22 @@ class GenerarReporte extends Controller
             'margin_right' => 4,
             'mode' => 'utf-8',
         ]);
-    
+
         $empresa = $this->conexion->query("SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'")->fetch_assoc();
-    
+
         $sql = "SELECT ingreso_egreso.*, productos.nombre, productos.codigo, 
                        IF(ingreso_egreso.tipo = 'e', 'Egreso', 'Ingreso') AS tipoIntercambio 
                 FROM ingreso_egreso 
                 JOIN productos ON ingreso_egreso.id_producto = productos.id_producto 
                 WHERE intercambio_id = '$id'";
         $result = $this->conexion->query($sql)->fetch_assoc();
-    
+
         $sql = "SELECT * FROM usuarios WHERE usuario_id = {$result['id_usuario']}";
         $resul2 = $this->conexion->query($sql)->fetch_assoc();
-    
+
         // Obtener las observaciones o mostrar un texto por defecto si no hay
-        $observaciones = !empty($result['observaciones']) ? $result['observaciones'] : "Sin observaciones";
-    
+        $observaciones = !empty($result['observaciones']) ? $result['observaciones'] : 'Sin observaciones';
+
         $dominio = DOMINIO;
         $rowHmtl = "<tr>
             <td style='border-bottom:1px solid black;font-size: 11px'>{$result['cantidad']}</td>
@@ -50,7 +47,7 @@ class GenerarReporte extends Controller
             <td style='border-bottom:1px solid black;font-size: 11px'>Almacen {$result['almacen_egreso']}</td>
             <td style='border-bottom:1px solid black;font-size: 11px'>{$resul2['nombres']}</td>
         </tr>";
-    
+
         $html = "
         <div style='width: 100%'>
             <table style='width:100%;margin-bottom: 10px'>
@@ -61,16 +58,16 @@ class GenerarReporte extends Controller
                 </tr>
             </table>
             <div style='width: 100%;text-align: center'>
-                <span style='font-size: 13px;font-weight: bold'>{$empresa["razon_social"]}</span>
+                <span style='font-size: 13px;font-weight: bold'>{$empresa['razon_social']}</span>
             </div>
             <div style='width: 100%;text-align: center'>
-                <span style='font-size: 12px'>RUC: {$empresa["ruc"]}</span>
+                <span style='font-size: 12px'>RUC: {$empresa['ruc']}</span>
             </div>
             <div style='width: 100%;text-align: center'>
-                <span style='font-size: 12px'>{$empresa["direccion"]}</span>
+                <span style='font-size: 12px'>{$empresa['direccion']}</span>
             </div>
             <div style='width: 100%;text-align: center'>
-                <span style='font-size: 12px'>{$empresa["telefono"]}</span>
+                <span style='font-size: 12px'>{$empresa['telefono']}</span>
             </div>
             <hr>
             <div style='width: 100%;text-align: center'>
@@ -118,14 +115,15 @@ class GenerarReporte extends Controller
                 <span style='font-size: 12px'>Gracias por su preferencia....</span>
             </div>
         </div>";
-    
+
         $mpdf->AddPageByArray([
-            "orientation" => "P",
-            "newformat" => [80, 240 - 20]
+            'orientation' => 'P',
+            'newformat' => [80, 240 - 20]
         ]);
         $mpdf->WriteHTML($html);
-        $mpdf->Output("Reporte Intercambio-Productos.pdf", "I");
+        $mpdf->Output('Reporte Intercambio-Productos.pdf', 'I');
     }
+
     public function generarExcelProducto()
     {
         $texto = $_GET['texto'];
@@ -162,16 +160,16 @@ class GenerarReporte extends Controller
                     <th style='background-color: #90BFEB;width:7px'>CNT A3</th>
             </tr>
             <tbody>
-                " . $tbody . "
+                " . $tbody . '
             </tbody>
-        </table>";
+        </table>';
 
         // Generar nombre único con fecha y hora
-        $nombre_exel = "reporte-productos-stock-" . date('Y-m-d-His') . ".xlsx";
-        
+        $nombre_exel = 'reporte-productos-stock-' . date('Y-m-d-His') . '.xlsx';
+
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 
         // Configurar headers para descarga directa sin guardar en servidor
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -182,17 +180,17 @@ class GenerarReporte extends Controller
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         header('Cache-Control: cache, must-revalidate');
         header('Pragma: public');
-        
+
         // Enviar directamente al navegador (no guardar en servidor)
         $writer->save('php://output');
         exit;
     }
+
     public function generarExcel($id)
     {
-
         $explodeFecha = explode('-', $id);
-        $anio =  $explodeFecha[0];
-        $mes =  $explodeFecha[1];
+        $anio = $explodeFecha[0];
+        $mes = $explodeFecha[1];
         $sql = 'SELECT *,CASE
         WHEN v1.cnt_pv > 0 THEN "VENTA DE MERCADERIA"
         ELSE "VENTA DE SERVICIO"
@@ -276,19 +274,15 @@ class GenerarReporte extends Controller
                     <th style='background-color: #90BFEB;width:10px'>Historial</th>
             </tr>
             <tbody>
-                " . $tbody . "
+                " . $tbody . '
             </tbody>
-        </table>";
+        </table>';
 
-
-
-
-        /*   return ($arrayRes);  */
-        $nombre_exel = "Venta de " . $anio . "-" . $mes . ".xlsx";
+        /* return ($arrayRes); */
+        $nombre_exel = 'Venta de ' . $anio . '-' . $mes . '.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
-
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
@@ -296,11 +290,9 @@ class GenerarReporte extends Controller
 
     public function generarExcelRVTA($fecha)
     {
-
-
         $explodeFecha = explode('-', $fecha);
-        $anio =  $explodeFecha[0];
-        $mes =  $explodeFecha[1];
+        $anio = $explodeFecha[0];
+        $mes = $explodeFecha[1];
         $sql = 'SELECT v.id_tido,v.id_venta,v.fecha_emision,v.fecha_vencimiento,ds.nombre AS tipoDocPago,v.serie,v.numero AS numeroVenta,v.enviado_sunat,v.igv,
        IF(v.enviado_sunat = 0,"No enviado","Enviado") AS enviadoSunat,
         (CASE 
@@ -313,14 +305,15 @@ class GenerarReporte extends Controller
         LEFT JOIN clientes c ON c.id_cliente=v.id_cliente 
         WHERE  YEAR(v.fecha_emision) =' . $anio . ' AND MONTH(v.fecha_emision) = ' . $mes . ' AND v.id_empresa=' . $_SESSION['id_empresa'];
 
-        /*   var_dump($sql);
-        die();
- */
+        /*
+         * var_dump($sql);
+         * die();
+         */
         $result = $this->conexion->query($sql);
         $tabla = '';
         $tbody = '';
         $totalOpgravado = 0;
-        /*   $total = 0; */
+        /* $total = 0; */
         foreach ($result as $fila) {
             if ($fila['id_tido'] != '1' && $fila['id_tido'] != '2') {
                 continue;
@@ -328,14 +321,14 @@ class GenerarReporte extends Controller
             $totalOpgravado = number_format($totalOpgravado, 2, '.', ',');
             $igv = $fila['total'] / ($fila['igv'] + 1) * $fila['igv'];
             $totalOpgravado = $fila['total'] - $igv;
-            $total = number_format((float)$fila['total'], 2, '.', '');
+            $total = number_format((float) $fila['total'], 2, '.', '');
             $igv = number_format($igv, 2, '.', ',');
             $totalOpgravado = number_format($totalOpgravado, 2, '.', ',');
             $style = '';
             if ($fila['enviado_sunat'] == '0') {
-                $style = "red";
+                $style = 'red';
             } else {
-                $style = "green";
+                $style = 'green';
             }
             $tbody .= '
                <tr>
@@ -349,7 +342,7 @@ class GenerarReporte extends Controller
                <td style="font-size: 10px;border:1px solid black;">' . $fila['documento'] . '</td>
                <td style="font-size: 10px;border:1px solid black;" colspan="2">' . $fila['cliente'] . '</td>
                <td style="font-size: 10px;border:1px solid black;">0</td>
-               <td style="font-size: 10px;border:1px solid black;">' .  $totalOpgravado . '</td>
+               <td style="font-size: 10px;border:1px solid black;">' . $totalOpgravado . '</td>
                <td style="font-size: 10px;border:1px solid black;">0</td>
                <td style="font-size: 10px;border:1px solid black;">0</td>
                <td style="font-size: 10px;border:1px solid black;"colspan="2"></td>
@@ -405,13 +398,14 @@ class GenerarReporte extends Controller
        ' . $tbody . '
     </table>';
 
-        $nombre_exel = "RVTA " . $anio . "-" . $mes . ".xlsx";
+        $nombre_exel = 'RVTA ' . $anio . '-' . $mes . '.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }
+
     public function generarExcelProductoImporte()
     {
         $sql = "SELECT
@@ -430,7 +424,7 @@ class GenerarReporte extends Controller
                     detalle
                 FROM
                     productos
-                WHERE almacen = '{$_SESSION["sucursal"]}' AND estado = 1
+                WHERE almacen = '{$_SESSION['sucursal']}' AND estado = 1
                 ORDER BY codigo ASC";
 
         $result = $this->conexion->query($sql);
@@ -439,7 +433,7 @@ class GenerarReporte extends Controller
         // Crear el Excel usando PhpSpreadsheet directamente para mejor control
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        
+
         // Configurar encabezados
         $headers = [
             'A1' => 'Producto',
@@ -483,22 +477,22 @@ class GenerarReporte extends Controller
         $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
 
         // Configurar anchos de columnas para evitar deformación
-        $sheet->getColumnDimension('A')->setWidth(35); // Producto - más ancho
-        $sheet->getColumnDimension('B')->setWidth(50); // Detalle - el más ancho para contenido largo
-        $sheet->getColumnDimension('C')->setWidth(10); // Cantidad
-        $sheet->getColumnDimension('D')->setWidth(12); // Costo
-        $sheet->getColumnDimension('E')->setWidth(15); // Precio Venta
-        $sheet->getColumnDimension('F')->setWidth(18); // Precio Distribuidor
-        $sheet->getColumnDimension('G')->setWidth(18); // Precio Mayorista
-        $sheet->getColumnDimension('H')->setWidth(10); // Almacén
-        $sheet->getColumnDimension('I')->setWidth(15); // Código
+        $sheet->getColumnDimension('A')->setWidth(35);  // Producto - más ancho
+        $sheet->getColumnDimension('B')->setWidth(50);  // Detalle - el más ancho para contenido largo
+        $sheet->getColumnDimension('C')->setWidth(10);  // Cantidad
+        $sheet->getColumnDimension('D')->setWidth(12);  // Costo
+        $sheet->getColumnDimension('E')->setWidth(15);  // Precio Venta
+        $sheet->getColumnDimension('F')->setWidth(18);  // Precio Distribuidor
+        $sheet->getColumnDimension('G')->setWidth(18);  // Precio Mayorista
+        $sheet->getColumnDimension('H')->setWidth(10);  // Almacén
+        $sheet->getColumnDimension('I')->setWidth(15);  // Código
 
         // Llenar datos
-        $row = 2; // Empezar desde la fila 2 (después de encabezados)
+        $row = 2;  // Empezar desde la fila 2 (después de encabezados)
         foreach ($data as $fila) {
             // Preservar espacios y saltos de línea en el detalle
             $detalle = $fila['detalle'] ? $fila['detalle'] : '';
-            
+
             $sheet->setCellValue('A' . $row, $fila['nombre']);
             $sheet->setCellValue('B' . $row, $detalle);
             $sheet->setCellValue('C' . $row, $fila['cnt']);
@@ -512,7 +506,7 @@ class GenerarReporte extends Controller
             // Configurar wrap text para Producto y Detalle, y ajustar altura de fila
             $sheet->getStyle('A' . $row)->getAlignment()->setWrapText(true);
             $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
-            $sheet->getRowDimension($row)->setRowHeight(-1); // Auto-ajustar altura
+            $sheet->getRowDimension($row)->setRowHeight(-1);  // Auto-ajustar altura
 
             // Aplicar bordes a toda la fila
             $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray([
@@ -530,24 +524,30 @@ class GenerarReporte extends Controller
 
         // Configurar alineación para columnas numéricas (horizontal y vertical)
         if ($row > 2) {
-            $sheet->getStyle('C2:H' . ($row - 1))->getAlignment()
+            $sheet
+                ->getStyle('C2:H' . ($row - 1))
+                ->getAlignment()
                 ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
                 ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
         }
-        
+
         // Aplicar alineación vertical centrada a las columnas de texto también
         if ($row > 2) {
-            $sheet->getStyle('A2:B' . ($row - 1))->getAlignment()
+            $sheet
+                ->getStyle('A2:B' . ($row - 1))
+                ->getAlignment()
                 ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-            $sheet->getStyle('I2:I' . ($row - 1))->getAlignment()
+            $sheet
+                ->getStyle('I2:I' . ($row - 1))
+                ->getAlignment()
                 ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
         }
 
         // Guardar archivo
-        $nombre_exel = "plantilla-productos-importar.xlsx";
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $nombre_exel = 'plantilla-productos-importar.xlsx';
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
-        
+
         header('Location: ' . URL::to($nombre_exel));
     }
 
@@ -555,9 +555,9 @@ class GenerarReporte extends Controller
     {
         // 1. Obtener la fecha de la caja
         $fecha_caja = null;
-        $sql_fecha = "SELECT fecha FROM caja_empresa WHERE caja_id = ?";
+        $sql_fecha = 'SELECT fecha FROM caja_empresa WHERE caja_id = ?';
         $stmt_fecha = $this->conexion->prepare($sql_fecha);
-        $stmt_fecha->bind_param("i", $id);
+        $stmt_fecha->bind_param('i', $id);
         if ($stmt_fecha->execute()) {
             $result_fecha = $stmt_fecha->get_result();
             if ($row_fecha = $result_fecha->fetch_assoc()) {
@@ -567,16 +567,16 @@ class GenerarReporte extends Controller
         $stmt_fecha->close();
 
         if (!$fecha_caja) {
-            echo "Error: No se pudo encontrar la caja con el ID proporcionado.";
-            return; 
+            echo 'Error: No se pudo encontrar la caja con el ID proporcionado.';
+            return;
         }
 
         $listaTotal = [];
 
         // 2. Obtener movimientos manuales de caja_chica
-        $sql1 = "SELECT * FROM caja_chica WHERE id_caja_empresa = ? ORDER BY caja_chica_id DESC";
+        $sql1 = 'SELECT * FROM caja_chica WHERE id_caja_empresa = ? ORDER BY caja_chica_id DESC';
         $stmt1 = $this->conexion->prepare($sql1);
-        $stmt1->bind_param("i", $id);
+        $stmt1->bind_param('i', $id);
         $stmt1->execute();
         $result1 = $stmt1->get_result();
 
@@ -603,18 +603,18 @@ class GenerarReporte extends Controller
             WHERE v.id_empresa = ? AND v.sucursal = ? 
             AND v.medoto_pago_id = '10' AND v.fecha_emision = ?
             ORDER BY v.id_venta DESC";
-        
+
         $stmt2 = $this->conexion->prepare($sql2);
-        $stmt2->bind_param("iis", $_SESSION['id_empresa'], $_SESSION['sucursal'], $fecha_caja);
+        $stmt2->bind_param('iis', $_SESSION['id_empresa'], $_SESSION['sucursal'], $fecha_caja);
         $stmt2->execute();
         $result2 = $stmt2->get_result();
 
         if ($result2) {
             while ($row2 = $result2->fetch_assoc()) {
                 $listaTotal[] = [
-                    'detalle' => $row2['detalle'], 
-                    'salida' => 0, 
-                    'entrada' => $row2['entrada'], 
+                    'detalle' => $row2['detalle'],
+                    'salida' => 0,
+                    'entrada' => $row2['entrada'],
                     'hora' => '-',
                     'metodo' => 1,
                     'documento' => $row2['tipo_documento'] . ' ' . $row2['serie'] . '-' . $row2['numero']
@@ -622,19 +622,19 @@ class GenerarReporte extends Controller
             }
         }
         $stmt2->close();
-        
+
         // 4. Generar el Excel
         $tabla = '';
         $tbody = '';
         foreach ($listaTotal as $i => $fila) {
             $index = $i + 1;
-            $tipo = "";
-            if ($fila["metodo"] == 1) {
-                $tipo = "Efectivo";
-            } else if ($fila["metodo"] == 2) {
-                $tipo = "Tarjetas";
+            $tipo = '';
+            if ($fila['metodo'] == 1) {
+                $tipo = 'Efectivo';
+            } else if ($fila['metodo'] == 2) {
+                $tipo = 'Tarjetas';
             } else {
-                $tipo = "Transferencias";
+                $tipo = 'Transferencias';
             }
             $tbody .= '
                     <tr>
@@ -660,11 +660,11 @@ class GenerarReporte extends Controller
                     </tr>
                     ' . $tbody . '
                     </table>';
-    
-        $nombre_exel = "cierreDeCaja_" . $id . "_" . date("Y-m-d") . ".xlsx";
+
+        $nombre_exel = 'cierreDeCaja_' . $id . '_' . date('Y-m-d') . '.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }
@@ -674,11 +674,11 @@ class GenerarReporte extends Controller
         // Obtener parámetros del POST o GET
         $vendedor_id = isset($_POST['vendedor']) ? $_POST['vendedor'] : (isset($_GET['vendedor']) ? $_GET['vendedor'] : '0');
         $rango_fechas = isset($_POST['rangoFechas']) ? $_POST['rangoFechas'] : (isset($_GET['rangoFechas']) ? $_GET['rangoFechas'] : '');
-        
+
         // Procesar el rango de fechas
         $fecha_inicio = '';
         $fecha_fin = '';
-        
+
         if (!empty($rango_fechas)) {
             $fechas = explode(' - ', $rango_fechas);
             if (count($fechas) == 2) {
@@ -718,27 +718,27 @@ class GenerarReporte extends Controller
             $sql .= " AND c.fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
         }
 
-        $sql .= " ORDER BY c.fecha DESC, c.cotizacion_id DESC";
+        $sql .= ' ORDER BY c.fecha DESC, c.cotizacion_id DESC';
 
         // Debug: Mostrar la consulta SQL completa
-        error_log("SQL Query: " . $sql);
-        error_log("ID empresa fijo: 12");
-        error_log("Vendedor ID: " . $vendedor_id);
-        error_log("Fecha inicio: " . $fecha_inicio);
-        error_log("Fecha fin: " . $fecha_fin);
+        error_log('SQL Query: ' . $sql);
+        error_log('ID empresa fijo: 12');
+        error_log('Vendedor ID: ' . $vendedor_id);
+        error_log('Fecha inicio: ' . $fecha_inicio);
+        error_log('Fecha fin: ' . $fecha_fin);
 
         $result = $this->conexion->query($sql);
 
         if (!$result) {
-            error_log("Error en la consulta SQL: " . $this->conexion->error);
-            die("Error en la consulta: " . $this->conexion->error);
+            error_log('Error en la consulta SQL: ' . $this->conexion->error);
+            die('Error en la consulta: ' . $this->conexion->error);
         }
 
         // Debug: Consulta simple para verificar datos
         $test_query = "SELECT COUNT(*) as total FROM cotizaciones WHERE id_empresa = '12'";
         $test_result = $this->conexion->query($test_query);
         $test_row = $test_result->fetch_assoc();
-        error_log("Total cotizaciones en la empresa: " . $test_row['total']);
+        error_log('Total cotizaciones en la empresa: ' . $test_row['total']);
 
         // Generar el contenido del Excel
         $tbody = '';
@@ -797,7 +797,8 @@ class GenerarReporte extends Controller
             $total_general_text .= 'S/ ' . number_format($total_general_soles, 2);
         }
         if ($total_general_dolares > 0) {
-            if ($total_general_text != '') $total_general_text .= ' + ';
+            if ($total_general_text != '')
+                $total_general_text .= ' + ';
             $total_general_text .= '$ ' . number_format($total_general_dolares, 2);
         }
 
@@ -821,9 +822,9 @@ class GenerarReporte extends Controller
 
         $periodo = '';
         if (!empty($fecha_inicio) && !empty($fecha_fin)) {
-            $periodo = "DEL " . date('d/m/Y', strtotime($fecha_inicio)) . " AL " . date('d/m/Y', strtotime($fecha_fin));
+            $periodo = 'DEL ' . date('d/m/Y', strtotime($fecha_inicio)) . ' AL ' . date('d/m/Y', strtotime($fecha_fin));
         } else {
-            $periodo = "TODAS LAS FECHAS";
+            $periodo = 'TODAS LAS FECHAS';
         }
 
         $tabla = "
@@ -858,24 +859,24 @@ class GenerarReporte extends Controller
                 <th style='background-color: #90BFEB; width: 15px; font-weight: bold;'>ESTADO</th>
             </tr>
             <tbody>
-                " . $tbody . "
+                " . $tbody . '
             </tbody>
-        </table>";
+        </table>';
 
         // Debug: Verificar si hay datos
-        error_log("Número de filas encontradas: " . $result->num_rows);
-        error_log("Contenido tbody: " . substr($tbody, 0, 500)); // Primeros 500 caracteres
-        error_log("Total general soles: " . $total_general_soles);
-        error_log("Total general dolares: " . $total_general_dolares);
+        error_log('Número de filas encontradas: ' . $result->num_rows);
+        error_log('Contenido tbody: ' . substr($tbody, 0, 500));  // Primeros 500 caracteres
+        error_log('Total general soles: ' . $total_general_soles);
+        error_log('Total general dolares: ' . $total_general_dolares);
 
         // Si no hay datos, mostrar mensaje de error
         if (empty($tbody)) {
-            die("No se encontraron cotizaciones para los filtros aplicados. Revisa el error.log para más detalles.");
+            die('No se encontraron cotizaciones para los filtros aplicados. Revisa el error.log para más detalles.');
         }
 
         // Generar el archivo Excel directamente (sin HTML)
         try {
-            $nombre_exel = "reporte_cotizaciones_vendedores_" . date('Y-m-d_H-i-s') . ".xlsx";
+            $nombre_exel = 'reporte_cotizaciones_vendedores_' . date('Y-m-d_H-i-s') . '.xlsx';
 
             // Crear spreadsheet nuevo
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -915,7 +916,7 @@ class GenerarReporte extends Controller
             $sheet->getStyle('A' . $fila . ':G' . $fila)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('90BFEB');
 
             // Agregar datos - volver a procesar el resultado
-            $result->data_seek(0); // Resetear el puntero del resultado
+            $result->data_seek(0);  // Resetear el puntero del resultado
             $fila = 7;
             $contador = 0;
             $total_general_soles_excel = 0;
@@ -963,7 +964,8 @@ class GenerarReporte extends Controller
                 $total_general_text_excel .= 'S/ ' . number_format($total_general_soles_excel, 2);
             }
             if ($total_general_dolares_excel > 0) {
-                if ($total_general_text_excel != '') $total_general_text_excel .= ' + ';
+                if ($total_general_text_excel != '')
+                    $total_general_text_excel .= ' + ';
                 $total_general_text_excel .= '$ ' . number_format($total_general_dolares_excel, 2);
             }
 
@@ -986,20 +988,20 @@ class GenerarReporte extends Controller
             header('Cache-Control: max-age=0');
 
             // Crear writer y enviar
-            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
             $writer->save('php://output');
             exit;
-
         } catch (Exception $e) {
-            error_log("Error generando Excel: " . $e->getMessage());
-            die("Error generando el archivo Excel: " . $e->getMessage());
+            error_log('Error generando Excel: ' . $e->getMessage());
+            die('Error generando el archivo Excel: ' . $e->getMessage());
         }
     }
-     public function generarExcelRegistroCajas()
+
+    public function generarExcelRegistroCajas()
     {
-        $sql = "SELECT * FROM caja_empresa WHERE sucursal = ? AND id_empresa = ? ORDER BY caja_id DESC";
+        $sql = 'SELECT * FROM caja_empresa WHERE sucursal = ? AND id_empresa = ? ORDER BY caja_id DESC';
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("ii", $_SESSION['sucursal'], $_SESSION['id_empresa']);
+        $stmt->bind_param('ii', $_SESSION['sucursal'], $_SESSION['id_empresa']);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -1036,10 +1038,10 @@ class GenerarReporte extends Controller
                     ' . $tbody . '
                     </table>';
 
-        $nombre_exel = "RegistroGeneralCajas_" . date("Y-m-d") . ".xlsx";
+        $nombre_exel = 'RegistroGeneralCajas_' . date('Y-m-d') . '.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }
@@ -1059,13 +1061,13 @@ class GenerarReporte extends Controller
                     codigo
                 FROM
                     repuestos
-                WHERE almacen = '{$_SESSION["sucursal"]}' AND estado = 1";
+                WHERE almacen = '{$_SESSION['sucursal']}' AND estado = 1";
 
         $result = $this->conexion->query($sql);
         $data = $result->fetch_all(MYSQLI_ASSOC);
 
         // Ordenar por código
-        usort($data, function($a, $b) {
+        usort($data, function ($a, $b) {
             return strnatcmp($a['codigo'], $b['codigo']);
         });
 
@@ -1102,10 +1104,10 @@ class GenerarReporte extends Controller
        ' . $tbody . '
         </table>';
 
-        $nombre_exel = "plantilla_repuestos.xlsx";
+        $nombre_exel = 'plantilla_repuestos.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
     }
@@ -1166,15 +1168,312 @@ class GenerarReporte extends Controller
                 <th style='background-color: #90BFEB;width:7px'>CNT A3</th>
             </tr>
             <tbody>
-                " . $tbody . "
+                " . $tbody . '
             </tbody>
-        </table>";
+        </table>';
 
-        $nombre_exel = "reporterepuestosstock.xlsx";
+        $nombre_exel = 'reporterepuestosstock.xlsx';
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($nombre_exel);
         header('Location: ' . URL::to($nombre_exel));
+    }
+
+    public function historialStockExcel()
+    {
+        $id_empresa = $_SESSION['id_empresa'];
+
+        // NUEVO: Obtener filtros de la URL
+        $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : null;
+        $tipo_origen = isset($_GET['tipo_origen']) ? $_GET['tipo_origen'] : null;
+
+        // Construir consulta con filtros
+        $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+                FROM historial_stock h 
+                INNER JOIN productos p ON h.id_producto = p.id_producto 
+                WHERE p.id_empresa = '$id_empresa'";
+
+        // Aplicar filtro por tipo de movimiento
+        if ($tipo && $tipo !== 'todos') {
+            $sql .= " AND h.tipo_movimiento = '" . $this->conexion->real_escape_string($tipo) . "'";
+        }
+
+        // Aplicar filtro por tipo de origen
+        if ($tipo_origen) {
+            $sql .= " AND h.tipo_origen = '" . $this->conexion->real_escape_string($tipo_origen) . "'";
+        }
+
+        $sql .= " ORDER BY h.fecha_movimiento DESC";
+
+        $result = $this->conexion->query($sql);
+
+        // Determinar título según filtros
+        $titulo = 'Historial de Stock';
+        if ($tipo === 'INGRESO') {
+            $titulo = 'Historial de Stock - Solo Ingresos';
+        } elseif ($tipo === 'EGRESO') {
+            $titulo = 'Historial de Stock - Solo Egresos';
+        } elseif ($tipo_origen === 'ORDEN_TRABAJO_INTERNA') {
+            $titulo = 'Historial de Stock - Producción Interna';
+        } elseif ($tipo_origen === 'ORDEN_TRABAJO_EXTERNA') {
+            $titulo = 'Historial de Stock - Uso en Órdenes Externas';
+        }
+
+        // Crear tabla HTML para Excel
+        $tabla = '<table border="1">
+            <thead>
+                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
+                    <th colspan="9" style="text-align: center; font-size: 14px;">' . $titulo . '</th>
+                </tr>
+                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Movimiento</th>
+                    <th>Cantidad</th>
+                    <th>Costo Compra</th>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Tipo Origen</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+        $totalRegistros = 0;
+        while ($row = $result->fetch_assoc()) {
+            $costo = $row['costo_compra'] ? 'S/ ' . number_format($row['costo_compra'], 2) : '-';
+            $fecha = date('d/m/Y H:i', strtotime($row['fecha_movimiento']));
+            $observaciones = $row['observaciones'] ? $row['observaciones'] : '-';
+            $tipoOrigen = $row['tipo_origen'] ? $row['tipo_origen'] : 'MANUAL';
+            $colorMovimiento = $row['tipo_movimiento'] == 'INGRESO' ? '#28a745' : '#dc3545';
+
+            $tabla .= '<tr>
+                <td>' . $row['codigo'] . '</td>
+                <td>' . $row['producto_nombre'] . '</td>
+                <td style="background-color: ' . $colorMovimiento . '; color: white; font-weight: bold;">' . $row['tipo_movimiento'] . '</td>
+                <td style="text-align: center;">' . $row['cantidad'] . '</td>
+                <td style="text-align: right;">' . $costo . '</td>
+                <td>' . $fecha . '</td>
+                <td>' . $row['usuario'] . '</td>
+                <td>' . $tipoOrigen . '</td>
+                <td>' . $observaciones . '</td>
+            </tr>';
+            $totalRegistros++;
+        }
+
+        $tabla .= '<tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="text-align: right;">TOTAL REGISTROS:</td>
+                <td style="text-align: center;">' . $totalRegistros . '</td>
+                <td colspan="5"></td>
+            </tr>';
+        $tabla .= '</tbody></table>';
+
+        // Generar archivo Excel
+        $nombre_exel = 'historial_stock_' . date('Y-m-d_His') . '.xlsx';
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+        $spreadsheet = $reader->loadFromString($tabla);
+
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Ajustar anchos de columnas
+        $sheet->getColumnDimension('A')->setWidth(15);  // Código
+        $sheet->getColumnDimension('B')->setWidth(60);  // Producto (más ancho)
+        $sheet->getColumnDimension('C')->setWidth(15);  // Movimiento
+        $sheet->getColumnDimension('D')->setWidth(12);  // Cantidad
+        $sheet->getColumnDimension('E')->setWidth(15);  // Costo
+        $sheet->getColumnDimension('F')->setWidth(20);  // Fecha
+        $sheet->getColumnDimension('G')->setWidth(18);  // Usuario
+        $sheet->getColumnDimension('H')->setWidth(25);  // Tipo Origen
+        $sheet->getColumnDimension('I')->setWidth(50);  // Observaciones (más ancho)
+
+        // Aplicar estilos al título
+        $titleStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 14
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'CA3438']
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ]
+        ];
+        $sheet->getStyle('A1:I1')->applyFromArray($titleStyle);
+        $sheet->mergeCells('A1:I1');
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // Aplicar estilos al encabezado
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 12
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'CA3438']
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ]
+        ];
+        $sheet->getStyle('A2:I2')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(2)->setRowHeight(25);
+
+        // Aplicar bordes a todas las celdas con datos
+        $highestRow = $sheet->getHighestRow();
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ]
+        ];
+        $sheet->getStyle('A1:I' . $highestRow)->applyFromArray($borderStyle);
+
+        // Centrar columnas específicas
+        $sheet->getStyle('A3:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('C3:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Ajustar texto en columnas largas
+        $sheet->getStyle('B3:B' . $highestRow)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('I3:I' . $highestRow)->getAlignment()->setWrapText(true);
+
+        // Congelar las dos primeras filas (título y encabezado)
+        $sheet->freezePane('A3');
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function historialStockRepuestosExcel()
+    {
+        $id_empresa = $_SESSION['id_empresa'];
+
+        // Consulta para obtener el historial de stock de repuestos
+        $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
+                FROM historial_stock h 
+                INNER JOIN repuestos r ON h.id_producto = r.id_repuesto 
+                WHERE r.id_empresa = '$id_empresa'
+                ORDER BY h.fecha_movimiento DESC";
+
+        $result = $this->conexion->query($sql);
+
+        // Crear tabla HTML para Excel
+        $tabla = '<table border="1">
+            <thead>
+                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
+                    <th>Código</th>
+                    <th>Repuesto</th>
+                    <th>Movimiento</th>
+                    <th>Cantidad</th>
+                    <th>Costo Compra</th>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+        while ($row = $result->fetch_assoc()) {
+            $costo = $row['costo_compra'] ? 'S/ ' . number_format($row['costo_compra'], 2) : '-';
+            $fecha = date('d/m/Y H:i', strtotime($row['fecha_movimiento']));
+            $observaciones = $row['observaciones'] ? $row['observaciones'] : '-';
+            $colorMovimiento = $row['tipo_movimiento'] == 'INGRESO' ? '#28a745' : '#dc3545';
+
+            $tabla .= '<tr>
+                <td>' . $row['codigo'] . '</td>
+                <td>' . $row['repuesto_nombre'] . '</td>
+                <td style="background-color: ' . $colorMovimiento . '; color: white; font-weight: bold;">' . $row['tipo_movimiento'] . '</td>
+                <td style="text-align: center;">' . $row['cantidad'] . '</td>
+                <td style="text-align: right;">' . $costo . '</td>
+                <td>' . $fecha . '</td>
+                <td>' . $row['usuario'] . '</td>
+                <td>' . $observaciones . '</td>
+            </tr>';
+        }
+
+        $tabla .= '</tbody></table>';
+
+        // Generar archivo Excel
+        $nombre_exel = 'historial_stock_repuestos_' . date('Y-m-d_His') . '.xlsx';
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
+        $spreadsheet = $reader->loadFromString($tabla);
+
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Ajustar anchos de columnas
+        $sheet->getColumnDimension('A')->setWidth(15);  // Código
+        $sheet->getColumnDimension('B')->setWidth(60);  // Repuesto (más ancho)
+        $sheet->getColumnDimension('C')->setWidth(15);  // Movimiento
+        $sheet->getColumnDimension('D')->setWidth(12);  // Cantidad
+        $sheet->getColumnDimension('E')->setWidth(15);  // Costo
+        $sheet->getColumnDimension('F')->setWidth(20);  // Fecha
+        $sheet->getColumnDimension('G')->setWidth(18);  // Usuario
+        $sheet->getColumnDimension('H')->setWidth(50);  // Observaciones (más ancho)
+
+        // Aplicar estilos al encabezado
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 12
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'CA3438']
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ]
+        ];
+        $sheet->getStyle('A1:H1')->applyFromArray($headerStyle);
+
+        // Ajustar altura de la fila del encabezado
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        // Aplicar bordes a todas las celdas con datos
+        $highestRow = $sheet->getHighestRow();
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ]
+        ];
+        $sheet->getStyle('A1:H' . $highestRow)->applyFromArray($borderStyle);
+
+        // Centrar columnas específicas
+        $sheet->getStyle('A2:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('C2:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Ajustar texto en columnas largas
+        $sheet->getStyle('B2:B' . $highestRow)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('H2:H' . $highestRow)->getAlignment()->setWrapText(true);
+
+        // Congelar la primera fila (encabezado)
+        $sheet->freezePane('A2');
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
     }
 }

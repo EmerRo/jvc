@@ -390,17 +390,24 @@
 
     // Función para validar archivos - MEJORADA
     function validarArchivos() {
-        // Validar PDF (REQUERIDO)
+        // Detectar si estamos en modo edición
+        const idFichaEditar = document.getElementById('id-ficha-editar');
+        const esEdicion = idFichaEditar && idFichaEditar.value !== '';
+        
+        // Validar PDF (REQUERIDO solo en creación, opcional en edición)
         const pdfInput = document.getElementById('pdf_file');
-        if (pdfInput.files.length === 0) {
+        if (!esEdicion && pdfInput.files.length === 0) {
             Swal.fire('Error', 'El archivo PDF es obligatorio', 'error');
             return false;
         }
 
-        const pdfFile = pdfInput.files[0];
-        if (pdfFile.size > 4 * 1024 * 1024) {
-            Swal.fire('Error', 'El archivo PDF excede el tamaño máximo de 4MB', 'error');
-            return false;
+        // Si se está subiendo un PDF, validar su tamaño
+        if (pdfInput.files.length > 0) {
+            const pdfFile = pdfInput.files[0];
+            if (pdfFile.size > 4 * 1024 * 1024) {
+                Swal.fire('Error', 'El archivo PDF excede el tamaño máximo de 4MB', 'error');
+                return false;
+            }
         }
 
         // Validar imágenes - VALIDACIÓN MEJORADA

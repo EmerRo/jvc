@@ -345,7 +345,7 @@
                         event.preventDefault();
                         try {
                             app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
-                            const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
+                            const numeros_serie = ui.item.numero_serie ? JSON.parse(ui.item.numero_serie) : [];
                             const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                             const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                             const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);

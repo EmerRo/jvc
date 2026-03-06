@@ -193,7 +193,7 @@
                     return `<div class="text-center">
               <div class="btn-group"><button  data-id="${Number(
                         row.id_compra
-                    )}" class="btn  btn-sm btn-success btnDetalle"><i class="fa fa-eye"></i> </button></div></div>`;
+                    )}" data-documento="${row.serie}-${row.numero}" class="btn  btn-sm btn-success btnDetalle"><i class="fa fa-eye"></i> </button></div></div>`;
                 },
             },
             {
@@ -255,8 +255,9 @@
         $("#datatable").on("click", ".btnDetalle ", function (event) {
             $("#loader-menor").show();
             var id = $(this).data("id");
+            var documento = $(this).data("documento");
             $("#modalDetalle").modal("show");
-            $("#modalDetalle").find(".modal-title").text("Detalle compra N°" + id);
+            $("#modalDetalle").find(".modal-title").text("Detalle compra " + documento);
 
             // Cargar productos
             $.ajax({
@@ -285,7 +286,14 @@
                             { data: "codigo", class: "text-center" },
                             { data: "nombre", class: "text-center" },
                             { data: "cantidad", class: "text-center" },
-                            { data: "precio", class: "text-center" }
+                            { 
+                                data: "precio", 
+                                class: "text-center",
+                                render: function(data, type, row) {
+                                    // Formatear precio a 2 decimales
+                                    return parseFloat(data).toFixed(2);
+                                }
+                            }
                         ]
                     });
 

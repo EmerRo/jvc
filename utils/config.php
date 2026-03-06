@@ -5,7 +5,7 @@ define("DOMINIO","http://185.111.156.125/");
  * DATABASE_CONFIG
  */
 define("HOST_SS","localhost");
-define("DATABASE_SS","factura_jvc");
+define("DATABASE_SS","magusqao_jvc_factura");
 define("USER_SS","root");
 define("PASSWORD_SS","");
 
@@ -20,6 +20,12 @@ define("HOST_SMTP", "mail.apperpan.com");
 define("USER_SMTP", "envios@apperpan.com");
 define("CLAVE_SMTP", "C4p1cu4$$");
 define("PUERTO_SMTP", "465");
+
+
+// define("HOST_SMTP", "smtp.gmail.com");
+// define("USER_SMTP", "umbrellasrl@gmail.com");
+// define("CLAVE_SMTP", "mncpbsfnutdarmxv");
+// define("PUERTO_SMTP", "465");
 
 /*define("HOST_SMTP","mail.cooplafabril.com");
 define("USER_SMTP","mail_send@cooplafabril.com");

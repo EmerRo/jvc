@@ -154,6 +154,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                             <thead class="table-light">
                                 <tr>
                                     <th>Item</th>
+                                    <th>Código</th>
                                     <th>Nombres</th>
                                     <th>Rol</th>
                                     <th>Usuario</th>
@@ -318,8 +319,19 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     <div class="row g-2">
                         <input type="text" name="idCliente" id="idCliente" value="" hidden>
 
+                        <!-- Código del usuario (solo lectura) -->
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="fa fa-barcode me-1"></i>Código
+                            </label>
+                            <input type="text" class="form-control form-control-sm bg-light fw-bold text-center"
+                                   id="codigoUsuario" name="codigoUsuario" readonly
+                                   style="font-size: 1.1em; letter-spacing: 2px;">
+                            <small class="text-muted">No editable</small>
+                        </div>
+
                         <!-- Primera fila -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label ">
                                 <i class="fa fa-user-tag"></i>Rol
                             </label>
@@ -963,6 +975,13 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             class: "text-center",
         },
         {
+            data: "codigo",
+            class: "text-center",
+            render: function (data, type, row) {
+                return `<span class="badge bg-primary">${data || '---'}</span>`;
+            },
+        },
+        {
             data: "nombres",
             class: "text-left",
             render: function (data, type, row) {
@@ -1034,6 +1053,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         $("#loader-menor").hide();
                         let json = JSON.parse(datos)[0];
                         $("#rol2").val(json.id_rol);
+                        $("#codigoUsuario").val(json.codigo || '---');
                         $("#doc").val(json.num_doc);
                         $("#datosEditar").val(json.nombres);
                         $("#usuariou").val(json.usuario);
@@ -1080,6 +1100,18 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                     const response = typeof resp === 'string' ? JSON.parse(resp) : resp;
 
                     if (response.success) {
+                        // Si se recibió un nuevo token (porque se editó el usuario actual)
+                        if (response.new_token) {
+                            localStorage.setItem("_token", response.new_token);
+                            console.log("Token actualizado con nueva foto de perfil");
+
+                            // Actualizar la foto en el header inmediatamente
+                            if (response.foto_perfil) {
+                                const fotoUrl = _URL + '/' + response.foto_perfil;
+                                $('.jvc-user-avatar').attr('src', fotoUrl);
+                            }
+                        }
+
                         tabla_clientes.ajax.reload(null, false);
                         Swal.fire("¡Buen trabajo!", "Actualización exitosa", "success");
                         $("#editarModal").modal("hide");
@@ -1188,13 +1220,35 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    Swal.fire({
-                        title: "Éxito",
-                        text: "Usuario creado correctamente.",
-                        icon: "success"
-                    });
-                    $('#usuario-add-bs').modal('hide');
-                    tabla_clientes.ajax.reload(null, false);
+                    try {
+                        const resp = typeof response === 'string' ? JSON.parse(response) : response;
+
+                        if (resp.success) {
+                            Swal.fire({
+                                title: "Éxito",
+                                text: "Usuario creado correctamente.",
+                                icon: "success"
+                            });
+                            $('#usuario-add-bs').modal('hide');
+                            // Limpiar formulario
+                            $('#myForm')[0].reset();
+                            resetAddUserPreview();
+                            tabla_clientes.ajax.reload(null, false);
+                        } else {
+                            Swal.fire({
+                                title: "Error",
+                                text: resp.error || "No se pudo crear el usuario.",
+                                icon: "error"
+                            });
+                        }
+                    } catch (e) {
+                        console.error('Error al procesar respuesta:', e);
+                        Swal.fire({
+                            title: "Error",
+                            text: "Error al procesar la respuesta del servidor.",
+                            icon: "error"
+                        });
+                    }
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr.responseText);

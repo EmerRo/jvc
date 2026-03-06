@@ -133,7 +133,7 @@
                         s:true
                     },
                     success(resp){
-                        console.log(resp);
+                        // console.log(resp);
                         resp=JSON.parse(resp);
                         if (resp.res){
                             // Actualizar token con última actividad
@@ -177,7 +177,7 @@
                         s:true
                     },
                     success(resp){
-                        console.log(resp);
+                        // console.log(resp);
                         resp=JSON.parse(resp);
                         if (resp.res){
                             // Actualizar token con última actividad

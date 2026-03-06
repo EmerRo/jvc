@@ -170,44 +170,33 @@ class Consultas
         $stmt->execute();
         $result = $stmt->get_result();
 
-        // Procesar los resultados para expandir los arrays JSON
+        // Procesar los resultados - ahora cada fila es un equipo individual
         $series_expandidas = [];
         
         while ($row = $result->fetch_assoc()) {
-            if ($row['numero_serie']) {
-                // Decodificar los arrays JSON
-                $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
-                $modelos = json_decode($row['modelo'], true) ?: [];
-                $marcas = json_decode($row['marca'], true) ?: [];
-                $equipos = json_decode($row['equipo'], true) ?: [];
+            // Obtener nombres de marca, modelo y equipo
+            $marca_id = $row['marca'];
+            $modelo_id = $row['modelo'];
+            $equipo_id = $row['equipo'];
 
-                // Crear una entrada por cada número de serie
-                for ($i = 0; $i < count($numeros_serie); $i++) {
-                    // Obtener nombres de marca, modelo y equipo
-                    $marca_id = $marcas[$i] ?? null;
-                    $modelo_id = $modelos[$i] ?? null;
-                    $equipo_id = $equipos[$i] ?? null;
+            $marca_nombre = $this->getNombreById('marcas', $marca_id);
+            $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
+            $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
 
-                    $marca_nombre = $this->getNombreById('marcas', $marca_id);
-                    $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
-                    $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
-
-                    $series_expandidas[] = [
-                        'id' => $row['id'],
-                        'numero_serie_id' => $row['numero_serie_id'],
-                        'numero_serie' => $numeros_serie[$i],
-                        'marca' => $marca_id,
-                        'marca_nombre' => $marca_nombre,
-                        'modelo' => $modelo_id,
-                        'modelo_nombre' => $modelo_nombre,
-                        'equipo' => $equipo_id,
-                        'equipo_nombre' => $equipo_nombre,
-                        'estado' => $row['estado'] ?? 'disponible',
-                        'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                        'cliente_documento' => $row['cliente_documento'] ?? ''
-                    ];
-                }
-            }
+            $series_expandidas[] = [
+                'id' => $row['id'],
+                'numero_serie_id' => $row['numero_serie_id'],
+                'numero_serie' => $row['numero_serie'],
+                'marca' => $marca_id,
+                'marca_nombre' => $marca_nombre,
+                'modelo' => $modelo_id,
+                'modelo_nombre' => $modelo_nombre,
+                'equipo' => $equipo_id,
+                'equipo_nombre' => $equipo_nombre,
+                'estado' => $row['estado'] ?? 'disponible',
+                'cliente_ruc_dni' => $row['cliente_ruc_dni'],
+                'cliente_documento' => $row['cliente_documento'] ?? ''
+            ];
         }
 
         // Convertir a objeto mysqli_result simulado
@@ -241,34 +230,26 @@ class Consultas
         $series_expandidas = [];
 
         while ($row = $result->fetch_assoc()) {
-            // Decodificar los arrays JSON
-            $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
-            $modelos = json_decode($row['modelo'], true) ?: [];
-            $marcas = json_decode($row['marca'], true) ?: [];
-            $equipos = json_decode($row['equipo'], true) ?: [];
+            // Los datos ya vienen normalizados, no necesitan decodificación JSON
+            $marca_id = $row['marca'];
+            $modelo_id = $row['modelo'];
+            $equipo_id = $row['equipo'];
 
-            // Crear una entrada por cada número de serie
-            for ($i = 0; $i < count($numeros_serie); $i++) {
-                $marca_id = $marcas[$i] ?? null;
-                $modelo_id = $modelos[$i] ?? null;
-                $equipo_id = $equipos[$i] ?? null;
+            $marca_nombre = $this->getNombreById('marcas', $marca_id);
+            $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
+            $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
 
-                $marca_nombre = $this->getNombreById('marcas', $marca_id);
-                $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
-                $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
-
-                $series_expandidas[] = [
-                    'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                    'cliente_documento' => $row['cliente_documento'] ?? '',
-                    'numero_serie' => $numeros_serie[$i],
-                    'marca' => $marca_id,
-                    'marca_nombre' => $marca_nombre,
-                    'modelo' => $modelo_id,
-                    'modelo_nombre' => $modelo_nombre,
-                    'equipo' => $equipo_id,
-                    'equipo_nombre' => $equipo_nombre
-                ];
-            }
+            $series_expandidas[] = [
+                'cliente_ruc_dni' => $row['cliente_ruc_dni'],
+                'cliente_documento' => $row['cliente_documento'] ?? '',
+                'numero_serie' => $row['numero_serie'],
+                'marca' => $marca_id,
+                'marca_nombre' => $marca_nombre,
+                'modelo' => $modelo_id,
+                'modelo_nombre' => $modelo_nombre,
+                'equipo' => $equipo_id,
+                'equipo_nombre' => $equipo_nombre
+            ];
         }
 
         return $this->arrayToMysqliResult($series_expandidas);
@@ -276,10 +257,10 @@ class Consultas
 
     public function buscarSerieDisponible($searchTerm)
     {
-        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie, ds.estado
+        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo_id as modelo, ds.marca_id as marca, ds.equipo_id as equipo, ds.numero_serie, ds.estado
                 FROM numero_series ns
                 JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-                WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL 
+                WHERE ds.numero_serie LIKE ?
                 AND ds.estado = 'disponible'
                 ORDER BY ns.id DESC
                 LIMIT 100";
@@ -303,36 +284,26 @@ class Consultas
         $series_expandidas = [];
 
         while ($row = $result->fetch_assoc()) {
-            // Decodificar los arrays JSON
-            $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
-            $modelos = json_decode($row['modelo'], true) ?: [];
-            $marcas = json_decode($row['marca'], true) ?: [];
-            $equipos = json_decode($row['equipo'], true) ?: [];
+            // Los datos ya vienen normalizados, no necesitan decodificación JSON
+            $marca_id = $row['marca'];
+            $modelo_id = $row['modelo'];
+            $equipo_id = $row['equipo'];
 
-            // Filtrar solo las series que coinciden con la búsqueda
-            for ($i = 0; $i < count($numeros_serie); $i++) {
-                if (stripos($numeros_serie[$i], $searchTerm) !== false) {
-                    $marca_id = $marcas[$i] ?? null;
-                    $modelo_id = $modelos[$i] ?? null;
-                    $equipo_id = $equipos[$i] ?? null;
+            $marca_nombre = $this->getNombreById('marcas', $marca_id);
+            $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
+            $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
 
-                    $marca_nombre = $this->getNombreById('marcas', $marca_id);
-                    $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
-                    $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
-
-                    $series_expandidas[] = [
-                        'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                        'cliente_documento' => $row['cliente_documento'] ?? '',
-                        'numero_serie' => $numeros_serie[$i],
-                        'marca' => $marca_id,
-                        'marca_nombre' => $marca_nombre,
-                        'modelo' => $modelo_id,
-                        'modelo_nombre' => $modelo_nombre,
-                        'equipo' => $equipo_id,
-                        'equipo_nombre' => $equipo_nombre
-                    ];
-                }
-            }
+            $series_expandidas[] = [
+                'cliente_ruc_dni' => $row['cliente_ruc_dni'],
+                'cliente_documento' => $row['cliente_documento'] ?? '',
+                'numero_serie' => $row['numero_serie'],
+                'marca' => $marca_id,
+                'marca_nombre' => $marca_nombre,
+                'modelo' => $modelo_id,
+                'modelo_nombre' => $modelo_nombre,
+                'equipo' => $equipo_id,
+                'equipo_nombre' => $equipo_nombre
+            ];
         }
 
         return $this->arrayToMysqliResult($series_expandidas);
@@ -342,9 +313,19 @@ class Consultas
 
     public function obtenerSeriesDisponiblesPreAlerta($limite = 100)
     {
-        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie
+        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento, 
+                       ds.numero_serie,
+                       ds.modelo_id as modelo, 
+                       ds.marca_id as marca, 
+                       ds.equipo_id as equipo,
+                       m.nombre as modelo_nombre,
+                       ma.nombre as marca_nombre,
+                       e.nombre as equipo_nombre
                 FROM numero_series ns
                 JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
+                LEFT JOIN modelos m ON ds.modelo_id = m.id
+                LEFT JOIN marcas ma ON ds.marca_id = ma.id
+                LEFT JOIN equipos e ON ds.equipo_id = e.id
                 WHERE ds.estado_prealerta = 'disponible'
                 ORDER BY ns.id DESC
                 LIMIT ?";
@@ -363,50 +344,26 @@ class Consultas
             return $this->arrayToMysqliResult([]);
         }
         
-        $result = $stmt->get_result();
-        $series_expandidas = [];
-
-        while ($row = $result->fetch_assoc()) {
-            // Decodificar los arrays JSON
-            $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
-            $modelos = json_decode($row['modelo'], true) ?: [];
-            $marcas = json_decode($row['marca'], true) ?: [];
-            $equipos = json_decode($row['equipo'], true) ?: [];
-
-            // Crear una entrada por cada número de serie
-            for ($i = 0; $i < count($numeros_serie); $i++) {
-                $marca_id = $marcas[$i] ?? null;
-                $modelo_id = $modelos[$i] ?? null;
-                $equipo_id = $equipos[$i] ?? null;
-
-                $marca_nombre = $this->getNombreById('marcas', $marca_id);
-                $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
-                $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
-
-                $series_expandidas[] = [
-                    'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                    'cliente_documento' => $row['cliente_documento'] ?? '',
-                    'numero_serie' => $numeros_serie[$i],
-                    'marca' => $marca_id,
-                    'marca_nombre' => $marca_nombre,
-                    'modelo' => $modelo_id,
-                    'modelo_nombre' => $modelo_nombre,
-                    'equipo' => $equipo_id,
-                    'equipo_nombre' => $equipo_nombre
-                ];
-            }
-        }
-
-        return $this->arrayToMysqliResult($series_expandidas);
+        return $stmt->get_result();
     }
 
     public function buscarSerieDisponiblePreAlerta($searchTerm)
     {
-        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie
+        $sql = "SELECT ns.cliente_ruc_dni, ns.cliente_documento,
+                       ds.numero_serie,
+                       ds.modelo_id as modelo, 
+                       ds.marca_id as marca, 
+                       ds.equipo_id as equipo,
+                       m.nombre as modelo_nombre,
+                       ma.nombre as marca_nombre,
+                       e.nombre as equipo_nombre
                 FROM numero_series ns
                 JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-                WHERE JSON_SEARCH(ds.numero_serie, 'one', ?) IS NOT NULL 
-                AND ds.estado_prealerta = 'disponible'
+                LEFT JOIN modelos m ON ds.modelo_id = m.id
+                LEFT JOIN marcas ma ON ds.marca_id = ma.id
+                LEFT JOIN equipos e ON ds.equipo_id = e.id
+                WHERE ds.numero_serie LIKE ? 
+                  AND ds.estado_prealerta = 'disponible'
                 ORDER BY ns.id DESC
                 LIMIT 100";
         
@@ -425,43 +382,7 @@ class Consultas
             return $this->arrayToMysqliResult([]);
         }
         
-        $result = $stmt->get_result();
-        $series_expandidas = [];
-
-        while ($row = $result->fetch_assoc()) {
-            // Decodificar los arrays JSON
-            $numeros_serie = json_decode($row['numero_serie'], true) ?: [];
-            $modelos = json_decode($row['modelo'], true) ?: [];
-            $marcas = json_decode($row['marca'], true) ?: [];
-            $equipos = json_decode($row['equipo'], true) ?: [];
-
-            // Filtrar solo las series que coinciden con la búsqueda
-            for ($i = 0; $i < count($numeros_serie); $i++) {
-                if (stripos($numeros_serie[$i], $searchTerm) !== false) {
-                    $marca_id = $marcas[$i] ?? null;
-                    $modelo_id = $modelos[$i] ?? null;
-                    $equipo_id = $equipos[$i] ?? null;
-
-                    $marca_nombre = $this->getNombreById('marcas', $marca_id);
-                    $modelo_nombre = $this->getNombreById('modelos', $modelo_id);
-                    $equipo_nombre = $this->getNombreById('equipos', $equipo_id);
-
-                    $series_expandidas[] = [
-                        'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-                        'cliente_documento' => $row['cliente_documento'] ?? '',
-                        'numero_serie' => $numeros_serie[$i],
-                        'marca' => $marca_id,
-                        'marca_nombre' => $marca_nombre,
-                        'modelo' => $modelo_id,
-                        'modelo_nombre' => $modelo_nombre,
-                        'equipo' => $equipo_id,
-                        'equipo_nombre' => $equipo_nombre
-                    ];
-                }
-            }
-        }
-
-        return $this->arrayToMysqliResult($series_expandidas);
+        return $stmt->get_result();
     }
 
     public function obtenerSeriesPorClientePreAlerta($cliente_id)
@@ -543,13 +464,24 @@ class Consultas
     }
  public function obtenerNumerosDisponiblesPreAlerta($limite = 100)
 {
-$sql = "SELECT ns.numero, ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie
-        FROM numero_series ns
-        JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-        WHERE ds.estado_prealerta = 'disponible'
-        GROUP BY ns.numero, ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie
-        ORDER BY ns.numero ASC
-        LIMIT ?";
+    $sql = "SELECT ns.numero, ns.cliente_ruc_dni, ns.cliente_documento,
+                   GROUP_CONCAT(ds.numero_serie ORDER BY ds.id SEPARATOR ',') as numero_serie,
+                   GROUP_CONCAT(ds.modelo_id ORDER BY ds.id SEPARATOR ',') as modelo, 
+                   GROUP_CONCAT(ds.marca_id ORDER BY ds.id SEPARATOR ',') as marca, 
+                   GROUP_CONCAT(ds.equipo_id ORDER BY ds.id SEPARATOR ',') as equipo,
+                   GROUP_CONCAT(m.nombre ORDER BY ds.id SEPARATOR ',') as modelo_nombre,
+                   GROUP_CONCAT(ma.nombre ORDER BY ds.id SEPARATOR ',') as marca_nombre,
+                   GROUP_CONCAT(e.nombre ORDER BY ds.id SEPARATOR ',') as equipo_nombre
+            FROM numero_series ns
+            JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
+            LEFT JOIN modelos m ON ds.modelo_id = m.id
+            LEFT JOIN marcas ma ON ds.marca_id = ma.id
+            LEFT JOIN equipos e ON ds.equipo_id = e.id
+            WHERE ds.estado_prealerta = 'disponible' 
+              AND ns.tipo_maquina = 'fabricada'
+            GROUP BY ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento
+            ORDER BY ns.numero ASC
+            LIMIT ?";
     
     $stmt = $this->conectar->prepare($sql);
     
@@ -565,47 +497,7 @@ $sql = "SELECT ns.numero, ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, d
         return $this->arrayToMysqliResult([]);
     }
     
-    $result = $stmt->get_result();
-    $numeros_expandidos = [];
-
-while ($row = $result->fetch_assoc()) {
-    // Decodificar los arrays JSON para obtener los IDs
-    $marcas_ids = json_decode($row['marca'], true) ?: [];
-    $modelos_ids = json_decode($row['modelo'], true) ?: [];
-    $equipos_ids = json_decode($row['equipo'], true) ?: [];
-    
-    // Obtener los nombres de cada tabla
-    $marcas_nombres = [];
-    $modelos_nombres = [];
-    $equipos_nombres = [];
-    
-    foreach ($marcas_ids as $marca_id) {
-        $marcas_nombres[] = $this->getNombreById('marcas', $marca_id);
-    }
-    
-    foreach ($modelos_ids as $modelo_id) {
-        $modelos_nombres[] = $this->getNombreById('modelos', $modelo_id);
-    }
-    
-    foreach ($equipos_ids as $equipo_id) {
-        $equipos_nombres[] = $this->getNombreById('equipos', $equipo_id);
-    }
-    
-    $numeros_expandidos[] = [
-        'numero' => $row['numero'],
-        'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-        'cliente_documento' => $row['cliente_documento'] ?? '',
-        'numero_serie' => $row['numero_serie'],
-        'marca' => $row['marca'],
-        'modelo' => $row['modelo'],
-        'equipo' => $row['equipo'],
-        'marca_nombre' => implode(',', $marcas_nombres),
-        'modelo_nombre' => implode(',', $modelos_nombres),
-        'equipo_nombre' => implode(',', $equipos_nombres)
-    ];
-}
-
-    return $this->arrayToMysqliResult($numeros_expandidos);
+    return $stmt->get_result();
 }
 
 public function buscarNumeroDisponiblePreAlerta($searchTerm)
@@ -613,11 +505,23 @@ public function buscarNumeroDisponiblePreAlerta($searchTerm)
     // Extraer solo el número del término de búsqueda (ej: "NS-01" -> "1")
     $numeroLimpio = preg_replace('/[^0-9]/', '', $searchTerm);
     
-    $sql = "SELECT ns.numero, ns.cliente_ruc_dni, ns.cliente_documento, ds.modelo, ds.marca, ds.equipo, ds.numero_serie
+    $sql = "SELECT ns.numero, ns.cliente_ruc_dni, ns.cliente_documento,
+                   GROUP_CONCAT(ds.numero_serie ORDER BY ds.id SEPARATOR ',') as numero_serie,
+                   GROUP_CONCAT(ds.modelo_id ORDER BY ds.id SEPARATOR ',') as modelo, 
+                   GROUP_CONCAT(ds.marca_id ORDER BY ds.id SEPARATOR ',') as marca, 
+                   GROUP_CONCAT(ds.equipo_id ORDER BY ds.id SEPARATOR ',') as equipo,
+                   GROUP_CONCAT(m.nombre ORDER BY ds.id SEPARATOR ',') as modelo_nombre,
+                   GROUP_CONCAT(ma.nombre ORDER BY ds.id SEPARATOR ',') as marca_nombre,
+                   GROUP_CONCAT(e.nombre ORDER BY ds.id SEPARATOR ',') as equipo_nombre
             FROM numero_series ns
             JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-            WHERE ns.numero = ? AND ds.estado_prealerta = 'disponible'
-            GROUP BY ns.numero, ns.cliente_ruc_dni, ns.cliente_documento
+            LEFT JOIN modelos m ON ds.modelo_id = m.id
+            LEFT JOIN marcas ma ON ds.marca_id = ma.id
+            LEFT JOIN equipos e ON ds.equipo_id = e.id
+            WHERE ns.numero = ? 
+              AND ds.estado_prealerta = 'disponible'
+              AND ns.tipo_maquina = 'fabricada'
+            GROUP BY ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento
             ORDER BY ns.numero ASC
             LIMIT 100";
     
@@ -635,25 +539,6 @@ public function buscarNumeroDisponiblePreAlerta($searchTerm)
         return $this->arrayToMysqliResult([]);
     }
     
-    $result = $stmt->get_result();
-    $numeros_expandidos = [];
-
-    while ($row = $result->fetch_assoc()) {
-        // Solo agregar una entrada por número de registro
-        $numeros_expandidos[] = [
-            'numero' => $row['numero'],
-            'cliente_ruc_dni' => $row['cliente_ruc_dni'],
-            'cliente_documento' => $row['cliente_documento'] ?? '',
-            'numero_serie' => $row['numero_serie'],
-            'marca' => $row['marca'],
-            'modelo' => $row['modelo'],
-            'equipo' => $row['equipo'],
-            'marca_nombre' => '',
-            'modelo_nombre' => '',
-            'equipo_nombre' => ''
-        ];
-    }
-
-    return $this->arrayToMysqliResult($numeros_expandidos);
+    return $stmt->get_result();
 }
 }

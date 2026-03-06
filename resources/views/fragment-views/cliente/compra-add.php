@@ -1560,6 +1560,14 @@
                     $("#descripcionBuscar").autocomplete({
                         source: sourceUrl,
                         minLength: 1,
+                        open: function () {
+                            $('.ui-autocomplete').css({
+                                'max-height': '200px',
+                                'overflow-y': 'auto',
+                                'overflow-x': 'hidden',
+                                'z-index': 9999
+                            });
+                        },
                         select: function (event, ui) {
                             event.preventDefault();
 
@@ -1613,6 +1621,14 @@
             // Cambiar la URL para usar el endpoint específico de compras
             source: _URL + `/ajs/cargar/productos/compra/${app.producto.almacen}`,
             minLength: 1,
+            open: function () {
+                $('.ui-autocomplete').css({
+                    'max-height': '200px',
+                    'overflow-y': 'auto',
+                    'overflow-x': 'hidden',
+                    'z-index': 9999
+                });
+            },
             select: function (event, ui) {
                 event.preventDefault();
                 /*    console.log(item);

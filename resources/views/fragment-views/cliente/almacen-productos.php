@@ -1,7 +1,7 @@
 <!-- resources\views\fragment-views\cliente\almacen-productos.php -->
 <?php
 
-require_once "app/models/Producto.php";
+require_once 'app/models/Producto.php';
 $c_producto = new Producto();
 $c_producto->setIdEmpresa($_SESSION['id_empresa']);
 $almacenProducto = 1;
@@ -9,6 +9,7 @@ $almacenProducto = 1;
 ?>
 <link rel="stylesheet" href="<?= URL::to('/public/css/almacen-productos.css') ?>?v=<?= time() ?>">
 
+    
 
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -69,7 +70,7 @@ $almacenProducto = 1;
                                         id="dropdownOpciones" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa fa-cog me-1"></i> Opciones
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="dropdownOpciones">
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownOpciones" style="min-width: 250px;">
                                         <li>
                                             <h6 class="dropdown-header">Filtrar productos</h6>
                                         </li>
@@ -94,6 +95,11 @@ $almacenProducto = 1;
                                         <li>
                                             <a class="dropdown-item" href="javascript:void(0)" onclick="descarFunccc()">
                                                 <i class="fa fa-file-excel me-2"></i> Descargar Excel
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modal-reporte-movimientos">
+                                                <i class="fa fa-chart-line me-2"></i> Reporte Movimientos
                                             </a>
                                         </li>
                                         <li>
@@ -166,6 +172,10 @@ $almacenProducto = 1;
                             <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo btn-sm">
                                 <i class="fa fa-file-excel"></i>
                                 <span class="d-none d-lg-inline">Descargar Excel por búsqueda</span>
+                            </button>
+                            <button data-bs-toggle="modal" data-bs-target="#modal-reporte-movimientos" class="btn bg-white text-rojo border-rojo btn-sm">
+                                <i class="fa fa-chart-line"></i>
+                                <span class="d-none d-lg-inline">Reporte Movimientos</span>
                             </button>
                             <button data-bs-toggle="modal" data-bs-target="#importarModal"
                                 class="btn bg-white text-rojo border-rojo btn-sm">
@@ -332,6 +342,81 @@ $almacenProducto = 1;
 
             <!-- Modal Historial Stock  resources\views\fragment-views\cliente\modals\product-modal-historial-stock.php-->
             <?php include __DIR__ . '/modals/product-modal-historial-stock.php' ?>
+
+            <!-- Modal Reporte de Movimientos -->
+            <div class="modal fade" id="modal-reporte-movimientos" tabindex="-1" aria-labelledby="modalReporteMovimientosLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-rojo text-white">
+                            <h5 class="modal-title" id="modalReporteMovimientosLabel">
+                                <i class="fa fa-chart-line me-2"></i>Descargar Reporte de Movimientos
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted mb-3">Seleccione el tipo de movimiento que desea descargar:</p>
+                        
+                            
+                            <div class="list-group">
+                                <a href="<?= URL::to('/reporte/historial-stock/excel?tipo=todos') ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa fa-file-excel text-success me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">Todos los Movimientos</h6>
+                                            <small class="text-muted">Incluye ingresos y egresos de todas las fuentes</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                                <a href="<?= URL::to('/reporte/historial-stock/excel?tipo=INGRESO') ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa fa-arrow-up text-primary me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">Solo Ingresos</h6>
+                                            <small class="text-muted">Compras, producción interna, ajustes positivos</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                                <a href="<?= URL::to('/reporte/historial-stock/excel?tipo=EGRESO') ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa fa-arrow-down text-danger me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">Solo Egresos</h6>
+                                            <small class="text-muted">Ventas, uso en órdenes, ajustes negativos</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                                <a href="<?= URL::to('/reporte/historial-stock/excel?tipo_origen=ORDEN_TRABAJO_INTERNA') ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa fa-industry text-info me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">Producción Interna</h6>
+                                            <small class="text-muted">Solo ingresos por órdenes de trabajo internas</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                                <a href="<?= URL::to('/reporte/historial-stock/excel?tipo_origen=ORDEN_TRABAJO_EXTERNA') ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa fa-tools text-warning me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">Uso en Órdenes Externas</h6>
+                                            <small class="text-muted">Solo egresos por órdenes de trabajo externas</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fa fa-times me-1"></i>Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal Aumentar Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-aumentar-stock.php-->
             <?php include __DIR__ . '/modals/product-modal-aumentar-stock.php' ?>
@@ -627,13 +712,13 @@ $almacenProducto = 1;
     var nombreBarraTemps = ''
     var codeBarraTemps = ''
     var datatable
-    var almacenCod = '<?php echo $_SESSION["sucursal"] ?>'
+    var almacenCod = '<?php echo $_SESSION['sucursal'] ?>'
 
     $(document).ready(function () {
         const app = new Vue({
             el: "#conte-vue-modals",
             data: {
-                almacen: <?php echo json_encode($_SESSION["sucursal"]); ?>,
+                almacen: <?php echo json_encode($_SESSION['sucursal']); ?>,
                 t: 0,
                 listaProd: [],
                 almacenImportacion: 1, // Almacén por defecto para importación
@@ -977,11 +1062,116 @@ $almacenProducto = 1;
                     )
                 },
                 cargarHistorialStock() {
-                    _ajax("/ajs/data/producto/historial/stock", "POST", {}, function (resp) {
-                        if (resp.res) {
-                            app._data.historialStock = resp.data;
-                        } else {
-                            alertAdvertencia("Error al cargar el historial");
+                    // Destruir DataTable si ya existe
+                    if ($.fn.DataTable.isDataTable('#tabla-historial-stock')) {
+                        const table = $('#tabla-historial-stock').DataTable();
+                        table.destroy();
+                        // Limpiar completamente
+                        $('#tabla-historial-stock').empty();
+                    }
+
+                    // Reconstruir la estructura de la tabla
+                    $('#tabla-historial-stock').html(`
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th>Movimiento</th>
+                                <th>Cantidad</th>
+                                <th>Costo</th>
+                                <th>Fecha</th>
+                                <th>Usuario</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `);
+
+                    // Inicializar DataTable
+                    const table = $('#tabla-historial-stock').DataTable({
+                        ajax: {
+                            url: _URL + "/ajs/data/producto/historial/stock",
+                            type: "POST",
+                            dataSrc: "data"
+                        },
+                        columns: [
+                            { data: "codigo" },
+                            { data: "producto_nombre" },
+                            { 
+                                data: "tipo_movimiento",
+                                render: function(data) {
+                                    const clase = data === 'INGRESO' ? 'bg-success' : 'bg-danger';
+                                    return `<span class="badge ${clase}">${data}</span>`;
+                                }
+                            },
+                            { data: "cantidad" },
+                            { 
+                                data: "costo_compra",
+                                render: function(data) {
+                                    return data ? 'S/ ' + parseFloat(data).toFixed(2) : '<span class="text-muted">-</span>';
+                                }
+                            },
+                            { 
+                                data: "fecha_movimiento",
+                                render: function(data) {
+                                    const fecha = new Date(data);
+                                    const dia = String(fecha.getDate()).padStart(2, '0');
+                                    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                                    const anio = fecha.getFullYear();
+                                    const hora = String(fecha.getHours()).padStart(2, '0');
+                                    const min = String(fecha.getMinutes()).padStart(2, '0');
+                                    return `${dia}/${mes}/${anio} ${hora}:${min}`;
+                                }
+                            },
+                            { data: "usuario" },
+                            { 
+                                data: "observaciones",
+                                render: function(data) {
+                                    if (!data) return '<span class="text-muted">-</span>';
+                                    if (data.length > 50) {
+                                        return `<span title="${data}">${data.substring(0, 50)}...</span>`;
+                                    }
+                                    return data;
+                                }
+                            }
+                        ],
+                        language: {
+                            url: "ServerSide/Spanish.json"
+                        },
+                        order: [[5, 'desc']], // Ordenar por fecha descendente
+                        pageLength: 15,
+                        lengthMenu: [[15, 25, 50, 100, -1], [15, 25, 50, 100, "Todos"]],
+                        responsive: false,
+                        dom: '<"row mb-2"<"col-12 col-sm-6 mb-2 mb-sm-0"B><"col-12 col-sm-6"f>>' +
+                             '<"row"<"col-12"tr>>' +
+                             '<"row mt-2"<"col-12 col-sm-5 mb-2 mb-sm-0"l><"col-12 col-sm-2 text-center mb-2 mb-sm-0"i><"col-12 col-sm-5"p>>',
+                        buttons: [
+                            {
+                                extend: 'excel',
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: 'btn btn-success btn-sm me-1',
+                                exportOptions: {
+                                    columns: ':visible'
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: 'btn btn-danger btn-sm',
+                                orientation: 'landscape',
+                                pageSize: 'A4',
+                                exportOptions: {
+                                    columns: ':visible'
+                                }
+                            }
+                        ],
+                        initComplete: function() {
+                            // Ajustar columnas después de cargar los datos
+                            table.columns.adjust().draw();
+                        },
+                        drawCallback: function() {
+                            // Ajustar columnas cada vez que se redibuja la tabla
+                            table.columns.adjust();
                         }
                     });
                 },
@@ -1882,14 +2072,6 @@ $almacenProducto = 1;
 
         // Agregar después de la configuración del autocomplete
         $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
-
-            $('#modal-historial-stock').on('hidden.bs.modal', function () {
-                $('#buscar-producto-historial').val('');
-                $('.ui-autocomplete').hide();
-                app._data.historialData.producto_id = '';
-                app._data.historialStock = [];
-            });
-
             // Limpiar el autocomplete cuando se cierre el modal
             $('#buscar-producto-stock').val('');
             $('.ui-autocomplete').hide();
@@ -1906,12 +2088,22 @@ $almacenProducto = 1;
             };
         });
 
+        // Evento para cargar historial cuando se abre el modal
         $('#modal-historial-stock').on('shown.bs.modal', function () {
-            app.cargarHistorialStock(); // Cargar historial al abrir
+            // Pequeño delay para asegurar que el modal esté completamente visible
+            setTimeout(function() {
+                app.cargarHistorialStock();
+            }, 100);
         });
 
+        // Evento para limpiar cuando se cierra el modal
         $('#modal-historial-stock').on('hidden.bs.modal', function () {
-            app._data.historialStock = [];
+            // Destruir DataTable completamente
+            if ($.fn.DataTable.isDataTable('#tabla-historial-stock')) {
+                $('#tabla-historial-stock').DataTable().clear().destroy();
+            }
+            // Limpiar el HTML de la tabla
+            $('#tabla-historial-stock tbody').empty();
         });
 
         // Update filter handling

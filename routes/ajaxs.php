@@ -26,6 +26,11 @@ Route::post("/ajs/taller/cotizaciones/info","VentasController@obtenerInfoCotizac
 Route::post('/login',"UsuarioController@login")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/check-session", "UsuarioController@checkSession");
 
+// Rutas para recuperación de contraseña
+Route::post("/ajs/password/send-code", "UsuarioController@enviarCodigoRecuperacion");
+Route::post("/ajs/password/verify-code", "UsuarioController@verificarCodigo");
+Route::post("/ajs/password/reset", "UsuarioController@resetearPassword");
+
 
 /* ============================  ConsultasController rutas ======================================*/
 

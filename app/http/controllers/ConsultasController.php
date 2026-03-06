@@ -31,7 +31,7 @@ class ConsultasController extends Controller
         $venta = $_POST["venta"];
 
 
-        $sql = "select c.*,vs.nombre_xml from ventas v join clientes c on v.id_cliente = c.id_cliente join ventas_sunat vs on v.id_venta = vs.id_venta where v.id_venta = $venta";
+        $sql = "select c.*,vs.nombre_xml,v.serie,v.numero from ventas v join clientes c on v.id_cliente = c.id_cliente join ventas_sunat vs on v.id_venta = vs.id_venta where v.id_venta = $venta";
 
         $datos = $this->consulta->exeSQL($sql)->fetch_assoc();
 
@@ -39,7 +39,9 @@ class ConsultasController extends Controller
             "link" => URL::to("/venta/comprobante/pdf/$venta/" . $datos['nombre_xml']),
             "linkd" => URL::to("/venta/comprobante/pdfd/$venta"),
             "file_name" => $datos['nombre_xml'] . '.pdf',
-            "numero" => $datos['telefono'] ? $datos['telefono'] : '',
+            "serie" => $datos['serie'] ? $datos['serie'] : '',
+            "numero" => $datos['numero'] ? $datos['numero'] : '',
+            "telefono" => $datos['telefono'] ? $datos['telefono'] : '',
             "mail" => $datos['email'] ? $datos['email'] : '',
         ]);
     }
@@ -66,38 +68,130 @@ class ConsultasController extends Controller
 
     public function enviarcomprobanteEmail()
     {
-        $respuesta = ["res" => false];
-        $empresa = $this->consulta->exeSQL("select * from empresas where id_empresa='{$_SESSION['id_empresa']}'")->fetch_assoc();
+        // Suprimir warnings y notices para evitar contaminar la respuesta JSON
+        $errorReportingAnterior = error_reporting();
+        error_reporting(E_ERROR | E_PARSE);
+        
+        $respuesta = ["res" => false, "msg" => ""];
 
-        $tock_temp = Tools::getToken(10);
+        try {
+            // Iniciar buffer de salida ANTES de cualquier operación
+            ob_start();
+            
+            $empresa = $this->consulta->exeSQL("select * from empresas where id_empresa='{$_SESSION['id_empresa']}'")->fetch_assoc();
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_URL, $_POST['link'] . "/"
-            . base64_encode("files/temp/" . $tock_temp . ".pdf"));
-        $data = curl_exec($ch);
-        curl_close($ch);
+            $tock_temp = Tools::getToken(10);
+            $rutaArchivo = "files/temp/" . $tock_temp . ".pdf";
 
-        ob_start();
-        $sendEmail = (new EnvioEmail());
-        $sendEmail->de(USER_SMTP, $empresa['razon_social'])
-            ->addEmail($_POST['email'], 'Cliente')
-            ->setasunto("Comprobante Electronico")
-            ->cuerpo("<h1>Comproante: {$_POST['nombrefile']}</h1>")
-            ->addArchivo("files/temp/" . $tock_temp . ".pdf", $_POST['nombrefile']);
+            // Asegurar que el directorio existe
+            if (!is_dir("files/temp")) {
+                mkdir("files/temp", 0777, true);
+            }
 
-        if (file_exists("files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml")) {
-            $sendEmail->addArchivo("files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml", basename($_POST['nombrefile'], ".pdf") . ".xml");
+            // Detectar si es una cotización o una venta
+            $esCotizacion = strpos($_POST['link'], '/r/cotizaciones/reporte/') !== false;
+            
+            // Construir la URL correcta según el tipo de documento
+            if ($esCotizacion) {
+                // Para cotizaciones, reemplazar "reporte" por "reported"
+                $urlDescarga = str_replace('/r/cotizaciones/reporte/', '/r/cotizaciones/reported/', $_POST['link']) . "/" . base64_encode($rutaArchivo);
+            } else {
+                // Para ventas, usar el formato original
+                $urlDescarga = $_POST['link'] . "/" . base64_encode($rutaArchivo);
+            }
+            
+            // Log temporal para debug
+            error_log("enviarcomprobanteEmail - esCotizacion: " . ($esCotizacion ? 'SI' : 'NO'));
+            error_log("enviarcomprobanteEmail - Link original: " . $_POST['link']);
+            error_log("enviarcomprobanteEmail - URL descarga: " . $urlDescarga);
+            error_log("enviarcomprobanteEmail - Ruta archivo: " . $rutaArchivo);
+
+            // Descargar el PDF desde la URL
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $urlDescarga);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Timeout de 60 segundos
+            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1); // Forzar HTTP/1.1
+            $data = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            error_log("enviarcomprobanteEmail - HTTP Code: " . $httpCode);
+            error_log("enviarcomprobanteEmail - Data size: " . strlen($data) . " bytes");
+            if ($curlError) {
+                error_log("enviarcomprobanteEmail - CURL Error: " . $curlError);
+            }
+
+            // Guardar el PDF en el archivo temporal
+            if ($data && $httpCode == 200 && strlen($data) > 0) {
+                file_put_contents($rutaArchivo, $data);
+                error_log("enviarcomprobanteEmail - Archivo guardado: " . filesize($rutaArchivo) . " bytes");
+            } else {
+                error_log("enviarcomprobanteEmail - ERROR: No se recibieron datos del servidor");
+            }
+
+            // Verificar que el archivo existe
+            if (!file_exists($rutaArchivo)) {
+                ob_end_clean();
+                error_reporting($errorReportingAnterior);
+                error_log("enviarcomprobanteEmail - ERROR: Archivo no existe: " . $rutaArchivo);
+                $respuesta["msg"] = "No se pudo generar el archivo PDF";
+                return json_encode($respuesta);
+            }
+            
+            // Verificar tamaño del archivo
+            $tamanoArchivo = filesize($rutaArchivo);
+            error_log("enviarcomprobanteEmail - Archivo generado: " . $rutaArchivo . " (" . $tamanoArchivo . " bytes)");
+
+            $sendEmail = (new EnvioEmail());
+            $sendEmail->de(USER_SMTP, $empresa['razon_social'])
+                ->addEmail($_POST['email'], 'Cliente')
+                ->setasunto("Comprobante Electrónico")
+                ->cuerpo("<h1>Comprobante: {$_POST['nombrefile']}</h1>")
+                ->addArchivo($rutaArchivo, $_POST['nombrefile']);
+
+            // Adjuntar XML si existe (solo para ventas)
+            if (!$esCotizacion && file_exists("files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml")) {
+                $sendEmail->addArchivo(
+                    "files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml",
+                    basename($_POST['nombrefile'], ".pdf") . ".xml"
+                );
+            }
+
+            $resul = $sendEmail->enviar();
+            
+            error_log("enviarcomprobanteEmail - Resultado envío: " . ($resul ? 'EXITO' : 'FALLO'));
+            
+            // Limpiar cualquier salida generada
+            ob_end_clean();
+
+            // Eliminar archivo temporal
+            if (file_exists($rutaArchivo)) {
+                unlink($rutaArchivo);
+                error_log("enviarcomprobanteEmail - Archivo temporal eliminado");
+            }
+
+            if ($resul) {
+                $respuesta["res"] = true;
+                $respuesta["msg"] = "Correo enviado correctamente";
+            } else {
+                $respuesta["msg"] = "Error al enviar el correo: " . $sendEmail->error();
+            }
+        } catch (Exception $e) {
+            // Limpiar buffer si existe
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            $respuesta["msg"] = "Error: " . $e->getMessage();
+            error_log("Error en enviarcomprobanteEmail: " . $e->getMessage());
         }
+        
+        // Restaurar error reporting
+        error_reporting($errorReportingAnterior);
 
-        $resul = $sendEmail->enviar();
-
-        ob_end_clean();
-
-        if ($resul) {
-            unlink("files/temp/" . $tock_temp . ".pdf");
-            $respuesta["res"] = true;
-        }
         return json_encode($respuesta);
     }
     public function actualizarSucursal()
@@ -285,6 +379,17 @@ WHERE id_venta='{$_POST['idVenta']}'";
             // TIMEOUT POR INACTIVIDAD DESACTIVADO (solo validación de 12 horas)
             // Si la sesión es válida, actualizar última actividad (para futuros usos)
             $token['last_activity'] = $ahora;
+
+            // Sincronizar foto de perfil y nombres desde la base de datos
+            // para mantener los datos actualizados en caso de cambios
+            if (isset($token['usuario_fac'])) {
+                $sql = "SELECT foto_perfil, nombres FROM usuarios WHERE usuario_id = " . intval($token['usuario_fac']);
+                $result = $this->consulta->exeSQL($sql);
+                if ($row = $result->fetch_assoc()) {
+                    $token['foto_perfil'] = $row['foto_perfil'];
+                    $token['nombres'] = $row['nombres'];
+                }
+            }
 
             $respuesta["res"] = true;
             $respuesta["token"] = Tools::encryptText(json_encode($token)); // Devolver token actualizado
@@ -841,7 +946,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function buscarClienteSerie()
     {
-        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_SPECIAL_CHARS);
         $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
 
         // Si se proporciona un cliente_id, devolver las series de ese cliente
@@ -892,7 +997,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function buscarDataSerie()
     {
-        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_SPECIAL_CHARS);
 
         // Si no hay término de búsqueda o está vacío, devolver series disponibles (limitado a 100)
         if (empty($searchTerm)) {
@@ -928,7 +1033,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
     // ✅ CORRECCIÓN CRÍTICA: Agregar el echo que falta
     public function buscarDataSeriePreAlerta()
     {
-        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_SPECIAL_CHARS);
 
         // 🔍 DEBUGGING
         error_log("=== DEBUGGING BUSCAR SERIE ===");
@@ -979,7 +1084,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function buscarClienteSeriePreAlerta()
     {
-        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+        $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_SPECIAL_CHARS);
         $cliente_id = filter_input(INPUT_GET, 'cliente_id', FILTER_SANITIZE_NUMBER_INT);
 
         if ($cliente_id) {
@@ -1027,7 +1132,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
     }
     public function buscarDataNumeroPreAlerta()
 {
-    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+    $searchTerm = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_SPECIAL_CHARS);
 
     error_log("=== DEBUGGING BUSCAR NUMERO ===");
     error_log("Search term: " . ($searchTerm ?? 'NULL'));

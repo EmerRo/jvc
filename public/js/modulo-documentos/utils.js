@@ -532,7 +532,6 @@ class DocumentosUtils {
     limpiarFormulario() {
         const campos = [
             this.config.elementos.idDocumento,
-            this.config.elementos.tituloDocumento,
             this.config.elementos.tipoDocumento,
             this.config.elementos.clienteId,
             'header_image_data',
@@ -544,6 +543,15 @@ class DocumentosUtils {
                 $(campo).val("");
             }
         });
+
+        // Establecer título por defecto según el tipo de documento
+        let tituloDefecto = '';
+        if (this.config.documentType === 'carta') {
+            tituloDefecto = 'CARTA';
+        } else if (this.config.documentType === 'constancia') {
+            tituloDefecto = 'CONSTANCIA';
+        }
+        $(this.config.elementos.tituloDocumento).val(tituloDefecto);
 
         // Ocultar vistas previas de imágenes
         $("#header-preview, #footer-preview").hide();

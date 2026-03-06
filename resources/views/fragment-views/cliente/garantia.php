@@ -101,8 +101,31 @@
                     <i class="fa fa-plus"></i> Añadir Garantía
                 </a>
             </div>
+            
+            <!-- Filtros de Estado -->
+            <div class="card-body pb-2">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm text-gray-400 border-rojo active" data-filter="todas">
+                                <i class="fa fa-list me-1"></i> Todas
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" data-filter="vigentes">
+                                <i class="fa fa-check-circle me-1"></i> Vigentes
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" data-filter="por-vencer">
+                                <i class="fa fa-exclamation-triangle me-1"></i> Por Vencer (30 días)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-filter="caducadas">
+                                <i class="fa fa-times-circle me-1"></i> Caducadas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="conte-vue-modals">
-                <div class="card-body">
+                <div class="card-body pt-0">
                     <div class="table-responsive">
                         <table id="tabla_garantia"
                             class="table table-bordered dt-responsive nowrap text-center table-sm dataTable no-footer">
@@ -144,6 +167,20 @@
             },
             language: {
                 url: "serverSide/Spanish.json",
+            },
+            rowCallback: function(row, data) {
+                // Calcular si está caducada
+                const fechaCaducidad = new Date(data.fecha_caducidad);
+                const hoy = new Date();
+                const diasRestantes = Math.ceil((fechaCaducidad - hoy) / (1000 * 60 * 60 * 24));
+                
+                if (diasRestantes < 0) {
+                    // Garantía caducada - fondo rojo claro
+                    $(row).css('background-color', '#ffe6e6');
+                } else if (diasRestantes <= 30) {
+                    // Próxima a vencer - fondo amarillo claro
+                    $(row).css('background-color', '#fff9e6');
+                }
             },
             columns: [
                 {
@@ -196,7 +233,37 @@
                     }
                 },
                 { data: "fecha_inicio", class: "text-center" },
-                { data: "fecha_caducidad", class: "text-center" },
+                { 
+                    data: null, 
+                    class: "text-center",
+                    render: function(data, type, row) {
+                        const fechaCaducidad = new Date(row.fecha_caducidad);
+                        const hoy = new Date();
+                        const diasRestantes = Math.ceil((fechaCaducidad - hoy) / (1000 * 60 * 60 * 24));
+                        
+                        let badge = '';
+                        let estado = '';
+                        
+                        if (diasRestantes < 0) {
+                            // Caducada
+                            badge = '<span class="badge bg-danger">CADUCADA</span>';
+                            estado = 'caducada';
+                        } else if (diasRestantes <= 30) {
+                            // Próxima a vencer (30 días o menos)
+                            badge = '<span class="badge bg-warning text-dark">POR VENCER</span>';
+                            estado = 'por-vencer';
+                        } else {
+                            // Vigente
+                            badge = '<span class="badge bg-success">VIGENTE</span>';
+                            estado = 'vigente';
+                        }
+                        
+                        return `<div>
+                            <div>${row.fecha_caducidad}</div>
+                            <div class="mt-1">${badge}</div>
+                        </div>`;
+                    }
+                },
                 {
                     data: null,
                     class: "text-center",
@@ -337,6 +404,42 @@
                     Swal.fire('Error', 'No se pudo actualizar la garantía', 'error');
                 }
             });
+        });
+
+        // Manejador para los filtros de estado
+        $('[data-filter]').on('click', function() {
+            const filtro = $(this).data('filter');
+            
+            // Actualizar botones activos
+            $('[data-filter]').removeClass('active');
+            $(this).addClass('active');
+            
+            // Limpiar filtros anteriores
+            $.fn.dataTable.ext.search = [];
+            
+            if (filtro !== 'todas') {
+                $.fn.dataTable.ext.search.push(function(settings, searchData, dataIndex, rowData) {
+                    // rowData contiene el objeto completo de la fila
+                    const fechaCaducidad = new Date(rowData.fecha_caducidad);
+                    const hoy = new Date();
+                    hoy.setHours(0, 0, 0, 0); // Resetear horas para comparación exacta
+                    fechaCaducidad.setHours(0, 0, 0, 0);
+                    
+                    const diasRestantes = Math.ceil((fechaCaducidad - hoy) / (1000 * 60 * 60 * 24));
+                    
+                    if (filtro === 'vigentes') {
+                        return diasRestantes > 30;
+                    } else if (filtro === 'por-vencer') {
+                        return diasRestantes >= 0 && diasRestantes <= 30;
+                    } else if (filtro === 'caducadas') {
+                        return diasRestantes < 0;
+                    }
+                    
+                    return true;
+                });
+            }
+            
+            tabla_garantia.draw();
         });
 
         // Manejador para el botón de borrar

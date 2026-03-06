@@ -222,20 +222,59 @@ class ComprasController extends Controller
 
     public function getAll()
     {
-        $where = ($_SESSION['rol'] == 1) ? "" : "and c.sucursal = {$_SESSION["sucursal"]} ";
-        $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero,
-        c.estado, p.razon_social, u.nombres, u.apellidos, u.usuario_id
-        FROM compras AS c
-        LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id
-        LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id
-        WHERE c.id_empresa = '{$_SESSION['id_empresa']}' $where";
+        try {
+            // Verificar que las variables de sesión existan
+            $id_empresa = isset($_SESSION['id_empresa']) ? $_SESSION['id_empresa'] : null;
+            $rol = isset($_SESSION['rol']) ? $_SESSION['rol'] : null;
+            $sucursal = isset($_SESSION['sucursal']) ? $_SESSION['sucursal'] : null;
+            
+            if ($id_empresa === null) {
+                echo json_encode([
+                    'error' => true,
+                    'message' => 'Sesión no válida: id_empresa no definido'
+                ]);
+                exit;
+            }
+            
+            // Construir el WHERE con escape adecuado
+            $where = ($rol == 1) ? "" : "AND c.sucursal = " . intval($sucursal) . " ";
+            
+            $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero,
+            c.estado, p.razon_social, u.nombres, u.apellidos, u.usuario_id
+            FROM compras AS c
+            LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id
+            LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id
+            WHERE c.id_empresa = " . intval($id_empresa) . " $where
+            ORDER BY c.id_compra DESC";
 
-        $result = $this->conectar->query($sql);
-        $data = $result->fetch_all(MYSQLI_ASSOC);
+            $result = $this->conectar->query($sql);
+            
+            // Verificar si la consulta fue exitosa
+            if ($result === false) {
+                error_log("Error en consulta SQL de compras: " . $this->conectar->error);
+                error_log("SQL ejecutado: " . $sql);
+                echo json_encode([
+                    'error' => true,
+                    'message' => 'Error en la consulta: ' . $this->conectar->error,
+                    'sql' => $sql
+                ]);
+                exit;
+            }
+            
+            $data = $result->fetch_all(MYSQLI_ASSOC);
 
-        // Cambio importante: devolver los datos como JSON
-        echo json_encode($data);
-        exit; // Asegurarse de que no se ejecute más código después
+            // Devolver los datos como JSON
+            echo json_encode($data);
+            exit;
+            
+        } catch (Exception $e) {
+            error_log("Excepción en getAll de compras: " . $e->getMessage());
+            echo json_encode([
+                'error' => true,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+            exit;
+        }
     }
 
   public function getDetalle()

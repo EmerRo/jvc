@@ -119,20 +119,20 @@ class InventarioTallerController extends Controller
             // Obtener repuestos de la cotización
             $repuestos = [];
             foreach ($equipos as $equipo) {
-                // Consulta para obtener repuestos
-                $sqlRepuestos = "SELECT trc.*, r.nombre, r.codigo, r.cantidad + trc.cantidad as stock_actual, 
-                'repuestos' as tipo_tabla
+                // Consulta corregida para obtener repuestos Y productos
+                $sqlRepuestos = "SELECT trc.*, r.nombre, r.codigo, r.cantidad as stock_actual, 
+                'repuesto' as tipo_tabla
                 FROM taller_repuestos_cotis trc 
                 INNER JOIN repuestos r ON trc.id_repuesto = r.id_repuesto 
-                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?
+                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ? AND trc.tipo_item = 'repuesto'
                 
                 UNION
                 
-                SELECT trc.*, p.nombre, p.codigo, p.cantidad + trc.cantidad as stock_actual, 
-                'productos' as tipo_tabla
+                SELECT trc.*, p.nombre, p.codigo, p.cantidad as stock_actual, 
+                'producto' as tipo_tabla
                 FROM taller_repuestos_cotis trc 
-                INNER JOIN productos p ON trc.id_repuesto = p.id_producto 
-                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?";
+                INNER JOIN productos p ON trc.id_producto = p.id_producto 
+                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ? AND trc.tipo_item = 'producto'";
                 
                 $stmtRepuestos = $this->conexion->prepare($sqlRepuestos);
                 if ($stmtRepuestos === false) {
@@ -197,6 +197,10 @@ class InventarioTallerController extends Controller
     $fechaActual = "Lima, " . $this->formatearFechaEspanol(date('Y-m-d'));
     $cotizacionNumber = !empty($data['numero']) ? $data['numero'] : '';
     $year = date('Y');
+    
+    // Determinar si es registro interno
+    $esRegistroInterno = ($data['documento'] === '20538381978');
+    $tipoMovimiento = $esRegistroInterno ? 'INGRESO (Producción Interna)' : 'EGRESO (Uso en Orden)';
 
     $html = "
     <style>
@@ -252,6 +256,20 @@ class InventarioTallerController extends Controller
         .text-right {
             text-align: right;
         }
+        .badge-ingreso {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        .badge-egreso {
+            background-color: #dc3545;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
     </style>
     
     <div class='content-wrapper'>
@@ -267,9 +285,10 @@ class InventarioTallerController extends Controller
             <p><strong>Cliente:</strong> {$data['datos']} - {$tipoDoc} N° {$data['documento']}</p>
             <p><strong>Dirección:</strong> {$data['direccion']}</p>
             <p><strong>Atención:</strong> {$data['atencion']}</p>
+            <p><strong>Tipo de Movimiento:</strong> <span class='" . ($esRegistroInterno ? 'badge-ingreso' : 'badge-egreso') . "'>{$tipoMovimiento}</span></p>
         </div>
         
-        <p>A continuación se detalla el inventario de repuestos utilizados en la orden de trabajo:</p>
+        <p>A continuación se detalla el inventario de repuestos " . ($esRegistroInterno ? 'producidos' : 'utilizados') . " en la orden de trabajo:</p>
         
         <table>
             <thead>
@@ -279,16 +298,23 @@ class InventarioTallerController extends Controller
                     <th>DESCRIPCIÓN</th>
                     <th>EQUIPO</th>
                     <th>CANTIDAD</th>
+                    <th>STOCK ANTERIOR</th>
                     <th>STOCK ACTUAL</th>
-                    <th>STOCK FINAL</th>
                 </tr>
             </thead>
             <tbody>";
     
     $totalItems = 0;
     foreach ($repuestos as $index => $repuesto) {
-        $stockFinal = $repuesto['stock_actual'] - $repuesto['cantidad'];
-        $stockFinal = $stockFinal < 0 ? 0 : $stockFinal;
+        // Calcular stock anterior según el tipo de movimiento
+        if ($esRegistroInterno) {
+            // Registro interno: INGRESO (se sumó)
+            $stockAnterior = $repuesto['stock_actual'] - $repuesto['cantidad'];
+        } else {
+            // Registro externo: EGRESO (se restó)
+            $stockAnterior = $repuesto['stock_actual'] + $repuesto['cantidad'];
+        }
+        
         $totalItems += $repuesto['cantidad'];
         
         $html .= "
@@ -298,8 +324,8 @@ class InventarioTallerController extends Controller
                 <td>{$repuesto['nombre']}</td>
                 <td>{$repuesto['equipo']} ({$repuesto['marca']}) - {$repuesto['modelo']}</td>
                 <td class='text-center'>{$repuesto['cantidad']}</td>
+                <td class='text-center'>{$stockAnterior}</td>
                 <td class='text-center'>{$repuesto['stock_actual']}</td>
-                <td class='text-center'>{$stockFinal}</td>
             </tr>";
     }
     
@@ -316,7 +342,7 @@ class InventarioTallerController extends Controller
         
         <div style='margin-top: 30px;'>
             <p><strong>Observaciones:</strong></p>
-            <p>Este reporte muestra los repuestos y productos utilizados en la orden de trabajo. El stock final es el resultado de restar la cantidad utilizada del stock actual.</p>
+            <p>Este reporte muestra los repuestos y productos " . ($esRegistroInterno ? 'producidos (ingreso al inventario)' : 'utilizados (egreso del inventario)') . " en la orden de trabajo. El stock actual refleja el inventario después de realizar esta operación.</p>
         </div>
     </div>";
     
@@ -363,20 +389,20 @@ class InventarioTallerController extends Controller
             // Obtener repuestos de la cotización
             $repuestos = [];
             foreach ($equipos as $equipo) {
-                // Consulta para obtener repuestos
-                $sqlRepuestos = "SELECT trc.*, r.nombre, r.codigo, r.cantidad + trc.cantidad as stock_actual, 
-                'repuestos' as tipo_tabla
+                // Consulta corregida para obtener repuestos Y productos
+                $sqlRepuestos = "SELECT trc.*, r.nombre, r.codigo, r.cantidad as stock_actual, 
+                'repuesto' as tipo_tabla
                 FROM taller_repuestos_cotis trc 
                 INNER JOIN repuestos r ON trc.id_repuesto = r.id_repuesto 
-                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?
+                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ? AND trc.tipo_item = 'repuesto'
                 
                 UNION
                 
-                SELECT trc.*, p.nombre, p.codigo, p.cantidad + trc.cantidad as stock_actual, 
-                'productos' as tipo_tabla
+                SELECT trc.*, p.nombre, p.codigo, p.cantidad as stock_actual, 
+                'producto' as tipo_tabla
                 FROM taller_repuestos_cotis trc 
-                INNER JOIN productos p ON trc.id_repuesto = p.id_producto 
-                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ?";
+                INNER JOIN productos p ON trc.id_producto = p.id_producto 
+                WHERE trc.id_coti = ? AND trc.id_cotizacion_equipo = ? AND trc.tipo_item = 'producto'";
                 
                 $stmtRepuestos = $this->conexion->prepare($sqlRepuestos);
                 $stmtRepuestos->bind_param("iiii", $id_cotizacion, $equipo['id_cotizacion_equipo'], $id_cotizacion, $equipo['id_cotizacion_equipo']);

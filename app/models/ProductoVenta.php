@@ -190,6 +190,24 @@ class ProductoVenta
         //echo $sql;
         $this->conectar->query($sql);
 
+        // ✅ Registrar en historial de stock con serie y número
+        $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+        
+        // Obtener serie y número de la venta
+        $sqlVenta = "SELECT serie, numero FROM ventas WHERE id_venta = '$this->id_venta'";
+        $resultVenta = $this->conectar->query($sqlVenta);
+        $observacion = 'Venta ID: ' . $this->id_venta;
+        
+        if ($resultVenta && $rowVenta = $resultVenta->fetch_assoc()) {
+            $serie = $rowVenta['serie'];
+            $numero = $rowVenta['numero'];
+            $observacion = "Venta {$serie}-{$numero}";
+        }
+        
+        $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                         VALUES ('$this->id_producto', 'EGRESO', '$this->cantidad', NOW(), '$usuario', '$observacion')";
+        $this->conectar->query($sqlHistorial);
+
         return $result;
     }
 

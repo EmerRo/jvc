@@ -69,14 +69,30 @@ class VentaAnulada
         values ('$this->id_venta', '$this->fecha', '$this->motivo')";
         $resulta=  $this->conectar->query($sql);
 
-        $sql="select * from productos_ventas where id_venta='$this->id_venta'";
+        // Obtener serie y número de la venta antes de procesar productos
+        $sqlVenta = "SELECT serie, numero FROM ventas WHERE id_venta = '$this->id_venta'";
+        $resultVenta = $this->conectar->query($sqlVenta);
+        $observacionBase = 'Anulación Venta ID: ' . $this->id_venta;
+        
+        if ($resultVenta && $rowVenta = $resultVenta->fetch_assoc()) {
+            $serie = $rowVenta['serie'];
+            $numero = $rowVenta['numero'];
+            $observacionBase = "Anulación {$serie}-{$numero}";
+        }
 
+        $sql="select * from productos_ventas where id_venta='$this->id_venta'";
         $listaVP = $this->conectar->query($sql);
 
         foreach ($listaVP as $item){
             $sql="update productos set  cantidad= cantidad+'{$item['cantidad']}' where id_producto='{$item['id_producto']}' ";
             //echo $sql;
             $this->conectar->query($sql);
+
+            // ✅ Registrar en historial de stock con serie y número
+            $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+            $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                             VALUES ('{$item['id_producto']}', 'INGRESO', '{$item['cantidad']}', NOW(), '$usuario', '$observacionBase')";
+            $this->conectar->query($sqlHistorial);
         }
 
         return $resulta;

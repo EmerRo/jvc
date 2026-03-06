@@ -771,21 +771,40 @@ class TallerCotizacionesController extends Controller
     public function verificarCotizacion()
     {
         try {
-            if (!isset($_POST['id_prealerta'])) {
+            // Log de todos los datos recibidos para debugging
+            error_log("POST recibido en verificarCotizacion: " . print_r($_POST, true));
+            
+            // Aceptar tanto 'id' como 'id_prealerta' para compatibilidad
+            $idOrden = null;
+            if (isset($_POST['id'])) {
+                $idOrden = intval($_POST['id']);
+            } elseif (isset($_POST['id_prealerta'])) {
+                $idOrden = intval($_POST['id_prealerta']);
+            }
+
+            if (!$idOrden) {
+                error_log("ERROR: ID de orden no proporcionado. POST: " . print_r($_POST, true));
                 echo json_encode(['success' => false, 'message' => 'ID de orden no proporcionado']);
                 return;
             }
 
-            $idOrden = $_POST['id_prealerta'];
+            // Obtener el tipo de orden (opcional)
+            $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : null;
+            
+            error_log("Verificando cotización para orden ID: $idOrden, Tipo: " . ($tipo ?? 'N/A'));
+
             $idCotizacion = $this->tallerCotizacion->verificarExistencia($idOrden);
             
             if ($idCotizacion) {
+                error_log("Cotización encontrada: ID $idCotizacion para orden $idOrden");
                 echo json_encode(['success' => true, 'id_cotizacion' => $idCotizacion]);
             } else {
+                error_log("No se encontró cotización para orden ID: $idOrden");
                 echo json_encode(['success' => false, 'message' => 'No se encontró cotización para esta orden']);
             }
             
         } catch (Exception $e) {
+            error_log("Error en verificarCotizacion: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
     }

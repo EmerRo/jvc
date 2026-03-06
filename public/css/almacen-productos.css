@@ -577,3 +577,59 @@
     /* border-color: #CA3438; */
     box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.25);
 }
+
+/* ========================================
+   Estilos para Modal de Historial de Stock
+   ======================================== */
+
+/* Estilos responsive para el modal de historial de stock */
+@media (max-width: 768px) {
+    #modal-historial-stock .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    #modal-historial-stock .modal-title {
+        font-size: 1rem;
+    }
+    
+    #modal-historial-stock .table-sm {
+        font-size: 0.75rem;
+    }
+    
+    #modal-historial-stock .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    #tabla-historial-stock_wrapper .dataTables_filter input {
+        width: 100% !important;
+    }
+    
+    #tabla-historial-stock_wrapper .dataTables_length select {
+        width: auto !important;
+    }
+}
+
+/* Mejoras generales para el modal de historial */
+#modal-historial-stock .modal-body {
+    overflow-x: auto;
+}
+
+#tabla-historial-stock thead th {
+    white-space: nowrap;
+}
+
+#tabla-historial-stock tbody td {
+    vertical-align: middle;
+}
+
+/* Badges de movimiento */
+#tabla-historial-stock .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}
+   .list-group-item-action:hover h6,
+                                .list-group-item-action:hover small {
+                                    color: white !important;
+                                }

@@ -122,56 +122,156 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
                 <!-- end page title -->
 
                 <!-- Tabs de navegación -->
-                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                <ul class="nav nav-tabs nav-tabs-responsive" id="dashboardTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'ventas' }" @click="setActiveTab('ventas')"
                             id="ventas-tab" type="button">
-                            <i class="fas fa-chart-line"></i> Ventas
+                            <i class="fas fa-chart-line"></i> <span class="tab-text">Ventas</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'productos' }"
                             @click="setActiveTab('productos')" id="productos-tab" type="button">
-                            <i class="fas fa-box"></i> Productos
+                            <i class="fas fa-box"></i> <span class="tab-text">Productos</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'stock' }"
                             @click="setActiveTab('stock')" id="stock-tab" type="button">
-                            <i class="fas fa-cubes"></i> Stock
+                            <i class="fas fa-cubes"></i> <span class="tab-text">Stock</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'ingresos-egresos' }"
                             @click="setActiveTab('ingresos-egresos')" id="ingresos-egresos-tab" type="button">
-                            <i class="fas fa-money-bill-wave"></i> Ingresos y Egresos
+                            <i class="fas fa-money-bill-wave"></i> <span class="tab-text">Ingresos y Egresos</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'clientes' }"
                             @click="setActiveTab('clientes')" id="clientes-tab" type="button">
-                            <i class="fas fa-users"></i> Clientes
+                            <i class="fas fa-users"></i> <span class="tab-text">Clientes</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'cotizaciones' }"
                             @click="setActiveTab('cotizaciones')" id="cotizaciones-tab" type="button">
-                            <i class="fas fa-file-invoice"></i> Cotizaciones
+                            <i class="fas fa-file-invoice"></i> <span class="tab-text">Cotizaciones</span>
                         </button>
                     </li>
                     <!-- <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'guias' }"
                             @click="setActiveTab('guias')" id="guias-tab" type="button">
-                            <i class="fas fa-truck"></i> Guías
+                            <i class="fas fa-truck"></i> <span class="tab-text">Guías</span>
                         </button>
                     </li> -->
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" :class="{ active: activeTab === 'metas-ventas' }"
                             @click="setActiveTab('metas-ventas')" id="metas-ventas-tab" type="button">
-                            <i class="fas fa-target"></i> Metas de Ventas
+                            <i class="fas fa-target"></i> <span class="tab-text">Metas de Ventas</span>
                         </button>
                     </li>
                 </ul>
+
+                <style>
+                    /* Estilos para tabs responsivos */
+                    .nav-tabs-responsive {
+                        flex-wrap: nowrap;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        -webkit-overflow-scrolling: touch;
+                        scrollbar-width: thin;
+                        scrollbar-color: #CA3438 #f1f1f1;
+                    }
+
+                    .nav-tabs-responsive::-webkit-scrollbar {
+                        height: 4px;
+                    }
+
+                    .nav-tabs-responsive::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 10px;
+                    }
+
+                    .nav-tabs-responsive::-webkit-scrollbar-thumb {
+                        background: #CA3438;
+                        border-radius: 10px;
+                    }
+
+                    .nav-tabs-responsive::-webkit-scrollbar-thumb:hover {
+                        background: #9a1f24;
+                    }
+
+                    .nav-tabs-responsive .nav-item {
+                        flex-shrink: 0;
+                    }
+
+                    .nav-tabs-responsive .nav-link {
+                        white-space: nowrap;
+                        padding: 0.75rem 1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        border: 1px solid transparent;
+                        border-bottom: 2px solid transparent;
+                        transition: all 0.3s ease;
+                    }
+
+                    .nav-tabs-responsive .nav-link:hover {
+                        border-color: #e9ecef #e9ecef #CA3438;
+                        background-color: #f8f9fa;
+                    }
+
+                    .nav-tabs-responsive .nav-link.active {
+                        color: #CA3438;
+                        background-color: #fff;
+                        border-color: #dee2e6 #dee2e6 #fff;
+                        border-bottom: 2px solid #CA3438;
+                        font-weight: 600;
+                    }
+
+                    .nav-tabs-responsive .nav-link i {
+                        font-size: 1.1rem;
+                    }
+
+                    /* Responsive: Ocultar texto en móviles pequeños, solo mostrar iconos */
+                    @media (max-width: 576px) {
+                        .nav-tabs-responsive .nav-link {
+                            padding: 0.75rem 0.75rem;
+                            min-width: 50px;
+                            justify-content: center;
+                        }
+
+                        .nav-tabs-responsive .nav-link .tab-text {
+                            display: none;
+                        }
+
+                        .nav-tabs-responsive .nav-link i {
+                            font-size: 1.3rem;
+                            margin: 0;
+                        }
+                    }
+
+                    /* Tablets: Mostrar texto pero más compacto */
+                    @media (min-width: 577px) and (max-width: 768px) {
+                        .nav-tabs-responsive .nav-link {
+                            padding: 0.6rem 0.8rem;
+                            font-size: 0.9rem;
+                        }
+
+                        .nav-tabs-responsive .nav-link .tab-text {
+                            font-size: 0.85rem;
+                        }
+                    }
+
+                    /* Desktop: Mostrar todo normal */
+                    @media (min-width: 769px) {
+                        .nav-tabs-responsive {
+                            flex-wrap: wrap;
+                            overflow-x: visible;
+                        }
+                    }
+                </style>
 
                 <!-- Tab content -->
                 <div class="tab-content mt-3" id="dashboardTabsContent">

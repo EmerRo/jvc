@@ -150,6 +150,7 @@ public function garantiaCertificado($id_garantia)
                     <thead>
                         <tr style="background-color: #f8f9fa;">
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">N°</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">EQUIPO</th>
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">MARCA</th>
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">MODELO</th>
                             <th style="border: 1px solid #ddd; padding: 8px; text-align: left; font-weight: bold;">SERIE</th>
@@ -162,6 +163,7 @@ public function garantiaCertificado($id_garantia)
                 $html .= '
                         <tr>
                             <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">' . $contador . '</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['equipo_nombre'] ?? '-') . '</td>
                             <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['marca_nombre'] ?? '-') . '</td>
                             <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['modelo_nombre'] ?? '-') . '</td>
                             <td style="border: 1px solid #ddd; padding: 8px;">' . ($serie['numero_serie'] ?? '-') . '</td>
@@ -220,6 +222,7 @@ public function garantiaCertificado($id_garantia)
                     <thead>
                         <tr style="background-color: #f8f9fa;">
                             <th style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">N°</th>
+                            <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">EQUIPO</th>
                             <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">MARCA</th>
                             <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">MODELO</th>
                             <th style="border: 1px solid #ddd; padding: 10px; text-align: left; font-weight: bold;">SERIE</th>
@@ -232,6 +235,7 @@ public function garantiaCertificado($id_garantia)
             $html .= '
                     <tr>
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">' . $contador . '</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['equipo_nombre'] ?? '-') . '</td>
                         <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['marca_nombre'] ?? '-') . '</td>
                         <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['modelo_nombre'] ?? '-') . '</td>
                         <td style="border: 1px solid #ddd; padding: 10px;">' . ($serie['numero_serie'] ?? '-') . '</td>

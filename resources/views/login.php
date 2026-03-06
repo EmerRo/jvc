@@ -446,6 +446,73 @@
         .wrap-input100 {
             position: relative;
         }
+
+        /* Rediseño de inputs del login */
+        .login100-form .wrap-input100 {
+            border-bottom: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .login100-form .wrap-input100:focus-within {
+            background: #fff;
+            box-shadow: 0 0 0 2px #C1272D;
+        }
+
+        .login100-form .input100 {
+            height: 50px;
+            padding: 0 45px 0 48px;
+            font-size: 14px;
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+
+        .login100-form .input100::placeholder {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .login100-form .focus-input100 {
+            display: none;
+        }
+
+        .login100-form .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+            z-index: 2;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .login100-form .wrap-input100:focus-within .input-icon {
+            color: #C1272D;
+        }
+
+        .login100-form .password-toggle {
+            right: 15px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .login100-form .password-toggle:hover {
+            color: #C1272D;
+        }
+
+        /* Ocultar validación con cuadrado rojo */
+        .login100-form .alert-validate::before {
+            display: none;
+        }
+
+        .login100-form .alert-validate::after {
+            display: none;
+        }
     </style>
 </head>
 
@@ -508,16 +575,14 @@
                     </span>
                     <div class="wrap-input100 validate-input m-b-23"
                         data-validate="Se requiere usuario o correo electrónico">
-                        <span class="label-input100">Usuario / Email</span>
+                        <span class="input-icon"><i class="fa fa-user"></i></span>
                         <input class="input100" type="text" required name="user"
-                            placeholder="Escribe tu usuario o correo electrónico">
-                        <span class="focus-input100" data-symbol="&#xf206;"></span>
+                            placeholder="Usuario o correo electrónico">
                     </div>
                     <div class="wrap-input100 validate-input" data-validate="Se requere contraseña">
-                        <span class="label-input100">Contraseña</span>
+                        <span class="input-icon"><i class="fa fa-lock"></i></span>
                         <input class="input100" type="password" required name="clave" id="password-field"
-                            placeholder="Escribe tu contraseña">
-                        <span class="focus-input100" data-symbol="&#xf190;"></span>
+                            placeholder="Contraseña">
                         <i class="fa fa-eye password-toggle" id="toggle-password"></i>
                     </div>
                     <div class="wrap-input100" data-validate="" hidden>
@@ -529,7 +594,7 @@
                         <span class="focus-input100" data-symbol="&#xf190;"></span>
                     </div>
                     <div class="text-right p-t-8 p-b-31">
-                        <a href="#">
+                        <a href="#" id="forgot-password-link">
                             ¿Olvidaste tu contraseña?
                         </a>
                     </div>
@@ -554,6 +619,79 @@
     </div>
     <div id="dropDownSelect1"></div>
 
+    <!-- Modal Recuperar Contraseña -->
+    <div id="modal-recuperar-password" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 10px; padding: 30px; max-width: 450px; width: 90%; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+            <button id="close-modal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
+            
+            <!-- Paso 1: Ingresar Email -->
+            <div id="step-email" class="recovery-step">
+                <h3 style="text-align: center; color: #C1272D; margin-bottom: 10px;">Recuperar Contraseña</h3>
+                <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 14px;">Introduce tu correo electrónico para recibir un código de verificación</p>
+                <div class="wrap-input100 validate-input m-b-23">
+                    <span class="label-input100">Correo Electrónico</span>
+                    <input class="input100" type="email" id="recovery-email" placeholder="ejemplo@correo.com" required>
+                    <span class="focus-input100" data-symbol="&#xf0e0;"></span>
+                </div>
+                <button id="btn-send-code" class="login100-form-btn" style="width: 100%; margin-top: 10px;">
+                    Enviar Código
+                </button>
+            </div>
+
+            <!-- Paso 2: Verificar Código -->
+            <div id="step-verify-code" class="recovery-step" style="display: none;">
+                <h3 style="text-align: center; color: #C1272D; margin-bottom: 10px;">Verificar Código</h3>
+                <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 14px;">Ingresa el código de 6 dígitos que recibiste en tu correo</p>
+                
+                <div class="wrap-input100 validate-input m-b-23">
+                    <span class="label-input100">Código de Verificación</span>
+                    <input class="input100" type="text" id="verification-code" placeholder="Ingresa el código de 6 dígitos" maxlength="6" required>
+                    <span class="focus-input100" data-symbol="&#xf084;"></span>
+                </div>
+
+                <button id="btn-verify-code" class="login100-form-btn" style="width: 100%; margin-top: 10px;">
+                    Verificar Código
+                </button>
+                <button id="btn-back-email" style="width: 100%; margin-top: 10px; background: #6c757d; border: none; padding: 12px; color: white; border-radius: 5px; cursor: pointer;">
+                    Volver
+                </button>
+            </div>
+
+            <!-- Paso 3: Ingresar Nueva Contraseña -->
+            <div id="step-new-password" class="recovery-step" style="display: none;">
+                <h3 style="text-align: center; color: #C1272D; margin-bottom: 10px;">Nueva Contraseña</h3>
+                <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 14px;">
+                    <i class="fa fa-check-circle" style="color: #28a745;"></i> Código verificado correctamente
+                </p>
+
+                <div class="wrap-input100 validate-input m-b-23">
+                    <span class="label-input100">Nueva Contraseña</span>
+                    <input class="input100" type="password" id="new-password" placeholder="Ingresa tu nueva contraseña" required>
+                    <span class="focus-input100" data-symbol="&#xf190;"></span>
+                    <i class="fa fa-eye password-toggle" id="toggle-new-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: rgb(121, 121, 121); z-index: 10;"></i>
+                </div>
+
+                <div class="wrap-input100 validate-input">
+                    <span class="label-input100">Confirmar Contraseña</span>
+                    <input class="input100" type="password" id="confirm-password" placeholder="Confirma tu nueva contraseña" required>
+                    <span class="focus-input100" data-symbol="&#xf190;"></span>
+                    <i class="fa fa-eye password-toggle" id="toggle-confirm-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: rgb(121, 121, 121); z-index: 10;"></i>
+                </div>
+
+                <button id="btn-reset-password" class="login100-form-btn" style="width: 100%; margin-top: 20px;">
+                    Cambiar Contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Ajustar z-index de SweetAlert2 para que aparezca sobre el modal */
+        .swal2-container {
+            z-index: 20000 !important;
+        }
+    </style>
+
     <script src="<?= URL::to('public/login/vendor/jquery/jquery-3.2.1.min.js') ?>"></script>
     <script src="<?= URL::to('public/login/vendor/animsition/js/animsition.min.js') ?>"></script>
     <script src="<?= URL::to('public/login/vendor/bootstrap/js/popper.js') ?>"></script>
@@ -576,7 +714,7 @@
                         s: false
                     },
                     success(resp) {
-                        console.log(resp);
+                        // console.log(resp);
                         resp = JSON.parse(resp);
                         if (resp.res) {
                             // Actualizar token con última actividad
@@ -623,6 +761,324 @@
                     passwordField.attr("type", "password");
                     $(this).removeClass("fa-eye-slash").addClass("fa-eye");
                 }
+            });
+
+            // Toggle para nueva contraseña
+            $(document).on("click", "#toggle-new-password", function() {
+                const passwordField = $("#new-password");
+                const passwordFieldType = passwordField.attr("type");
+                
+                if (passwordFieldType === "password") {
+                    passwordField.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passwordField.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+
+            // Toggle para confirmar contraseña
+            $(document).on("click", "#toggle-confirm-password", function() {
+                const passwordField = $("#confirm-password");
+                const passwordFieldType = passwordField.attr("type");
+                
+                if (passwordFieldType === "password") {
+                    passwordField.attr("type", "text");
+                    $(this).removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passwordField.attr("type", "password");
+                    $(this).removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+
+            // Abrir modal de recuperación
+            $("#forgot-password-link").click(function(e) {
+                e.preventDefault();
+                $("#modal-recuperar-password").css("display", "flex");
+                $("#step-email").show();
+                $("#step-verify-code").hide();
+                $("#step-new-password").hide();
+                $("#recovery-email").val("");
+                $("#verification-code").val("");
+                $("#new-password").val("");
+                $("#confirm-password").val("");
+            });
+
+            // Cerrar modal
+            $("#close-modal").click(function() {
+                $("#modal-recuperar-password").hide();
+                $("#step-verify-code").hide();
+                $("#step-new-password").hide();
+                $("#step-email").show();
+                $("#recovery-email").val("");
+                $("#verification-code").val("");
+                $("#new-password").val("");
+                $("#confirm-password").val("");
+            });
+
+            // Cerrar modal al hacer click fuera
+            $("#modal-recuperar-password").click(function(e) {
+                if (e.target.id === "modal-recuperar-password") {
+                    $(this).hide();
+                    $("#step-verify-code").hide();
+                    $("#step-new-password").hide();
+                    $("#step-email").show();
+                    $("#recovery-email").val("");
+                    $("#verification-code").val("");
+                    $("#new-password").val("");
+                    $("#confirm-password").val("");
+                }
+            });
+
+            // Enviar código de verificación
+            $("#btn-send-code").click(function() {
+                const email = $("#recovery-email").val().trim();
+                
+                if (!email) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor ingresa tu correo electrónico',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                // Validar formato de email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor ingresa un correo electrónico válido',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                // Mostrar loader de SweetAlert2
+                Swal.fire({
+                    title: 'Enviando código...',
+                    html: 'Por favor espera mientras enviamos el código a tu correo',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: _URL + "/ajs/password/send-code",
+                    data: { email: email },
+                    success: function(resp) {
+                        resp = JSON.parse(resp);
+                        
+                        if (resp.res) {
+                            // Mostrar alerta de éxito y ESPERAR a que se cierre antes de cambiar de paso
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Código Enviado!',
+                                text: 'Revisa tu correo electrónico',
+                                confirmButtonColor: '#C1272D',
+                                confirmButtonText: 'Continuar'
+                            }).then(() => {
+                                // Cambiar al paso 2 DESPUÉS de cerrar la alerta
+                                $("#step-email").hide();
+                                $("#step-verify-code").show();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: resp.msg || 'Error al enviar el código',
+                                confirmButtonColor: '#C1272D'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor',
+                            confirmButtonColor: '#C1272D'
+                        });
+                    }
+                });
+            });
+
+            // Volver al paso de email
+            $("#btn-back-email").click(function() {
+                $("#step-verify-code").hide();
+                $("#step-email").show();
+                $("#verification-code").val("");
+            });
+
+            // Verificar código (NUEVO PASO)
+            $("#btn-verify-code").click(function() {
+                const email = $("#recovery-email").val().trim();
+                const code = $("#verification-code").val().trim();
+
+                if (!code) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor ingresa el código',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                if (code.length !== 6) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'El código debe tener 6 dígitos',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                // Mostrar loader
+                Swal.fire({
+                    title: 'Verificando código...',
+                    html: 'Por favor espera un momento',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Verificar código con el backend
+                $.ajax({
+                    type: "POST",
+                    url: _URL + "/ajs/password/verify-code",
+                    data: {
+                        email: email,
+                        code: code
+                    },
+                    success: function(resp) {
+                        resp = JSON.parse(resp);
+                        
+                        if (resp.res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Código Verificado!',
+                                text: 'Ahora puedes ingresar tu nueva contraseña',
+                                confirmButtonColor: '#C1272D',
+                                confirmButtonText: 'Continuar'
+                            }).then(() => {
+                                // Cambiar al paso 3
+                                $("#step-verify-code").hide();
+                                $("#step-new-password").show();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: resp.msg || 'Código incorrecto o expirado',
+                                confirmButtonColor: '#C1272D'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor',
+                            confirmButtonColor: '#C1272D'
+                        });
+                    }
+                });
+            });
+
+            // Resetear contraseña (ahora solo valida las contraseñas)
+            $("#btn-reset-password").click(function() {
+                const email = $("#recovery-email").val().trim();
+                const code = $("#verification-code").val().trim();
+                const newPassword = $("#new-password").val();
+                const confirmPassword = $("#confirm-password").val();
+
+                if (!newPassword || !confirmPassword) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Por favor completa todos los campos',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                if (newPassword.length < 4) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'La contraseña debe tener al menos 4 caracteres',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Las contraseñas no coinciden',
+                        confirmButtonColor: '#C1272D'
+                    });
+                    return;
+                }
+
+                // Mostrar loader de SweetAlert2
+                Swal.fire({
+                    title: 'Actualizando contraseña...',
+                    html: 'Por favor espera un momento',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: _URL + "/ajs/password/reset",
+                    data: {
+                        email: email,
+                        code: code,
+                        new_password: newPassword
+                    },
+                    success: function(resp) {
+                        resp = JSON.parse(resp);
+                        
+                        if (resp.res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Contraseña Actualizada!',
+                                text: 'Ya puedes iniciar sesión con tu nueva contraseña',
+                                confirmButtonColor: '#C1272D',
+                                confirmButtonText: 'Entendido'
+                            }).then(() => {
+                                $("#modal-recuperar-password").hide();
+                                $("#recovery-email").val("");
+                                $("#verification-code").val("");
+                                $("#new-password").val("");
+                                $("#confirm-password").val("");
+                                $("#step-new-password").hide();
+                                $("#step-email").show();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: resp.msg || 'Error al cambiar la contraseña',
+                                confirmButtonColor: '#C1272D'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de conexión',
+                            text: 'No se pudo conectar con el servidor',
+                            confirmButtonColor: '#C1272D'
+                        });
+                    }
+                });
             });
 
             $("form").submit(function (evt) {

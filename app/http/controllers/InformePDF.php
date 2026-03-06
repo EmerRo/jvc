@@ -10,6 +10,7 @@ require_once "app/models/InformeTemplate.php";
 class InformePDF extends Controller
 {
     private $mpdf;
+    private $conexion;
 
     public function __construct()
     {

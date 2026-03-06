@@ -20,6 +20,7 @@ Route::get('/guia/remision/pdf/:guia/:nombre','ReportesVentaController@guiaRemis
 
 /* Route::get('/venta/comprobante/pdf/:voucher',"ReportesVentaController@comprobanteVenta"); */
 Route::get("/r/cotizaciones/reporte/:coti","ReportesVentaController@comprobanteCotizacion");
+Route::get("/r/cotizaciones/reported/:coti/:ruta","ReportesVentaController@comprobanteCotizacion");
 Route::get("/r/cotizaciones/reporte-media-a4/:coti", "ReportesVentaController@comprobanteCotizacionMediaA4");
 Route::get("/r/cotizaciones/reporte-voucher-8cm/:coti", "ReportesVentaController@comprobanteCotizacionVoucher8cm");
 Route::get("/r/cotizaciones/reporte-voucher-5-6cm/:coti", "ReportesVentaController@comprobanteCotizacionVoucher5_6cm");
@@ -99,6 +100,8 @@ Route::get("/reporte/producto/guia","GenerarReporte@generarExcelProductoImporte"
 Route::get("/reporte/repuesto/guia","GenerarReporte@generarExcelRepuestoImporte");
 Route::get("/reporte/caja/excel/:id","GenerarReporte@generarExcelCaja");
 Route::postBase("/reporte/cotizaciones/vendedores", "GenerarReporte@reporteVentaPorVendedor");
+Route::get("/reporte/historial-stock/excel","GenerarReporte@historialStockExcel");
+Route::get("/reporte/historial-stock-repuestos/excel","GenerarReporte@historialStockRepuestosExcel");
 
 
 

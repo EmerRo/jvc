@@ -62,7 +62,7 @@
 }
 .bg-rojo {
   background-color: #ca3438;
-    color: #FFFFFF;
+  color: #ffffff;
 }
 .bg-gris {
   background-color: #848688;
@@ -94,7 +94,6 @@
   border: 1px solid #ca3438;
   margin-left: 8px;
   transition: all 0.3s ease;
-
 }
 /* Estilos para los botones de los selectores */
 .btn-selector {
@@ -150,115 +149,119 @@
 }
 /* Para todas las tablas DataTables */
 .dataTables_wrapper table.dataTable tbody td {
-    vertical-align: middle !important;
+  vertical-align: middle !important;
 }
 
 .dataTables_wrapper table.dataTable thead th {
-    vertical-align: middle !important;
+  vertical-align: middle !important;
 }
 
 .bordes {
   border-radius: 10px;
 }
 
-  /* Mejorar la apariencia general */
-    .ui-autocomplete {
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        background: white;
-    }
+/* Mejorar la apariencia general */
+.ui-autocomplete {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+}
 
-    .ui-menu-item {
-        padding: 0;
-        margin: 0;
-    }
+.ui-menu-item {
+  padding: 0;
+  margin: 0;
+}
 
-    .ui-menu-item-wrapper {
-        padding: 8px 12px;
-        border-bottom: 1px solid #f0f0f0;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
+.ui-menu-item-wrapper {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-    .ui-menu-item:last-child .ui-menu-item-wrapper {
-        border-bottom: none;
-    }
+.ui-menu-item:last-child .ui-menu-item-wrapper {
+  border-bottom: none;
+}
 
-    /* Estilo para el modal de búsqueda múltiple */
-    .list-group-item {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
+/* Estilo para el modal de búsqueda múltiple */
+.list-group-item {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
 
-    .list-group-item input[type="checkbox"] {
-        margin-right: 10px;
-    }
+.list-group-item input[type="checkbox"] {
+  margin-right: 10px;
+}
 
-    /* Estilo para el scroll en el autocompletado */
-    .ui-autocomplete {
-        max-height: 200px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        z-index: 9999;
-    }
+/* Estilo para el scroll en el autocompletado */
+.ui-autocomplete {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 9999;
+}
 
-    /* Estilo para el scroll en el modal de búsqueda múltiple */
-    .list-group {
-        max-height: 300px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+/* Estilo para el scroll en el modal de búsqueda múltiple */
+.list-group {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
-    /* Scroll personalizado */
-    .ui-autocomplete::-webkit-scrollbar,
-    .list-group::-webkit-scrollbar {
-        width: 8px;
-    }
+/* Scroll personalizado */
+.ui-autocomplete::-webkit-scrollbar,
+.list-group::-webkit-scrollbar {
+  width: 8px;
+}
 
-    .ui-autocomplete::-webkit-scrollbar-track,
-    .list-group::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
+.ui-autocomplete::-webkit-scrollbar-track,
+.list-group::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
 
-    .ui-autocomplete::-webkit-scrollbar-thumb,
-    .list-group::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-    }
+.ui-autocomplete::-webkit-scrollbar-thumb,
+.list-group::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
 
-    .ui-autocomplete::-webkit-scrollbar-thumb:hover,
-    .list-group::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
+.ui-autocomplete::-webkit-scrollbar-thumb:hover,
+.list-group::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 
-    /* Cambiar hover del autocompletado */
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
-    .ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:focus {
-        background-color: #CA3438 !important;
-        /* Tu color rojo */
-        color: white !important;
-        border: none !important;
-    }
+/* Cambiar hover del autocompletado */
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:hover,
+.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper:focus {
+  background-color: #ca3438 !important;
+  /* Tu color rojo */
+  color: white !important;
+  border: none !important;
+}
 
-    /* Cambiar hover de los elementos de la lista en el modal */
-    .list-group-item:hover {
-        background-color: #CA3438 !important;
-        color: white !important;
-        border-color: #CA3438 !important;
-    }
+/* Cambiar hover de los elementos de la lista en el modal */
+.list-group-item:hover {
+  background-color: #ca3438 !important;
+  color: white !important;
+  border-color: #ca3438 !important;
+}
 
-    /* Hover para botones y enlaces */
-    .btn:hover,
-    .button-link:hover {
-        background-color: #CA3438 !important;
-        border-color: #CA3438 !important;
-        color: white !important;
-    }
+/* Hover para botones y enlaces */
+.btn:hover,
+.button-link:hover {
+  background-color: #ca3438 !important;
+  border-color: #ca3438 !important;
+  color: white !important;
+}
 
-    /* Hover para elementos del dropdown de precios */
-    .dropdown-item:hover {
-        background-color: #CA3438 !important;
-        color: white !important;
-    }
+/* Hover para elementos del dropdown de precios */
+.dropdown-item:hover {
+  background-color: #ca3438 !important;
+  color: white !important;
+}
+.page-item.active .page-link {
+  background-color: #ca3438 !important;
+  border-color: #ca3438 !important;
+}

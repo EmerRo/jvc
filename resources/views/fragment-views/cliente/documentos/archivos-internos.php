@@ -135,6 +135,8 @@
         <input type="hidden" id="contenido_archivo_interno" name="contenido">
         <input type="hidden" id="header_image_data" name="header_image">
         <input type="hidden" id="footer_image_data" name="footer_image">
+        <input type="hidden" id="imagen1_data" name="imagen1">
+        <input type="hidden" id="imagen2_data" name="imagen2">
 
         <div class="row mb-4">
             <div class="col-md-6">
@@ -182,6 +184,81 @@
         <div class="mb-3">
             <label for="editor-container-archivoInterno" class="form-label">Contenido del Archivo Interno</label>
             <div id="editor-container-archivoInterno" class="editor-container"></div>
+        </div>
+
+        <!-- Sección de Imágenes Adicionales -->
+        <div class="mb-4">
+            <h6 class="fw-medium text-negro mb-3">
+                <i class="fas fa-images me-2"></i>Imágenes del Documento (Opcional)
+                <small class="text-muted">- Aparecerán en una segunda página</small>
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium text-negro">Primera Imagen</label>
+                    
+                    <div class="image-preview-container" id="preview-container-archivo-1" style="border: 2px dashed #e0e0e0; border-radius: 12px; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <input type="file" class="d-none" id="imagen1_file" name="imagen1" 
+                               accept="image/png,image/jpeg,image/gif" onchange="handleImagePreviewArchivo(this, 1)">
+                        
+                        <div id="upload-area-archivo-1" class="upload-area" onclick="document.getElementById('imagen1_file').click()" style="cursor: pointer;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #CA3438; margin-bottom: 15px; opacity: 0.7;"></i>
+                            <div class="upload-placeholder">
+                                <strong>Haz clic para seleccionar</strong><br>
+                                <small>o arrastra una imagen aquí</small>
+                            </div>
+                        </div>
+                        
+                        <div id="preview-area-archivo-1" class="preview-area" style="display: none;">
+                            <img id="preview-img-archivo-1" class="preview-image" style="max-width: 100%; max-height: 120px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
+                            <div class="image-actions mt-2" style="display: flex; gap: 8px; justify-content: center;">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showImageModalArchivo(document.getElementById('preview-img-archivo-1').src)">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="clearImagePreviewArchivo(1)">
+                                    <i class="fas fa-trash"></i> Quitar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-text text-gris small mt-2">
+                        <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-medium text-negro">Segunda Imagen</label>
+                    
+                    <div class="image-preview-container" id="preview-container-archivo-2" style="border: 2px dashed #e0e0e0; border-radius: 12px; padding: 20px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <input type="file" class="d-none" id="imagen2_file" name="imagen2" 
+                               accept="image/png,image/jpeg,image/gif" onchange="handleImagePreviewArchivo(this, 2)">
+                        
+                        <div id="upload-area-archivo-2" class="upload-area" onclick="document.getElementById('imagen2_file').click()" style="cursor: pointer;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #CA3438; margin-bottom: 15px; opacity: 0.7;"></i>
+                            <div class="upload-placeholder">
+                                <strong>Haz clic para seleccionar</strong><br>
+                                <small>o arrastra una imagen aquí</small>
+                            </div>
+                        </div>
+                        
+                        <div id="preview-area-archivo-2" class="preview-area" style="display: none;">
+                            <img id="preview-img-archivo-2" class="preview-image" style="max-width: 100%; max-height: 120px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
+                            <div class="image-actions mt-2" style="display: flex; gap: 8px; justify-content: center;">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showImageModalArchivo(document.getElementById('preview-img-archivo-2').src)">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="clearImagePreviewArchivo(2)">
+                                    <i class="fas fa-trash"></i> Quitar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-text text-gris small mt-2">
+                        <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
@@ -766,6 +843,43 @@
     // Exportar funciones globalmente
     window.compartirWhatsAppArchivoInterno = compartirWhatsAppArchivoInterno;
     window.enviarWhatsAppArchivoInterno = enviarWhatsAppArchivoInterno;
+
+    // Funciones para manejar preview de imágenes
+    function handleImagePreviewArchivo(input, numero) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(`upload-area-archivo-${numero}`).style.display = 'none';
+                document.getElementById(`preview-area-archivo-${numero}`).style.display = 'block';
+                document.getElementById(`preview-img-archivo-${numero}`).src = e.target.result;
+                document.getElementById(`imagen${numero}_data`).value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearImagePreviewArchivo(numero) {
+        document.getElementById(`imagen${numero}_file`).value = '';
+        document.getElementById(`imagen${numero}_data`).value = '';
+        document.getElementById(`upload-area-archivo-${numero}`).style.display = 'block';
+        document.getElementById(`preview-area-archivo-${numero}`).style.display = 'none';
+        document.getElementById(`preview-img-archivo-${numero}`).src = '';
+    }
+
+    function showImageModalArchivo(src) {
+        Swal.fire({
+            imageUrl: src,
+            imageAlt: 'Vista previa',
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '80%'
+        });
+    }
+
+    window.handleImagePreviewArchivo = handleImagePreviewArchivo;
+    window.clearImagePreviewArchivo = clearImagePreviewArchivo;
+    window.showImageModalArchivo = showImageModalArchivo;
 </script>
 
 <!-- Modal para compartir por WhatsApp -->

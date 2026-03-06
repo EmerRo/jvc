@@ -290,7 +290,12 @@ class CotizacionesController extends Controller
                 CASE
                     WHEN pc.tipo_producto = 'producto' THEN p.precio_unidad
                     WHEN pc.tipo_producto = 'repuesto' THEN r.precio_unidad
-                END as precio_unidad
+                END as precio_unidad,
+                CASE
+                    WHEN pc.tipo_producto = 'producto' THEN COALESCE(p.cantidad, 0)
+                    WHEN pc.tipo_producto = 'repuesto' THEN COALESCE(r.cantidad, 0)
+                    ELSE 0
+                END as stock_disponible
             FROM productos_cotis pc
             LEFT JOIN productos p ON p.id_producto = pc.id_producto AND pc.tipo_producto = 'producto'
             LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
@@ -316,7 +321,7 @@ class CotizacionesController extends Controller
                     "nombre" => $nombre,
                     "nom_prod" => $nombre,
                     "cantidad" => $cantidad,
-                    "stock" => 0,
+                    "stock" => (float) ($pro['stock_disponible'] ?? 0),
                     "precioVenta" => number_format((float) ($pro['precio'] ?? 0), 2, '.', ''),
                     "precio" => number_format((float) ($pro['precio'] ?? 0), 2, '.', ''),
                     "precio2" => number_format((float) ($pro['precio2'] ?? 0), 2, '.', ''),

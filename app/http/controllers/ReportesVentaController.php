@@ -83,8 +83,20 @@ class ReportesVentaController extends Controller
 
 
 
-  public function comprobanteCotizacion($coti)
+  public function comprobanteCotizacion($coti, $rutaGuardar = null)
   {
+    // Suprimir warnings de mPDF
+    $errorReportingAnterior = error_reporting();
+    error_reporting(E_ERROR | E_PARSE);
+    
+    // Si $rutaGuardar es un objeto Request, significa que se llamó sin el parámetro
+    if (is_object($rutaGuardar)) {
+      $rutaGuardar = null;
+    }
+    
+    // Log temporal para debug
+    error_log("comprobanteCotizacion - coti: $coti, rutaGuardar: " . ($rutaGuardar ? $rutaGuardar : 'NULL'));
+    
     // Modificar la consulta inicial para manejar tanto productos como repuestos
     // Usar COALESCE para priorizar nombres personalizados de la cotización
     $listaProd1 = $this->conexion->query("
@@ -207,17 +219,26 @@ class ReportesVentaController extends Controller
 
     if ($datoVenta["id_tipo_pago"] == '2') {
       $rowTempCuo = '';
-      $sql = "SELECT * FROM cuotas_cotizacion WHERE id_coti='$coti'";
+      $sql = "SELECT * FROM cuotas_cotizacion WHERE id_coti='$coti' ORDER BY fecha ASC";
       $resulTempCuo = $this->conexion->query($sql);
       $contadorCuota = 0;
       foreach ($resulTempCuo as $cuotTemp) {
+        // Saltar cuotas con monto 0 o vacío
+        if (empty($cuotTemp['monto']) || floatval($cuotTemp['monto']) == 0) {
+          continue;
+        }
+        
         $contadorCuota++;
         $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
         $tempMonto = Tools::money($cuotTemp['monto']);
+        
+        // Si es cuota inicial, mostrarla como "INICIAL" en lugar de número
+        $etiquetaCuota = (isset($cuotTemp['tipo']) && $cuotTemp['tipo'] == 'inicial') ? 'INICIAL' : "Cuota $tempNum";
+        
         $rowTempCuo .= "
        <tr style=''>
-           <td style='padding: 3px; text-align: center;'>Cuota $tempNum</td>
+           <td style='padding: 3px; text-align: center;'>$etiquetaCuota</td>
            <td style='padding: 3px; text-align: center;'>$tempFecha</td>
            <td style='padding: 3px; text-align: center;'>$simbolfff22 $tempMonto</td>
        </tr>
@@ -297,7 +318,7 @@ class ReportesVentaController extends Controller
 
     if ($showDiscountColumn) {
       $tableHeader .= "
-        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>C/DESC.</strong></td>";
+        <td style='font-family: Arial, Helvetica, sans-serif; width: 75px; font-size: 10px; text-align: center; color: #fff; background-color: #CA3438; border: 1px solid #CA3438;'><strong>COSTO<br>UNITARIO<br>(C/DESC.)</strong></td>";
     }
 
     $tableHeader .= "
@@ -3248,7 +3269,8 @@ if ($datoVenta['aplicar_igv'] == 1) {
                     <td style="width: 85%; padding: 0;">
                         <div style="font-family: Arial; font-size: 8px; line-height: 1.2;">
                             <div style="margin: 0;">Representación impresa de la Factura Electrónica</div>
-                            <div style="margin: 0;">Usuario: ' . $nombre_usuario . ' (cod: ' . $codigo_usuario . ')</div>
+                            <div style="margin: 0;">Para Consultar el comprobante vista: '.$dominio.'</div>
+                            <div style="margin: 0;"> <strong>Usuario:</strong> ' . $nombre_usuario . ' (cod: ' . $codigo_usuario . ')</div>
                             <div style="margin: 0;">HASH: ' . $rowVS['hash'] . '</div>
                         </div>
                     </td>
@@ -3969,7 +3991,45 @@ if ($datoVenta['aplicar_igv'] == 1) {
 </div>
 ";
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-    $this->mpdf->Output();
+    
+    // Si se proporciona una ruta, guardar el archivo; si no, mostrar en navegador
+    if ($rutaGuardar) {
+      $rutaDecodificada = base64_decode($rutaGuardar);
+      
+      // Convertir a ruta absoluta si es relativa
+      if (!preg_match('/^\//', $rutaDecodificada) && !preg_match('/^[A-Z]:/', $rutaDecodificada)) {
+        // Es una ruta relativa, convertir a absoluta
+        $rutaDecodificada = $_SERVER['DOCUMENT_ROOT'] . '/' . $rutaDecodificada;
+      }
+      
+      error_log("comprobanteCotizacion - Guardando en: " . $rutaDecodificada);
+      
+      // Asegurar que el directorio existe
+      $directorio = dirname($rutaDecodificada);
+      if (!is_dir($directorio)) {
+        mkdir($directorio, 0777, true);
+        error_log("comprobanteCotizacion - Directorio creado: " . $directorio);
+      }
+      
+      try {
+        $this->mpdf->Output($rutaDecodificada, 'F');
+        
+        // Verificar que se creó el archivo
+        if (file_exists($rutaDecodificada)) {
+          $tamano = filesize($rutaDecodificada);
+          error_log("comprobanteCotizacion - Archivo creado exitosamente: " . $tamano . " bytes");
+        } else {
+          error_log("comprobanteCotizacion - ERROR: No se pudo crear el archivo");
+        }
+      } catch (Exception $e) {
+        error_log("comprobanteCotizacion - EXCEPCION: " . $e->getMessage());
+      }
+    } else {
+      $this->mpdf->Output();
+    }
+    
+    // Restaurar error reporting
+    error_reporting($errorReportingAnterior);
   }
   public function comprobanteCotizacionMediaA4($coti)
   {

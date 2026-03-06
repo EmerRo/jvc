@@ -15,12 +15,19 @@ class GenerarRegistros extends Controller
 
     public function generarExcelSeries()
     {
-        // Primero obtenemos todos los registros con los datos JSON
-        $sql = "SELECT ns.id, ns.cliente_ruc_dni, ns.fecha_creacion,
-                   ds.modelo, ds.marca, ds.equipo, ds.numero_serie
+        // Consulta actualizada para la estructura normalizada
+        $sql = "SELECT ns.id, ns.numero, ns.cliente_ruc_dni, ns.fecha_creacion,
+                   ds.id as detalle_id,
+                   ds.numero_serie,
+                   m.nombre as modelo_nombre,
+                   ma.nombre as marca_nombre,
+                   e.nombre as equipo_nombre
             FROM numero_series ns
             LEFT JOIN detalle_serie ds ON ns.id = ds.numero_serie_id
-            ORDER BY ns.id DESC";
+            LEFT JOIN modelos m ON ds.modelo_id = m.id
+            LEFT JOIN marcas ma ON ds.marca_id = ma.id
+            LEFT JOIN equipos e ON ds.equipo_id = e.id
+            ORDER BY ns.numero DESC, ds.id ASC";
 
         $result = $this->conexion->query($sql);
 
@@ -28,21 +35,16 @@ class GenerarRegistros extends Controller
         $contador = 1;
 
         foreach ($result as $fila) {
-            // Decodificar los arrays JSON
-            $modelos = json_decode($fila['modelo'], true) ?: [];
-            $marcas = json_decode($fila['marca'], true) ?: [];
-            $equipos = json_decode($fila['equipo'], true) ?: [];
-            $numeros_serie = json_decode($fila['numero_serie'], true) ?: [];
-
-            // Determinar la cantidad máxima de elementos
-            $max_count = max(count($modelos), count($marcas), count($equipos), count($numeros_serie));
-
-            // Si no hay datos en los arrays, mostrar una fila vacía
-            if ($max_count === 0) {
+            // Determinar el cliente
+            $cliente = $fila['cliente_ruc_dni'] ?: 'Registro Interno (JVC)';
+            
+            // Si no hay detalle de serie, mostrar solo el registro principal
+            if (!$fila['detalle_id']) {
                 $tbody .= '
             <tr>
                 <td style="text-align: center;">' . $contador++ . '</td>
-                <td style="text-align: center;">' . ($fila['cliente_ruc_dni'] ?: 'Sin Cliente') . '</td>
+                <td style="text-align: center;">NS-' . str_pad($fila['numero'], 2, '0', STR_PAD_LEFT) . '</td>
+                <td style="text-align: center;">' . $cliente . '</td>
                 <td style="text-align: center;">-</td>
                 <td style="text-align: center;">-</td>
                 <td style="text-align: center;">-</td>
@@ -52,42 +54,31 @@ class GenerarRegistros extends Controller
                 continue;
             }
 
-            // Crear una fila por cada equipo
-            for ($i = 0; $i < $max_count; $i++) {
-                // Obtener IDs para hacer consultas individuales
-                $modelo_id = isset($modelos[$i]) ? $modelos[$i] : null;
-                $marca_id = isset($marcas[$i]) ? $marcas[$i] : null;
-                $equipo_id = isset($equipos[$i]) ? $equipos[$i] : null;
-                $numero_serie = isset($numeros_serie[$i]) ? $numeros_serie[$i] : '';
-
-                // Obtener nombres reales de las tablas
-                $modelo_nombre = $this->obtenerNombre('modelos', $modelo_id);
-                $marca_nombre = $this->obtenerNombre('marcas', $marca_id);
-                $equipo_nombre = $this->obtenerNombre('equipos', $equipo_id);
-
-                $tbody .= '
+            // Mostrar cada equipo en una fila
+            $tbody .= '
             <tr>
                 <td style="text-align: center;">' . $contador++ . '</td>
-                <td style="text-align: center;">' . ($fila['cliente_ruc_dni'] ?: 'Sin Cliente') . '</td>
-                <td style="text-align: center;">' . $marca_nombre . '</td>
-                <td style="text-align: center;">' . $modelo_nombre . '</td>
-                <td style="text-align: center;">' . $equipo_nombre . '</td>
-                <td style="text-align: center;">' . $numero_serie . '</td>
+                <td style="text-align: center;">NS-' . str_pad($fila['numero'], 2, '0', STR_PAD_LEFT) . '</td>
+                <td style="text-align: center;">' . $cliente . '</td>
+                <td style="text-align: center;">' . ($fila['marca_nombre'] ?: '-') . '</td>
+                <td style="text-align: center;">' . ($fila['modelo_nombre'] ?: '-') . '</td>
+                <td style="text-align: center;">' . ($fila['equipo_nombre'] ?: '-') . '</td>
+                <td style="text-align: center;">' . ($fila['numero_serie'] ?: '-') . '</td>
                 <td style="text-align: center;">' . $fila['fecha_creacion'] . '</td>
             </tr>';
-            }
         }
 
         // Crear la tabla HTML
         $tabla = "
     <table>
         <tr>
-            <th style='background-color: #90BFEB; width: 7px; text-align: center;'>ID</th>
-            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Cliente RUC/DNI</th>
-            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Marca</th>
-            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Modelo</th>
-            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Equipo</th>
-            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Número de Serie</th>
+            <th style='background-color: #90BFEB; width: 7px; text-align: center;'>N°</th>
+            <th style='background-color: #90BFEB; width: 15px; text-align: center;'>Registro</th>
+            <th style='background-color: #90BFEB; width: 35px; text-align: center;'>Cliente</th>
+            <th style='background-color: #90BFEB; width: 25px; text-align: center;'>Marca</th>
+            <th style='background-color: #90BFEB; width: 25px; text-align: center;'>Modelo</th>
+            <th style='background-color: #90BFEB; width: 25px; text-align: center;'>Equipo</th>
+            <th style='background-color: #90BFEB; width: 20px; text-align: center;'>Número de Serie</th>
             <th style='background-color: #90BFEB; width: 17px; text-align: center;'>Fecha de Creación</th>
         </tr>
         <tbody>
@@ -111,26 +102,5 @@ class GenerarRegistros extends Controller
         // Limpiar el archivo temporal
         unlink($nombre_excel);
         exit;
-    }
-
-    /**
-     * Método auxiliar para obtener el nombre de una entidad por su ID
-     */
-    private function obtenerNombre($tabla, $id)
-    {
-        if (empty($id) || !is_numeric($id)) {
-            return '-';
-        }
-
-        $stmt = $this->conexion->prepare("SELECT nombre FROM {$tabla} WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-
-        if ($row = $resultado->fetch_assoc()) {
-            return $row['nombre'];
-        }
-
-        return '-';
     }
 }

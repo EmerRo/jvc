@@ -54,3 +54,29 @@
 $('#modalAgregar').on('show.bs.modal', function () {
     limpiarFormularioRegistro();
 });
+
+// Manejar el cambio de tipo de máquina
+$(document).on('change', 'input[name="tipo_maquina"]', function() {
+    const tipoSeleccionado = $(this).val();
+    
+    if (tipoSeleccionado === 'fabricada') {
+        $('#mensaje_tipo_fabricada').show();
+        $('#mensaje_tipo_importada').hide();
+    } else {
+        $('#mensaje_tipo_fabricada').hide();
+        $('#mensaje_tipo_importada').show();
+    }
+});
+
+// Manejar el cambio de tipo de máquina en modal de edición
+$(document).on('change', 'input[name="tipo_maquina_u"]', function() {
+    const tipoSeleccionado = $(this).val();
+    
+    if (tipoSeleccionado === 'fabricada') {
+        $('#mensaje_tipo_fabricada_u').show();
+        $('#mensaje_tipo_importada_u').hide();
+    } else {
+        $('#mensaje_tipo_fabricada_u').hide();
+        $('#mensaje_tipo_importada_u').show();
+    }
+});

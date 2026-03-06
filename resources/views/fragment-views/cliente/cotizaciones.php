@@ -1,108 +1,7 @@
 <!-- resources\views\fragment-views\cliente\cotizaciones.php -->
 <link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= URL::to('public/css/cotizaciones.css') ?>?v=<?= time() ?>">
 
-<style>
-/* Estilos para el menú de acciones - Copiados de guia-remision.php y taller.php */
-.table-responsive {
-    overflow: visible !important;
-}
-
-.card {
-    overflow: visible !important;
-}
-
-/* Estilos para el menú de acciones */
-.action-menu {
-    position: relative;
-    display: inline-block;
-    width: 30px;
-    margin: 0 auto;
-}
-
-.action-button {
-    background: none;
-    border: none;
-    color: #6b7280;
-    width: 30px;
-    height: 30px;
-    padding: 5px;
-    cursor: pointer;
-    transition: color 0.2s;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.action-button:hover {
-    color: #4f46e5;
-    background-color: #f3f4f6;
-}
-
-.dropdown-actions {
-    position: fixed;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    min-width: 200px;
-    z-index: 9999;
-    display: none;
-    margin-top: 5px;
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
-}
-
-.dropdown-actions a {
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #374151;
-    text-decoration: none;
-    transition: background-color 0.2s;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.dropdown-actions a:hover {
-    background-color: #f3f4f6;
-}
-
-.dropdown-actions i {
-    width: 16px;
-}
-
-.dropdown-actions .text-danger:hover {
-    background-color: #fee2e2;
-}
-
-.dropdown-actions .divider {
-    height: 1px;
-    background-color: #e5e7eb;
-    margin: 4px 0;
-}
-
-/* Muestra el menú cuando tiene la clase show */
-.action-menu.show .dropdown-actions {
-    display: block;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .dropdown-actions {
-        position: fixed;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 20px;
-        top: auto;
-        width: 90%;
-        max-width: 300px;
-        max-height: 60vh;
-        overflow-y: auto;
-    }
-}
-</style>
 
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -129,15 +28,43 @@
 
                 <h4 class="card-title"></h4>
 
-                <div class="card-title-desc text-end " style="padding: 10px 10px 0 0;">
+                <div class="card-title-desc d-flex justify-content-end align-items-center flex-wrap gap-2" style="padding: 10px 10px 0 0;">
+                    
+                    <!-- Dropdown de Opciones para móvil -->
+                    <div class="opciones-dropdown">
+                        <div class="dropdown">
+                            <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                id="dropdownOpcionesCotizaciones" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-bars me-1"></i> Opciones
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownOpcionesCotizaciones" style="min-width: 250px;">
+                                <li>
+                                    <a class="dropdown-item" href="/cotizaciones/add">
+                                        <i class="fa fa-plus me-2"></i> Nueva Cotización
+                                    </a>
+                                </li>
+                                <?php if ($_SESSION['rol'] == 1): ?>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="javascript:void(0)" id="ventas-reporte-mobile">
+                                            <i class="fa fa-file-pdf-o me-2"></i> Reporte de Vendedores
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </div>
 
-                    <?php if ($_SESSION["rol"] == 1): ?>
-                        <button id="ventas-reporte" class="btn bg-white text-rojo border-rojo" style="margin-left: 5px;">
+                    <!-- Botones para desktop -->
+                    <?php if ($_SESSION['rol'] == 1): ?>
+                        <button id="ventas-reporte" class="btn bg-white text-rojo border-rojo btn-nueva-cotizacion-desktop" style="margin-left: 5px;">
                             <i class="fa fa-file-pdf-o"></i> Exportar Reporte de Vendedores
                         </button>
                     <?php endif; ?>
                     <a href="/cotizaciones/add" id="folder_btn_nuevo_folder"
-                        class="btn bg-rojo bordes text-white button-link">
+                        class="btn bg-rojo bordes text-white button-link btn-nueva-cotizacion-desktop">
                         <i class="fa fa-plus "></i> Nueva Cotización
                     </a>
                 </div>
@@ -201,74 +128,11 @@
     </div>
 </div>
 
-<!-- Modal de WhatsApp -->
-<div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 15px;">
-            <div class="modal-header bg-success text-white" style="border-radius: 15px 15px 0 0;">
-                <h5 class="modal-title" id="whatsappModalLabel">
-                    <i class="fab fa-whatsapp me-2"></i>Enviar por WhatsApp
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-4">
-                    <label for="whatsappNumber" class="form-label">Número de WhatsApp</label>
-                    <div class="input-group">
-                        <span class="input-group-text">+51</span>
-                        <input type="tel" class="form-control form-control-lg" id="whatsappNumber"
-                            placeholder="Ingrese número" maxlength="9" style="border-radius: 0 8px 8px 0;">
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" onclick="enviarWhatsApp()">
-                        <i class="fab fa-whatsapp me-2"></i>Enviar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Enviar Comprobante (WhatsApp + Email) -->
+<?php include __DIR__ . '/modals/modal-enviar-comprobante.php'; ?>
 
-<!-- Modal de Imprimir Cotización -->
-<div class="modal fade" id="modalImprimirCotizacion" tabindex="-1" aria-labelledby="modalImprimirCotizacionLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header text-white bg-rojo">
-                <h5 class="modal-title" id="modalImprimirCotizacionLabel">Imprimir Cotización</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <a id="cot-a4" href="#" target="_blank" class="btn bg-rojo text-white w-100">
-                            <i class="fa fa-file-pdf me-2"></i>Hoja A4
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a id="cot-media-a4" href="#" target="_blank" class="btn bg-rojo text-white w-100">
-                            <i class="fa fa-file-pdf me-2"></i>Media Hoja A4
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a id="cot-voucher-8cm" href="#" target="_blank" class="btn bg-white border-rojo text-rojo w-100">
-                            <i class="fas fa-file-invoice me-2"></i>Voucher 8cm
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a id="cot-voucher-5-6cm" href="#" target="_blank" class="btn bg-white border-rojo text-rojo w-100">
-                            <i class="fas fa-file-invoice me-2"></i>Voucher 5.6cm
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal de Imprimir Comprobante (componente reutilizable) -->
+<?php include __DIR__ . '/modals/imprimir-comprobante.php'; ?>
 
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
@@ -312,6 +176,8 @@
             "processing": true,
             "serverSide": true,
             "sAjaxSource": _URL + "/data/cotizaciones/lista/ss",
+            "scrollX": true,   // Habilitar scroll horizontal
+            "autoWidth": false, // Deshabilitar auto-ancho
             order: [
                 [0, "desc"]
             ],
@@ -321,6 +187,7 @@
             columnDefs: [
                 {
                     targets: 0, // Columna N°
+                    width: "70px",
                     render: function (data, type, row, meta) {
                         // data = número de cotización (ej: 7)
                         // row[8] = ID de cotización (ej: 56)
@@ -329,10 +196,41 @@
                         return `<a href="/r/cotizaciones/reporte/${cotizacionId}" target="_blank" class="text-primary" style="text-decoration: none;">${numeroFormateado}</a>`;
                     }
                 },
+                {
+                    targets: 1, // Columna Fecha
+                    width: "90px"
+                },
+                {
+                    targets: 2, // Columna Cliente
+                    width: "200px",
+                    render: function(data, type, row, meta) {
+                        if (type === 'display' && data && data.length > 40) {
+                            return '<span title="' + data + '">' + data.substr(0, 40) + '...</span>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 3, // Sub. Total
+                    width: "85px"
+                },
+                {
+                    targets: 4, // IGV
+                    width: "85px"
+                },
+                {
+                    targets: 5, // Total
+                    width: "85px"
+                },
+                {
+                    targets: 6, // Vendedor
+                    width: "100px"
+                },
                 
                 
                 {
-                    targets: 7,
+                    targets: 7, // Estado
+                    width: "100px",
                     render: function (data, type, row, meta) {
                         if (data == '1') {
                             return '<span class="badge  bg-success">Vendido</span>'
@@ -344,7 +242,8 @@
                     }
                 },
                 {
-                    targets: 8,
+                    targets: 8, // Vender
+                    width: "60px",
                     render(data) {
                         return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
                     }
@@ -352,13 +251,15 @@
 
                 
                 {
-                    targets: 9,
+                    targets: 9, // Guía
+                    width: "60px",
                     render(data) {
                         return `<a href="/guia/remision/registrar?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-clipboard"></i></a>`;
                     }
                 },
                 {
-                    targets: 10,
+                    targets: 10, // Acciones
+                    width: "80px",
                     className: 'text-center',
                     render: function (data, type, row, meta) {
                         return `
@@ -367,8 +268,8 @@
                                 <i class="fas fa-bars"></i>
                             </button>
                             <div class="dropdown-actions">
-                                <a href="javascript:void(0)" onclick="abrirWhatsApp(${data})" title="Enviar por WhatsApp">
-                                    <i class="fab fa-whatsapp text-success"></i> WhatsApp
+                                <a href="javascript:void(0)" onclick="abrirEnviarCotizacion(${data})" title="Enviar Cotización">
+                                    <i class="fas fa-paper-plane text-primary"></i> Enviar Cotización
                                 </a>
                                 <a class="button-link" href="/cotizaciones/edt/${data}">
                                     <i class="fa fa-edit text-primary"></i> Editar
@@ -428,7 +329,9 @@
         });
 
         tes();
-        $("#ventas-reporte").on('click', function () {
+        
+        // Manejar clic en reporte tanto para desktop como mobile
+        $("#ventas-reporte, #ventas-reporte-mobile").on('click', function () {
             $.ajax({
                 type: "POST",
                 url: _URL + "/ajs/cotizaciones/getvendedores",
@@ -467,62 +370,40 @@
         })
     }
 
-    var cotizacionActual = null;
     var cotizacionParaImprimir = null;
 
-    function abrirWhatsApp(cotizacionId) {
-        cotizacionActual = cotizacionId;
-        $('#whatsappNumber').val('');
-        $('#whatsappModal').modal('show');
+    // Función para abrir modal de enviar cotización (WhatsApp + Email)
+    function abrirEnviarCotizacion(cotizacionId) {
+        const linkReporte = `${_URL}/r/cotizaciones/reporte/${cotizacionId}`;
+        const numeroCotizacion = `COT-${String(cotizacionId).padStart(2, '0')}`;
+
+        abrirModalEnviarComprobante({
+            tipo: 'cotizacion',
+            id: cotizacionId,
+            numero: numeroCotizacion,
+            link: linkReporte,
+            linkDescarga: linkReporte,
+            nombreArchivo: `cotizacion_${cotizacionId}.pdf`,
+            email: '',
+            telefono: ''
+        });
     }
 
     function abrirModalImprimir(cotizacionId) {
         cotizacionParaImprimir = cotizacionId;
 
-        // Configurar las URLs de los diferentes formatos
-        $('#cot-a4').attr('href', `${_URL}/r/cotizaciones/reporte/${cotizacionId}`);
-        $('#cot-media-a4').attr('href', `${_URL}/r/cotizaciones/reporte-media-a4/${cotizacionId}`);
-        $('#cot-voucher-8cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-8cm/${cotizacionId}`);
-        $('#cot-voucher-5-6cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-5-6cm/${cotizacionId}`);
+        // Configurar las URLs de los diferentes formatos (usando IDs del componente)
+        $('#ce-t-a4').attr('href', `${_URL}/r/cotizaciones/reporte/${cotizacionId}`);
+        $('#ce-t-a4-m').attr('href', `${_URL}/r/cotizaciones/reporte-media-a4/${cotizacionId}`);
+        $('#ce-t-8cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-8cm/${cotizacionId}`);
+        $('#ce-t-5_6cm').attr('href', `${_URL}/r/cotizaciones/reporte-voucher-5-6cm/${cotizacionId}`);
 
-        $('#modalImprimirCotizacion').modal('show');
+        $('#modalImprimirComprobante').modal('show');
     }
 
-    // Función para enviar por WhatsApp
-    function enviarWhatsApp() {
-        const phoneNumber = $('#whatsappNumber').val().trim();
-
-        if (!phoneNumber) {
-            alert('Por favor ingrese un número de teléfono');
-            return;
-        }
-
-        if (phoneNumber.length !== 9) {
-            alert('El número debe tener 9 dígitos');
-            return;
-        }
-
-        // Generar el enlace del reporte PDF
-        const linkReporte = `${_URL}/r/cotizaciones/reporte/${cotizacionActual}`;
-
-        // Mensaje personalizado para WhatsApp
-        const mensaje = `Te envío la cotización para que puedas revisarla con detalle Cotización N° COT-${String(cotizacionActual).padStart(2, '0')}\n\nPuedes revisarla aquí: ${linkReporte}\n\nSi tienes alguna consulta o necesitas más información, no dudes en escribirme. Estaré encantada de ayudarte.`;
-
-        // Construir la URL de WhatsApp
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=51${phoneNumber}&text=${encodeURIComponent(mensaje)}`;
-
-        // Cerrar el modal y abrir WhatsApp
-        $('#whatsappModal').modal('hide');
-        window.open(whatsappUrl, '_blank');
-    }
-
-    // Validación para que solo acepte números en el input de WhatsApp
+    // Manejo del menú de acciones
     $(document).ready(function() {
-        $('#whatsappNumber').on('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-        // Manejo del menú de acciones (copiado de guia-remision.php)
+        // Manejo del menú de acciones mejorado para móvil
         $(document).on("click", (e) => {
             if (!$(e.target).closest(".action-menu").length) {
                 $(".action-menu").removeClass("show");
@@ -541,33 +422,50 @@
             menu.toggleClass("show");
 
             if (menu.hasClass("show")) {
-                // Posicionar el dropdown usando coordenadas fijas
                 const buttonRect = this.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
-                const dropdownHeight = 200; // Altura estimada del dropdown
+                const dropdownWidth = 200;
+                const dropdownHeight = 220;
 
-                let top = buttonRect.bottom + window.scrollY + 5;
-                let left = buttonRect.right + window.scrollX - 180; // Alinear el dropdown con el borde derecho del botón, menos el ancho del dropdown
+                // En móvil, centrar el dropdown
+                if (viewportWidth <= 768) {
+                    dropdown.css({
+                        'position': 'fixed',
+                        'left': '50%',
+                        'top': '50%',
+                        'transform': 'translate(-50%, -50%)',
+                        'width': '90%',
+                        'max-width': '320px'
+                    });
+                } else {
+                    // En desktop, posicionar cerca del botón
+                    let top = buttonRect.bottom + window.scrollY + 5;
+                    let left = buttonRect.left + window.scrollX - dropdownWidth + 30;
 
-                // Si no hay espacio abajo, mostrar arriba
-                if (buttonRect.bottom + dropdownHeight > viewportHeight) {
-                    top = buttonRect.top + window.scrollY - dropdownHeight - 5;
+                    // Si no hay espacio abajo, mostrar arriba
+                    if (buttonRect.bottom + dropdownHeight > viewportHeight) {
+                        top = buttonRect.top + window.scrollY - dropdownHeight - 5;
+                    }
+
+                    // Ajustar si se sale por la izquierda
+                    if (left < 10) {
+                        left = 10;
+                    }
+
+                    // Ajustar si se sale por la derecha
+                    if (left + dropdownWidth > viewportWidth - 10) {
+                        left = viewportWidth - dropdownWidth - 10;
+                    }
+
+                    dropdown.css({
+                        'position': 'fixed',
+                        'top': top + 'px',
+                        'left': left + 'px',
+                        'transform': 'none',
+                        'width': dropdownWidth + 'px'
+                    });
                 }
-
-                // Ajustar si se sale por la izquierda del viewport
-                if (left < 10) {
-                    left = buttonRect.left + window.scrollX;
-                }
-
-                // Ajustar si se sale por la derecha del viewport
-                if (left + 200 > window.innerWidth) {
-                    left = window.innerWidth - 210;
-                }
-
-                dropdown.css({
-                    'top': top + 'px',
-                    'left': left + 'px'
-                });
             }
         });
 

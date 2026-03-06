@@ -22,6 +22,15 @@ class Usuario
     }
 
     /**
+     * Obtener la conexión a la base de datos
+     * @return mysqli
+     */
+    public function getConexion()
+    {
+        return $this->conectar;
+    }
+
+    /**
      * @return mixed
      */
     public function getUsuarioId()
@@ -274,5 +283,114 @@ class Usuario
     }
 
 
-}
+    /**
+     * Genera y guarda un código de verificación para recuperación de contraseña
+     * @return array
+     */
+    public function generarCodigoRecuperacion()
+    {
+        $respuesta = ["res" => false];
+        try {
+            // Verificar que el email existe
+            $sql = "SELECT usuario_id, nombres, email FROM usuarios WHERE email = ? AND estado = '1'";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("s", $this->email);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
+            if ($row = $result->fetch_assoc()) {
+                // Generar código de 6 dígitos
+                $codigo = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+                
+                // Guardar código con timestamp (válido por 15 minutos)
+                $token = $codigo . '|' . (time() + 900); // 900 segundos = 15 minutos
+                
+                $sql = "UPDATE usuarios SET token_reset = ? WHERE usuario_id = ?";
+                $stmt = $this->conectar->prepare($sql);
+                $stmt->bind_param("si", $token, $row['usuario_id']);
+                
+                if ($stmt->execute()) {
+                    $respuesta['res'] = true;
+                    $respuesta['codigo'] = $codigo;
+                    $respuesta['nombres'] = $row['nombres'];
+                    $respuesta['email'] = $row['email'];
+                } else {
+                    $respuesta['msg'] = "Error al generar el código";
+                }
+            } else {
+                $respuesta['msg'] = "No se encontró un usuario activo con ese correo electrónico";
+            }
+        } catch (Exception $e) {
+            error_log("Error en generarCodigoRecuperacion: " . $e->getMessage());
+            $respuesta['msg'] = "Error al procesar la solicitud";
+        }
+        return $respuesta;
+    }
+
+    /**
+     * Verifica el código y actualiza la contraseña
+     * @param string $codigo
+     * @param string $nuevaClave
+     * @return array
+     */
+    public function resetearPassword($codigo, $nuevaClave)
+    {
+        $respuesta = ["res" => false];
+        try {
+            // Buscar usuario por email
+            $sql = "SELECT usuario_id, token_reset FROM usuarios WHERE email = ? AND estado = '1'";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("s", $this->email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                if (empty($row['token_reset'])) {
+                    $respuesta['msg'] = "No hay solicitud de recuperación activa";
+                    return $respuesta;
+                }
+
+                // Separar código y timestamp
+                $partes = explode('|', $row['token_reset']);
+                if (count($partes) !== 2) {
+                    $respuesta['msg'] = "Código de recuperación inválido";
+                    return $respuesta;
+                }
+
+                $codigoGuardado = $partes[0];
+                $expiracion = intval($partes[1]);
+
+                // Verificar que el código coincida
+                if ($codigo !== $codigoGuardado) {
+                    $respuesta['msg'] = "Código de verificación incorrecto";
+                    return $respuesta;
+                }
+
+                // Verificar que no haya expirado
+                if (time() > $expiracion) {
+                    $respuesta['msg'] = "El código ha expirado. Solicita uno nuevo";
+                    return $respuesta;
+                }
+
+                // Actualizar contraseña y limpiar token
+                $claveEncriptada = sha1($nuevaClave);
+                $sql = "UPDATE usuarios SET clave = ?, token_reset = NULL WHERE usuario_id = ?";
+                $stmt = $this->conectar->prepare($sql);
+                $stmt->bind_param("si", $claveEncriptada, $row['usuario_id']);
+
+                if ($stmt->execute()) {
+                    $respuesta['res'] = true;
+                    $respuesta['msg'] = "Contraseña actualizada correctamente";
+                } else {
+                    $respuesta['msg'] = "Error al actualizar la contraseña";
+                }
+            } else {
+                $respuesta['msg'] = "Usuario no encontrado";
+            }
+        } catch (Exception $e) {
+            error_log("Error en resetearPassword: " . $e->getMessage());
+            $respuesta['msg'] = "Error al procesar la solicitud";
+        }
+        return $respuesta;
+    }
+}

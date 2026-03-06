@@ -215,16 +215,20 @@ class TallerCotizacion
 
     public function verificarExistencia($idOrden)
     {
+        error_log("verificarExistencia llamado con ID: $idOrden");
+        
         $sql = "SELECT id_cotizacion FROM taller_cotizaciones WHERE id_prealerta = ?";
         $stmt = $this->conectar->prepare($sql);
         
         if (!$stmt) {
+            error_log("Error al preparar consulta verificarExistencia: " . $this->conectar->error);
             throw new Exception("Error al preparar la consulta: " . $this->conectar->error);
         }
         
         $stmt->bind_param("i", $idOrden);
         
         if (!$stmt->execute()) {
+            error_log("Error al ejecutar consulta verificarExistencia: " . $stmt->error);
             throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
         }
         
@@ -232,9 +236,11 @@ class TallerCotizacion
         
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
+            error_log("Cotización encontrada: " . $row['id_cotizacion'] . " para orden: $idOrden");
             return $row['id_cotizacion'];
         }
         
+        error_log("No se encontró cotización para orden: $idOrden");
         return false;
     }
 

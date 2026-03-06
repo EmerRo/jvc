@@ -19,7 +19,7 @@
     );
 
     if (!esLocalhost) {
-        console.log('🔒 WebSocket deshabilitado: Solo funciona en localhost');
+        // console.log('🔒 WebSocket deshabilitado: Solo funciona en localhost');
         return; // NO inicializar en producción
     }
 

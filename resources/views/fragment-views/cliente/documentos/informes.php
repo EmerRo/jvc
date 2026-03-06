@@ -1,251 +1,6 @@
 <!-- resources\views\fragment-views\cliente\documentos\informes.php -->
-<style>
-    /* Estilos mejorados para previsualización de imágenes */
-    .image-preview-container {
-        border: 2px dashed #e0e0e0;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        transition: all 0.3s ease;
-        position: relative;
-        min-height: 180px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
+<link rel="stylesheet" href="<?= URL::to('/public/css/informes.css') ?>?v=<?= time() ?>">
 
-    .image-preview-container:hover {
-        border-color: #CA3438;
-        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(202, 52, 56, 0.15);
-    }
-
-    .image-preview-container.has-image {
-        border-color: #28a745;
-        background: linear-gradient(135deg, #f8fff9 0%, #e6f7e6 100%);
-        padding: 15px;
-    }
-
-    .preview-image {
-        max-width: 100%;
-        max-height: 120px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-        cursor: pointer;
-    }
-
-    .preview-image:hover {
-        transform: scale(1.05);
-    }
-
-    .image-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        justify-content: center;
-    }
-
-    .btn-image-action {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .btn-view {
-        background: #007bff;
-        color: white;
-    }
-
-    .btn-view:hover {
-        background: #0056b3;
-        transform: translateY(-1px);
-    }
-
-    .btn-remove {
-        background: #dc3545;
-        color: white;
-    }
-
-    .btn-remove:hover {
-        background: #c82333;
-        transform: translateY(-1px);
-    }
-
-    .upload-placeholder {
-        color: #6c757d;
-        font-size: 14px;
-    }
-
-    .upload-icon {
-        font-size: 48px;
-        color: #CA3438;
-        margin-bottom: 15px;
-        opacity: 0.7;
-    }
-
-    .image-info {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 8px 12px;
-        border-radius: 6px;
-        margin-top: 8px;
-        font-size: 11px;
-        color: #495057;
-    }
-
-    /* Modal para vista completa */
-    .image-modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        animation: fadeIn 0.3s ease;
-    }
-
-    .image-modal-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 90%;
-        max-height: 90%;
-    }
-
-    .image-modal img {
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-    }
-
-    .image-modal-close {
-        position: absolute;
-        top: 15px;
-        right: 35px;
-        color: #fff;
-        font-size: 40px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .image-modal-close:hover {
-        color: #CA3438;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-</style>
-
-<style>
-    /* Contenedor de la vista previa del documento */
-    .document-preview {
-        height: 250px;
-        overflow: hidden;
-        display: block;
-        background-color: white;
-        padding: 0;
-        margin: 0;
-    }
-
-    /* Estilo para el canvas de PDF */
-    .pdf-preview-canvas {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 100%;
-        object-fit: contain;
-        display: block;
-        margin: 0 auto;
-    }
-
-    /* Asegurar que los botones sean clickeables */
-    #btn-preview-informe,
-    #btn-save-informe,
-    #btn-preview-template,
-    #btn-save-template,
-    #btn-preview-membretes,
-    #btn-save-membretes,
-    .btn-outline-secondary {
-        position: relative;
-        z-index: 1000;
-        pointer-events: auto;
-    }
-
-    /* Asegurar que el editor no sobrepase su contenedor */
-    .ql-container {
-        overflow: visible;
-        z-index: 1;
-    }
-
-    .card-body {
-        overflow: visible;
-    }
-
-    /* Asegurar que los modales tengan el z-index correcto */
-    .modal {
-        z-index: 1050;
-    }
-
-    .modal-backdrop {
-        z-index: 1040;
-    }
-
-    /* Asegurar que los botones del modal sean clickeables */
-    .modal-footer .btn {
-        position: relative;
-        z-index: 1060;
-        pointer-events: auto;
-    }
-
-    /* Solucionar problema de aria-hidden */
-    #editarPlantillaInformeModal {
-        z-index: 1055 !important;
-    }
-
-    #editarPlantillaInformeModal .modal-backdrop {
-        z-index: 1054 !important;
-    }
-
-    /* Prevenir que el layout-wrapper interfiera */
-    #layout-wrapper[aria-hidden="true"] {
-        pointer-events: none;
-    }
-
-    #layout-wrapper[aria-hidden="true"] .modal {
-        pointer-events: auto;
-    }
-
-    /* Asegurar que los botones sean clickeables */
-    #editarPlantillaInformeModal .modal-footer .btn {
-        position: relative;
-        z-index: 1060 !important;
-        pointer-events: auto !important;
-    }
-
-    /* Prevenir focus issues */
-    #editarPlantillaInformeModal.modal.show {
-        display: block !important;
-    }
-</style>
 <!-- Añadir PDF.js para la vista previa de documentos -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
@@ -259,7 +14,9 @@
 
 <div class="tab-content" id="informesTabsContent">
     <!-- Navegación entre Lista y Nuevo Informe -->
-    <div class="d-flex mb-4 gap-2">
+    
+    <!-- Versión Desktop: Botones horizontales -->
+    <div class="d-none d-lg-flex mb-4 gap-2 flex-wrap">
         <button class="btn border-rojo"
             onclick="$('#lista-informes').addClass('show active'); $('#nuevo-informe, #editar-informe').removeClass('show active');">
             <i class="fas fa-list me-2"></i>Lista de Informes
@@ -274,33 +31,74 @@
             <i class="fas fa-image me-2"></i>Gestionar Membretes
         </button>
         <button class="btn bg-rojo hover:bg-white" onclick="window.InformesModule.reiniciar()">
-    <i class="fas fa-sync me-2"></i>Reiniciar Módulo
-</button>
+            <i class="fas fa-sync me-2"></i>Reiniciar Módulo
+        </button>
+    </div>
 
     </div>
     <!-- Lista de Informes -->
     <div class="tab-pane fade show active" id="lista-informes" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="text-negro font-medium">Informes</h3>
-            <div class="d-flex gap-2">
-                <div class="input-group">
+        <!-- Título con menú móvil y búsqueda -->
+        <div class="mb-4">
+            <!-- Título con dropdown móvil -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-negro font-medium mb-0">Informes</h3>
+                <!-- Dropdown móvil al lado del título -->
+                <div class="dropdown d-lg-none">
+                    <button class="btn btn-sm border-rojo" type="button" id="dropdownMenuInformes" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuInformes">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); $('#lista-informes').addClass('show active'); $('#nuevo-informe, #editar-informe').removeClass('show active');">
+                                <i class="fas fa-list me-2 text-rojo"></i>Lista de Informes
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); mostrarFormularioNuevoInforme();">
+                                <i class="fas fa-plus me-2 text-rojo"></i>Nuevo Informe
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); $('#editarPlantillaInformeModal').modal('show');">
+                                <i class="fas fa-edit me-2 text-rojo"></i>Editar Plantilla
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); $('#gestionarMembretesInformeModal').modal('show');">
+                                <i class="fas fa-image me-2 text-rojo"></i>Gestionar Membretes
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); window.InformesModule.reiniciar();">
+                                <i class="fas fa-sync me-2 text-rojo"></i>Reiniciar Módulo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Búsqueda y filtro -->
+            <div class="d-flex justify-content-end gap-2">
+                <div class="input-group" style="max-width: 300px;">
                     <span class="input-group-text bg-rojo text-white"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control border-rojo" id="buscar-informe"
                         placeholder="Buscar informes..." onkeyup="buscarInformes()">
                 </div>
-                <div class="dropdown">
-                    <button class="btn border-rojo dropdown-toggle" type="button" id="dropdownFiltro"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                    <ul class="dropdown-menu" id="filtro-tipos" aria-labelledby="dropdownFiltro">
-                        <li>
-                            <h6 class="dropdown-header">Tipo de Informe</h6>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-tipo="todos">Todos</a></li>
-                        <!-- Se cargarán dinámicamente los tipos de informes -->
-                    </ul>
-                </div>
+                <button class="btn border-rojo dropdown-toggle" type="button" id="dropdownFiltro"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter"></i><span class="d-none d-sm-inline ms-2">Filtrar</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="filtro-tipos" aria-labelledby="dropdownFiltro">
+                    <li>
+                        <h6 class="dropdown-header">Tipo de Informe</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="#" data-tipo="todos">Todos</a></li>
+                    <!-- Se cargarán dinámicamente los tipos de informes -->
+                </ul>
             </div>
         </div>
 
@@ -1627,6 +1425,14 @@ function cleanup() {
             // Actualizar grid de informes (solo las tarjetas)
             $("#lista-informes-container").html(html);
 
+            // Inicializar dropdowns de Bootstrap para los elementos dinámicos
+            setTimeout(() => {
+                const dropdownElementList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+                dropdownElementList.forEach(dropdownToggleEl => {
+                    new bootstrap.Dropdown(dropdownToggleEl);
+                });
+            }, 100);
+
             // Actualizar controles de paginación por separado
             if (totalPaginas > 1) {
                 let paginacionHtml = `
@@ -2585,105 +2391,105 @@ function cleanup() {
                         </div>
                     </div>
                 </div>
-      <!-- CONTENEDOR DE IMÁGENES DEL INFORME MEJORADO -->
-<div class="container-fluid p-0 mb-3">
-    <div class="row">
-        <div class="col-md-12">
-            <h6 class="fw-medium text-negro mb-3">
-                <i class="fas fa-images me-2"></i>Imágenes del Informe (Opcional)
-                <small class="text-muted">- Aparecerán en una segunda página</small>
-            </h6>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <label for="imagen1_informe" class="form-label fw-medium text-negro">Primera Imagen</label>
-            
-            <div class="image-preview-container" id="preview-container-1">
-                <input type="file" class="d-none" id="imagen1_informe" name="imagen1" 
-                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 1)">
-                
-                <div id="upload-area-1" class="upload-area" onclick="document.getElementById('imagen1_informe').click()">
-                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <div class="upload-placeholder">
-                        <strong>Haz clic para seleccionar</strong><br>
-                        <small>o arrastra una imagen aquí</small>
-                    </div>
-                </div>
-                
-                <div id="preview-area-1" class="preview-area" style="display: none;">
-                    <img id="preview-img-1" class="preview-image" onclick="showImageModal(this.src)">
-                    <div class="image-actions">
-                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-1').src)">
-                            <i class="fas fa-eye"></i> Ver
-                        </button>
-                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(1)">
-                            <i class="fas fa-trash"></i> Quitar
-                        </button>
-                    </div>
-                    <div class="image-info" id="image-info-1"></div>
-                </div>
-            </div>
-            
-            <div class="form-text text-gris small mt-2">
-                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <label for="imagen2_informe" class="form-label fw-medium text-negro">Segunda Imagen</label>
-            
-            <div class="image-preview-container" id="preview-container-2">
-                <input type="file" class="d-none" id="imagen2_informe" name="imagen2" 
-                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 2)">
-                
-                <div id="upload-area-2" class="upload-area" onclick="document.getElementById('imagen2_informe').click()">
-                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <div class="upload-placeholder">
-                        <strong>Haz clic para seleccionar</strong><br>
-                        <small>o arrastra una imagen aquí</small>
-                    </div>
-                </div>
-                
-                <div id="preview-area-2" class="preview-area" style="display: none;">
-                    <img id="preview-img-2" class="preview-image" onclick="showImageModal(this.src)">
-                    <div class="image-actions">
-                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-2').src)">
-                            <i class="fas fa-eye"></i> Ver
-                        </button>
-                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(2)">
-                            <i class="fas fa-trash"></i> Quitar
-                        </button>
-                    </div>
-                    <div class="image-info" id="image-info-2"></div>
-                </div>
-            </div>
-            
-            <div class="form-text text-gris small mt-2">
-                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para vista completa de imagen -->
-<div id="imageModal" class="image-modal" onclick="closeImageModal()">
-    <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
-    <div class="image-modal-content">
-        <img id="modalImage">
-    </div>
-</div>
-    
                 <!-- CONTENEDOR 5: CONTENIDO DEL INFORME (INDEPENDIENTE) -->
                 <div class="container-fluid p-0 mb-3">
                     <div class="row">
                         <div class="col-md-12">
                             <label class="form-label fw-medium text-negro">Contenido del Informe <span class="text-danger">*</span></label>
                             <div id="editor-container-informe" style="min-height: 400px; border: 1px solid #ccc; border-radius: 5px;">
-                            <p id="error-contenido" class="text-danger small mt-1" style="display: none;">Este campo es requerido</p>
                                 <!-- El editor Quill se cargará aquí -->
                             </div>
+                            <p id="error-contenido" class="text-danger small mt-1" style="display: none;">Este campo es requerido</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- CONTENEDOR 6: IMÁGENES DEL INFORME (DESPUÉS DEL CONTENIDO) -->
+                <div class="container-fluid p-0 mb-3">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6 class="fw-medium text-negro mb-3">
+                                <i class="fas fa-images me-2"></i>Imágenes del Informe (Opcional)
+                                <small class="text-muted">- Aparecerán en una segunda página</small>
+                            </h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="imagen1_informe" class="form-label fw-medium text-negro">Primera Imagen</label>
+                            
+                            <div class="image-preview-container" id="preview-container-1">
+                                <input type="file" class="d-none" id="imagen1_informe" name="imagen1" 
+                                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 1)">
+                                
+                                <div id="upload-area-1" class="upload-area" onclick="document.getElementById('imagen1_informe').click()">
+                                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                    <div class="upload-placeholder">
+                                        <strong>Haz clic para seleccionar</strong><br>
+                                        <small>o arrastra una imagen aquí</small>
+                                    </div>
+                                </div>
+                                
+                                <div id="preview-area-1" class="preview-area" style="display: none;">
+                                    <img id="preview-img-1" class="preview-image" onclick="showImageModal(this.src)">
+                                    <div class="image-actions">
+                                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-1').src)">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </button>
+                                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(1)">
+                                            <i class="fas fa-trash"></i> Quitar
+                                        </button>
+                                    </div>
+                                    <div class="image-info" id="image-info-1"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-text text-gris small mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="imagen2_informe" class="form-label fw-medium text-negro">Segunda Imagen</label>
+                            
+                            <div class="image-preview-container" id="preview-container-2">
+                                <input type="file" class="d-none" id="imagen2_informe" name="imagen2" 
+                                       accept="image/png,image/jpeg,image/gif" onchange="handleImagePreview(this, 2)">
+                                
+                                <div id="upload-area-2" class="upload-area" onclick="document.getElementById('imagen2_informe').click()">
+                                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                    <div class="upload-placeholder">
+                                        <strong>Haz clic para seleccionar</strong><br>
+                                        <small>o arrastra una imagen aquí</small>
+                                    </div>
+                                </div>
+                                
+                                <div id="preview-area-2" class="preview-area" style="display: none;">
+                                    <img id="preview-img-2" class="preview-image" onclick="showImageModal(this.src)">
+                                    <div class="image-actions">
+                                        <button type="button" class="btn-image-action btn-view" onclick="showImageModal(document.getElementById('preview-img-2').src)">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </button>
+                                        <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreview(2)">
+                                            <i class="fas fa-trash"></i> Quitar
+                                        </button>
+                                    </div>
+                                    <div class="image-info" id="image-info-2"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-text text-gris small mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Formatos: PNG, JPG, GIF (Máx. 5MB)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal para vista completa de imagen -->
+                <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+                    <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
+                    <div class="image-modal-content">
+                        <img id="modalImage">
                     </div>
                 </div>
               

@@ -1475,6 +1475,42 @@ if (isset($_GET["guia"]) || isset($guia)) {
                         coti: $("#cotizacion").val()
                     },
                         function (resp) {
+                            // ✅ Validar stock de productos antes de cargar
+                            const productosSinStock = [];
+                            resp.productos.forEach(producto => {
+                                if (producto.stock <= 0 || producto.stock < producto.cantidad) {
+                                    productosSinStock.push({
+                                        codigo: producto.codigo,
+                                        descripcion: producto.descripcion,
+                                        stock: producto.stock || 0,
+                                        solicitado: producto.cantidad
+                                    });
+                                }
+                            });
+
+                            // Si hay productos sin stock, bloquear la venta
+                            if (productosSinStock.length > 0) {
+                                let mensaje = '<div style="text-align: left;">Los siguientes productos no tienen stock suficiente:<br><br>';
+                                productosSinStock.forEach(p => {
+                                    mensaje += `<strong>• ${p.codigo}</strong> - ${p.descripcion}<br>`;
+                                    mensaje += `&nbsp;&nbsp;&nbsp;Stock disponible: <span style="color: red;">${p.stock}</span> | `;
+                                    mensaje += `Cantidad solicitada: <span style="color: orange;">${p.solicitado}</span><br><br>`;
+                                });
+                                mensaje += '</div>';
+                                
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'No se puede realizar la venta',
+                                    html: mensaje,
+                                    confirmButtonText: 'Volver a Cotizaciones',
+                                    confirmButtonColor: '#d33',
+                                    allowOutsideClick: false
+                                }).then(() => {
+                                    window.location.href = '/cotizaciones';
+                                });
+                                return; // Detener la ejecución
+                            }
+
                             vue.productos = resp.productos.map(ert => {
                                 ert.descripcion = ert.codigo.toString().trim() + ' | ' + ert.descripcion
                                 ert.edicion = false
@@ -1524,6 +1560,45 @@ if (isset($_GET["guia"]) || isset($guia)) {
                     _post("/ajs/taller/cotizaciones/info", { coti: cotiId }, function (resp) {
                         
                         if (resp.res) {
+                            // ✅ Validar stock de productos antes de cargar
+                            const productosSinStock = [];
+                            if (resp.productos && resp.productos.length > 0) {
+                                resp.productos.forEach(producto => {
+                                    if (producto.stock <= 0 || producto.stock < producto.cantidad) {
+                                        productosSinStock.push({
+                                            codigo: producto.codigo,
+                                            descripcion: producto.descripcion,
+                                            stock: producto.stock || 0,
+                                            solicitado: producto.cantidad
+                                        });
+                                    }
+                                });
+                            }
+
+                            // Si hay productos sin stock, mostrar advertencia
+                            if (productosSinStock.length > 0) {
+                                let mensaje = 'Los siguientes productos no tienen stock suficiente:\n\n';
+                                productosSinStock.forEach(p => {
+                                    mensaje += `• ${p.codigo} - ${p.descripcion}\n  Stock: ${p.stock} | Solicitado: ${p.solicitado}\n\n`;
+                                });
+                                
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Stock Insuficiente',
+                                    html: mensaje.replace(/\n/g, '<br>'),
+                                    confirmButtonText: 'Continuar de todos modos',
+                                    showCancelButton: true,
+                                    cancelButtonText: 'Cancelar',
+                                    confirmButtonColor: '#f39c12',
+                                    cancelButtonColor: '#d33'
+                                }).then((result) => {
+                                    if (!result.isConfirmed) {
+                                        window.location.href = '/cotizaciones';
+                                        return;
+                                    }
+                                });
+                            }
+
                             // Marcar que viene de taller
                             vue.vieneDetallerCotizacion = true;
                             

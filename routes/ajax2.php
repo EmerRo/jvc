@@ -64,6 +64,7 @@ Route::post('/ajs/data/producto/traslado/almacenes', "ProductosController@trasla
 Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/repuesto/disminuir/stock', "RepuestosController@disminuirStock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/repuesto/traslado/almacenes', "RepuestosController@trasladoAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/repuesto/historial/stock", "RepuestosController@obtenerHistorialStock")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Middleware([ValidarTokenMiddleware::class]);
 
