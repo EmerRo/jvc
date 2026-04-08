@@ -202,12 +202,12 @@ tr:nth-last-child(-n+3) .dropdown-actions {
                
                      
                     <div class="col-md-6">
-                        <div class="text-end">
-                            <a href="/guia/remision/registrar" class="btn border-rojo button-link" >
-                                <i class="fa fa-plus me-1"></i> Crear Guía de Remisión
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/guia/remision/registrar" class="btn btn-sm border-rojo button-link">
+                                <i class="fa fa-truck me-1"></i> Crear Guía de Remisión
                             </a>
-                            <a href="/guia/remision/manual/registrar" class="btn bg-rojo text-white bordes button-link" >
-                                <i class="fa fa-plus me-1"></i> Crear Guía de Remisión Manual
+                            <a href="/guia/remision/manual/registrar" class="btn btn-sm bg-rojo text-white bordes button-link">
+                                <i class="fa fa-edit me-1"></i> Crear Guía de Remisión Manual
                             </a>
                         </div>
                     </div>

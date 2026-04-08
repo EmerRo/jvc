@@ -242,6 +242,14 @@
       "icono": "ri-user-settings-line",
       "ruta": "/usuarios",
       "submodulos": []
+    },
+    {
+      "id": "mi_empresa",
+      "nombre": "MI EMPRESA",
+      "descripcion": "Datos de la empresa",
+      "icono": "ri-building-4-line",
+      "ruta": "/mi-empresa",
+      "submodulos": []
     }
    
   ]

@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 JVC es un **sistema de facturación electrónica peruano** con integración SUNAT. Maneja ventas, compras, cotizaciones, garantías, inventario, guías de remisión y generación de reportes PDF.
 
-**Lenguaje**: PHP (5.4.2+) con JS/jQuery en el frontend
+**Lenguaje**: PHP 7+ con JS/jQuery en el frontend
 **Base de datos**: MySQL 8.0.30 (`magusqao_jvc_factura`, ~120 tablas)
 **Servidor**: Apache con mod_rewrite (desarrollo en Laragon)
+**URL local**: `http://jvc.test` (virtual host de Laragon)
 **Zona horaria**: America/Lima
 
 ## Entorno de Desarrollo
@@ -17,7 +18,8 @@ JVC es un **sistema de facturación electrónica peruano** con integración SUNA
 - **Config de BD**: `utils/config.php` — constantes HOST_SS, DATABASE_SS, USER_SS, PASSWORD_SS
 - **Sin herramientas de build**: No hay Webpack, npm ni preprocesadores CSS. Assets estáticos servidos directamente
 - **Sin framework de testing**: No hay PHPUnit ni tests automatizados
-- **Dependencia Composer**: Solo `cboden/ratchet` para WebSocket
+- **Dependencia Composer**: Solo `cboden/ratchet` para WebSocket (raíz)
+- **Librerías vendorizadas** en `utils/lib/`: mPDF (PDFs), PHPMailer, PHPSpreadsheet (Excel), QR code (endroid), Greenter GRE (SUNAT guías electrónicas)
 
 ## Comando MySQL directo
 
@@ -91,6 +93,17 @@ Plantillas PHP puras (sin Blade/Twig). Layout principal en `resources/views/inde
 
 Conexión MySQLi directa con constantes de `utils/config.php`. Sin migraciones formales — los cambios de esquema se hacen con archivos `.sql` sueltos en `database/` o en la raíz del proyecto.
 
+### DataTables Server-Side (`app/clases/serverside.php`)
+
+Clase `TableData` con conexión PDO separada (no usa `Conexion`). Procesa peticiones DataTables server-side. Config de módulos en `ServerSide/modulos.json`.
+
+### Clases de Servicio (`app/clases/`)
+
+- `SunatApi.php` / `SunatApi2.php` — Integración con API de SUNAT
+- `EnvioEmail.php` — Envío de correos vía PHPMailer
+- `SendURL.php` — Peticiones HTTP a servicios externos
+- `serverside.php` — Procesamiento DataTables (ver arriba)
+
 ### Integración SUNAT (`sunat/`)
 
 Usa librería Greenter para generación de XML. Templates Twig para XML de facturas/guías. Certificados digitales en `facturacion/certificados/`. Respuestas CDR en `facturacion/cdr/`.
@@ -119,3 +132,7 @@ Usa librería Greenter para generación de XML. Templates Twig para XML de factu
 - Nombres de tablas en español: `ventas`, `compras`, `clientes`, `productos`, `cotizaciones`, `garantia`, `guias_remision`
 - Uploads van a `public/uploads/`
 - Archivos generados (PDFs, XMLs) van a `files/` y `reportes/`
+- Generación de PDFs usa mPDF (`utils/lib/mpdf/`) — controladores como `ReportesVentaController` e `InformePDF` escriben HTML inline y lo pasan a `$this->mpdf->WriteHTML()`
+- Parámetros de ruta con prefijo `:` (ej: `/pdf/:venta`) se pasan como argumentos al método del controlador
+- `Route::baseStatic()` + `Route::postBase()` patrón para páginas con vista GET y acción POST en la misma URL
+- Constante `DOMINIO` en `utils/config.php` define la URL base del sistema

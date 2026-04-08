@@ -49,7 +49,7 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="javascript:void(0)" id="ventas-reporte-mobile">
-                                            <i class="fa fa-file-pdf-o me-2"></i> Reporte de Vendedores
+                                            <i class="fa fa-file-pdf me-2"></i> Reporte de Vendedores
                                         </a>
                                     </li>
                                 <?php endif; ?>
@@ -60,7 +60,7 @@
                     <!-- Botones para desktop -->
                     <?php if ($_SESSION['rol'] == 1): ?>
                         <button id="ventas-reporte" class="btn bg-white text-rojo border-rojo btn-nueva-cotizacion-desktop" style="margin-left: 5px;">
-                            <i class="fa fa-file-pdf-o"></i> Exportar Reporte de Vendedores
+                            <i class="fa fa-file-pdf"></i> Exportar Reporte de Vendedores
                         </button>
                     <?php endif; ?>
                     <a href="/cotizaciones/add" id="folder_btn_nuevo_folder"

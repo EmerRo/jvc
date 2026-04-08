@@ -275,7 +275,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                             <label for="precio-especial" class="col-form-label me-2">Precio Especial ({{simboloMonedaCotizacion}})</label>
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input" type="checkbox"
-                                                                    onclick="toggleInput(this)"
+                                                                    id="toggle-precio-especial"
+                                                                    onclick="toggleExclusivo(this, 'precio-especial', 'toggle-descuento', 'descuento')"
                                                                     style="width: 2em; height: 1em;">
                                                                 <label class="form-check-label ms-1">Activar</label>
                                                             </div>
@@ -293,7 +294,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                             <label for="descuento" class="col-form-label me-2">Descuento General</label>
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input" type="checkbox"
-                                                                    onclick="toggleInput(this)"
+                                                                    id="toggle-descuento"
+                                                                    onclick="toggleExclusivo(this, 'descuento', 'toggle-precio-especial', 'precio-especial')"
                                                                     style="width: 2em; height: 1em;">
                                                                 <label class="form-check-label ms-1">Activar</label>
                                                             </div>
@@ -1391,6 +1393,14 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                             vue.venta.moneda = resp.moneda.toString();
                             vue.venta.tc = resp.cm_tc;
 
+                            // Activar toggle de descuento si viene con valor
+                            if (resp.descuento && resp.descuento !== '' && resp.descuento !== '0') {
+                                var toggleDesc = document.getElementById('toggle-descuento');
+                                var inputDesc = document.getElementById('descuento');
+                                if (toggleDesc) toggleDesc.checked = true;
+                                if (inputDesc) inputDesc.disabled = false;
+                            }
+
                             setTimeout(function () {
                                 vue.venta.dias_lista = resp.cuotas
                             }, 1000)
@@ -2149,12 +2159,26 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
 </script>
 
 <script>
-    function toggleInput(checkbox) {
-        // Busca el input relacionado a la clase 'precio-input' dentro del mismo contenedor padre
-        const container = checkbox.closest('.col-lg-6');
-        const input = container.querySelector('.precio-input');
-        if (input) {
-            input.disabled = !checkbox.checked;  // Habilita el input si la casilla está marcada
+    function toggleExclusivo(checkbox, inputId, otherToggleId, otherInputId) {
+        const input = document.getElementById(inputId);
+        const otherToggle = document.getElementById(otherToggleId);
+        const otherInput = document.getElementById(otherInputId);
+
+        if (checkbox.checked) {
+            // Activar este input
+            input.disabled = false;
+            // Desactivar el otro
+            if (otherToggle) {
+                otherToggle.checked = false;
+            }
+            if (otherInput) {
+                otherInput.disabled = true;
+                // Disparar evento input para que Vue detecte el cambio
+                otherInput.value = '';
+                otherInput.dispatchEvent(new Event('input'));
+            }
+        } else {
+            input.disabled = true;
         }
     }
 

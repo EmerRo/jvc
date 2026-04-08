@@ -882,4 +882,56 @@ class RepuestosController extends Controller
 
         return json_encode($respuesta);
     }
+
+    public function repuestosGrid()
+    {
+        $respuesta = ["res" => false, "data" => [], "total" => 0];
+
+        try {
+            $almacenId = isset($_POST['almacenId']) ? $_POST['almacenId'] : 1;
+            $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+            $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 12;
+            $search = isset($_POST['search']) ? $this->conexion->real_escape_string($_POST['search']) : '';
+            $offset = ($page - 1) * $limit;
+
+            $whereConditions = [];
+            $whereConditions[] = "r.id_empresa = '{$_SESSION['id_empresa']}'";
+            $whereConditions[] = "r.sucursal = '{$_SESSION['sucursal']}'";
+            $whereConditions[] = "r.estado = '1'";
+            $whereConditions[] = "r.almacen = '$almacenId'";
+
+            if (!empty($search)) {
+                $whereConditions[] = "(r.nombre LIKE '%$search%' OR r.codigo LIKE '%$search%')";
+            }
+
+            $whereClause = "WHERE " . implode(" AND ", $whereConditions);
+
+            $sqlCount = "SELECT COUNT(*) as total FROM repuestos r $whereClause";
+            $resultCount = $this->conexion->query($sqlCount);
+            $totalRow = $resultCount->fetch_assoc();
+            $respuesta["total"] = intval($totalRow['total']);
+
+            $sql = "SELECT r.*, u.nombre as unidad_nombre
+                FROM repuestos r
+                LEFT JOIN unidades u ON r.unidad = u.id
+                $whereClause
+                ORDER BY r.codigo ASC
+                LIMIT $limit OFFSET $offset";
+
+            $resultado = $this->conexion->query($sql);
+
+            if ($resultado && $resultado->num_rows > 0) {
+                while ($row = $resultado->fetch_assoc()) {
+                    $respuesta["data"][] = $row;
+                }
+                $respuesta["res"] = true;
+            } else if ($resultado) {
+                $respuesta["res"] = true;
+            }
+        } catch (Exception $e) {
+            $respuesta["error"] = $e->getMessage();
+        }
+
+        return json_encode($respuesta);
+    }
 }

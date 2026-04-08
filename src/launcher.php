@@ -6,6 +6,7 @@ date_default_timezone_set('America/Lima');
 require './utils/config.php';
 require './src/Roots.php';
 require './utils/Tools.php';
+require './utils/PdfHelper.php';
 require_once PATH_APP."http/controllers/Controller.php";
 require_once PATH_APP."http/middleware/Middleware.php";
 require PATH_SRC . 'autoloader/Autoloader.php';

@@ -26,6 +26,10 @@ Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");
 
 /* ====================== FIN DE LAS RUTAS DE CONSULTAS CONTROLLER ========================================= */
 
+/* ====================== RUTAS MI EMPRESA ========================================= */
+Route::post("/ajs/empresa/info", "EmpresaController@infoEmpresa")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/empresa/actualizar", "EmpresaController@actualizarEmpresa")->Middleware([ValidarTokenMiddleware::class]);
+
 Route::get("/data/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataCotizacionSS")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataTallerCotizacionSS")->middleware([ValidarTokenMiddleware::class]);
 
@@ -58,6 +62,7 @@ Route::get("/ajas/get/diagnosticos", "ProductosController@saveDiagnostico");
 
 Route::get("/ajs/server/sider/productos","ProductosController@listaProductoServerSide");
 Route::get("/ajs/server/sider/repuestos","RepuestosController@listaRepuestoServerSide");
+Route::post("/ajs/data/repuestos/grid", "RepuestosController@repuestosGrid")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/producto/aumentar/stock', "ProductosController@aumentarStock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/producto/disminuir/stock', "ProductosController@disminuirStock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/producto/traslado/almacenes', "ProductosController@trasladoAlmacenes")->Middleware([ValidarTokenMiddleware::class]);

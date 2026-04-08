@@ -42,7 +42,7 @@ $listaNE = $conexion->query($sql);
                 </div>
 
                 <table id="tabla-notaselect" class="table table-bordered table-sm text-center" >
-                    <thead>
+                    <thead class="table-light">
                     <tr>
                         <!-- <th></th> -->
                         <th>Documento</th>

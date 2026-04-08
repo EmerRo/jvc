@@ -52,14 +52,14 @@ $c_ubigeo = new Ubigeo();
                             <form role="form" class="form-horizontal">
                                 <h5 class="border-bottom pb-2">Datos de la Guía</h5>
                                 <div class="form-group row mb-3">
-                                    <label class="col-md-4 control-label text-end">Doc.</label>
+                                    <label class="col-md-4 col-form-label text-end">Doc.</label>
                                     <div class="col-md-8">
                                         <input type="text" class="form-control text-center" value="GUIA DE REMISION"
                                             readonly name="input_doc_envio">
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Ser | Num</label>
+                                    <label class="col-lg-4 col-form-label text-end">Ser | Num</label>
                                     <div class="col-lg-4 pe-1">
                                         <input v-model="guia.serie_g" type="text" name="input_serie_guia"
                                             id="input_serie_guia" class="form-control text-center">
@@ -70,14 +70,14 @@ $c_ubigeo = new Ubigeo();
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Fecha</label>
+                                    <label class="col-lg-4 col-form-label text-end">Fecha</label>
                                     <div class="col-lg-8">
                                         <input type="date" name="input_fecha" id="input_fecha"
                                             class="form-control text-center" value="<?php echo date("Y-m-d"); ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-md-4 control-label text-end">Motivo.</label>
+                                    <label class="col-md-4 col-form-label text-end">Motivo.</label>
                                     <div class="col-md-8">
                                         <div class="input-group">
                                             <select class="form-select" name="select_motivo" id="select_motivo">
@@ -91,14 +91,14 @@ $c_ubigeo = new Ubigeo();
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Peso total</label>
+                                    <label class="col-lg-4 col-form-label text-end">Peso total</label>
                                     <div class="col-lg-8">
                                         <input v-model="guia.peso" type="text" id="input_peso_total"
                                             class="form-control text-center" value="0">
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Nro Bultos</label>
+                                    <label class="col-lg-4 col-form-label text-end">Nro Bultos</label>
                                     <div class="col-lg-8">
                                         <input v-model="guia.num_bultos" type="text" id="input_nro_bultos"
                                             class="form-control text-center" value="0">
@@ -106,7 +106,7 @@ $c_ubigeo = new Ubigeo();
                                 </div>
                                 <h5 class="border-bottom pb-2">Datos de la Fac - Bol</h5>
                                 <div class="form-group row mb-3">
-                                    <label class="col-md-4 control-label text-end">Doc.</label>
+                                    <label class="col-md-4 col-form-label text-end">Doc.</label>
                                     <div class="col-md-8">
                                         <select v-model="guia.tipo_doc" class="form-select"
                                             name="select_documento_venta" id="select_documento_venta">
@@ -131,15 +131,15 @@ $c_ubigeo = new Ubigeo();
                                     </div>
                                 <div class="form-group row mb-3">
                                     <div class="col-lg-12 text-center">
-                                        <button type="button" class="btn bg-rojo text-white" @click="comprobarVenta">
-                                            <i class="fa fa-search"></i> Comprobar Documento Venta
+                                        <button type="button" class="btn bg-white text-rojo border-rojo w-100" @click="comprobarVenta">
+                                            <i class="fa fa-search me-2"></i> Comprobar Documento Venta
                                         </button>
                                         <input type="hidden" name="input_id_venta_referencia"
                                             id="input_id_venta_referencia">
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Ser | Num</label>
+                                    <label class="col-lg-4 col-form-label text-end">Ser | Num</label>
                                     <div class="col-lg-4 pe-1">
                                         <input v-model="guia.serie" type="text" name="input_serie_venta"
                                             id="input_serie_venta" class="form-control text-center">
@@ -150,7 +150,7 @@ $c_ubigeo = new Ubigeo();
                                     </div>
                                 </div>
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-4 control-label text-end">Total</label>
+                                    <label class="col-lg-4 col-form-label text-end">Total</label>
                                     <div class="col-lg-8">
                                         <input type="text" class="form-control text-end" name="input_total_venta"
                                             id="input_total_venta" v-model="guia.total" disabled>
@@ -211,7 +211,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Agregar Destinatario -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-user-plus me-2"></i>Agregar Destinatario
+                                        <i class="fas fa-user-plus me-2 text-rojo"></i>Agregar Destinatario
                                     </label>
                                     <div class="col-lg-9">
                                         <div class="input-group">
@@ -228,7 +228,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Destinatario -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-user me-2"></i>Destinatario
+                                        <i class="fas fa-user me-2 text-rojo"></i>Destinatario
                                     </label>
                                     <div class="col-lg-9">
                                         <input v-model="guia.nom_cli" type="text" class="form-control"
@@ -239,7 +239,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Punto Partida -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-map-marker-alt me-2"></i>Punto Partida
+                                        <i class="fas fa-map-marker-alt me-2 text-rojo"></i>Punto Partida
                                     </label>
                                     <div class="col-lg-9">
                                         <input type="text" class="form-control" v-model="guia.dir_part"
@@ -250,7 +250,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Punto Llegada -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-flag-checkered me-2"></i>Punto Llegada
+                                        <i class="fas fa-flag-checkered me-2 text-rojo"></i>Punto Llegada
                                     </label>
                                     <div class="col-lg-9">
                                         <input type="text" class="form-control" v-model="guia.dir_cli"
@@ -261,7 +261,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Ubigeo -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-map me-2"></i>Ubigeo
+                                        <i class="fas fa-map me-2 text-rojo"></i>Ubigeo
                                     </label>
                                     <div class="col-lg-9">
                                         <div class="row g-2">
@@ -302,7 +302,7 @@ $c_ubigeo = new Ubigeo();
                                         <!-- Transportista movido aquí -->
                                         <div class="row mb-4">
                                             <label class="col-lg-3 col-form-label">
-                                                <i class="fas fa-truck me-2"></i>Transportista
+                                                <i class="fas fa-truck me-2 text-rojo"></i>Transportista
                                             </label>
                                             <div class="col-lg-4">
                                                 <select v-model="transporte.tipo_trans" class="form-select"
@@ -316,7 +316,7 @@ $c_ubigeo = new Ubigeo();
                                         <!-- Tipo y Número de Documento (REORGANIZADO) -->
                                         <div v-show="transporte.tipo_trans === '2'" class="row mb-4">
                                             <label class="col-lg-3 col-form-label">
-                                                <i class="fas fa-file-alt me-2"></i>Documentos
+                                                <i class="fas fa-file-alt me-2 text-rojo"></i>Documentos
                                             </label>
                                             <div class="col-lg-9">
                                                 <div class="row g-2">
@@ -334,7 +334,7 @@ $c_ubigeo = new Ubigeo();
                                                                 placeholder="N° Documento" v-model="transporte.num_docu"
                                                                 maxlength="11">
                                                             <button
-                                                                class="btn border-rojo text-rojo bg-white d-flex align-items-center"
+                                                                class="btn bg-rojo text-white d-flex align-items-center"
                                                                 type="button" @click="buscarDocumentoTransporte">
                                                                 <i class="fas fa-check me-1"></i>
                                                                 Verificar
@@ -407,7 +407,7 @@ $c_ubigeo = new Ubigeo();
                                 <!-- Observaciones -->
                                 <div class="mb-4 row">
                                     <label class="col-lg-3 col-form-label">
-                                        <i class="fas fa-comment-alt me-2"></i>Observaciones
+                                        <i class="fas fa-comment-alt me-2 text-rojo"></i>Observaciones
                                     </label>
                                     <div class="col-lg-9">
                                         <textarea v-model="guia.observacion" class="form-control"
@@ -550,7 +550,7 @@ $c_ubigeo = new Ubigeo();
                     <div class="modal-body position-relative"> <!-- Añadido position-relative -->
                         <form v-on:submit.prevent="addProduct" class="form-horizontal">
                             <div class="form-group row mb-3">
-                                <label class="col-lg-2 control-label">Buscar</label>
+                                <label class="col-lg-2 col-form-label">Buscar</label>
                                 <div class="col-lg-10">
                                     <div class="input-group">
                                         <input type="text" placeholder="Buscar por código o nombre del producto"
@@ -560,7 +560,7 @@ $c_ubigeo = new Ubigeo();
                             </div>
 
                             <div class="form-group row mb-3">
-                                <label class="col-lg-2 control-label">Descripción</label>
+                                <label class="col-lg-2 col-form-label">Descripción</label>
                                 <div class="col-lg-10">
                                     <input required v-model="producto.descripcion" type="text" placeholder="Descripción"
                                         class="form-control" readonly="true">

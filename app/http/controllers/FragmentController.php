@@ -75,12 +75,12 @@ public function ventasProductos()
     $guia = $request->guia;
     
     // DEBUG: Verificar qué parámetros están llegando
-    error_log("🔍 FragmentController ventasProductos() - Parámetros recibidos:");
-    error_log("  - coti: " . ($coti ?? 'NULL'));
-    error_log("  - coti_taller: " . ($coti_taller ?? 'NULL'));
-    error_log("  - guia: " . ($guia ?? 'NULL'));
-    error_log("  - _GET: " . json_encode($_GET));
-    error_log("  - _POST: " . json_encode($_POST));
+    // error_log("🔍 FragmentController ventasProductos() - Parámetros recibidos:");
+    // error_log("  - coti: " . ($coti ?? 'NULL'));
+    // error_log("  - coti_taller: " . ($coti_taller ?? 'NULL'));
+    // error_log("  - guia: " . ($guia ?? 'NULL'));
+    // error_log("  - _GET: " . json_encode($_GET));
+    // error_log("  - _POST: " . json_encode($_POST));
     
     return $this->view("fragment-views/cliente/ventas-productos", [
         'coti' => $coti,
@@ -156,6 +156,11 @@ public function ventasProductos()
     public function usuariosLista()
     {
         return $this->view("fragment-views/cliente/usuarios");
+    }
+
+    public function miEmpresa()
+    {
+        return $this->view("fragment-views/cliente/mi-empresa");
     }
 
 	public function categoria()

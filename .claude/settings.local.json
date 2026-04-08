@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(composer --version)"
+      "Bash(composer --version)",
+      "Bash(C:/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root magusqao_jvc_factura -e \"DESCRIBE detalle_compra;\")"
     ],
     "deny": [],
     "ask": []

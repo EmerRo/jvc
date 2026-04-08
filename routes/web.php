@@ -10,20 +10,20 @@ Route::get('/venta/comprobante/pdf/ma4/:venta/:nombre',"ReportesVentaController@
 Route::get('/venta/comprobante/pdf/:venta',"ReportesVentaController@comprobanteVenta");
 Route::get('/venta/comprobante/pdf/:venta/:nombre',"ReportesVentaController@comprobanteVenta");
 Route::get('/venta/comprobante/pdfd/:venta/:nombre',"ReportesVentaController@comprobanteVentaBinario");
-Route::get('/guia/remision/pdf/:guia','ReportesVentaController@guiaRemision');
+Route::get('/guia/remision/pdf/:guia','ReporteGuiaController@guiaRemision');
 Route::get('/nota/electronica/pdf/:nota','ReportesVentaController@comprobanteNotaE');
 Route::get('/nota/electronica/pdf/:nota/:nombre','ReportesVentaController@comprobanteNotaE');
-Route::get('/guia/remision/pdf/:guia/:nombre','ReportesVentaController@guiaRemision');
+Route::get('/guia/remision/pdf/:guia/:nombre','ReporteGuiaController@guiaRemision');
 
 
 //pdf para voucher de venta
 
 /* Route::get('/venta/comprobante/pdf/:voucher',"ReportesVentaController@comprobanteVenta"); */
-Route::get("/r/cotizaciones/reporte/:coti","ReportesVentaController@comprobanteCotizacion");
-Route::get("/r/cotizaciones/reported/:coti/:ruta","ReportesVentaController@comprobanteCotizacion");
-Route::get("/r/cotizaciones/reporte-media-a4/:coti", "ReportesVentaController@comprobanteCotizacionMediaA4");
-Route::get("/r/cotizaciones/reporte-voucher-8cm/:coti", "ReportesVentaController@comprobanteCotizacionVoucher8cm");
-Route::get("/r/cotizaciones/reporte-voucher-5-6cm/:coti", "ReportesVentaController@comprobanteCotizacionVoucher5_6cm");
+Route::get("/r/cotizaciones/reporte/:coti","ReportesCotizacionController@comprobanteCotizacion");
+Route::get("/r/cotizaciones/reported/:coti/:ruta","ReportesCotizacionController@comprobanteCotizacion");
+Route::get("/r/cotizaciones/reporte-media-a4/:coti", "ReportesCotizacionController@comprobanteCotizacionMediaA4");
+Route::get("/r/cotizaciones/reporte-voucher-8cm/:coti", "ReportesCotizacionController@comprobanteCotizacionVoucher8cm");
+Route::get("/r/cotizaciones/reporte-voucher-5-6cm/:coti", "ReportesCotizacionController@comprobanteCotizacionVoucher5_6cm");
 
 Route::get("/reporte/ventas/pdf/:periodo","GeneradoresController@reportePeriodoVenta");
 Route::get("/reporte/ventas/producto/lista/pdf/","ReportesVentaController@reporteVentaPorProducto");
@@ -116,6 +116,7 @@ Route::get("/reporte/compras","ReporteOrdenCompraController@reporteCompraAll");
 Route::get("/reporte/productos/pdf/:id","ReportesVentaController@reporteProductos");
 
 Route::postBase("/usuarios","FragmentController@usuariosLista");
+Route::postBase("/mi-empresa","FragmentController@miEmpresa");
 // categorias
 Route::postBase("/categorias","FragmentController@categoria");
 

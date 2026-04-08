@@ -271,8 +271,8 @@
                                                                         <td>{{item.codigo_app}} | {{item.nom_prod}}
                                                                         </td>
                                                                         <td>{{item.cantidad}}</td>
-                                                                        <td>{{item.precio}}</td>
-                                                                        <td>{{item.precio*item.cantidad}}</td>
+                                                                        <td>{{parseFloat(item.precio).toFixed(2)}}</td>
+                                                                        <td>{{(item.precio*item.cantidad).toFixed(2)}}</td>
                                                                         <td><button @click="eliminarItemPro(index)"
                                                                                 type="button"
                                                                                 class="btn btn-danger btn-xs">
@@ -479,12 +479,12 @@
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-rojo text-white">
-                                                    <h3 class="modal-title" id="exampleModalLabel">Configuración de
-                                                        Pagos</h3>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    <h5 class="modal-title" id="exampleModalLabel">Configuracion de
+                                                        Pagos</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                                         aria-label="Close"></button>
                                                 </div>
-                                                <div class="modal-body">
+                                                <div class="modal-body" style="font-size: 14px;">
                                                     <!-- Información básica -->
                                                     <div class="row mb-3">
                                                         <div class="col-md-6">

@@ -132,6 +132,12 @@
                                 <img id="barcodeAdd" class="img-fluid" />
                             </div>
 
+                            <!-- Imagen del repuesto (uso interno) -->
+                            <div class="col-md-4 mb-2">
+                                <label><i class="fa fa-image me-1"></i>Imagen (interno)</label>
+                                <input type="file" class="form-control" accept="image/*" @change="onImageChange">
+                            </div>
+
                             <div class="form-group col-md-4 mt-2">
                                 <label><i class="fa fa-tags me-1"></i>¿Utilizar MultiPrecio?</label>
                                 <div class="form-check form-switch">

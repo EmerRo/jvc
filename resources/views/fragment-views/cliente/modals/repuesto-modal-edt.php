@@ -144,6 +144,15 @@
                                 </div>
                             </div>
 
+                            <!-- Imagen del repuesto (uso interno) -->
+                            <div class="col-md-4 mb-2">
+                                <label><i class="fa fa-image me-1"></i>Imagen (interno)</label>
+                                <input type="file" class="form-control" accept="image/*" @change="onImageChangeEdit">
+                                <div v-if="edt.imagen_actual" class="mt-1">
+                                    <small class="text-muted"><i class="fa fa-check-circle text-success"></i> Imagen actual guardada</small>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="form-group col-md-4 mt-2">
                             <label class="d-flex align-items-center">

@@ -8,7 +8,8 @@ $c_ubigeo = new Ubigeo();
 
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="<?= URL::to('/public/css/guia-remision/styles.css') ?>">
+    <link rel="stylesheet" href="<?= URL::to('/public/css/guia-remision/styles.css') ?>?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
 
 </head>
 
@@ -19,16 +20,17 @@ $c_ubigeo = new Ubigeo();
             <div class="col-md-8">
                 <h6 class="page-title">Duplicar Guía de Remisión</h6>
                 <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Ventas</a></li>
-                    <li class="breadcrumb-item"><a href="/ventas" class="button-link">Duplicar Guía de Remisión</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Productos</li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
+                    <li class="breadcrumb-item"><a href="/guias/remision" class="button-link">Guía Remisión</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" style="color: #CA3438;">Duplicar Guía de Remisión</li>
                 </ol>
             </div>
             <div class="col-md-4">
                 <div class="float-end d-none d-md-block">
-                    <button id="backbuttonvp" href="/guias/remision" type="button" class="btn btn-warning button-link">
+                    <a id="backbuttonvp" href="/guias/remision"
+                        class="btn border-rojo text-rojo bg-white button-link">
                         <i class="fa fa-arrow-left"></i> Regresar
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -42,13 +44,18 @@ $c_ubigeo = new Ubigeo();
             <div class="row">
                 <!-- Columna Izquierda -->
                 <div class="col-md-4">
-                    <div class="card">
+                    <div class="card h-100">
+                        <div class="card-header bg-rojo text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-invoice me-2"></i>Información de Documento
+                            </h5>
+                        </div>
                         <div class="card-body">
                             <div class="col-md-12">
                                 <form role="form" class="form-horizontal">
-                                    <h5>Datos de la Guía</h5>
+                                    <h5 class="border-bottom pb-2">Datos de la Guía</h5>
                                     <div class="form-group row mb-3">
-                                        <label class="col-md-4 control-label text-end">Doc.</label>
+                                        <label class="col-md-4 col-form-label text-end">Doc.</label>
                                         <div class="col-md-8">
                                             <input type="text" class="form-control text-center"
                                                 :value="guia.tipo_documento || 'GUIA DE REMISION'" readonly>
@@ -56,7 +63,7 @@ $c_ubigeo = new Ubigeo();
                                     </div>
 
                                     <div class="form-group row mb-3">
-                                        <label class="col-lg-4 control-label text-end">Ser | Num</label>
+                                        <label class="col-lg-4 col-form-label text-end">Ser | Num</label>
                                         <div class="col-lg-4">
                                             <input v-model="guia.serie_g" type="text" class="form-control text-center"
                                                 readonly>
@@ -67,35 +74,85 @@ $c_ubigeo = new Ubigeo();
                                         </div>
                                     </div>
                                     <div class="form-group row mb-3">
-                                        <label class="col-lg-4 control-label text-end">Fecha</label>
-                                        <div class="col-lg-6">
+                                        <label class="col-lg-4 col-form-label text-end">Fecha</label>
+                                        <div class="col-lg-8">
                                             <input type="date" v-model="guia.fecha_emision"
                                                 class="form-control text-center">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-3">
-                                        <label class="col-md-4 control-label text-end">Motivo</label>
-                                        <div class="col-md-8 d-flex gap-2">
-                                            <select class="form-control" v-model="guia.motivo" id="select_motivo">
-                                                <option value="">Seleccione un motivo</option>
-                                            </select>
-                                            <button type="button" class="btn bg-rojo btn-sm px-2" data-bs-toggle="modal"
-                                                data-bs-target="#motivoModal">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
+                                        <label class="col-md-4 col-form-label text-end">Motivo</label>
+                                        <div class="col-md-8">
+                                            <div class="input-group">
+                                                <select class="form-select" v-model="guia.motivo" id="select_motivo">
+                                                    <option value="">Seleccione un motivo</option>
+                                                </select>
+                                                <button type="button" class="btn bg-rojo text-white"
+                                                    data-bs-toggle="modal" data-bs-target="#motivoModal">
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group row mb-3">
-                                        <label class="col-lg-4 control-label text-end">Peso total</label>
-                                        <div class="col-lg-6">
+                                        <label class="col-lg-4 col-form-label text-end">Peso total</label>
+                                        <div class="col-lg-8">
                                             <input v-model="guia.peso" type="text" class="form-control text-center">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-3">
-                                        <label class="col-lg-4 control-label text-end">Nro Bultos</label>
-                                        <div class="col-lg-6">
+                                        <label class="col-lg-4 col-form-label text-end">Nro Bultos</label>
+                                        <div class="col-lg-8">
                                             <input v-model="guia.num_bultos" type="text"
                                                 class="form-control text-center">
+                                        </div>
+                                    </div>
+                                    <h5 class="border-bottom pb-2">Datos de la Fac - Bol</h5>
+                                    <div class="form-group row mb-3">
+                                        <label class="col-md-4 col-form-label text-end">Doc.</label>
+                                        <div class="col-md-8">
+                                            <select v-model="guia.tipo_doc" class="form-select"
+                                                name="select_documento_venta" id="select_documento_venta">
+                                                <option value="1">BOLETA DE VENTA</option>
+                                                <option value="2">FACTURA</option>
+                                                <option value="3">ORDEN DE COMPRA</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mb-3">
+                                        <div class="col-lg-12 text-center">
+                                            <button type="button" class="btn bg-white text-rojo border-rojo w-100"
+                                                @click="comprobarVenta">
+                                                <i class="fa fa-search me-2"></i> Comprobar Documento Venta
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mb-3">
+                                        <label class="col-lg-4 col-form-label text-end">Ser | Num</label>
+                                        <div class="col-lg-4 pe-1">
+                                            <input v-model="guia.serie" type="text"
+                                                class="form-control text-center">
+                                        </div>
+                                        <div class="col-lg-4 ps-1">
+                                            <input v-model="guia.numero" type="text"
+                                                class="form-control text-center">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row mb-3">
+                                        <label class="col-lg-4 col-form-label text-end">Total</label>
+                                        <div class="col-lg-8">
+                                            <input type="text" class="form-control text-end"
+                                                v-model="guia.total" disabled>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="form-group row mb-3">
+                                        <div class="col-12 text-center">
+                                            <button type="button" class="btn bg-rojo text-white btn-lg w-100"
+                                                @click="registerGuia">
+                                                <i class="fas fa-file-export me-2"></i>
+                                                Generar Guía
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -116,15 +173,15 @@ $c_ubigeo = new Ubigeo();
                             <div class="col-md-12">
                                 <form class="form-horizontal">
                                     <!-- Agregar Destinatario -->
-                                    <div class="mb-4 row">
-                                        <label class="col-lg-2 col-form-label">
-                                            <i class="fas fa-user-plus me-2"></i>Agregar Destinatario
+                                    <div class="mb-3 row">
+                                        <label class="col-lg-3 col-form-label">
+                                            <i class="fas fa-user-plus me-2 text-rojo"></i>Agregar Destinatario
                                         </label>
-                                        <div class="col-lg-10">
+                                        <div class="col-lg-9">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" v-model="guia.doc_cli"
                                                     placeholder="Ingrese Documento" maxlength="11">
-                                                <button class="btn bg-rojo" type="button" @click="buscarDocumentSS">
+                                                <button class="btn bg-rojo text-white" type="button" @click="buscarDocumentSS">
                                                     <i class="fas fa-search"></i>
                                                 </button>
                                             </div>
@@ -132,46 +189,43 @@ $c_ubigeo = new Ubigeo();
                                     </div>
 
                                     <!-- Destinatario -->
-                                    <div class="mb-4 row">
-                                        <label class="col-lg-2 col-form-label">
-                                            <i class="fas fa-user me-2"></i>Destinatario
+                                    <div class="mb-3 row">
+                                        <label class="col-lg-3 col-form-label">
+                                            <i class="fas fa-user me-2 text-rojo"></i>Destinatario
                                         </label>
-                                        <div class="col-lg-10">
-                                            <input v-model="guia.nom_cli" type="text" class="form-control" :class="{ 'is-invalid': !guia.nom_cli }">
-                                            <small v-show="!guia.nom_cli" class="text-danger mt-1">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>El destinatario es requerido para procesar la guía de remisión.
-                                            </small>
+                                        <div class="col-lg-9">
+                                            <input v-model="guia.nom_cli" type="text" class="form-control">
                                         </div>
                                     </div>
 
                                     <!-- Punto Partida -->
-                                    <div class="mb-4 row">
-                                        <label class="col-lg-2 col-form-label">
-                                            <i class="fas fa-map-marker-alt me-2"></i>Punto Partida
+                                    <div class="mb-3 row">
+                                        <label class="col-lg-3 col-form-label">
+                                            <i class="fas fa-map-marker-alt me-2 text-rojo"></i>Punto Partida
                                         </label>
-                                        <div class="col-lg-10">
+                                        <div class="col-lg-9">
                                             <input type="text" class="form-control" v-model="guia.dir_part"
                                                 value="AV. JAVIER PRADO ESTE 8402, LIMA – LIMA - ATE">
                                         </div>
                                     </div>
 
                                     <!-- Punto Llegada -->
-                                    <div class="mb-4 row">
-                                        <label class="col-lg-2 col-form-label">
-                                            <i class="fas fa-flag-checkered me-2"></i>Punto Llegada
+                                    <div class="mb-3 row">
+                                        <label class="col-lg-3 col-form-label">
+                                            <i class="fas fa-flag-checkered me-2 text-rojo"></i>Punto Llegada
                                         </label>
-                                        <div class="col-lg-10">
+                                        <div class="col-lg-9">
                                             <input type="text" class="form-control" v-model="guia.dir_cli">
                                         </div>
                                     </div>
 
                                     <!-- Ubigeo -->
                                     <div class="mb-4 row">
-                                        <label class="col-lg-2 col-form-label">
-                                            <i class="fas fa-map me-2"></i>Ubigeo
+                                        <label class="col-lg-3 col-form-label">
+                                            <i class="fas fa-map me-2 text-rojo"></i>Ubigeo
                                         </label>
-                                        <div class="col-lg-10">
-                                            <div class="row">
+                                        <div class="col-lg-9">
+                                            <div class="row g-2">
                                                 <div class="col-lg-4">
                                                     <select class="form-select" name="select_departamento"
                                                         id="select_departamento" onchange="obtenerProvincias()">
@@ -198,20 +252,17 @@ $c_ubigeo = new Ubigeo();
 
                                   <!-- Datos del Conductor -->
 <div class="mb-4">
-    <div class="section-header bg-rojo text-white p-3 rounded">
-        <h5 class="mb-0">
-            <i class="fas fa-id-card me-2"></i>Datos del Conductor
-        </h5>
+    <div class="section-header bg-rojo text-white p-3 rounded d-flex align-items-center">
+        <i class="fas fa-id-card me-2"></i>
+        <h5 class="mb-0">Datos del Conductor</h5>
     </div>
 
     <div class="mt-4">
         <!-- Transportista -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-lg-2">
-                <label class="form-label mb-0">
-                    <i class="fas fa-truck me-2"></i>Transportista
-                </label>
-            </div>
+        <div class="row mb-3">
+            <label class="col-lg-3 col-form-label">
+                <i class="fas fa-truck me-2 text-rojo"></i>Transportista
+            </label>
             <div class="col-lg-4">
                 <select v-model="transporte.tipo_trans" class="form-select"
                     name="select_tipo_transporte" id="select_tipo_transporte">
@@ -222,46 +273,43 @@ $c_ubigeo = new Ubigeo();
         </div>
 
         <!-- Tipo y Número de Documento -->
-        <div v-show="transporte.tipo_trans === '2'" class="row mb-3 align-items-center">
-            <div class="col-lg-2">
-                <label class="form-label mb-0">
-                    <i class="fas fa-file-alt me-2"></i>Tipo DOC
-                </label>
-            </div>
-            <div class="col-lg-3">
-                <select v-model="transporte.tipo_documento" class="form-select">
-                    <option value="DNI">DNI</option>
-                    <option value="RUC">RUC</option>
-                </select>
-            </div>
-            <div class="col-lg-2">
-                <label class="form-label mb-0">
-                    <i class="fas fa-hashtag me-2"></i>N° DOC
-                </label>
-            </div>
-            <div class="col-lg-5">
-                <div class="input-group">
-                    <input type="text" class="form-control"
-                        v-model="transporte.num_docu" maxlength="11">
-                    <button class="btn bg-rojo d-flex align-items-center gap-1"
-                        type="button" @click="buscarDocumentoTransporte">
-                        <i class="fas fa-check"></i>
-                        Verificar
-                    </button>
+        <div v-show="transporte.tipo_trans === '2'" class="row mb-3">
+            <label class="col-lg-3 col-form-label">
+                <i class="fas fa-file-alt me-2 text-rojo"></i>Documentos
+            </label>
+            <div class="col-lg-9">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label small">Tipo DOC</label>
+                        <select v-model="transporte.tipo_documento" class="form-select">
+                            <option value="DNI">DNI</option>
+                            <option value="RUC">RUC</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small">N° DOC</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control"
+                                v-model="transporte.num_docu" maxlength="11">
+                            <button class="btn bg-rojo text-white d-flex align-items-center"
+                                type="button" @click="buscarDocumentoTransporte">
+                                <i class="fas fa-check me-1"></i>
+                                Verificar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Chofer -->
-        <div class="row mb-3">
-            <div class="col-lg-2">
-                <label class="form-label mb-0">
-                    <i class="fas fa-user-tie me-2"></i>Chofer
-                </label>
-            </div>
-            <div class="col-lg-10">
+        <div class="row mb-4">
+            <label class="col-lg-3 col-form-label">
+                <i class="fas fa-user-tie me-2"></i>Chofer
+            </label>
+            <div class="col-lg-9">
                 <div class="input-group">
-                    <select class="form-select" id="select_chofer" :class="{ 'is-invalid': !transporte.chofer_id }">
+                    <select class="form-select" id="select_chofer">
                         <option value="">Seleccione un chofer</option>
                     </select>
                     <button class="btn bg-rojo" type="button"
@@ -269,19 +317,14 @@ $c_ubigeo = new Ubigeo();
                         <i class="fas fa-plus text-white"></i>
                     </button>
                 </div>
-                <small v-show="!transporte.chofer_id" class="text-danger mt-1">
-                    <i class="fas fa-exclamation-triangle me-1"></i>El chofer es requerido para el transporte de la guía de remisión.
-                </small>
             </div>
         </div>
 
         <!-- Vehículo -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-lg-2">
-                <label class="form-label mb-0">
-                    <i class="fas fa-truck me-2"></i>Vehículo
-                </label>
-            </div>
+        <div class="row mb-4">
+            <label class="col-lg-3 col-form-label">
+                <i class="fas fa-truck me-2"></i>Vehículo
+            </label>
             <div class="col-lg-5">
                 <select class="form-select" v-model="transporte.veiculo" id="select_vehiculo">
                     <option value="">Seleccione un vehículo</option>
@@ -297,29 +340,22 @@ $c_ubigeo = new Ubigeo();
 </div>
 
 <!-- Observaciones -->
-<div class="mb-4 row align-items-center">
-    <div class="col-lg-2">
-        <label class="form-label mb-0">
-            <i class="fas fa-comment-alt me-2"></i>Observaciones
-        </label>
-    </div>
-    <div class="col-lg-10">
+<div class="mb-4 row">
+    <label class="col-lg-3 col-form-label">
+        <i class="fas fa-comment-alt me-2 text-rojo"></i>Observaciones
+    </label>
+    <div class="col-lg-9">
         <textarea v-model="guia.observacion" class="form-control" rows="3"></textarea>
     </div>
 </div>
 
 <!-- Doc. de Referencia -->
 <div class="mb-4 row">
-    <div class="col-lg-2">
-        <label class="form-label mb-0">
-            <i class="fas fa-file me-2"></i>Doc. de Referencia
-        </label>
-    </div>
-    <div class="col-lg-10">
-        <input type="text" class="form-control" v-model="guia.doc_referencia" :class="{ 'is-invalid': !guia.doc_referencia }">
-        <small v-show="!guia.doc_referencia" class="text-danger mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>El documento de referencia de la guía es requerido.
-        </small>
+    <label class="col-lg-3 col-form-label">
+        <i class="fas fa-file me-2 text-rojo"></i>Doc. de Referencia
+    </label>
+    <div class="col-lg-9">
+        <input type="text" class="form-control" v-model="guia.doc_referencia">
     </div>
 </div>
                                 </form>
@@ -330,19 +366,22 @@ $c_ubigeo = new Ubigeo();
             </div>
 
             <!-- Tabla de Productos -->
-            <div class="col-md-12">
+            <div class="col-md-12 mt-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header bg-rojo text-white">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Detalle Venta</h5>
-                            <button type="button" class="btn bg-rojo" data-bs-toggle="modal"
+                            <h5 class="mb-0">
+                                <i class="fas fa-box me-2"></i>Detalle Venta
+                            </h5>
+                            <button type="button" class="btn btn-light" data-bs-toggle="modal"
                                 data-bs-target="#modalBuscarProductos">
                                 <i class="fas fa-plus me-2"></i>Agregar Producto
                             </button>
                         </div>
                     </div>
                     <div class="card-body">
-                        <table class="table text-center table-sm">
+                        <div class="table-responsive">
+                        <table class="table table-hover text-center table-sm">
                             <thead>
                                 <tr>
                                     <th>Item</th>
@@ -383,9 +422,10 @@ $c_ubigeo = new Ubigeo();
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                     <div class="card-footer">
-                        <button @click="duplicarGuia" class="btn btn-success btn-lg">
+                        <button @click="duplicarGuia" class="btn bg-rojo text-white btn-lg w-100">
                             <i class="fas fa-copy me-2"></i>Duplicar Guía
                         </button>
                     </div>
@@ -531,7 +571,7 @@ $c_ubigeo = new Ubigeo();
                         <div class="modal-body">
                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-2 control-label">Buscar</label>
+                                    <label class="col-lg-2 col-form-label">Buscar</label>
                                     <div class="col-lg-10">
                                         <div class="input-group">
                                             <input type="text" placeholder="Buscar por código o nombre del producto"
@@ -541,7 +581,7 @@ $c_ubigeo = new Ubigeo();
                                 </div>
 
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-2 control-label">Descripción</label>
+                                    <label class="col-lg-2 col-form-label">Descripción</label>
                                     <div class="col-lg-10">
                                         <input required v-model="producto.descripcion" type="text"
                                             placeholder="Descripción" class="form-control" readonly>

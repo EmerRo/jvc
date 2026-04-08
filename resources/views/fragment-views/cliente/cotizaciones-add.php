@@ -433,7 +433,8 @@
                                                             <label for="precio-especial" class="col-form-label me-2">Precio Especial ({{simboloMonedaProducto}})</label>
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input" type="checkbox"
-                                                                    onclick="toggleInput(this)"
+                                                                    id="toggle-precio-especial"
+                                                                    onclick="toggleExclusivo(this, 'precio-especial', 'toggle-descuento', 'descuento')"
                                                                     style="width: 2em; height: 1em;">
                                                                 <label class="form-check-label ms-1">Activar</label>
                                                             </div>
@@ -451,7 +452,8 @@
                                                             <label for="descuento" class="col-form-label me-2">Descuento General</label>
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input" type="checkbox"
-                                                                    onclick="toggleInput(this)"
+                                                                    id="toggle-descuento"
+                                                                    onclick="toggleExclusivo(this, 'descuento', 'toggle-precio-especial', 'precio-especial')"
                                                                     style="width: 2em; height: 1em;">
                                                                 <label class="form-check-label ms-1">Activar</label>
                                                             </div>
@@ -2899,12 +2901,26 @@
 </script>
 <script src="<?= URL::to('public/js/cotizaciones/condiciones-terminos.js') ?>?v=<?= time() ?>"> </script>
 <script>
-    function toggleInput(checkbox) {
-        // Busca el input relacionado a la clase 'precio-input' dentro del mismo contenedor padre
-        const container = checkbox.closest('[class*="col-lg-"]');
-        const input = container.querySelector('.precio-input');
-        if (input) {
-            input.disabled = !checkbox.checked;  // Habilita el input si la casilla está marcada
+    function toggleExclusivo(checkbox, inputId, otherToggleId, otherInputId) {
+        const input = document.getElementById(inputId);
+        const otherToggle = document.getElementById(otherToggleId);
+        const otherInput = document.getElementById(otherInputId);
+
+        if (checkbox.checked) {
+            // Activar este input
+            input.disabled = false;
+            // Desactivar el otro
+            if (otherToggle) {
+                otherToggle.checked = false;
+            }
+            if (otherInput) {
+                otherInput.disabled = true;
+                // Disparar evento input para que Vue detecte el cambio
+                otherInput.value = '';
+                otherInput.dispatchEvent(new Event('input'));
+            }
+        } else {
+            input.disabled = true;
         }
     }
 

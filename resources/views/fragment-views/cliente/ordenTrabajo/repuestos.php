@@ -7,6 +7,8 @@ $c_repuesto->setIdEmpresa($_SESSION['id_empresa']);
 $almacenRepuesto = 1;
 
 ?>
+<link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= URL::to('/public/css/almacen-productos.css') ?>?v=<?= time() ?>">
 <style>
     .dt-body-left {
         text-align: left !important;
@@ -240,38 +242,85 @@ $almacenRepuesto = 1;
                                 <i class="fa fa-trash"></i>
                                 <span class="d-none d-lg-inline">Borrar</span>
                             </button>
+                            <button id="btn-table-view" class="btn border-rojo bg-rojo text-white btn-sm active">
+                                <i class="fa fa-table me-1"></i>
+                                <span class="d-none d-lg-inline">Vista Tabla</span>
+                            </button>
+                            <button id="btn-grid-view" class="btn border-rojo bg-white text-rojo btn-sm">
+                                <i class="fa fa-th-large me-1"></i>
+                                <span class="d-none d-lg-inline">Vista Grid</span>
+                            </button>
                         </div>
                     </div>
                 </div>
                 <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
-                    <div class="row">
-                        <div class="form-group col-md-2" style="margin:  1rem 0;">
-                            <label for="">Almacen</label>
-                            <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                @change="changeAlmacen($event)" v-model="almacen">
-                                <option value="1">Almacen 1</option>
-                                <option value="2">Almacen 2</option>
-                                <option value="3">Almacen 3</option>
-                            </select>
+                    <div id="table-view" class="table-view">
+                        <div class="row">
+                            <div class="form-group col-md-2" style="margin:  1rem 0;">
+                                <label for="">Almacen</label>
+                                <select name="almacenSelect" id="almacenSelect" class="form-control"
+                                    @change="changeAlmacen($event)" v-model="almacen">
+                                    <option value="1">Almacen 1</option>
+                                    <option value="2">Almacen 2</option>
+                                    <option value="3">Almacen 3</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
+                                style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Codigo</th>
+                                        <th>Nombre Del Repuesto</th>
+                                        <th>Unidades</th>
+                                        <th>Precios </th>
+                                        <th>stock</th>
+                                        <th>Editar</th>
+                                        <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'> </th>
+                                    </tr>
+                                </thead>
+                                <tbody id='tbodyRepuestos'>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="table-responsive">
-                        <table id="datatable" class="table table-bordered dt-responsive nowrap text-center table-sm"
-                            style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Codigo</th>
-                                    <th>Nombre Del Repuesto</th>
-                                    <th>Unidades</th>
-                                    <th>Precios </th>
-                                    <th>stock</th>
-                                    <th>Editar</th>
-                                    <th>Eliminar <input type="checkbox" class='btnSeleccionarTodos'> </th>
-                                </tr>
-                            </thead>
-                            <tbody id='tbodyRepuestos'>
-                            </tbody>
-                        </table>
+
+                    <!-- Vista Grid -->
+                    <div id="grid-view" class="products-grid">
+                        <div class="grid-filters">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="grid-almacen-select">Almacen</label>
+                                    <select id="grid-almacen-select" class="form-control">
+                                        <option value="1">Almacen 1</option>
+                                        <option value="2">Almacen 2</option>
+                                        <option value="3">Almacen 3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label>&nbsp;</label>
+                                    <div class="grid-search">
+                                        <input type="text" id="grid-search-input" class="form-control"
+                                            placeholder="Buscar repuestos...">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end d-flex align-items-end justify-content-end">
+                                    <button class="btn border-rojo bg-white btnSeleccionarTodosGrid">
+                                        <i class="fa fa-check-square me-1"></i> Seleccionar Todos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="loading-grid" id="loading-grid">
+                            <i class="fa fa-spinner"></i>
+                            <p>Cargando repuestos...</p>
+                        </div>
+
+                        <div class="product-grid-container" id="products-container"></div>
+
+                        <div class="grid-pagination" id="grid-pagination"></div>
                     </div>
                 </div>
             </div>
@@ -467,6 +516,8 @@ $almacenRepuesto = 1;
                     subcategoria: '',
                     moneda: 'PEN',
                     usar_multiprecio: false,
+                    imagen: '',
+                    imagen_actual: '',
                 },
                 listaIdsss: [],
                 stockData: {
@@ -914,6 +965,9 @@ $almacenRepuesto = 1;
                     formData.append('ruc', 1);
                     formData.append('usar_multiprecio', this.edt.usar_multiprecio ? '1' : '0');
                     formData.append('subcategoria', this.edt.subcategoria);
+                    if (this.edt.imagen) {
+                        formData.append('imagen', this.edt.imagen);
+                    }
 
                     $.ajax({
                         url: _URL + '/ajs/data/repuesto/edt',
@@ -932,6 +986,7 @@ $almacenRepuesto = 1;
                                         alertExito("Repuesto actualizado exitosamente").then(() => {
                                             $("#modal-edt-rep").modal("hide");
                                             datatable.ajax.reload(null, false);
+                                            $(document).trigger('repuestoActualizado');
                                         });
                                     } else {
                                         alertAdvertencia("Error al guardar los precios");
@@ -941,6 +996,7 @@ $almacenRepuesto = 1;
                                 alertExito("Repuesto actualizado exitosamente").then(() => {
                                     $("#modal-edt-rep").modal("hide");
                                     datatable.ajax.reload(null, false);
+                                    $(document).trigger('repuestoActualizado');
                                 });
                             }
                         },
@@ -953,6 +1009,10 @@ $almacenRepuesto = 1;
                 onImageChange(event) {
                     const file = event.target.files[0];
                     this.reg.imagen = file;
+                },
+                onImageChangeEdit(event) {
+                    const file = event.target.files[0];
+                    this.edt.imagen = file;
                 },
                 agregarRep() {
                     const formData = new FormData();
@@ -994,6 +1054,7 @@ $almacenRepuesto = 1;
                                 alertExito("Agregado").then(() => {
                                     $("#modal-add-rep").modal("hide");
                                     datatable.ajax.reload(null, false);
+                                    $(document).trigger('repuestoAgregado');
                                     this.preciosNuevos = [];
                                 });
                             } else {
@@ -1048,6 +1109,8 @@ $almacenRepuesto = 1;
                     console.log("DEBUG - usar_barra asignado:", this.edt.usar_barra);
                     console.log("DEBUG - tipo de dato:", typeof this.edt.usar_barra);
                     // si el repuesto tiene una subcategoria guardada, cargarla
+                    this.edt.imagen = '';
+                    this.edt.imagen_actual = data.imagen || '';
                     if (data.subcategoria) {
                         this.edt.subcategoria = data.subcategoria;
                     }
@@ -1501,7 +1564,8 @@ $almacenRepuesto = 1;
                 })
             }
         })
-        var arrayIdsOkUsar = []
+        window.arrayIdsOkUsar = []
+        var arrayIdsOkUsar = window.arrayIdsOkUsar
 
         $("#datatable").on("click", ".btn-re-stock", function (evt) {
             const cod = $(evt.currentTarget).attr("data-item");
@@ -1950,4 +2014,247 @@ $almacenRepuesto = 1;
             handleCheckboxChange(checkboxIMPLE, checkboxJVC, 'IMPLE');
         });
     });
+</script>
+
+<script>
+    // ========== VISTA GRID REPUESTOS ==========
+    (function () {
+        var gridProducts = [];
+        var totalProducts = 0;
+        var currentPage = 1;
+        var productsPerPage = 12;
+        var searchTerm = '';
+        var currentView = 'table';
+
+        function getStockClass(cantidad) {
+            var stock = parseInt(cantidad);
+            if (stock <= 5) return 'low-stock';
+            if (stock <= 20) return 'medium-stock';
+            return '';
+        }
+
+        function loadGridProducts(page, search) {
+            page = page || 1;
+            search = search || '';
+            $('#loading-grid').addClass('active');
+            $('#products-container').empty();
+
+            var gridAlmacen = $('#grid-almacen-select').val() || almacenCod;
+
+            _ajax("/ajs/data/repuestos/grid", "POST", {
+                almacenId: gridAlmacen,
+                page: page,
+                limit: productsPerPage,
+                search: search
+            }, function (resp) {
+                $('#loading-grid').removeClass('active');
+                if (resp.res) {
+                    gridProducts = resp.data;
+                    totalProducts = resp.total;
+                    currentPage = page;
+                    renderGridProducts();
+                    renderGridPagination();
+                } else {
+                    alertAdvertencia("Error al cargar repuestos");
+                }
+            });
+        }
+
+        function renderGridProducts() {
+            var container = $('#products-container');
+            container.empty();
+
+            if (gridProducts.length === 0) {
+                container.html(
+                    '<div class="col-12 text-center" style="grid-column: 1 / -1;">' +
+                    '<div class="alert alert-info"><i class="fa fa-info-circle me-2"></i>No se encontraron repuestos.</div>' +
+                    '</div>'
+                );
+                return;
+            }
+
+            gridProducts.forEach(function (product) {
+                var stockClass = getStockClass(product.cantidad);
+                var imageUrl = product.imagen ?
+                    _URL + '/public/img/repuestos/' + product.imagen : null;
+
+                var isChecked = arrayIdsOkUsar.some(function (item) { return item.id === product.id_repuesto + ''; });
+
+                var cardHtml =
+                    '<div class="product-card" data-product-id="' + product.id_repuesto + '">' +
+                    '  <div class="product-checkbox">' +
+                    '    <input type="checkbox" class="btnCheckEliminar" data-id="' + product.id_repuesto + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '  </div>' +
+                    '  <div class="product-image-container">' +
+                    (imageUrl ?
+                        '<img src="' + imageUrl + '" alt="' + product.nombre + '" class="product-image">' :
+                        '<div class="no-image-placeholder"><i class="fa fa-image"></i><span>Sin imagen</span></div>'
+                    ) +
+                    '  </div>' +
+                    '  <div class="product-info">' +
+                    '    <span class="product-code">' + (product.codigo || '') + '</span>' +
+                    '    <h6 class="product-name" title="' + product.nombre + '">' + product.nombre + '</h6>' +
+                    '    <div class="product-details">' +
+                    '      <span class="product-unit">' + (product.unidad_nombre || 'N/A') + '</span>' +
+                    '      <span class="product-stock ' + stockClass + '"><i class="fa fa-cubes me-1"></i>' + product.cantidad + '</span>' +
+                    '    </div>' +
+                    '    <div class="product-price">S/ ' + parseFloat(product.precio || 0).toFixed(2) + '</div>' +
+                    '    <div class="product-actions">' +
+                    '      <button class="btn btn-edit-product bg-rojo btn-edt-grid" data-item="' + product.id_repuesto + '">' +
+                    '        <i class="fa fa-edit me-1"></i> Editar' +
+                    '      </button>' +
+                    '    </div>' +
+                    '  </div>' +
+                    '</div>';
+
+                container.append(cardHtml);
+            });
+        }
+
+        function renderGridPagination() {
+            var totalPages = Math.ceil(totalProducts / productsPerPage);
+            var pagination = $('#grid-pagination');
+            pagination.empty();
+
+            if (totalPages <= 1) return;
+
+            if (currentPage > 1) {
+                pagination.append('<button class="btn border-rojo bg-white btn-grid-page" data-page="' + (currentPage - 1) + '"><i class="fa fa-chevron-left"></i> Anterior</button>');
+            }
+
+            var startPage = Math.max(1, currentPage - 2);
+            var endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                pagination.append('<button class="btn border-rojo bg-white btn-grid-page" data-page="1">1</button>');
+                if (startPage > 2) pagination.append('<span class="mx-2">...</span>');
+            }
+
+            for (var i = startPage; i <= endPage; i++) {
+                var activeClass = i === currentPage ? 'bg-rojo text-white' : 'border-rojo bg-white';
+                pagination.append('<button class="btn ' + activeClass + ' btn-grid-page" data-page="' + i + '">' + i + '</button>');
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) pagination.append('<span class="mx-2">...</span>');
+                pagination.append('<button class="btn border-rojo bg-white btn-grid-page" data-page="' + totalPages + '">' + totalPages + '</button>');
+            }
+
+            if (currentPage < totalPages) {
+                pagination.append('<button class="btn border-rojo bg-white btn-grid-page" data-page="' + (currentPage + 1) + '">Siguiente <i class="fa fa-chevron-right"></i></button>');
+            }
+
+            var startItem = (currentPage - 1) * productsPerPage + 1;
+            var endItem = Math.min(currentPage * productsPerPage, totalProducts);
+            pagination.append('<div class="ms-3 text-muted">Mostrando ' + startItem + ' - ' + endItem + ' de ' + totalProducts + ' repuestos</div>');
+        }
+
+        // Pagination clicks
+        $(document).on('click', '.btn-grid-page', function () {
+            loadGridProducts(parseInt($(this).data('page')), searchTerm);
+        });
+
+        // Toggle vista tabla / grid (delegated porque Vue recrea el DOM)
+        $(document).on('click', '#btn-table-view', function () {
+            if (currentView !== 'table') {
+                currentView = 'table';
+                $('#btn-table-view').addClass('active bg-rojo text-white').removeClass('bg-white text-rojo');
+                $('#btn-grid-view').removeClass('active bg-rojo text-white').addClass('bg-white text-rojo');
+                $('#table-view').removeClass('hidden');
+                $('#grid-view').removeClass('active');
+                $('.grid-filters').removeClass('active');
+                if ($.fn.DataTable.isDataTable('#datatable')) {
+                    datatable.ajax.reload();
+                }
+            }
+        });
+
+        $(document).on('click', '#btn-grid-view', function () {
+            if (currentView !== 'grid') {
+                currentView = 'grid';
+                $('#btn-grid-view').addClass('active bg-rojo text-white').removeClass('bg-white text-rojo');
+                $('#btn-table-view').removeClass('active bg-rojo text-white').addClass('bg-white text-rojo');
+                $('#table-view').addClass('hidden');
+                $('#grid-view').addClass('active');
+                $('.grid-filters').addClass('active');
+                // Sync almacen select
+                $('#grid-almacen-select').val(almacenCod);
+                loadGridProducts(1, searchTerm);
+            }
+        });
+
+        // Búsqueda con debounce
+        var searchTimeout;
+        $(document).on('input', '#grid-search-input', function () {
+            clearTimeout(searchTimeout);
+            searchTerm = $(this).val();
+            searchTimeout = setTimeout(function () {
+                currentPage = 1;
+                loadGridProducts(1, searchTerm);
+            }, 500);
+        });
+
+        // Cambio de almacén en grid
+        $(document).on('change', '#grid-almacen-select', function () {
+            almacenCod = $(this).val();
+            // Sync Vue almacen select
+            if (app) app.almacen = almacenCod;
+            $('#almacenSelect').val(almacenCod);
+            loadGridProducts(1, searchTerm);
+        });
+
+        // Editar desde grid
+        $(document).on('click', '.btn-edt-grid', function () {
+            var cod = $(this).attr('data-item');
+            _ajax("/ajs/data/repuesto/info", "POST", { cod: cod }, function (resp) {
+                if (resp.res) {
+                    app.setInfo(resp.data);
+                } else {
+                    alertAdvertencia("Información no encontrada");
+                }
+            });
+        });
+
+        // Seleccionar todos en grid
+        $(document).on('click', '.btnSeleccionarTodosGrid', function () {
+            var $button = $(this);
+            var isSelectingAll = $button.text().indexOf('Seleccionar Todos') >= 0;
+
+            if (isSelectingAll) {
+                $('.product-card .btnCheckEliminar').each(function () {
+                    if (!$(this).prop('checked')) {
+                        $(this).prop('checked', true);
+                        var id = $(this).attr('data-id');
+                        if (!arrayIdsOkUsar.some(function (item) { return item.id === id; })) {
+                            arrayIdsOkUsar.push({ id: id });
+                        }
+                    }
+                });
+                $button.html('<i class="fa fa-times me-1"></i> Deseleccionar Todos')
+                    .removeClass('border-rojo bg-white').addClass('btn-warning');
+            } else {
+                $('.product-card .btnCheckEliminar').prop('checked', false);
+                // Remove grid items from array
+                $('.product-card .btnCheckEliminar').each(function () {
+                    var id = $(this).attr('data-id');
+                    arrayIdsOkUsar = arrayIdsOkUsar.filter(function (item) { return item.id !== id; });
+                });
+                $button.html('<i class="fa fa-check-square me-1"></i> Seleccionar Todos')
+                    .removeClass('btn-warning').addClass('border-rojo bg-white');
+            }
+
+            if (arrayIdsOkUsar.length > 0) {
+                localStorage.setItem("idChecks", JSON.stringify(arrayIdsOkUsar));
+            } else {
+                localStorage.removeItem("idChecks");
+            }
+        });
+
+        // Reload grid after edit/add
+        $(document).on('repuestoActualizado repuestoAgregado', function () {
+            if (currentView === 'grid') {
+                loadGridProducts(currentPage, searchTerm);
+            }
+        });
+    })();
 </script>

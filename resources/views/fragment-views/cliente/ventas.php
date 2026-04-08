@@ -26,7 +26,7 @@
             <div class="card-body">
                 <h4 class="card-title">Lista de Ventas</h4>
 
-                <div class="card-title-desc d-flex flex-wrap gap-2 justify-content-end">
+                <div class="card-title-desc d-flex flex-wrap gap-2 justify-content-end align-items-center">
 
                     <!-- Dropdown de Opciones para móvil -->
                     <div class="opciones-dropdown-ventas">
@@ -102,39 +102,21 @@
                     </div>
 
                     <!-- Botones para desktop -->
-                    <!-- Reporte Ventas Producto -->
-                    <button class="btn bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
-                        data-bs-target="#ventas-pdf-reporte-v-p">Reporte Ventas Producto</button>
-
-                    <!-- Exportar PDF Reporte de Venta -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporte"
-                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-pdf-o"></i>
-                        Exportar PDF Reporte de Venta</button>
-                    <!-- Reporte de Venta Ganancias -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-pdf-reporteganancia"
-                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i
-                            class="fa fa-file-pdf-o"></i>Reporte de Venta Ganancias</button>
-                    <!-- Exportar a TXT -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-text-reporte"
-                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-text"></i>
-                        Exportar TXT</button>
-                    <!-- Exportar a formato "xls" -->
-                    <button data-bs-toggle="modal" data-bs-target="#ventas-xls-reporte"
-                        class="btn bg-white text-rojo border-rojo btn-ventas-desktop"><i class="fa fa-file-text"></i>
-                        Exportar formato "xls"</button>
-                    <!-- Reporte RVTA "xls" -->
-                    <button class="btn bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
-                        data-bs-target="#ventas-xls-reporte-rvta">Reporte RVTA "xls"</button>
-                    <!-- Nota Electronica -->
-                    <a href="/nota/electronica" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
-                            class="fa fa-plus"></i>Nota Electronica</a>
-                    <!-- Facturar Servicios -->
-                    <a href="/ventas/servicios" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
-                            class="fa fa-plus"></i> Facturar Servicios</a>
-                    <!-- Facturar Productos -->
-                    <a href="/ventas/productos" class="btn bg-rojo text-white button-link bordes btn-ventas-desktop"><i
-                            class="fa fa-plus"></i>
-                        Facturar Productos</a>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-pdf-reporte-v-p"><i class="fa fa-cube me-1"></i> Reporte Ventas Producto</button>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-pdf-reporte"><i class="fa fa-file-pdf me-1"></i> Reporte de Venta</button>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-pdf-reporteganancia"><i class="fa fa-chart-line me-1"></i> Venta Ganancias</button>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-text-reporte"><i class="fa fa-file-alt me-1"></i> Exportar TXT</button>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-xls-reporte"><i class="fa fa-file-excel me-1"></i> Exportar XLS</button>
+                    <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
+                        data-bs-target="#ventas-xls-reporte-rvta"><i class="fa fa-table me-1"></i> Reporte RVTA</button>
+                    <a href="/nota/electronica" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-sticky-note me-1"></i> Nota Electrónica</a>
+                    <a href="/ventas/servicios" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-wrench me-1"></i> Facturar Servicios</a>
+                    <a href="/ventas/productos" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-shopping-cart me-1"></i> Facturar Productos</a>
                 </div>
 
                 <div class="table-responsive">
