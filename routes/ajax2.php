@@ -223,6 +223,9 @@ Route::get("/ajs/getOne/numeroseries/:id", "SeriesController@getOneSerieById");
 Route::get("/ajs/get/ultimonumeroserie", "SeriesController@getUltimoNumeroSerie");
 Route::get("/ajs/generar/numeroserie", "SeriesController@generarNumeroSerie");
 Route::get("/ajs/get/proximonumero/series", "SeriesController@getProximoNumero");
+// NUEVO: Completar lote NS (impacta stock/kardex) y obtener resumen previo
+Route::post("/ajs/resumen/lote/ns", "SeriesController@resumenLote");
+Route::post("/ajs/completar/lote/ns", "SeriesController@completarLote");
 // maquinas gestion activos
 Route::get("/ajs/get/maquinas", "RegistroMaquinaController@getMaquinas");
 Route::post("/ajs/save/maquinas", "RegistroMaquinaController@saveMaquina");

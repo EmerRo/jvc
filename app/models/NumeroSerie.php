@@ -10,6 +10,11 @@ class NumeroSerie
     private $cantidad_equipos;
     private $tipo_maquina;
     private $tiene_cliente;
+    // NUEVO: estado del lote y campos de auditoría
+    private $estado_lote;            // borrador / completado / anulado
+    private $fecha_completado;
+    private $convertido_de_externo;  // 1 si era externo y pasó a interno
+    private $usuario_completo;
     private $conectar;
 
     public function __construct()
@@ -98,13 +103,54 @@ class NumeroSerie
         $this->tipo_maquina = $tipo_maquina;
     }
 
+    public function getEstadoLote()
+    {
+        return $this->estado_lote;
+    }
+
+    public function setEstadoLote($estado_lote)
+    {
+        $this->estado_lote = $estado_lote;
+    }
+
+    public function getFechaCompletado()
+    {
+        return $this->fecha_completado;
+    }
+
+    public function setFechaCompletado($fecha_completado)
+    {
+        $this->fecha_completado = $fecha_completado;
+    }
+
+    public function getConvertidoDeExterno()
+    {
+        return $this->convertido_de_externo;
+    }
+
+    public function setConvertidoDeExterno($convertido_de_externo)
+    {
+        $this->convertido_de_externo = $convertido_de_externo;
+    }
+
+    public function getUsuarioCompleto()
+    {
+        return $this->usuario_completo;
+    }
+
+    public function setUsuarioCompleto($usuario_completo)
+    {
+        $this->usuario_completo = $usuario_completo;
+    }
+
     /**
      * Obtener todas las series con sus detalles
      */
     public function getAll()
     {
-        $sql = "SELECT ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento, 
-                ns.fecha_creacion, ns.tiene_cliente, ns.cantidad_equipos, ns.tipo_maquina
+        $sql = "SELECT ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento,
+                ns.fecha_creacion, ns.tiene_cliente, ns.cantidad_equipos, ns.tipo_maquina,
+                ns.estado_lote, ns.fecha_completado, ns.convertido_de_externo, ns.usuario_completo
                 FROM numero_series ns
                 ORDER BY ns.numero DESC";
 
@@ -275,7 +321,7 @@ class NumeroSerie
     public function getGarantiasInfo()
     {
         $sql = "SELECT g.*, COUNT(dg.id) as total_equipos
-                FROM garantia g 
+                FROM garantia g
                 LEFT JOIN detalle_garantia dg ON g.id_garantia = dg.id_garantia
                 WHERE g.numero_serie_id = ?
                 GROUP BY g.id_garantia";
@@ -291,5 +337,64 @@ class NumeroSerie
         }
 
         return $garantias;
+    }
+
+    // ============================================================
+    // NUEVOS: Manejo de estado del lote y completar/anular
+    // ============================================================
+
+    /**
+     * Marcar lote como completado y registrar usuario/fecha.
+     * El impacto en stock lo hace el controlador (en transacción).
+     */
+    public function marcarComoCompletado($usuario)
+    {
+        try {
+            $sql = "UPDATE numero_series
+                    SET estado_lote = 'completado',
+                        fecha_completado = NOW(),
+                        usuario_completo = ?
+                    WHERE id = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("si", $usuario, $this->id);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error al marcar lote como completado: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Marcar lote como anulado (para reversión sin eliminar el registro).
+     */
+    public function marcarComoAnulado()
+    {
+        try {
+            $sql = "UPDATE numero_series
+                    SET estado_lote = 'anulado'
+                    WHERE id = ?";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param("i", $this->id);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error al anular lote: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Devolver el estado actual del lote (sin cargar todo el registro).
+     */
+    public function getEstadoLoteById($id)
+    {
+        $sql = "SELECT estado_lote FROM numero_series WHERE id = ?";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) {
+            return $row['estado_lote'];
+        }
+        return null;
     }
 }

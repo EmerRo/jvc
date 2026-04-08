@@ -10,13 +10,17 @@
                         <div class="modal-body">
                             <div class="detalle-header mb-4">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <strong class="d-block text-muted mb-1">Cliente:</strong>
                                         <h6 class="mb-0" id="detalle_cliente"></h6>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <strong class="d-block text-muted mb-1">Fecha de Creación:</strong>
                                         <h6 class="mb-0" id="detalle_fecha"></h6>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong class="d-block text-muted mb-1">Estado del Lote:</strong>
+                                        <h6 class="mb-0" id="detalle_estado_lote"></h6>
                                     </div>
                                 </div>
                             </div>
@@ -26,6 +30,7 @@
                                     <thead class="sticky-top bg-light">
                                         <tr>
                                             <th>#</th>
+                                            <th>Producto Almacén</th>
                                             <th>Marca</th>
                                             <th>Modelo</th>
                                             <th>Equipo</th>

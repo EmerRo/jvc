@@ -191,6 +191,25 @@
                                                             <i class="fa fa-trash"></i>
                                                         </button>
                                                     </div>
+                                                    <!-- NUEVO: Buscador de producto del almacén -->
+                                                    <div class="row mb-2">
+                                                        <div class="col-md-12">
+                                                            <label class="form-label">
+                                                                <i class="fa fa-box me-1 text-rojo"></i>
+                                                                Producto del almacén
+                                                                <small class="text-muted">(opcional, vincula con kardex)</small>
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                                <input type="text" class="form-control input-buscar-producto"
+                                                                    name="equipos[0][producto_busqueda]"
+                                                                    placeholder="Buscar por código o nombre..." autocomplete="off">
+                                                                <input type="hidden" class="input-id-producto"
+                                                                    name="equipos[0][id_producto]" value="">
+                                                            </div>
+                                                            <small class="text-muted producto-seleccionado-info"></small>
+                                                        </div>
+                                                    </div>
                                                     <div class="row">
                                                         <div class="col-md-3">
                                                             <label class="form-label">Marca</label>

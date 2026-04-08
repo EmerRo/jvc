@@ -7,6 +7,7 @@ class DetalleSerie
     private $modelo_id;
     private $marca_id;
     private $equipo_id;
+    private $id_producto;   // NUEVO: vínculo a productos del almacén
     private $numero_serie;
     private $estado;
     private $estado_prealerta;
@@ -68,6 +69,16 @@ class DetalleSerie
         $this->equipo_id = $equipo_id;
     }
 
+    public function getIdProducto()
+    {
+        return $this->id_producto;
+    }
+
+    public function setIdProducto($id_producto)
+    {
+        $this->id_producto = $id_producto;
+    }
+
     public function getNumeroSerie()
     {
         return $this->numero_serie;
@@ -103,14 +114,19 @@ class DetalleSerie
      */
     public function getByNumeroSerieId($numero_serie_id)
     {
-        $sql = "SELECT ds.*, 
+        $sql = "SELECT ds.*,
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
-                e.nombre as equipo_nombre
+                e.nombre as equipo_nombre,
+                p.codigo as producto_codigo,
+                p.nombre as producto_nombre,
+                p.precio as producto_precio,
+                p.cantidad as producto_stock
                 FROM detalle_serie ds
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto
                 WHERE ds.numero_serie_id = ?
                 ORDER BY ds.id ASC";
 
@@ -132,14 +148,19 @@ class DetalleSerie
      */
     public function getById($id)
     {
-        $sql = "SELECT ds.*, 
+        $sql = "SELECT ds.*,
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
-                e.nombre as equipo_nombre
+                e.nombre as equipo_nombre,
+                p.codigo as producto_codigo,
+                p.nombre as producto_nombre,
+                p.precio as producto_precio,
+                p.cantidad as producto_stock
                 FROM detalle_serie ds
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto
                 WHERE ds.id = ?";
 
         $stmt = $this->conectar->prepare($sql);
@@ -159,16 +180,19 @@ class DetalleSerie
      */
     public function getByNumeroSerie($numero_serie)
     {
-        $sql = "SELECT ds.*, 
+        $sql = "SELECT ds.*,
                 ns.numero, ns.cliente_ruc_dni, ns.cliente_documento,
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
-                e.nombre as equipo_nombre
+                e.nombre as equipo_nombre,
+                p.codigo as producto_codigo,
+                p.nombre as producto_nombre
                 FROM detalle_serie ds
                 INNER JOIN numero_series ns ON ds.numero_serie_id = ns.id
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto
                 WHERE ds.numero_serie = ?";
 
         $stmt = $this->conectar->prepare($sql);
@@ -215,16 +239,17 @@ class DetalleSerie
     public function insertar()
     {
         try {
-            $sql = "INSERT INTO detalle_serie (numero_serie_id, modelo_id, marca_id, equipo_id, numero_serie, estado, estado_prealerta) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO detalle_serie (numero_serie_id, modelo_id, marca_id, equipo_id, id_producto, numero_serie, estado, estado_prealerta)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->conectar->prepare($sql);
             $stmt->bind_param(
-                "iiiisss",
+                "iiiiisss",
                 $this->numero_serie_id,
                 $this->modelo_id,
                 $this->marca_id,
                 $this->equipo_id,
+                $this->id_producto,
                 $this->numero_serie,
                 $this->estado,
                 $this->estado_prealerta
@@ -248,21 +273,23 @@ class DetalleSerie
     public function actualizar()
     {
         try {
-            $sql = "UPDATE detalle_serie 
-                    SET modelo_id = ?, 
-                        marca_id = ?, 
-                        equipo_id = ?, 
-                        numero_serie = ?, 
-                        estado = ?, 
-                        estado_prealerta = ? 
+            $sql = "UPDATE detalle_serie
+                    SET modelo_id = ?,
+                        marca_id = ?,
+                        equipo_id = ?,
+                        id_producto = ?,
+                        numero_serie = ?,
+                        estado = ?,
+                        estado_prealerta = ?
                     WHERE id = ?";
 
             $stmt = $this->conectar->prepare($sql);
             $stmt->bind_param(
-                "iiiissi",
+                "iiiisssi",
                 $this->modelo_id,
                 $this->marca_id,
                 $this->equipo_id,
+                $this->id_producto,
                 $this->numero_serie,
                 $this->estado,
                 $this->estado_prealerta,
