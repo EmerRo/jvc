@@ -262,10 +262,6 @@ $(document).ready(() => {
                     data-bs-toggle="tooltip" title="Ver detalles">
               <i class="fa fa-eye"></i>
             </button>
-            <button type="button" class="btn btn-success btn-ver-productos" data-id="${row.id_orden_trabajo}"
-                    data-bs-toggle="tooltip" title="Ver/Agregar Productos">
-              <i class="fa fa-cogs"></i>
-            </button>
             <button data-id="${row.id_orden_trabajo}" class="btn btn-warning btnEditar"
                     data-bs-toggle="tooltip" title="Editar">
               <i class="fa fa-edit"></i>
@@ -275,6 +271,10 @@ $(document).ready(() => {
               <i class="fa fa-trash"></i>
             </button>
           </div>`,
+        // NOTA: Se quitó el botón "Ver/Agregar Productos" (btn-ver-productos).
+        // Razón: no tiene sentido agregar un producto a una OT si la serie no
+        // ha sido creada previamente en el módulo de Series NS. La información
+        // de los equipos ya se ve en el modal "Ver detalles".
       },
     ],
     createdRow: function (row, data) {
@@ -427,9 +427,11 @@ $(document).ready(() => {
     mostrarDetalles($(this).data("id"));
   });
 
-  $(document).on("click", ".btn-ver-productos", function () {
-    mostrarModalProductos($(this).data("id"));
-  });
+  // DESHABILITADO: el botón "Ver/Agregar Productos" fue removido del listado.
+  // Se deja comentado por si más adelante se decide recuperar la funcionalidad.
+  // $(document).on("click", ".btn-ver-productos", function () {
+  //   mostrarModalProductos($(this).data("id"));
+  // });
 
   $(document).on("click", ".btnEditar", function () {
     app.cargarDatosEdicion($(this).data("id"));
