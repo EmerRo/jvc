@@ -171,10 +171,10 @@ class OrdenTrabajo
             // Insertar detalles de equipos
             if (!empty($this->detalles)) {
                 $sql_detalle = "INSERT INTO orden_trabajo_detalles (
-                                    id_orden_trabajo, 
-                                    marca, 
-                                    equipo, 
-                                    modelo, 
+                                    id_orden_trabajo,
+                                    marca,
+                                    equipo,
+                                    modelo,
                                     numero_serie
                                 ) VALUES (?, ?, ?, ?, ?)";
 
@@ -193,6 +193,10 @@ class OrdenTrabajo
                     if (!$stmt_detalle->execute()) {
                         throw new Exception("Error al insertar detalle: " . $stmt_detalle->error);
                     }
+
+                    // NUEVO: sincronizar estado de la serie en el módulo Series
+                    // Pasa a 'en_trabajo' para que no pueda asignarse a otra OT
+                    $this->actualizarEstadoSeriePreAlerta($detalle['numero_serie'], 'en_trabajo');
                 }
             }
 
@@ -313,6 +317,29 @@ class OrdenTrabajo
                 throw new Exception("Error al actualizar orden de trabajo: " . $stmt->error);
             }
 
+            // NUEVO: Obtener las series que tenía la OT antes del update
+            // para liberarlas a 'disponible' solo si no están culminadas
+            $seriesAnteriores = [];
+            $sqlPrev = "SELECT numero_serie FROM orden_trabajo_detalles WHERE id_orden_trabajo = ?";
+            $stmtPrev = $this->conectar->prepare($sqlPrev);
+            $stmtPrev->bind_param("i", $id);
+            $stmtPrev->execute();
+            $resPrev = $stmtPrev->get_result();
+            while ($row = $resPrev->fetch_assoc()) {
+                $seriesAnteriores[] = $row['numero_serie'];
+            }
+
+            // Liberar las series anteriores que estaban en 'en_trabajo' → 'disponible'
+            // (no se tocan las que están en 'culminado')
+            foreach ($seriesAnteriores as $numSerie) {
+                $sqlRelease = "UPDATE detalle_serie
+                               SET estado_prealerta = 'disponible'
+                               WHERE numero_serie = ? AND estado_prealerta = 'en_trabajo'";
+                $stmtRel = $this->conectar->prepare($sqlRelease);
+                $stmtRel->bind_param("s", $numSerie);
+                $stmtRel->execute();
+            }
+
             // Eliminar detalles existentes
             $sql_delete = "DELETE FROM orden_trabajo_detalles WHERE id_orden_trabajo = ?";
             $stmt_delete = $this->conectar->prepare($sql_delete);
@@ -322,10 +349,10 @@ class OrdenTrabajo
             // Insertar nuevos detalles
             if (!empty($equipos)) {
                 $sql_detalle = "INSERT INTO orden_trabajo_detalles (
-                                    id_orden_trabajo, 
-                                    marca, 
-                                    equipo, 
-                                    modelo, 
+                                    id_orden_trabajo,
+                                    marca,
+                                    equipo,
+                                    modelo,
                                     numero_serie
                                 ) VALUES (?, ?, ?, ?, ?)";
 
@@ -344,6 +371,9 @@ class OrdenTrabajo
                     if (!$stmt_detalle->execute()) {
                         throw new Exception("Error al insertar detalle: " . $stmt_detalle->error);
                     }
+
+                    // NUEVO: marcar las nuevas series como 'en_trabajo'
+                    $this->actualizarEstadoSeriePreAlerta($equipo['numero_serie'], 'en_trabajo');
                 }
             }
 
@@ -360,12 +390,43 @@ class OrdenTrabajo
     public function delete($id)
     {
         try {
+            $this->conectar->begin_transaction();
+
+            // NUEVO: Obtener las series asociadas a esta OT antes de borrarla,
+            // para liberarlas a 'disponible' en el módulo Series.
+            $sqlSeries = "SELECT numero_serie FROM orden_trabajo_detalles WHERE id_orden_trabajo = ?";
+            $stmtSeries = $this->conectar->prepare($sqlSeries);
+            $stmtSeries->bind_param("i", $id);
+            $stmtSeries->execute();
+            $resSeries = $stmtSeries->get_result();
+
+            while ($row = $resSeries->fetch_assoc()) {
+                // Solo restaurar las que están 'en_trabajo'. Las 'culminado' no se tocan.
+                $sqlRelease = "UPDATE detalle_serie
+                               SET estado_prealerta = 'disponible'
+                               WHERE numero_serie = ? AND estado_prealerta = 'en_trabajo'";
+                $stmtRel = $this->conectar->prepare($sqlRelease);
+                $stmtRel->bind_param("s", $row['numero_serie']);
+                $stmtRel->execute();
+            }
+
+            // Borrar la OT (los detalles se eliminan por CASCADE o por el mismo query;
+            // si la FK no tiene CASCADE, limpiarlos antes)
+            $sqlDelDetalles = "DELETE FROM orden_trabajo_detalles WHERE id_orden_trabajo = ?";
+            $stmtDelDet = $this->conectar->prepare($sqlDelDetalles);
+            $stmtDelDet->bind_param("i", $id);
+            $stmtDelDet->execute();
+
             $sql = "DELETE FROM orden_trabajo_pre WHERE id_orden_trabajo = ?";
             $stmt = $this->conectar->prepare($sql);
             $stmt->bind_param("i", $id);
-            return $stmt->execute();
+            $ok = $stmt->execute();
+
+            $this->conectar->commit();
+            return $ok;
 
         } catch (Exception $e) {
+            $this->conectar->rollback();
             error_log("Error en OrdenTrabajo::delete(): " . $e->getMessage());
             return false;
         }
