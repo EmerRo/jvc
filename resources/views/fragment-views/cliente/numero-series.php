@@ -314,15 +314,16 @@
                     "data": "estado_lote",
                     "render": function (data, type, row) {
                         const estado = data || 'borrador';
-                        let clase = 'bg-secondary';
+                        // Estilos inline para garantizar contraste legible (el tema del sistema pisa bg-secondary)
+                        let bg = '#6c757d';   // gris oscuro (borrador)
                         let texto = 'Borrador';
                         let icono = 'fa-pencil';
                         if (estado === 'completado') {
-                            clase = 'bg-success';
+                            bg = '#198754';   // verde
                             texto = 'Completado';
                             icono = 'fa-check-circle';
                         } else if (estado === 'anulado') {
-                            clase = 'bg-danger';
+                            bg = '#dc3545';   // rojo
                             texto = 'Anulado';
                             icono = 'fa-ban';
                         }
@@ -330,7 +331,7 @@
                         if (row.convertido_de_externo == 1) {
                             extra = ' <i class="fa fa-exchange-alt text-info" title="Convertido de externo a interno"></i>';
                         }
-                        return `<span class="badge ${clase}"><i class="fa ${icono} me-1"></i>${texto}</span>${extra}`;
+                        return `<span class="badge" style="background-color:${bg} !important;color:#ffffff !important;padding:6px 10px;font-size:12px;font-weight:500;"><i class="fa ${icono} me-1"></i>${texto}</span>${extra}`;
                     }
                 },
                 {
