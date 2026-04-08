@@ -477,8 +477,9 @@ class Consultas
             LEFT JOIN modelos m ON ds.modelo_id = m.id
             LEFT JOIN marcas ma ON ds.marca_id = ma.id
             LEFT JOIN equipos e ON ds.equipo_id = e.id
-            WHERE ds.estado_prealerta = 'disponible' 
+            WHERE ds.estado_prealerta = 'disponible'
               AND ns.tipo_maquina = 'fabricada'
+              AND ns.estado_lote = 'borrador'
             GROUP BY ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento
             ORDER BY ns.numero ASC
             LIMIT ?";
@@ -518,9 +519,10 @@ public function buscarNumeroDisponiblePreAlerta($searchTerm)
             LEFT JOIN modelos m ON ds.modelo_id = m.id
             LEFT JOIN marcas ma ON ds.marca_id = ma.id
             LEFT JOIN equipos e ON ds.equipo_id = e.id
-            WHERE ns.numero = ? 
+            WHERE ns.numero = ?
               AND ds.estado_prealerta = 'disponible'
               AND ns.tipo_maquina = 'fabricada'
+              AND ns.estado_lote = 'borrador'
             GROUP BY ns.id, ns.numero, ns.cliente_ruc_dni, ns.cliente_documento
             ORDER BY ns.numero ASC
             LIMIT 100";
