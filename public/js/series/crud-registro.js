@@ -56,12 +56,15 @@ $("#submitRegistro").click(function () {
     }
 
     // Crear array de equipos para enviar al servidor
+    // En modo "máquinas idénticas" se usa un único producto común (opcional)
+    const idProductoComun = $("#id_producto_comun").val() || "";
     var equiposData = [];
     for (let i = 0; i < series.length; i++) {
       equiposData.push({
         modelo: modelo,
         marca: marca,
         equipo: equipo,
+        id_producto: idProductoComun, // NUEVO
         numero_serie: series[i],
       });
     }
@@ -190,6 +193,8 @@ $("#submitRegistro").click(function () {
         modelo: $(this).find('select[name^="equipos"][name$="[modelo]"]').val(),
         marca: $(this).find('select[name^="equipos"][name$="[marca]"]').val(),
         equipo: $(this).find('select[name^="equipos"][name$="[equipo]"]').val(),
+        // NUEVO: id_producto del almacén (opcional)
+        id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this)
           .find('input[name^="equipos"][name$="[numero_serie]"]')
           .val(),
@@ -324,10 +329,30 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="card-title mb-0">Equipo ${index + 1}</h5>
-                            <button type="button" class="btn btn-sm btn-danger btn-eliminar-equipo" 
+                            <button type="button" class="btn btn-sm btn-danger btn-eliminar-equipo"
                                 data-id="${equipo.id || ""}">
                                 <i class="fa fa-trash"></i>
                             </button>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <label class="form-label">
+                                    <i class="fa fa-box me-1 text-rojo"></i>
+                                    Producto del almacén
+                                    <small class="text-muted">(opcional)</small>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                    <input type="text" class="form-control input-buscar-producto"
+                                        name="equipos_existentes[${index}][producto_busqueda]"
+                                        value="${equipo.producto_codigo ? (equipo.producto_codigo + ' | ' + (equipo.producto_nombre || '')) : ''}"
+                                        placeholder="Buscar por código o nombre..." autocomplete="off">
+                                    <input type="hidden" class="input-id-producto"
+                                        name="equipos_existentes[${index}][id_producto]"
+                                        value="${equipo.id_producto || ''}">
+                                </div>
+                                <small class="text-muted producto-seleccionado-info"></small>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-3 mb-2">
@@ -544,16 +569,20 @@ $("#updateRegistroBtn").click(function () {
         modelo: $(this).find('select[name$="[modelo]"]').val(),
         marca: $(this).find('select[name$="[marca]"]').val(),
         equipo: $(this).find('select[name$="[equipo]"]').val(),
+        // NUEVO: id_producto del almacén (opcional)
+        id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
 
-    // Luego agregar los nuevos equipos con series masivas
+    // Luego agregar los nuevos equipos con series masivas (un único producto común opcional)
+    const idProductoComunU = $("#id_producto_comun_u").val() || "";
     for (let i = 0; i < series.length; i++) {
       equiposData.push({
         modelo: modelo,
         marca: marca,
         equipo: equipo,
+        id_producto: idProductoComunU, // NUEVO
         numero_serie: series[i],
       });
     }
@@ -666,6 +695,8 @@ $("#updateRegistroBtn").click(function () {
         modelo: $(this).find('select[name$="[modelo]"]').val(),
         marca: $(this).find('select[name$="[marca]"]').val(),
         equipo: $(this).find('select[name$="[equipo]"]').val(),
+        // NUEVO: id_producto del almacén (opcional)
+        id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
@@ -676,6 +707,8 @@ $("#updateRegistroBtn").click(function () {
         modelo: $(this).find('select[name$="[modelo]"]').val(),
         marca: $(this).find('select[name$="[marca]"]').val(),
         equipo: $(this).find('select[name$="[equipo]"]').val(),
+        // NUEVO: id_producto del almacén (opcional)
+        id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
@@ -753,6 +786,24 @@ $("#agregar_equipo_diferente_u").click(function () {
                 <button type="button" class="btn btn-sm btn-danger btn-eliminar-equipo-nuevo">
                     <i class="fa fa-trash"></i>
                 </button>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <label class="form-label">
+                        <i class="fa fa-box me-1 text-rojo"></i>
+                        Producto del almacén
+                        <small class="text-muted">(opcional)</small>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                        <input type="text" class="form-control input-buscar-producto"
+                            name="equipos_nuevos[${index}][producto_busqueda]"
+                            placeholder="Buscar por código o nombre..." autocomplete="off">
+                        <input type="hidden" class="input-id-producto"
+                            name="equipos_nuevos[${index}][id_producto]" value="">
+                    </div>
+                    <small class="text-muted producto-seleccionado-info"></small>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-3 mb-2">

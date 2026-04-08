@@ -46,6 +46,7 @@
                                         <th>Cliente</th>
                                         <th>Cantidad de Equipos</th>
                                         <th>Fecha De Creación</th>
+                                        <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -286,7 +287,7 @@
                 "error": function (xhr, error, thrown) {
                     console.error("Error en la respuesta del servidor:", error, thrown);
                     console.log("Respuesta completa:", xhr.responseText);
-                    $("#tabla_clientes tbody").html('<tr><td colspan="5" class="text-center">Error al cargar los datos. Por favor, intente nuevamente.</td></tr>');
+                    $("#tabla_clientes tbody").html('<tr><td colspan="6" class="text-center">Error al cargar los datos. Por favor, intente nuevamente.</td></tr>');
                 }
             },
             "columns": [
@@ -309,17 +310,53 @@
                 { "data": "cantidad_equipos" },
                 { "data": "fecha_creacion" },
                 {
+                    // NUEVO: Columna estado del lote
+                    "data": "estado_lote",
+                    "render": function (data, type, row) {
+                        const estado = data || 'borrador';
+                        let clase = 'bg-secondary';
+                        let texto = 'Borrador';
+                        let icono = 'fa-pencil';
+                        if (estado === 'completado') {
+                            clase = 'bg-success';
+                            texto = 'Completado';
+                            icono = 'fa-check-circle';
+                        } else if (estado === 'anulado') {
+                            clase = 'bg-danger';
+                            texto = 'Anulado';
+                            icono = 'fa-ban';
+                        }
+                        let extra = '';
+                        if (row.convertido_de_externo == 1) {
+                            extra = ' <i class="fa fa-exchange-alt text-info" title="Convertido de externo a interno"></i>';
+                        }
+                        return `<span class="badge ${clase}"><i class="fa ${icono} me-1"></i>${texto}</span>${extra}`;
+                    }
+                },
+                {
                     "data": null,
                     "render": function (data, type, row) {
+                        const estado = row.estado_lote || 'borrador';
+                        const esBorrador = estado === 'borrador';
+                        const disabledEdit = esBorrador ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"';
+                        const tituloEdit = esBorrador
+                            ? 'Editar'
+                            : 'No se puede editar (lote ' + estado + ')';
+                        const btnCompletar = esBorrador
+                            ? `<button data-id="${Number(row.id)}" class="btn btn-sm btn-success btnCompletarLote" title="Completar lote (impacta stock)">
+                                   <i class="fa fa-check-circle"></i>
+                               </button>`
+                            : '';
                         return `
                             <div class="text-center">
                                 <div class="btn-group btn-sm">
                                     <button data-id="${Number(row.id)}" class="btn btn-sm btn-info btnVerDetalles" title="Ver detalles">
                                         <i class="fa fa-eye"></i>
                                     </button>
-                                    <button data-id="${Number(row.id)}" class="btn btn-sm btn-warning btnEditar" title="Editar">
+                                    <button data-id="${Number(row.id)}" class="btn btn-sm btn-warning btnEditar" title="${tituloEdit}" ${disabledEdit}>
                                         <i class="fa fa-edit"></i>
                                     </button>
+                                    ${btnCompletar}
                                     <button data-id="${Number(row.id)}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar">
                                         <i class="fa fa-trash"></i>
                                     </button>
@@ -749,6 +786,14 @@
                         $('#detalle_cliente').text(clienteTexto);
                         $('#detalle_fecha').text(registro.fecha_creacion);
 
+                        // NUEVO: badge del estado del lote
+                        const estadoLote = registro.estado_lote || 'borrador';
+                        let claseEL = 'bg-secondary';
+                        let textoEL = 'Borrador';
+                        if (estadoLote === 'completado') { claseEL = 'bg-success'; textoEL = 'Completado'; }
+                        else if (estadoLote === 'anulado') { claseEL = 'bg-danger'; textoEL = 'Anulado'; }
+                        $('#detalle_estado_lote').html(`<span class="badge ${claseEL}">${textoEL}</span>`);
+
                         $('#detalle_equipos').empty();
                         if (registro.equipos && registro.equipos.length > 0) {
                             registro.equipos.forEach((equipo, index) => {
@@ -756,9 +801,15 @@
                                 const estadoTexto = estado === 'en_garantia' ? 'En Garantía' : 'Disponible';
                                 const estadoClase = estado === 'en_garantia' ? 'bg-danger text-white' : 'bg-success text-white';
 
+                                // NUEVO: vínculo con producto del almacén
+                                const productoTxt = equipo.producto_codigo
+                                    ? `<span class="badge bg-info text-white" title="${equipo.producto_nombre || ''}">${equipo.producto_codigo}</span>`
+                                    : '<span class="text-muted small">Sin vincular</span>';
+
                                 $('#detalle_equipos').append(`
                                     <tr>
                                         <td>${index + 1}</td>
+                                        <td>${productoTxt}</td>
                                         <td>${equipo.marca_nombre || equipo.marca || ''}</td>
                                         <td>${equipo.modelo_nombre || equipo.modelo || ''}</td>
                                         <td>${equipo.equipo_nombre || equipo.equipo || ''}</td>
@@ -768,7 +819,7 @@
                                 `);
                             });
                         } else {
-                            $('#detalle_equipos').append('<tr><td colspan="6" class="text-center">No hay equipos registrados</td></tr>');
+                            $('#detalle_equipos').append('<tr><td colspan="7" class="text-center">No hay equipos registrados</td></tr>');
                         }
 
                         $('#modalDetalles').modal('show');
@@ -1025,6 +1076,161 @@
                     }
                 });
             }, 300);
+        });
+
+        // ============================================================
+        // NUEVO BLOQUE: Autocomplete de productos del almacén + Completar lote
+        // ============================================================
+
+        // Inicializar autocomplete sobre cualquier .input-buscar-producto
+        // Usamos delegación: cada vez que se enfoca un input se aplica autocomplete
+        // si todavía no lo tenía.
+        $(document).on('focus', '.input-buscar-producto', function () {
+            const $input = $(this);
+            if ($input.data('ui-autocomplete')) return; // ya inicializado
+
+            $input.autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: _URL + "/ajs/cargar/productos/" + (window.currentSucursal || ''),
+                        method: "GET",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e){} }
+                            response(Array.isArray(data) ? data : []);
+                        },
+                        error: function () {
+                            response([]);
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    const item = ui.item;
+                    $input.val(item.codigo_pp + ' | ' + item.nombre);
+                    $input.closest('.input-group').find('.input-id-producto').val(item.codigo);
+                    const stockTxt = (item.cnt !== undefined && item.cnt !== null) ? item.cnt : '?';
+                    $input.closest('.col-md-12').find('.producto-seleccionado-info')
+                        .html(`<i class="fa fa-check text-success me-1"></i>Stock actual: <strong>${stockTxt}</strong>`);
+                },
+                focus: function (event, ui) {
+                    event.preventDefault();
+                    $input.val(ui.item.codigo_pp + ' | ' + ui.item.nombre);
+                }
+            });
+        });
+
+        // Si el usuario borra el texto, también limpiar el id_producto
+        $(document).on('input', '.input-buscar-producto', function () {
+            if ($(this).val().trim() === '') {
+                $(this).closest('.input-group').find('.input-id-producto').val('');
+                $(this).closest('.col-md-12').find('.producto-seleccionado-info').empty();
+            }
+        });
+
+        // ----------- Completar lote: pedir resumen, mostrar modal y confirmar -----------
+        $('#tabla_clientes').on('click', '.btnCompletarLote', function () {
+            const idLote = $(this).data('id');
+            $.ajax({
+                url: _URL + "/ajs/resumen/lote/ns",
+                method: "POST",
+                data: { id: idLote },
+                dataType: 'json',
+                success: function (resp) {
+                    if (!resp.success) {
+                        Swal.fire({ title: 'Error', text: resp.error || 'No se pudo obtener el resumen del lote', icon: 'error' });
+                        return;
+                    }
+                    const d = resp.data;
+                    const lote = d.lote;
+                    const numeroNS = 'NS-' + String(lote.numero).padStart(2, '0');
+                    const tipoBadge = d.es_interno
+                        ? '<span class="badge bg-primary">INTERNO</span>'
+                        : '<span class="badge bg-warning text-dark">EXTERNO</span>';
+                    const cliente = lote.cliente_ruc_dni || 'Registro Interno (JVC)';
+
+                    // Construir tabla de productos a afectar
+                    let filas = '';
+                    if (d.productos_a_afectar && d.productos_a_afectar.length > 0) {
+                        d.productos_a_afectar.forEach(p => {
+                            const nuevo = parseInt(p.stock_actual || 0) + parseInt(p.cantidad_lote || 0);
+                            const stockNuevoTxt = d.es_interno
+                                ? `<strong class="text-success">${nuevo}</strong>`
+                                : `<span class="text-muted">${p.stock_actual} (sin cambio)</span>`;
+                            filas += `
+                                <tr>
+                                    <td>${p.codigo || ''}</td>
+                                    <td class="text-start">${p.nombre || ''}</td>
+                                    <td>${p.stock_actual || 0}</td>
+                                    <td>+${p.cantidad_lote}</td>
+                                    <td>${stockNuevoTxt}</td>
+                                </tr>`;
+                        });
+                    } else {
+                        filas = '<tr><td colspan="5" class="text-center text-muted">No hay equipos vinculados a productos del almacén</td></tr>';
+                    }
+
+                    const aviso = d.equipos_sin_vincular > 0
+                        ? `<div class="alert alert-warning mt-2"><i class="fa fa-exclamation-triangle me-1"></i>${d.equipos_sin_vincular} equipo(s) NO están vinculados a un producto del almacén. Solo se registrarán las series, sin afectar stock.</div>`
+                        : '';
+
+                    const html = `
+                        <div class="text-start">
+                            <div class="row mb-2">
+                                <div class="col-md-6"><strong>Lote:</strong> ${numeroNS}</div>
+                                <div class="col-md-6"><strong>Tipo:</strong> ${tipoBadge}</div>
+                            </div>
+                            <div class="mb-2"><strong>Cliente:</strong> ${cliente}</div>
+                            <div class="mb-2"><strong>Total equipos:</strong> ${d.total_equipos}</div>
+                            ${d.es_interno
+                                ? '<div class="alert alert-success mb-2"><i class="fa fa-arrow-up me-1"></i>Como es <strong>INTERNO</strong>, el stock del almacén se <strong>aumentará</strong>.</div>'
+                                : '<div class="alert alert-info mb-2"><i class="fa fa-info-circle me-1"></i>Como es <strong>EXTERNO</strong>, el stock <strong>NO se modifica</strong>. Solo se registra el movimiento en kardex.</div>'}
+                            <table class="table table-sm table-bordered text-center">
+                                <thead class="table-light">
+                                    <tr><th>Código</th><th>Producto</th><th>Stock Actual</th><th>+Lote</th><th>Stock Nuevo</th></tr>
+                                </thead>
+                                <tbody>${filas}</tbody>
+                            </table>
+                            ${aviso}
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: '¿Completar lote ' + numeroNS + '?',
+                        html: html,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, completar',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#28a745',
+                        width: '700px'
+                    }).then((res) => {
+                        if (!res.isConfirmed) return;
+                        $.ajax({
+                            url: _URL + "/ajs/completar/lote/ns",
+                            method: "POST",
+                            data: { id: idLote },
+                            dataType: 'json',
+                            success: function (r) {
+                                if (r.success) {
+                                    Swal.fire({ title: 'Listo', text: r.mensaje || 'Lote completado correctamente', icon: 'success' });
+                                    $("#tabla_clientes").DataTable().ajax.reload();
+                                } else {
+                                    Swal.fire({ title: 'Error', text: r.error || 'No se pudo completar el lote', icon: 'error' });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire({ title: 'Error', text: 'Error al completar el lote: ' + xhr.statusText, icon: 'error' });
+                            }
+                        });
+                    });
+                },
+                error: function () {
+                    Swal.fire({ title: 'Error', text: 'No se pudo conectar al servidor', icon: 'error' });
+                }
+            });
         });
 
 </script>

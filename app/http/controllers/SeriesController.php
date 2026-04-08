@@ -178,6 +178,11 @@ class SeriesController extends Controller
                 $this->detalleSerieModel->setModeloId($equipo['modelo']);
                 $this->detalleSerieModel->setMarcaId($equipo['marca']);
                 $this->detalleSerieModel->setEquipoId($equipo['equipo']);
+                // NUEVO: vínculo opcional al producto del almacén
+                $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
+                    ? (int)$equipo['id_producto']
+                    : null;
+                $this->detalleSerieModel->setIdProducto($idProducto);
                 $this->detalleSerieModel->setNumeroSerie($equipo['numero_serie']);
                 $this->detalleSerieModel->setEstado('disponible');
                 $this->detalleSerieModel->setEstadoPrealerta('disponible');
@@ -215,6 +220,15 @@ class SeriesController extends Controller
 
         try {
             $serie_id = $_POST['id'];
+
+            // NUEVO: Solo se puede editar un lote en estado 'borrador'
+            $estadoActual = $this->numeroSerieModel->getEstadoLoteById($serie_id);
+            if ($estadoActual && $estadoActual !== 'borrador') {
+                throw new Exception(
+                    "No se puede editar este lote porque su estado es '{$estadoActual}'. " .
+                    "Solo los lotes en estado 'borrador' pueden modificarse."
+                );
+            }
 
             // Decodificar equipos
             $equipos = is_string($_POST['equipos']) ? json_decode($_POST['equipos'], true) : $_POST['equipos'];
@@ -269,6 +283,11 @@ class SeriesController extends Controller
                 $this->detalleSerieModel->setModeloId($equipo['modelo']);
                 $this->detalleSerieModel->setMarcaId($equipo['marca']);
                 $this->detalleSerieModel->setEquipoId($equipo['equipo']);
+                // NUEVO: vínculo opcional al producto del almacén
+                $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
+                    ? (int)$equipo['id_producto']
+                    : null;
+                $this->detalleSerieModel->setIdProducto($idProducto);
                 $this->detalleSerieModel->setNumeroSerie($equipo['numero_serie']);
                 $this->detalleSerieModel->setEstado($equipo['estado'] ?? 'disponible');
                 $this->detalleSerieModel->setEstadoPrealerta($equipo['estado_prealerta'] ?? 'disponible');
@@ -302,11 +321,25 @@ class SeriesController extends Controller
         $this->conectar->begin_transaction();
 
         try {
-            $serie_id = $_POST['id'];
+            $serie_id = (int)$_POST['id'];
+
+            // NUEVO: Si el lote está completado, revertir el stock antes de eliminar
+            $serie = $this->numeroSerieModel->getById($serie_id);
+            if (!$serie) {
+                throw new Exception("La serie no existe");
+            }
+
+            $estadoLote = $serie['estado_lote'] ?? 'borrador';
+            $esInterno  = empty($serie['cliente_ruc_dni']) || (int)($serie['tiene_cliente'] ?? 1) === 0;
+
+            if ($estadoLote === 'completado' && $esInterno) {
+                error_log("deleteSerie: lote {$serie_id} estaba COMPLETADO interno, revirtiendo stock...");
+                $this->revertirStockLote($serie_id, $esInterno);
+            }
 
             // Eliminar garantías relacionadas primero
-            $sql_garantias = "DELETE g FROM garantia g 
-                             INNER JOIN detalle_serie ds ON g.detalle_serie_id = ds.id 
+            $sql_garantias = "DELETE g FROM garantia g
+                             INNER JOIN detalle_serie ds ON g.detalle_serie_id = ds.id
                              WHERE ds.numero_serie_id = ?";
             $stmt = $this->conectar->prepare($sql_garantias);
             $stmt->bind_param("i", $serie_id);
@@ -505,10 +538,263 @@ class SeriesController extends Controller
      */
     private function validarDatosEquipo($equipo)
     {
-        return isset($equipo['modelo']) && 
-               isset($equipo['marca']) && 
-               isset($equipo['equipo']) && 
+        return isset($equipo['modelo']) &&
+               isset($equipo['marca']) &&
+               isset($equipo['equipo']) &&
                isset($equipo['numero_serie']) &&
                !empty($equipo['numero_serie']);
+    }
+
+    // ================================================================
+    // NUEVO: Completar lote NS y manejo de stock/kardex
+    // ================================================================
+
+    /**
+     * Devolver un resumen del lote para mostrar antes de completar.
+     * Retorna: { lote, tipo (interno/externo), equipos[], productos_a_afectar[] }
+     */
+    public function resumenLote()
+    {
+        try {
+            $serie_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+            if (!$serie_id) {
+                echo json_encode(['success' => false, 'error' => 'ID de lote no proporcionado']);
+                return;
+            }
+
+            $serie = $this->numeroSerieModel->getById($serie_id);
+            if (!$serie) {
+                echo json_encode(['success' => false, 'error' => 'Lote no encontrado']);
+                return;
+            }
+
+            $equipos = $this->detalleSerieModel->getByNumeroSerieId($serie_id);
+
+            // Agrupar por id_producto para mostrar cuánto va a aumentar/registrar
+            $resumenProductos = [];
+            $sinVincular = 0;
+            foreach ($equipos as $eq) {
+                if (!empty($eq['id_producto'])) {
+                    $key = $eq['id_producto'];
+                    if (!isset($resumenProductos[$key])) {
+                        $resumenProductos[$key] = [
+                            'id_producto'    => $eq['id_producto'],
+                            'codigo'         => $eq['producto_codigo'] ?? '',
+                            'nombre'         => $eq['producto_nombre'] ?? '',
+                            'stock_actual'   => $eq['producto_stock'] ?? 0,
+                            'cantidad_lote'  => 0,
+                            'series'         => []
+                        ];
+                    }
+                    $resumenProductos[$key]['cantidad_lote'] += 1;
+                    $resumenProductos[$key]['series'][]      = $eq['numero_serie'];
+                } else {
+                    $sinVincular++;
+                }
+            }
+
+            $esInterno = empty($serie['cliente_ruc_dni']) || (int)($serie['tiene_cliente'] ?? 1) === 0;
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'lote'                 => $serie,
+                    'es_interno'           => $esInterno,
+                    'tipo'                 => $esInterno ? 'INTERNO' : 'EXTERNO',
+                    'productos_a_afectar'  => array_values($resumenProductos),
+                    'equipos_sin_vincular' => $sinVincular,
+                    'total_equipos'        => count($equipos),
+                    'estado_lote'          => $serie['estado_lote'] ?? 'borrador',
+                ]
+            ]);
+        } catch (Exception $e) {
+            error_log("Error en resumenLote: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Marcar el lote como COMPLETADO.
+     *  - Si es INTERNO: aumenta el stock de cada producto vinculado y registra
+     *    INGRESO en historial_stock con tipo_origen='LOTE_NS_INTERNO'.
+     *  - Si es EXTERNO: NO toca el stock, solo registra INGRESO en historial_stock
+     *    con tipo_origen='LOTE_NS_EXTERNO' (queda como movimiento informativo).
+     */
+    public function completarLote()
+    {
+        if (!isset($_POST['id'])) {
+            echo json_encode(['success' => false, 'error' => 'Falta el ID del lote']);
+            return;
+        }
+
+        $this->conectar->begin_transaction();
+
+        try {
+            $serie_id = (int)$_POST['id'];
+
+            $serie = $this->numeroSerieModel->getById($serie_id);
+            if (!$serie) {
+                throw new Exception("Lote no encontrado");
+            }
+
+            $estadoActual = $serie['estado_lote'] ?? 'borrador';
+            if ($estadoActual !== 'borrador') {
+                throw new Exception("Solo se pueden completar lotes en estado 'borrador' (estado actual: {$estadoActual})");
+            }
+
+            $esInterno = empty($serie['cliente_ruc_dni']) || (int)($serie['tiene_cliente'] ?? 1) === 0;
+
+            // Aplicar el efecto en stock/kardex según el tipo
+            $this->aplicarStockLote($serie_id, $esInterno);
+
+            // Marcar lote como completado
+            $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre']
+                       : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema');
+
+            $this->numeroSerieModel->setId($serie_id);
+            if (!$this->numeroSerieModel->marcarComoCompletado($usuario)) {
+                throw new Exception("No se pudo marcar el lote como completado");
+            }
+
+            $this->conectar->commit();
+            echo json_encode([
+                'success' => true,
+                'mensaje' => $esInterno
+                    ? 'Lote completado. Stock aumentado en almacén.'
+                    : 'Lote completado. Movimiento registrado en kardex (sin afectar stock).'
+            ]);
+        } catch (Exception $e) {
+            $this->conectar->rollback();
+            error_log("Error en completarLote: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Aplicar el impacto en stock al completar un lote.
+     * Recorre detalle_serie del lote y:
+     *  - Si interno: UPDATE productos.cantidad += 1 por cada serie vinculada
+     *  - Siempre: INSERT en historial_stock para auditoría
+     */
+    private function aplicarStockLote($serie_id, $esInterno)
+    {
+        $equipos = $this->detalleSerieModel->getByNumeroSerieId($serie_id);
+
+        $tipoOrigen = $esInterno ? 'LOTE_NS_INTERNO' : 'LOTE_NS_EXTERNO';
+        $obs        = $esInterno
+            ? 'Ingreso por lote NS interno (producción para stock)'
+            : 'Ingreso por lote NS externo (producción para cliente)';
+
+        // Agrupar por id_producto para hacer UPDATE atómico por producto
+        $cantidadPorProducto = [];
+        foreach ($equipos as $eq) {
+            if (empty($eq['id_producto'])) {
+                continue; // equipo no vinculado a producto, se registra solo la serie
+            }
+            $idP = (int)$eq['id_producto'];
+            if (!isset($cantidadPorProducto[$idP])) {
+                $cantidadPorProducto[$idP] = 0;
+            }
+            $cantidadPorProducto[$idP] += 1;
+        }
+
+        foreach ($cantidadPorProducto as $idProducto => $cantidad) {
+            if ($esInterno) {
+                $sql = "UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ?";
+                $stmt = $this->conectar->prepare($sql);
+                $stmt->bind_param("ii", $cantidad, $idProducto);
+                if (!$stmt->execute()) {
+                    throw new Exception("Error al aumentar stock del producto {$idProducto}: " . $stmt->error);
+                }
+            }
+
+            $this->registrarMovimientoKardex($idProducto, 'INGRESO', $cantidad, $obs, $serie_id, $tipoOrigen);
+        }
+    }
+
+    /**
+     * Revertir el efecto en stock cuando se elimina/anula un lote completado interno.
+     */
+    private function revertirStockLote($serie_id, $esInterno)
+    {
+        $equipos = $this->detalleSerieModel->getByNumeroSerieId($serie_id);
+
+        $cantidadPorProducto = [];
+        foreach ($equipos as $eq) {
+            if (empty($eq['id_producto'])) continue;
+            $idP = (int)$eq['id_producto'];
+            $cantidadPorProducto[$idP] = ($cantidadPorProducto[$idP] ?? 0) + 1;
+        }
+
+        foreach ($cantidadPorProducto as $idProducto => $cantidad) {
+            if ($esInterno) {
+                // Restar del stock (sin permitir negativos)
+                $sql = "UPDATE productos
+                        SET cantidad = GREATEST(0, cantidad - ?)
+                        WHERE id_producto = ?";
+                $stmt = $this->conectar->prepare($sql);
+                $stmt->bind_param("ii", $cantidad, $idProducto);
+                if (!$stmt->execute()) {
+                    throw new Exception("Error al revertir stock del producto {$idProducto}: " . $stmt->error);
+                }
+            }
+
+            $this->registrarMovimientoKardex(
+                $idProducto,
+                'EGRESO',
+                $cantidad,
+                'Reversión por eliminación de lote NS',
+                $serie_id,
+                $esInterno ? 'LOTE_NS_INTERNO_REVERSION' : 'LOTE_NS_EXTERNO_REVERSION'
+            );
+        }
+    }
+
+    /**
+     * Insertar un movimiento en historial_stock (kardex).
+     */
+    private function registrarMovimientoKardex($idProducto, $tipoMov, $cantidad, $observaciones, $idLote, $tipoOrigen)
+    {
+        try {
+            $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre']
+                       : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema');
+
+            // Obtener costo del producto si existe (para mantener consistencia con otros movimientos)
+            $costo = 0;
+            $sqlCosto = "SELECT costo FROM productos WHERE id_producto = ?";
+            $stmtC = $this->conectar->prepare($sqlCosto);
+            $stmtC->bind_param("i", $idProducto);
+            $stmtC->execute();
+            $resC = $stmtC->get_result();
+            if ($rowC = $resC->fetch_assoc()) {
+                $costo = (float)($rowC['costo'] ?? 0);
+            }
+
+            $sql = "INSERT INTO historial_stock
+                    (id_producto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones, id_orden_trabajo, tipo_origen)
+                    VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?)";
+            $stmt = $this->conectar->prepare($sql);
+            // Tipos: i (id_producto) s (tipo_movimiento) i (cantidad)
+            //        d (costo) s (usuario) s (observaciones) i (id_lote) s (tipo_origen)
+            $stmt->bind_param(
+                "isidssis",
+                $idProducto,
+                $tipoMov,
+                $cantidad,
+                $costo,
+                $usuario,
+                $observaciones,
+                $idLote,
+                $tipoOrigen
+            );
+
+            if (!$stmt->execute()) {
+                throw new Exception("Error al registrar movimiento de kardex: " . $stmt->error);
+            }
+            return true;
+        } catch (Exception $e) {
+            error_log("Error en registrarMovimientoKardex: " . $e->getMessage());
+            throw $e; // re-lanzar para que la transacción haga rollback
+        }
     }
 }
