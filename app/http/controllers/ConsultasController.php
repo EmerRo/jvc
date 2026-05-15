@@ -5,7 +5,7 @@ require_once "app/models/Venta.php";
 require_once "app/models/Cliente.php";
 require_once "app/models/ProductoVenta.php";
 require_once "app/models/DocumentoEmpresa.php";
-require_once "app/clases/SunatApi.php";
+require_once "app/clases/SunatApiClient.php";
 require_once "app/clases/EnvioEmail.php";
 require_once "app/helpers/ThumbnailHelper.php";
 
@@ -17,7 +17,7 @@ class ConsultasController extends Controller
     public function __construct()
     {
         $this->consulta = new Consultas();
-        $this->sunatApi = new SunatApi();
+        $this->sunatApi = new SunatApiClient();
     }
     public function agregarTransportista()
     {

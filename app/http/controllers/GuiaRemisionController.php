@@ -3,9 +3,7 @@ require_once "app/models/GuiaRemision.php";
 require_once "app/models/GuiaDetalle.php";
 require_once "app/models/DocumentoEmpresa.php";
 require_once "app/models/GuiaSunat.php";
-require_once "app/clases/SendURL.php";
-require_once "app/clases/SunatApi.php";
-require_once "app/clases/SunatApi2.php";
+require_once "app/clases/SunatApiClient.php";
 require_once 'app/models/TallerRepuesto.php';
 require_once 'app/models/TallerEquipo.php';
 require_once 'app/models/TallerCotizacion.php';
@@ -16,8 +14,8 @@ class GuiaRemisionController extends Controller
     private $conexion;
     public function __construct()
     {
-        $this->sunatApi2 = new SunatApi2();
-        $this->sunatApi = new SunatApi();
+        $this->sunatApi = new SunatApiClient();
+        $this->sunatApi2 = $this->sunatApi;
         $this->conexion = (new Conexion())->getConexion();
     }
 
@@ -43,7 +41,7 @@ class GuiaRemisionController extends Controller
         $c_guia = new GuiaRemision();
         $c_documentos = new DocumentoEmpresa();
         $guiaSunat = new GuiaSunat();
-        $sendURL = new SendURL();
+
 
         $dataSend = [];
         $dataSend["certGlobal"] = false;
@@ -480,7 +478,7 @@ class GuiaRemisionController extends Controller
         $c_documentos = new DocumentoEmpresa();
         $guiaDetalle = new GuiaDetalle();
         $guiaSunat = new GuiaSunat();
-        $sendURL = new SendURL();
+
 
         $dataSend = [];
         $dataSend["certGlobal"] = false;
@@ -713,7 +711,7 @@ class GuiaRemisionController extends Controller
         $c_documentos = new DocumentoEmpresa();
         $guiaDetalle = new GuiaDetalle();
         $guiaSunat = new GuiaSunat();
-        $sendURL = new SendURL();
+
 
         $dataSend = [];
         $dataSend["certGlobal"] = false;

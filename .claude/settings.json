@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/laragon/www/api-sunat-laravel/**)",
+      "Bash(C:/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root magusqao_jvc_factura -e \"DESCRIBE empresas;\")"
+    ]
+  }
+}

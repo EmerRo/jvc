@@ -10,7 +10,6 @@ require_once "app/models/VentaServicio.php";
 require_once "app/models/Varios.php";
 require_once "app/models/VentaSunat.php";
 require_once "app/models/VentaAnulada.php";
-require_once "app/clases/SendURL.php";
 
 
 use Endroid\QrCode\QrCode;

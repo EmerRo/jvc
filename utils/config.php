@@ -37,6 +37,13 @@ define("PUERTO_SMTP","465");*/
 define("ENDPOINT","beta");//production
 define("URL_GEN_XML_SUNAT","http://genxml.des");
 
+/**
+ * API SUNAT CENTRALIZADA
+ * Local:      http://api-sunat-laravel.test
+ * Producción: http://84.247.162.204/api-sunat-laravel
+ */
+define("URL_API_SUNAT","http://api-sunat-laravel.test");
+
 define("KEY_ENCRYPT","matrixsistem_key");
 
 //php.exe -f F:/programacion/phpProjects/facturacion3/jobs/enviar_sunat.php

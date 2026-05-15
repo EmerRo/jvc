@@ -9,8 +9,7 @@ require_once "app/models/Varios.php";
 require_once "app/models/VentaSunat.php";
 require_once "app/models/VentaAnulada.php";
 require_once "app/models/GuiaRemision.php";
-require_once "app/clases/SendURL.php";
-require_once "app/clases/SunatApi.php";
+require_once "app/clases/SunatApiClient.php";
 
 
 class VentasController extends Controller
@@ -22,7 +21,7 @@ class VentasController extends Controller
     public function __construct()
     {
         $this->venta = new Venta();
-        $this->sunatApi = new SunatApi();
+        $this->sunatApi = new SunatApiClient();
         $this->guia = new GuiaRemision();
         $this->conexion = (new Conexion())->getConexion();
     }

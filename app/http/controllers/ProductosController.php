@@ -21,6 +21,13 @@ class ProductosController extends Controller
     {
         $almacen = new Almacen();
         $almacen->setIdEmpresa($_SESSION['id_empresa']);
+        
+        // Verificar y crear vistas faltantes para todos los almacenes
+        $almacenesCreados = $almacen->crearVistasFaltantes();
+        if ($almacenesCreados > 0) {
+            error_log("Se crearon $almacenesCreados vistas para almacenes");
+        }
+        
         $almacenes = $almacen->listar();
         echo json_encode(['estado' => true, 'almacenes' => $almacenes]);
     }
