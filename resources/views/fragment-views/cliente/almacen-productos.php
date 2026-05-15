@@ -227,11 +227,14 @@ $almacenProducto = 1;
                             <div class="form-group col-md-3">
                                 <label for="">Almacén</label>
                                 <div class="d-flex align-items-center gap-1">
-                                    <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                        @change="changeAlmacen($event)" v-model="almacen">
-                                        <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">{{ alm.nombre }}</option>
-                                    </select>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;" data-bs-toggle="modal" data-bs-target="#modal-agregar-almacen" title="Agregar almacén">
+<select name="almacenSelect" id="almacenSelect" class="form-control"
+                                            @change="changeAlmacen($event)" v-model="almacen">
+                                            <option value="" disabled selected>Seleccionar</option>
+                                            <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                            </option>
+                                        </select>
+                                    <button type="button" class="btn btn-sm btn-outline-success" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;" @click="abrirModalAgregarAlmacen()" title="Agregar almacén">
                                         <i class="fa fa-plus"></i>
                                     </button>
                                 </div>
@@ -427,25 +430,75 @@ $almacenProducto = 1;
             <!-- Modal Disminuir Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-disminuir-stock.php-->
             <?php include __DIR__ . '/modals/product-modal-disminuir-stock.php' ?>
 
-            <!-- Modal Agregar Almacén -->
+            <!-- Modal Agregar/Editar Almacén -->
             <div class="modal fade" id="modal-agregar-almacen" tabindex="-1" aria-labelledby="modalAgregarAlmacenLabel" aria-hidden="true">
-                <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content" style="border-radius: 15px;">
-                        <div class="modal-header" style="border-bottom: 1px solid #eee;">
-                            <h6 class="modal-title" id="modalAgregarAlmacenLabel"><i class="fa fa-warehouse me-2"></i>Nuevo Almacén</h6>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="modal-header bg-rojo text-white">
+                            <h6 class="modal-title" id="modalAgregarAlmacenLabel">
+                                <i class="fa fa-warehouse me-2"></i>Gestionar Almacenes
+                            </h6>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="form-group">
-                                <label for="nombreAlmacenNuevo">Nombre</label>
-                                <input type="text" class="form-control" id="nombreAlmacenNuevo" v-model="nuevoAlmacen" placeholder="Ej: Almacén Principal" maxlength="100">
+                            <!-- Lista de almacenes existentes -->
+                            <div class="mb-3">
+                                <label class="form-label">Almacenes</label>
+                                <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                                    <div v-for="alm in almacenes" :key="alm.id_almacen" 
+                                         class="list-group-item d-flex justify-content-between align-items-center"
+                                         :class="{'active': almacenEditando && almacenEditando.id_almacen == alm.id_almacen}"
+                                         style="cursor: pointer;"
+                                         @click="seleccionarAlmacen(alm)">
+                                        <span>
+                                            <i class="fa fa-warehouse me-2"></i>{{ alm.nombre }}
+                                            <span v-if="alm.principal == 1" class="badge bg-warning text-dark ms-2">★ Principal</span>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-outline-light" @click.stop="seleccionarAlmacen(alm)">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Formulario de edición -->
+                            <hr v-if="almacenEditando">
+                            <div v-if="almacenEditando">
+                                <div class="form-group mb-2">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" v-model="nuevoAlmacen" placeholder="Nombre del almacén">
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="marcarPrincipal" v-model="marcarPrincipal">
+                                    <label class="form-check-label" for="marcarPrincipal">
+                                        <i class="fa fa-star text-warning me-1"></i>Marcar como Principal
+                                    </label>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-warning btn-sm flex-grow-1" @click="guardarAlmacenEdicion()">
+                                        <i class="fa fa-save me-1"></i> Actualizar
+                                    </button>
+                                    <button v-if="almacenEditando.principal != 1" 
+                                            type="button" class="btn btn-danger btn-sm" @click="eliminarAlmacen()">
+                                        <i class="fa fa-trash me-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Agregar nuevo -->
+                            <hr v-if="almacenEditando">
+                            <div class="mt-2">
+                                <label class="form-label">{{ almacenEditando ? 'Agregar otro' : 'Nuevo Almacén' }}</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" v-model="nuevoAlmacenNuevo" placeholder="Nombre del nuevo almacén" @keyup.enter="agregarNuevoAlmacen()">
+                                    <button type="button" class="btn btn-success" @click="agregarNuevoAlmacen()">
+                                        <i class="fa fa-plus me-1"></i> Agregar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer" style="border-top: 1px solid #eee;">
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-danger btn-sm" @click="guardarAlmacen()">
-                                <i class="fa fa-save me-1"></i> Guardar
-                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
                         </div>
                     </div>
                 </div>
@@ -739,13 +792,33 @@ $almacenProducto = 1;
     var nombreBarraTemps = ''
     var codeBarraTemps = ''
     var datatable
-    var almacenCod = '<?php echo $_SESSION['sucursal'] ?>'
+    var almacenCod = '<?php 
+                        // Obtener el almacén principal por defecto
+                        $almacenPrincipal = '1'; // valor por defecto
+                        $con = new Conexion();
+                        $sql = "SELECT id_almacen FROM almacenes WHERE id_empresa = '{$_SESSION['id_empresa']}' AND estado = '1' AND principal = '1' LIMIT 1";
+                        $result = $con->getConexion()->query($sql);
+                        if ($row = $result->fetch_assoc()) {
+                            $almacenPrincipal = $row['id_almacen'];
+                        }
+                        echo $almacenPrincipal;
+                    ?>'
 
     $(document).ready(function () {
         const app = new Vue({
             el: "#conte-vue-modals",
             data: {
-                almacen: <?php echo json_encode($_SESSION['sucursal']); ?>,
+                almacen: <?php 
+                        // Obtener el almacén principal por defecto
+                        $almacenPrincipal = '1';
+                        $con = new Conexion();
+                        $sql = "SELECT id_almacen FROM almacenes WHERE id_empresa = '{$_SESSION['id_empresa']}' AND estado = '1' AND principal = '1' LIMIT 1";
+                        $result = $con->getConexion()->query($sql);
+                        if ($row = $result->fetch_assoc()) {
+                            $almacenPrincipal = $row['id_almacen'];
+                        }
+                        echo json_encode($almacenPrincipal);
+                    ?>,
                 t: 0,
                 listaProd: [],
                 almacenImportacion: 1, // Almacén por defecto para importación
@@ -835,6 +908,9 @@ $almacenProducto = 1;
                 historialStock: [],
                 almacenes: [],
                 nuevoAlmacen: '',
+                nuevoAlmacenNuevo: '',
+                almacenEditando: null,
+                marcarPrincipal: false,
             },
             mounted() {
                 this.cargarAlmacenes();
@@ -862,7 +938,7 @@ $almacenProducto = 1;
                 }
             },
             methods: {
-                cargarAlmacenes() {
+cargarAlmacenes() {
                     var self = this;
                     _get('/ajs/almacenes/listar', function(res) {
                         if (res.estado) {
@@ -870,20 +946,185 @@ $almacenProducto = 1;
                         }
                     });
                 },
+                seleccionarAlmacen(alm) {
+                    this.almacenEditando = alm;
+                    this.nuevoAlmacen = alm.nombre;
+                    this.marcarPrincipal = alm.principal == 1;
+                },
+                abrirModalAgregarAlmacen() {
+                    this.almacenEditando = null;
+                    this.nuevoAlmacen = '';
+                    this.nuevoAlmacenNuevo = '';
+                    this.marcarPrincipal = false;
+                    $('#modal-agregar-almacen').modal('show');
+                },
+                agregarNuevoAlmacen() {
+                    if (!this.nuevoAlmacenNuevo.trim()) {
+                        alertAdvertencia('Ingrese el nombre del almacén');
+                        return;
+                    }
+                    var self = this;
+                    _post('/ajs/almacenes/agregar', { nombre: this.nuevoAlmacenNuevo.trim() }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.nuevoAlmacenNuevo = '';
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                guardarAlmacenEdicion() {
+                    if (!this.nuevoAlmacen.trim() || !this.almacenEditando) return;
+                    
+                    var self = this;
+                    _post('/ajs/almacenes/editar', { 
+                        id: this.almacenEditando.id_almacen, 
+                        nombre: this.nuevoAlmacen.trim(),
+                        principal: this.marcarPrincipal ? 1 : 0
+                    }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                eliminarAlmacen() {
+                    if (!this.almacenEditando || this.almacenEditando.principal == 1) return;
+                    
+                    Swal.fire({
+                        title: '¿Eliminar almacén?',
+                        text: 'Esta acción no se puede deshacer.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var self = this;
+                            _post('/ajs/almacenes/eliminar', { id: this.almacenEditando.id_almacen }, function(res) {
+                                if (res.estado) {
+                                    alertExito(res.mensaje);
+                                    self.almacenEditando = null;
+                                    self.nuevoAlmacen = '';
+                                    self.cargarAlmacenes();
+                                } else {
+                                    alertAdvertencia(res.mensaje);
+                                }
+                            });
+                        }
+                    });
+                },
+                changeAlmacen(event) {
+                    // Limpiar checkboxes y localStorage
+                    clearSelection();
+                    $('.filter-option').prop('checked', false);
+
+                    // Actualizar el almacén seleccionado
+                    almacenCod = event.target.value;
+
+                    if (currentView === 'table') {
+                        // Destruir la tabla actual
+                        if ($.fn.DataTable.isDataTable('#datatable')) {
+                            datatable.destroy();
+                        }
+
+                        // Reinicializar DataTable con la nueva configuración
+                        initializeDataTable();
+                    } else {
+                        // Recargar vista grid
+                        loadGridProducts(1, searchTerm);
+                    }
+                },
+                abrirModalEditarAlmacen(almacen) {
+                    this.modoEdicionAlmacen = true;
+                    this.almacenEditando = almacen;
+                    this.nuevoAlmacen = almacen.nombre;
+                    this.marcarPrincipal = false;
+                    $('#modal-agregar-almacen').modal('show');
+                },
+                abrirModalAgregarAlmacen() {
+                    this.modoEdicionAlmacen = false;
+                    this.almacenEditando = null;
+                    this.nuevoAlmacen = '';
+                    this.marcarPrincipal = false;
+                    $('#modal-agregar-almacen').modal('show');
+                },
                 guardarAlmacen() {
                     if (!this.nuevoAlmacen.trim()) {
                         alertAdvertencia('Ingrese el nombre del almacén');
                         return;
                     }
                     var self = this;
-                    _post('/ajs/almacenes/agregar', { nombre: this.nuevoAlmacen.trim() }, function(res) {
-                        if (res.estado) {
-                            alertExito(res.mensaje);
-                            self.nuevoAlmacen = '';
-                            $('#modal-agregar-almacen').modal('hide');
-                            self.cargarAlmacenes();
-                        } else {
-                            alertAdvertencia(res.mensaje);
+                    
+                    if (this.modoEdicionAlmacen && this.almacenEditando) {
+                        // Modo edición
+                        _post('/ajs/almacenes/editar', { 
+                            id: this.almacenEditando.id_almacen, 
+                            nombre: this.nuevoAlmacen.trim(),
+                            principal: this.marcarPrincipal ? 1 : 0
+                        }, function(res) {
+                            if (res.estado) {
+                                alertExito(res.mensaje);
+                                self.nuevoAlmacen = '';
+                                self.modoEdicionAlmacen = false;
+                                self.almacenEditando = null;
+                                self.marcarPrincipal = false;
+                                $('#modal-agregar-almacen').modal('hide');
+                                self.cargarAlmacenes();
+                                // Recargar DataTable si está activo
+                                if (typeof datatable !== 'undefined' && datatable) {
+                                    datatable.ajax.reload(null, false);
+                                }
+                            } else {
+                                alertAdvertencia(res.mensaje);
+                            }
+                        });
+                    } else {
+                        // Modo crear
+                        _post('/ajs/almacenes/agregar', { nombre: this.nuevoAlmacen.trim() }, function(res) {
+                            if (res.estado) {
+                                alertExito(res.mensaje);
+                                self.nuevoAlmacen = '';
+                                $('#modal-agregar-almacen').modal('hide');
+                                self.cargarAlmacenes();
+                            } else {
+                                alertAdvertencia(res.mensaje);
+                            }
+                        });
+                    }
+                },
+                eliminarAlmacen() {
+                    if (!this.almacenEditando) return;
+                    
+                    Swal.fire({
+                        title: '¿Eliminar almacén?',
+                        text: 'Esta acción no se puede deshacer.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var self = this;
+                            _post('/ajs/almacenes/eliminar', { id: this.almacenEditando.id_almacen }, function(res) {
+                                if (res.estado) {
+                                    alertExito(res.mensaje);
+                                    self.nuevoAlmacen = '';
+                                    self.modoEdicionAlmacen = false;
+                                    self.almacenEditando = null;
+                                    $('#modal-agregar-almacen').modal('hide');
+                                    self.cargarAlmacenes();
+                                } else {
+                                    alertAdvertencia(res.mensaje);
+                                }
+                            });
                         }
                     });
                 },

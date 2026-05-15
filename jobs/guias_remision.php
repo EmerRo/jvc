@@ -1,51 +1,38 @@
 <?php
+// Vars compartidas desde enviar_sunat.php: $emp, $conexion, $fecha
 
-use Greenter\Model\Sale\Invoice;
-
-
-$util = Util::getInstance();
-$util->setRuc($emp['ruc']);
-$util->setClave($emp['clave_sol']);
-$util->setUsuario($emp['user_sol']);
-
-$sql = "SELECT gr.*,gs.nombre_xml FROM guia_remision gr 
-    join guia_sunat gs on gr.id_guia_remision = gs.id_guia 
-    where gr.enviado_sunat='0' ";
-
-$see = $util->getSee2($endpointguia);
+$sql = "SELECT gr.id_guia_remision, gs.nombre_xml
+        FROM guia_remision gr
+            JOIN guia_sunat gs ON gr.id_guia_remision = gs.id_guia
+        WHERE gr.enviado_sunat = '0'
+          AND gr.id_empresa = '{$emp['id_empresa']}'";
 
 $listaGuia = $conexion->query($sql);
 
-foreach ($listaGuia as $guia){
-
+foreach ($listaGuia as $guia) {
     $nombre_archivo = $guia['nombre_xml'];
-    $xml_ruta = __DIR__ . "/../files/facturacion/xml/" . $emp["ruc"] . '/' . $nombre_archivo . ".xml";
-    $contenido = file_get_contents($xml_ruta);
+    $xml_ruta = __DIR__ . "/../files/facturacion/xml/" . $emp['ruc'] . '/' . $nombre_archivo . ".xml";
 
-    $res = $see->sendXml(Invoice::class, $nombre_archivo,$contenido );
-
-    if ($res->isSuccess()) {
-        echo "Enviado : $nombre_archivo \n";
-        $nombreCDR='R-'.$nombre_archivo.'.zip';
-        $cdr = $res->getCdrZip();
-        $fileDir =  __DIR__ . '/../files/facturacion/cdr/'.$emp['ruc'];
-
-        if (!file_exists($fileDir)) {
-            mkdir($fileDir, 0777, true);
-        }
-
-        file_put_contents($fileDir.DIRECTORY_SEPARATOR.$nombreCDR,$cdr);
-
-        $sql="update guia_remision set  enviado_sunat='1' where id_guia_remision='{$guia['id_guia_remision']}' ";
-        $conexion->query($sql);
-
-    }else{
-        $mensaje = $util->getErrorResponse2($res->getError());
-        echo  $mensaje."\n";
-
+    if (!file_exists($xml_ruta)) {
+        echo "XML guía no encontrado: $nombre_archivo\n<br>";
+        continue;
     }
 
+    $res = curlPostSunat('enviar/guia/remision', [
+        'endpoint'            => $emp['modo'] ?? 'beta',
+        'ruc'                 => $emp['ruc'],
+        'usuario'             => $emp['user_sol'],
+        'clave'               => $emp['clave_sol'],
+        'client_id'           => $emp['client_id_sunat'] ?? '',
+        'secret_client'       => $emp['client_secret_sunat'] ?? '',
+        'nombre_documento'    => $nombre_archivo,
+        'contenido_documento' => file_get_contents($xml_ruta),
+    ]);
+
+    if (!empty($res['estado'])) {
+        echo "Enviado: $nombre_archivo\n<br>";
+        $conexion->query("UPDATE guia_remision SET enviado_sunat='1' WHERE id_guia_remision='{$guia['id_guia_remision']}'");
+    } else {
+        echo "Error $nombre_archivo: " . ($res['mensaje'] ?? 'desconocido') . "\n<br>";
+    }
 }
-
-
-

@@ -36,6 +36,9 @@ Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataT
 /* ====================== RUTAS DE ALMACENES ========================================= */
 Route::get("/ajs/almacenes/listar", "ProductosController@listarAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/almacenes/agregar", "ProductosController@agregarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/almacenes/editar", "ProductosController@editarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/almacenes/eliminar", "ProductosController@eliminarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/almacenes/obtener", "ProductosController@obtenerAlmacen")->Middleware([ValidarTokenMiddleware::class]);
 
 /* ====================== INICO DE LAS RUTAS DE PRODUCTOS CONTROLLER ========================================= */
 Route::post("/ajs/data/producto/guardar/precios", "ProductosController@guardarPrecios")->Middleware([ValidarTokenMiddleware::class]);

@@ -1,139 +1,90 @@
 <?php
+// Vars compartidas desde enviar_sunat.php: $emp, $conexion, $fecha
 
-use Greenter\Ws\Services\SunatEndpoints;
-use Greenter\Model\Company\Address;
-use Greenter\Model\Company\Company;
-use Greenter\Model\Summary\Summary;
-use Greenter\Model\Sale\Document;
-use Greenter\Model\Summary\SummaryDetail;
-
-
-$util = Util::getInstance();
-$util->setRuc($emp['ruc']);
-$util->setClave($emp['clave_sol']);
-$util->setUsuario($emp['user_sol']);
-
-$sql="select v.id_venta, v.fecha_emision, va.fecha as fecha_anulado, ds.cod_sunat,
-       ds.abreviatura, v.serie, v.numero, c.documento, c.datos, v.total,
-       v.estado, v.id_tido, v.enviado_sunat, v.estado
-        from ventas_anuladas as va 
-            inner join ventas as v on v.id_venta = va.id_venta 
-            inner join documentos_sunat ds on v.id_tido = ds.id_tido
-            inner join clientes c on v.id_cliente = c.id_cliente 
-        where v.id_empresa = '{$emp['id_empresa']}'
-          and v.fecha_emision = '$fecha' 
-          and v.id_tido=1 ";
+$sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero, c.documento, v.total
+        FROM ventas_anuladas AS va
+            INNER JOIN ventas AS v ON v.id_venta = va.id_venta
+            INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+            INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+        WHERE v.id_empresa = '{$emp['id_empresa']}'
+          AND v.fecha_emision = '$fecha'
+          AND v.id_tido = 1";
 
 $resultado_empresa = $conexion->query($sql);
-
-$contar_items = 0;
-$array_items = array();
+$detalles  = [];
+$ids_venta = [];
 
 foreach ($resultado_empresa as $fila) {
-
-    $contar_items++;
-    //tipo cliente
-    $doc_cliente = "00000000";
+    $doc_cliente = '00000000';
     if (strlen($fila['documento']) == 8) {
-        $tipo_doc = 1;
+        $tipo_doc    = 1;
         $doc_cliente = $fila['documento'];
-    } else if (strlen($fila['documento']) == 11) {
-        $tipo_doc = 6;
+    } elseif (strlen($fila['documento']) == 11) {
+        $tipo_doc    = 6;
         $doc_cliente = $fila['documento'];
     } else {
         $tipo_doc = 0;
     }
 
-    //totales
-    $total = $fila['total'];
-    $subtotal = $total / 1.18;
-    $igv = $total / 1.18 * 0.18;
+    $total    = (float)$fila['total'];
+    $subtotal = round($total / 1.18, 2);
+    $igv      = round($total / 1.18 * 0.18, 2);
 
-    echo $fila['cod_sunat'] . " | " . $fila['serie'] . "-" . $fila['numero'] . PHP_EOL;
+    echo $fila['cod_sunat'] . ' | ' . $fila['serie'] . '-' . $fila['numero'] . PHP_EOL;
 
-    $item = new SummaryDetail();
-    $item->setTipoDoc($fila['cod_sunat'])
-        ->setSerieNro($fila['serie'] . "-" . $fila['numero'])
-        ->setEstado(3)
-        ->setClienteTipo($tipo_doc)
-        ->setClienteNro($doc_cliente)
-        ->setTotal($total)
-        ->setMtoOperGravadas($subtotal)
-        ->setMtoOperInafectas(0)
-        ->setMtoOperExoneradas(0)
-        ->setMtoOtrosCargos(0)
-        ->setMtoIGV($igv);
-
-    $array_items[] = $item;
+    $detalles[]  = [
+        'tipo_doc'         => $fila['cod_sunat'],
+        'serie_numero'     => $fila['serie'] . '-' . $fila['numero'],
+        'estado'           => 3,
+        'tipo_doc_cliente' => $tipo_doc,
+        'num_doc_cliente'  => $doc_cliente,
+        'total'            => round($total, 2),
+        'mto_oper_gravadas'=> $subtotal,
+        'mto_igv'          => $igv,
+    ];
+    $ids_venta[] = $fila['id_venta'];
 }
 
-$empresa = new Company();
-$empresa->setRuc($emp['ruc'])
-    ->setNombreComercial($emp['razon_social'])
-    ->setRazonSocial($emp['razon_social'])
-    ->setAddress((new Address())
-        ->setUbigueo($emp['ubigeo'])
-        ->setDistrito($emp['distrito'])
-        ->setProvincia($emp['provincia'])
-        ->setDepartamento($emp['departamento'])
-        ->setUrbanizacion('-')
-        ->setCodLocal('0000')
-        ->setDireccion($emp['direccion']));
+if (empty($detalles)) {
+    echo "\nResumen baja '$fecha' empresa {$emp['ruc']} sin items\n<br>";
+} else {
+    $res = curlPostSunat('enviar/resumen', [
+        'endpoint'         => $emp['modo'] ?? 'beta',
+        'correlativo'      => '002',
+        'fecha_generacion' => $fecha,
+        'fecha_resumen'    => $fecha,
+        'empresa'          => [
+            'ruc'          => $emp['ruc'],
+            'usuario'      => $emp['user_sol'],
+            'clave'        => $emp['clave_sol'],
+            'razon_social' => $emp['razon_social'],
+            'direccion'    => $emp['direccion'],
+            'ubigeo'       => $emp['ubigeo'],
+            'distrito'     => $emp['distrito'],
+            'provincia'    => $emp['provincia'],
+            'departamento' => $emp['departamento'],
+        ],
+        'detalles' => $detalles,
+    ]);
 
-$sum = new Summary();
-$sum->setFecGeneracion(\DateTime::createFromFormat('Y-m-d', $fecha))
-    ->setFecResumen(\DateTime::createFromFormat('Y-m-d', $fecha))
-    ->setCorrelativo('002')
-    ->setCompany($empresa)
-    ->setDetails($array_items);
+    if (!empty($res['estado'])) {
+        $fileDir = __DIR__ . '/../files/facturacion/xml/' . $emp['ruc'];
+        if (!file_exists($fileDir)) mkdir($fileDir, 0777, true);
+        file_put_contents($fileDir . DIRECTORY_SEPARATOR . $res['nombre_archivo'] . '.xml', $res['contenido_xml']);
 
-$nombre_archivo = $sum->getName();
-$nombre_xml =   $nombre_archivo.'.xml' ;
+        $fileDir = __DIR__ . '/../files/facturacion/cdr/' . $emp['ruc'];
+        if (!file_exists($fileDir)) mkdir($fileDir, 0777, true);
+        file_put_contents($fileDir . DIRECTORY_SEPARATOR . 'R-' . $res['nombre_archivo'] . '.zip', base64_decode($res['cdr']));
 
-echo "\n".$nombre_archivo."\n";
+        $conexion->query("INSERT INTO resumen_diario SET
+            id_empresa='{$emp['id_empresa']}',
+            fecha='$fecha',
+            ticket='" . $conexion->real_escape_string($res['ticket'] ?? '') . "',
+            cantidad_items='" . count($detalles) . "',
+            tipo='1'");
 
-if ($contar_items > 0) {
-    $see = $util->getSee2($endpoint);
-
-    $res = $see->send($sum);
-
-    $fileDir =  __DIR__ .'/../files/facturacion/xml/'.$emp['ruc'];
-
-    if (!file_exists($fileDir)) {
-        mkdir($fileDir, 0777, true);
-    }
-    file_put_contents($fileDir.DIRECTORY_SEPARATOR.$nombre_xml,$see->getFactory()->getLastXml());
-
-    if ($res->isSuccess()) {
-        $ticket = $res->getTicket();
-        $descripcion = "";
-        $result = $see->getStatus($ticket);
-
-        if ($result->isSuccess()) {
-            $cdr = $result->getCdrResponse();
-
-            $fileDir =  __DIR__ .'/../files/facturacion/cdr/'.$emp['ruc'];
-            if (!file_exists($fileDir)) {
-                mkdir($fileDir, 0777, true);
-            }
-
-            file_put_contents($fileDir.DIRECTORY_SEPARATOR.'R-'.$nombre_archivo.'.zip',$result->getCdrZip());
-
-            $descripcion = $cdr->getDescription();
-            $sql ="insert into resumen_diario set 
-  id_empresa='{$emp['id_empresa']}',
-  fecha='$fecha',
-  ticket='$ticket',
-  cantidad_items='$contar_items',
-  tipo='1'";
-            $conexion->query($sql);
-
-        }else {
-            echo $util->getErrorResponse2($result->getError());
-        }
-
+        echo "\n" . $res['nombre_archivo'] . "\n" . ($res['mensaje'] ?? '') . "\n<br>";
     } else {
-        echo $util->getErrorResponse2($res->getError());
+        echo "Error resumen baja: " . ($res['mensaje'] ?? 'desconocido') . "\n<br>";
     }
-
 }

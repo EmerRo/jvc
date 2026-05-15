@@ -1,44 +1,42 @@
 <?php
+// Vars compartidas desde enviar_sunat.php: $emp, $conexion, $fecha
 
-use Greenter\Model\Sale\Invoice;
-use Greenter\Ws\Services\SunatEndpoints;
-use Greenter\Model\Company\Address;
-use Greenter\Model\Company\Company;
-use Greenter\Model\Summary\Summary;
-use Greenter\Model\Summary\SummaryDetail;
+$sql = "SELECT vs.* FROM ventas v
+        JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+        WHERE v.fecha_emision = '$fecha'
+          AND v.id_empresa = '{$emp['id_empresa']}'
+          AND v.enviado_sunat = '0'
+          AND v.id_tido = 2";
 
-$util = Util::getInstance();
-$util->setRuc($emp['ruc']);
-$util->setClave($emp['clave_sol']);
-$util->setUsuario($emp['user_sol']);
-
-$sql = "SELECT vs.* FROM ventas v join ventas_sunat vs on v.id_venta = vs.id_venta where v.fecha_emision='$fecha' and v.id_empresa = '{$emp['id_empresa']}' and v.enviado_sunat = '0' and v.id_tido=2";
 $tempListaFac = $conexion->query($sql);
-$see = $util->getSee2($endpoint);
+
 foreach ($tempListaFac as $fac) {
     $nombre_archivo = $fac['nombre_xml'];
-    $xml_ruta = __DIR__ . "/../files/facturacion/xml/" . $emp["ruc"] . '/' . $nombre_archivo . ".xml";
-    $contenido = file_get_contents($xml_ruta);
+    $xml_ruta = __DIR__ . "/../files/facturacion/xml/" . $emp['ruc'] . '/' . $nombre_archivo . ".xml";
 
-    $res = $see->sendXml(Invoice::class, $nombre_archivo, file_get_contents($xml_ruta));
-    if ($res->isSuccess()) {
-        $nombreCDR = 'R-' . $nombre_archivo . '.zip';
-        $cdr = $res->getCdrZip();
+    if (!file_exists($xml_ruta)) {
+        echo "XML no encontrado: $nombre_archivo\n<br>";
+        continue;
+    }
 
+    $res = curlPostSunat('enviar/documento/electronico', [
+        'endpoint'            => $emp['modo'] ?? 'beta',
+        'ruc'                 => $emp['ruc'],
+        'usuario'             => $emp['user_sol'],
+        'clave'               => $emp['clave_sol'],
+        'nombre_documento'    => $nombre_archivo,
+        'contenido_documento' => file_get_contents($xml_ruta),
+    ]);
+
+    if (!empty($res['estado'])) {
         $fileDir = __DIR__ . '/../files/facturacion/cdr/' . $emp['ruc'];
-        if (!file_exists($fileDir)) {
-            mkdir($fileDir, 0777, true);
-        }
-        file_put_contents($fileDir . DIRECTORY_SEPARATOR . $nombreCDR, $cdr);
-        echo "Exito <br> {$fac['nombre_xml']}\n";
-        $sql = "update ventas set enviado_sunat='1' where id_venta='{$fac['id_venta']}'";
-        $conexion->query($sql);
-
+        if (!file_exists($fileDir)) mkdir($fileDir, 0777, true);
+        file_put_contents($fileDir . DIRECTORY_SEPARATOR . 'R-' . $nombre_archivo . '.zip', base64_decode($res['cdr']));
+        echo "Exito: {$nombre_archivo}\n<br>";
+        $conexion->query("UPDATE ventas SET enviado_sunat='1' WHERE id_venta='{$fac['id_venta']}'");
     } else {
-        $mensaje = $util->getErrorResponse2($res->getError());
-        echo "error {$fac['nombre_xml']}: " . $mensaje.'\n <br>';
+        echo "Error {$nombre_archivo}: " . ($res['mensaje'] ?? 'desconocido') . "\n<br>";
     }
 
     sleep(2);
-
 }

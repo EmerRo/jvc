@@ -107,7 +107,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                         <div class="modal-content">
                             <div class="modal-header bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">Nuevo Ingreso</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
                             <form v-on:submit.prevent="addIngreso" class="form-horizontal">
@@ -132,19 +132,25 @@ $getAll = $c_venta->ingresosEgresosRender();
                                             <input required v-model="producto.nombre" type="text" placeholder="Nombre"
                                                 class="form-control" readonly="true">
                                         </div>
-                                        <div class="mb-3 col-md-3">
+                                        <div class="mb-3 col-md-4">
                                             <label class="control-label">Cantidad</label>
                                             <input required v-model="producto.cantidad" type="text" class="form-control"
                                                 @keypress="onlyNumber">
                                         </div>
-                                        <div class="mb-3 col-md-6">
+                                        <div class="mb-3 col-md-5">
                                             <label class="control-label">Ingreso Almacén</label>
-                                            <select name="almacen" id="almacen" v-model="producto.almacen"
-                                                class="form-control" @change="onChangeAlmacen($event)">
-                                                <option value="1">Almacen 1</option>
-                                                <option value="2">Almacen 2</option>
-                                                <option value="3">Almacen 3</option>
-                                            </select>
+                                            <div class="input-group">
+                                                <select name="almacen" id="almacen" v-model="producto.almacen"
+                                                    class="form-control" @change="onChangeAlmacen($event)">
+                                                    <option value="" disabled selected>Seleccionar</option>
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                    </option>
+                                                </select>
+                                                <button type="button" class="btn btn-outline-success" @click="abrirModalAlmacen()" title="Gestionar almacenes">
+                                                    <i class="fa fa-cog"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="mb-3 col-md-3">
                                             <label class="control-label">Stock Act.</label>
@@ -175,7 +181,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                         <div class="modal-content">
                             <div class="modal-header bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">Nueva Salida</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
                             <form v-on:submit.prevent="addSalida" class="form-horizontal">
@@ -201,22 +207,37 @@ $getAll = $c_venta->ingresosEgresosRender();
                                             <input required v-model="producto.nombre" type="text" placeholder="Nombre"
                                                 class="form-control" readonly="true">
                                         </div>
-                                        <div class="mb-3 col-md-6">
+                                        <div class="mb-3 col-md-5">
                                             <label class="control-label">Del Almacén</label>
-                                            <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
-                                                class="form-control" @change="onChangeAlmacen($event)">
-                                                <option value="1">Almacén 1</option>
-                                                <option value="2">Almacén 2</option>
-                                                <option value="3">Almacén 3</option>
-                                            </select>
+                                            <div class="input-group">
+                                                <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
+                                                    class="form-control" @change="onChangeAlmacen($event)">
+                                                    <option value="" disabled selected>Seleccionar</option>
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                    </option>
+                                                </select>
+                                                <button type="button" class="btn btn-outline-success" @click="abrirModalAlmacen()" title="Gestionar almacenes">
+                                                    <i class="fa fa-cog"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="mb-3 col-md-6">
+                                        <div class="mb-3 col-md-5">
                                             <label class="control-label">Al Almacén</label>
-                                            <select v-model="producto.alAlmacen" class="form-control">
-                                                <option value="1" v-if="producto.almacen !== '1'">Almacén 1</option>
-                                                <option value="2" v-if="producto.almacen !== '2'">Almacén 2</option>
-                                                <option value="3" v-if="producto.almacen !== '3'">Almacén 3</option>
-                                            </select>
+                                            <div class="input-group">
+                                                <select v-model="producto.alAlmacen" class="form-control">
+                                                    <option value="" disabled selected>Seleccionar</option>
+                                                    <option v-for="alm in almacenes.filter(a => a.id_almacen != producto.almacen)" 
+                                                            :key="alm.id_almacen" :value="alm.id_almacen">
+                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3 col-md-2">
+                                            <label class="control-label">Stock Act.</label>
+                                            <input v-model="producto.stock" type="text" class="form-control"
+                                                readonly="true">
                                         </div>
                                         <div class="mb-3 col-md-6">
                                             <label class="control-label">Cantidad</label>
@@ -224,11 +245,6 @@ $getAll = $c_venta->ingresosEgresosRender();
                                                 @keypress="onlyNumber">
                                         </div>
                                         <div class="mb-3 col-md-6">
-                                            <label class="control-label">Stock Act.</label>
-                                            <input v-model="producto.stock" type="text" class="form-control"
-                                                readonly="true">
-                                        </div>
-                                        <div class="mb-3 col-md-12">
                                             <label class="control-label">Observaciones</label>
                                             <textarea v-model="producto.observaciones" class="form-control" rows="3"
                                                 placeholder="Ingrese observaciones (opcional)"></textarea>
@@ -257,19 +273,103 @@ $getAll = $c_venta->ingresosEgresosRender();
             data: {
                 usar_scaner: false,
                 usar_scaner2: false,
+                almacenes: [],
                 producto: {
                     productoid: "",
                     cantidad: "",
                     stock: "0",
                     codigo: "",
-                    almacen: "1",
-                    alAlmacen: "2",
+                    almacen: "",
+                    alAlmacen: "",
                     tipo: '',
                     nombre: '',
                     observaciones: ''
                 },
             },
+            mounted() {
+                this.cargarAlmacenes();
+            },
             methods: {
+                cargarAlmacenes() {
+                    var self = this;
+                    _get('/ajs/almacenes/listar', function(res) {
+                        if (res.estado) {
+                            self.almacenes = res.almacenes;
+                            // Establecer almacén principal como default
+                            var principal = res.almacenes.find(a => a.principal == 1);
+                            if (principal) {
+                                self.producto.almacen = principal.id_almacen.toString();
+                            } else if (res.almacenes.length > 0) {
+                                self.producto.almacen = res.almacenes[0].id_almacen.toString();
+                            }
+                        }
+                    });
+                },
+                abrirModalAlmacen() {
+                    // Disparar el modal del almacén (asumiendo que existe en almacen-productos.php)
+                    // O abrir un modal aquí mismo
+                    this.abrirModalGestionAlmacen();
+                },
+                abrirModalGestionAlmacen() {
+                    // Crear modal dinámicamente o usar el mismo patrón
+                    var modalHtml = `
+                    <div class="modal fade" id="modal-gestion-almacenes" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius: 15px;">
+                                <div class="modal-header bg-rojo text-white">
+                                    <h6 class="modal-title"><i class="fa fa-warehouse me-2"></i>Gestionar Almacenes</h6>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                                        <div v-for="alm in almacenes" :key="alm.id_almacen" 
+                                             class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="fa fa-warehouse me-2"></i>{{ alm.nombre }}
+                                                <span v-if="alm.principal == 1" class="badge bg-warning text-dark ms-2">★ Principal</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="nuevo-almacen-nombre" placeholder="Nuevo almacén">
+                                        <button type="button" class="btn btn-success" @click="agregarAlmacenIntercambio()">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    
+                    // Verificar si ya existe el modal
+                    if ($('#modal-gestion-almacenes').length === 0) {
+                        $('body').append(modalHtml);
+                    }
+                    
+                    var modal = new bootstrap.Modal($('#modal-gestion-almacenes')[0]);
+                    modal.show();
+                },
+                agregarAlmacenIntercambio() {
+                    var nombre = $('#nuevo-almacen-nombre').val().trim();
+                    if (!nombre) {
+                        alertAdvertencia('Ingrese el nombre del almacén');
+                        return;
+                    }
+                    var self = this;
+                    _post('/ajs/almacenes/agregar', { nombre: nombre }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.cargarAlmacenes();
+                            $('#nuevo-almacen-nombre').val('');
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
                 toggleCamara() {
                     if (!this.usar_scaner) {
                         this.encenderCamara();

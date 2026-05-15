@@ -419,37 +419,238 @@ class SunatApiClient
         return $this->_enviarDocumento($nom_XML, $empresa);
     }
 
-    // ─── Delegaciones a SunatApi (pendientes de migrar) ──────────────────────
+    // ─── Resumen Diario y Comunicación de Baja ───────────────────────────────
 
-    /**
-     * Delega a SunatApi mientras resumenDiarioPorEmpresa no se migre a la API.
-     * Los mensajes de error se propagan a $this->mensaje.
-     */
     public function comunicacionBajaPorEmpresa($listaFac, $empresa, $fechaComuni, $fechaGene, $correlativo)
     {
-        require_once "app/clases/SunatApi.php";
-        $api    = new SunatApi();
-        $result = $api->comunicacionBajaPorEmpresa($listaFac, $empresa, $fechaComuni, $fechaGene, $correlativo);
-        $this->mensaje = $api->getMensaje();
-        return $result;
+        $emp = $this->conexion->query(
+            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
+        )->fetch_assoc();
+
+        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero
+                FROM ventas_anuladas AS va
+                    INNER JOIN ventas AS v ON v.id_venta = va.id_venta
+                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+                WHERE " . implode(' OR ', $listaFac);
+
+        $result   = $this->conexion->query($sql);
+        $detalles = [];
+        while ($fila = $result->fetch_assoc()) {
+            $detalles[] = [
+                'tipo_doc'    => $fila['cod_sunat'],
+                'serie'       => $fila['serie'],
+                'correlativo' => $fila['numero'],
+                'motivo'      => 'ERROR AL BUSCAR PRODUCTOS',
+            ];
+        }
+
+        if (empty($detalles)) {
+            return 'Sin item';
+        }
+
+        $this->subirCertificado($emp['ruc']);
+
+        $body = [
+            'endpoint'           => $emp['modo'] ?? 'beta',
+            'correlativo'        => $emp['id_empresa'] . $correlativo,
+            'fecha_generacion'   => $fechaGene,
+            'fecha_comunicacion' => $fechaComuni,
+            'empresa'            => $this->mapearEmpresa($emp),
+            'detalles'           => $detalles,
+        ];
+
+        $res = $this->post('enviar/comunicacion/baja', $body);
+
+        if (!empty($res['estado'])) {
+            $this->guardarXML($emp['ruc'], $res['nombre_archivo'], $res['contenido_xml']);
+            $this->guardarCDR($emp['ruc'], $res['nombre_archivo'], $res['cdr']);
+            return $res['mensaje'] ?? '';
+        }
+
+        $this->mensaje = $res['mensaje'] ?? 'Error en comunicación de baja';
+        return $res['mensaje'] ?? '';
     }
 
     public function resumenDiarioPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo)
     {
-        require_once "app/clases/SunatApi.php";
-        $api    = new SunatApi();
-        $result = $api->resumenDiarioPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo);
-        $this->mensaje = $api->getMensaje();
-        return $result;
+        $emp = $this->conexion->query(
+            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
+        )->fetch_assoc();
+
+        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
+                       c.documento, v.total
+                FROM ventas AS v
+                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+                WHERE " . implode(' OR ', $ventas);
+
+        $result    = $this->conexion->query($sql);
+        $detalles  = [];
+        $ids_venta = [];
+
+        while ($fila = $result->fetch_assoc()) {
+            $doc_cliente = '00000000';
+            if (strlen($fila['documento']) == 8) {
+                $tipo_doc    = 1;
+                $doc_cliente = $fila['documento'];
+            } elseif (strlen($fila['documento']) == 11) {
+                $tipo_doc    = 6;
+                $doc_cliente = $fila['documento'];
+            } else {
+                $tipo_doc = 0;
+            }
+
+            $total   = (float)$fila['total'];
+            $subtotal = round($total / 1.18, 2);
+            $igv      = round($total / 1.18 * 0.18, 2);
+
+            $detalles[]  = [
+                'tipo_doc'            => $fila['cod_sunat'],
+                'serie_numero'        => $fila['serie'] . '-' . $fila['numero'],
+                'estado'              => 1,
+                'tipo_doc_cliente'    => $tipo_doc,
+                'num_doc_cliente'     => $doc_cliente,
+                'total'               => round($total, 2),
+                'mto_oper_gravadas'   => $subtotal,
+                'mto_igv'             => $igv,
+                'mto_oper_exoneradas' => 0,
+                'mto_oper_inafectas'  => 0,
+                'mto_otros_cargos'    => 0,
+            ];
+            $ids_venta[] = $fila['id_venta'];
+        }
+
+        if (empty($detalles)) {
+            return ['res' => false, 'msg' => 'Sin items para el resumen'];
+        }
+
+        $this->subirCertificado($emp['ruc']);
+
+        $body = [
+            'endpoint'         => $emp['modo'] ?? 'beta',
+            'correlativo'      => $correlativo,
+            'fecha_generacion' => $fechaGene,
+            'fecha_resumen'    => $fechaResu,
+            'empresa'          => $this->mapearEmpresa($emp),
+            'detalles'         => $detalles,
+        ];
+
+        $res = $this->post('enviar/resumen', $body);
+
+        if (!empty($res['estado'])) {
+            $this->guardarXML($emp['ruc'], $res['nombre_archivo'], $res['contenido_xml']);
+            $this->guardarCDR($emp['ruc'], $res['nombre_archivo'], $res['cdr']);
+
+            foreach ($ids_venta as $id) {
+                $this->conexion->query("UPDATE ventas SET enviado_sunat='1' WHERE id_venta='$id'");
+            }
+
+            $fecha    = date('Y-m-d');
+            $ticket   = $this->conexion->real_escape_string($res['ticket'] ?? '');
+            $cantidad = count($ids_venta);
+            $this->conexion->query("INSERT INTO resumen_diario SET
+                id_empresa='{$emp['id_empresa']}',
+                fecha='$fecha',
+                ticket='$ticket',
+                cantidad_items='$cantidad',
+                tipo='1'");
+
+            return ['res' => true, 'msg' => $res['mensaje'] ?? 'Resumen procesado'];
+        }
+
+        return ['res' => false, 'msg' => $res['mensaje'] ?? 'Error al enviar resumen'];
     }
 
     public function resumenDiarioBajaPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo)
     {
-        require_once "app/clases/SunatApi.php";
-        $api    = new SunatApi();
-        $result = $api->resumenDiarioBajaPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo);
-        $this->mensaje = $api->getMensaje();
-        return $result;
+        $emp = $this->conexion->query(
+            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
+        )->fetch_assoc();
+
+        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
+                       c.documento, v.total
+                FROM ventas_anuladas AS va
+                    INNER JOIN ventas AS v ON v.id_venta = va.id_venta
+                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+                WHERE " . implode(' OR ', $ventas);
+
+        $result    = $this->conexion->query($sql);
+        $detalles  = [];
+        $ids_venta = [];
+
+        while ($fila = $result->fetch_assoc()) {
+            $doc_cliente = '00000000';
+            if (strlen($fila['documento']) == 8) {
+                $tipo_doc    = 1;
+                $doc_cliente = $fila['documento'];
+            } elseif (strlen($fila['documento']) == 11) {
+                $tipo_doc    = 6;
+                $doc_cliente = $fila['documento'];
+            } else {
+                $tipo_doc = 0;
+            }
+
+            $total    = (float)$fila['total'];
+            $subtotal = round($total / 1.18, 2);
+            $igv      = round($total / 1.18 * 0.18, 2);
+
+            $detalles[]  = [
+                'tipo_doc'            => $fila['cod_sunat'],
+                'serie_numero'        => $fila['serie'] . '-' . $fila['numero'],
+                'estado'              => 3,
+                'tipo_doc_cliente'    => $tipo_doc,
+                'num_doc_cliente'     => $doc_cliente,
+                'total'               => round($total, 2),
+                'mto_oper_gravadas'   => $subtotal,
+                'mto_igv'             => $igv,
+                'mto_oper_exoneradas' => 0,
+                'mto_oper_inafectas'  => 0,
+                'mto_otros_cargos'    => 0,
+            ];
+            $ids_venta[] = $fila['id_venta'];
+        }
+
+        if (empty($detalles)) {
+            return ['res' => false, 'msg' => 'Sin items para el resumen de baja'];
+        }
+
+        $this->subirCertificado($emp['ruc']);
+
+        $body = [
+            'endpoint'         => $emp['modo'] ?? 'beta',
+            'correlativo'      => $correlativo,
+            'fecha_generacion' => $fechaGene,
+            'fecha_resumen'    => $fechaResu,
+            'empresa'          => $this->mapearEmpresa($emp),
+            'detalles'         => $detalles,
+        ];
+
+        $res = $this->post('enviar/resumen', $body);
+
+        if (!empty($res['estado'])) {
+            $this->guardarXML($emp['ruc'], $res['nombre_archivo'], $res['contenido_xml']);
+            $this->guardarCDR($emp['ruc'], $res['nombre_archivo'], $res['cdr']);
+
+            foreach ($ids_venta as $id) {
+                $this->conexion->query("UPDATE ventas SET enviado_sunat='1' WHERE id_venta='$id'");
+            }
+
+            $fecha    = date('Y-m-d');
+            $ticket   = $this->conexion->real_escape_string($res['ticket'] ?? '');
+            $cantidad = count($ids_venta);
+            $this->conexion->query("INSERT INTO resumen_diario SET
+                id_empresa='{$emp['id_empresa']}',
+                fecha='$fecha',
+                ticket='$ticket',
+                cantidad_items='$cantidad',
+                tipo='1'");
+
+            return ['res' => true, 'msg' => $res['mensaje'] ?? 'Resumen de baja procesado'];
+        }
+
+        return ['res' => false, 'msg' => $res['mensaje'] ?? 'Error al enviar resumen de baja'];
     }
 
     // ─── Envío de guía ────────────────────────────────────────────────────────

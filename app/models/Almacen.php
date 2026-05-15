@@ -17,7 +17,7 @@ class Almacen
 
     public function listar()
     {
-        $sql = "SELECT * FROM almacenes WHERE id_empresa = '$this->id_empresa' AND estado = '1' ORDER BY id_almacen ASC";
+        $sql = "SELECT * FROM almacenes WHERE id_empresa = '$this->id_empresa' AND estado = '1' ORDER BY principal DESC, id_almacen ASC";
         $result = $this->conectar->query($sql);
         $almacenes = [];
         while ($row = $result->fetch_assoc()) {
@@ -26,11 +26,67 @@ class Almacen
         return $almacenes;
     }
 
+    public function obtener($id)
+    {
+        $sql = "SELECT * FROM almacenes WHERE id_almacen = '$id' AND id_empresa = '$this->id_empresa'";
+        $result = $this->conectar->query($sql);
+        return $result->fetch_assoc();
+    }
+
+    public function tieneProductos($id)
+    {
+        $sql = "SELECT COUNT(*) as cnt FROM productos WHERE almacen = '$id' AND estado = '1'";
+        $result = $this->conectar->query($sql);
+        $row = $result->fetch_assoc();
+        return $row['cnt'] > 0;
+    }
+
+    public function actualizar($id, $nombre)
+    {
+        $nombre = $this->conectar->real_escape_string($nombre);
+        $sql = "UPDATE almacenes SET nombre = '$nombre' WHERE id_almacen = '$id' AND id_empresa = '$this->id_empresa'";
+        return $this->conectar->query($sql);
+    }
+
+    public function eliminar($id)
+    {
+        // Primero verificar si tiene productos
+        if ($this->tieneProductos($id)) {
+            return ['success' => false, 'error' => 'No se puede eliminar. El almacén tiene productos.'];
+        }
+
+        // Eliminar la vista primero
+        $this->eliminarVista($id);
+
+        // Desactivar el almacén (soft delete)
+        $sql = "UPDATE almacenes SET estado = '0' WHERE id_almacen = '$id' AND id_empresa = '$this->id_empresa'";
+        $result = $this->conectar->query($sql);
+        
+        return ['success' => true, 'message' => 'Almacén eliminado correctamente'];
+    }
+
+    public function marcarPrincipal($id)
+    {
+        // Primero desmarcar todos los demás como principales
+        $sql = "UPDATE almacenes SET principal = '0' WHERE id_empresa = '$this->id_empresa' AND estado = '1'";
+        $this->conectar->query($sql);
+
+        // Marcar el seleccionado como principal
+        $sql = "UPDATE almacenes SET principal = '1' WHERE id_almacen = '$id' AND id_empresa = '$this->id_empresa'";
+        return $this->conectar->query($sql);
+    }
+
     public function agregar($nombre)
     {
         $nombre = $this->conectar->real_escape_string($nombre);
 
-        $sql = "INSERT INTO almacenes (nombre, id_empresa) VALUES ('$nombre', '$this->id_empresa')";
+        // Verificar si es el primer almacén (marcarlo como principal por defecto)
+        $checkSql = "SELECT COUNT(*) as cnt FROM almacenes WHERE id_empresa = '$this->id_empresa' AND estado = '1'";
+        $checkResult = $this->conectar->query($checkSql);
+        $checkRow = $checkResult->fetch_assoc();
+        $esPrincipal = ($checkRow['cnt'] == 0) ? 1 : 0;
+
+        $sql = "INSERT INTO almacenes (nombre, id_empresa, principal) VALUES ('$nombre', '$this->id_empresa', '$esPrincipal')";
         $this->conectar->query($sql);
         $id = $this->conectar->insert_id;
 
@@ -66,6 +122,12 @@ class Almacen
             }
         }
         return $creados;
+    }
+
+    public function eliminarVista($almacenId)
+    {
+        $sql = "DROP VIEW IF EXISTS view_productos_$almacenId";
+        return $this->conectar->query($sql);
     }
 
     private function crearVista($almacenId)

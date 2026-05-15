@@ -45,9 +45,89 @@ class ProductosController extends Controller
         $id = $almacen->agregar(trim($nombre));
 
         if ($id) {
-            echo json_encode(['estado' => true, 'mensaje' => 'Almacén agregado', 'id' => $id]);
+            $esPrincipal = ($id == 1) ? true : false; // Verificar si se marcó como principal
+            echo json_encode([
+                'estado' => true, 
+                'mensaje' => 'Almacén agregado', 
+                'id' => $id,
+                'es_principal' => $esPrincipal
+            ]);
         } else {
             echo json_encode(['estado' => false, 'mensaje' => 'Error al agregar almacén']);
+        }
+    }
+
+    public function editarAlmacen()
+    {
+        $id = $_POST['id'] ?? '';
+        $nombre = $_POST['nombre'] ?? '';
+        $principal = isset($_POST['principal']) ? 1 : 0;
+
+        if (empty($id) || empty(trim($nombre))) {
+            echo json_encode(['estado' => false, 'mensaje' => 'El nombre es requerido']);
+            return;
+        }
+
+        $almacen = new Almacen();
+        $almacen->setIdEmpresa($_SESSION['id_empresa']);
+
+        // Si se marca como principal, actualizar todos los demás
+        if ($principal) {
+            $almacen->marcarPrincipal($id);
+        } else {
+            $almacen->actualizar($id, trim($nombre));
+        }
+
+        echo json_encode(['estado' => true, 'mensaje' => 'Almacén actualizado']);
+    }
+
+    public function eliminarAlmacen()
+    {
+        $id = $_POST['id'] ?? '';
+
+        if (empty($id)) {
+            echo json_encode(['estado' => false, 'mensaje' => 'ID requerido']);
+            return;
+        }
+
+        // No permitir eliminar si es el único almacén
+        $sql = "SELECT COUNT(*) as cnt FROM almacenes WHERE id_empresa = '{$_SESSION['id_empresa']}' AND estado = '1'";
+        $result = (new Conexion())->getConexion()->query($sql);
+        $row = $result->fetch_assoc();
+        if ($row['cnt'] <= 1) {
+            echo json_encode(['estado' => false, 'mensaje' => 'No se puede eliminar. Debe haber al menos un almacén.']);
+            return;
+        }
+
+        $almacen = new Almacen();
+        $almacen->setIdEmpresa($_SESSION['id_empresa']);
+        $resultado = $almacen->eliminar($id);
+
+        if ($resultado['success']) {
+            echo json_encode(['estado' => true, 'mensaje' => $resultado['message']]);
+        } else {
+            echo json_encode(['estado' => false, 'mensaje' => $resultado['error']]);
+        }
+    }
+
+    public function obtenerAlmacen()
+    {
+        $id = $_GET['id'] ?? '';
+
+        if (empty($id)) {
+            echo json_encode(['estado' => false, 'mensaje' => 'ID requerido']);
+            return;
+        }
+
+        $almacen = new Almacen();
+        $almacen->setIdEmpresa($_SESSION['id_empresa']);
+        $data = $almacen->obtener($id);
+
+        if ($data) {
+            $data['tiene_productos'] = $almacen->tieneProductos($id);
+            echo json_encode(['estado' => true, 'almacen' => $data]);
+        } else {
+            echo json_encode(['estado' => false, 'mensaje' => 'Almacén no encontrado']);
         }
     }
 
