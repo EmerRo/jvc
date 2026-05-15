@@ -42,14 +42,20 @@ class SunatApiClient
     }
 
     // Sube el certificado .pem a la API (una vez por RUC por sesión).
-    private function subirCertificado(string $ruc): void
+    // En modo beta usa el cert demo de Greenter si no existe el cert real.
+    private function subirCertificado(string $ruc, string $endpoint = 'beta'): void
     {
         if (!empty($_SESSION['cert_api_subido'][$ruc])) {
             return;
         }
         $cert_path = "files/facturacion/certificados/{$ruc}-cert.pem";
         if (!file_exists($cert_path)) {
-            return;
+            if ($endpoint === 'beta') {
+                $cert_path = "files/facturacion/certificados/20000000001-cert.pem";
+            }
+            if (!file_exists($cert_path)) {
+                return;
+            }
         }
         $url = rtrim(URL_API_SUNAT, '/') . '/api/v1/guardar/certificado/' . $ruc;
         $ch  = curl_init($url);
@@ -149,7 +155,7 @@ class SunatApiClient
     {
         if (ob_get_level()) ob_clean();
         $this->decodificarArrays($dataE);
-        $this->subirCertificado($dataE['empresa']['ruc']);
+        $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $apliIgv = (bool)($dataE['apli_igv'] ?? true);
         $total   = (float)$dataE['total'];
@@ -208,7 +214,7 @@ class SunatApiClient
     {
         if (ob_get_level()) ob_clean();
         $this->decodificarArrays($dataE);
-        $this->subirCertificado($dataE['empresa']['ruc']);
+        $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $apliIgv  = (bool)($dataE['apli_igv'] ?? true);
         $total    = (float)$dataE['total'];
@@ -270,7 +276,7 @@ class SunatApiClient
     public function genGuiaRemision(array $dataE): array
     {
         $this->decodificarArrays($dataE);
-        $this->subirCertificado($dataE['empresa']['ruc']);
+        $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $serieRelacionado = null;
         if (!empty($dataE['venta']['serie']) && !empty($dataE['venta']['numero'])) {
@@ -327,7 +333,7 @@ class SunatApiClient
     public function genNotaElectronicaXML(array $dataE): array
     {
         $this->decodificarArrays($dataE);
-        $this->subirCertificado($dataE['empresa']['ruc']);
+        $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $doc_num  = $dataE['cliente']['doc_num'];
         $tipo_doc = strlen($doc_num) == 8 ? '1' : (strlen($doc_num) == 11 ? '6' : '0');
@@ -449,7 +455,7 @@ class SunatApiClient
             return 'Sin item';
         }
 
-        $this->subirCertificado($emp['ruc']);
+        $this->subirCertificado($emp['ruc'], $emp['modo'] ?? 'beta');
 
         $body = [
             'endpoint'           => $emp['modo'] ?? 'beta',
@@ -525,7 +531,7 @@ class SunatApiClient
             return ['res' => false, 'msg' => 'Sin items para el resumen'];
         }
 
-        $this->subirCertificado($emp['ruc']);
+        $this->subirCertificado($emp['ruc'], $emp['modo'] ?? 'beta');
 
         $body = [
             'endpoint'         => $emp['modo'] ?? 'beta',
@@ -616,7 +622,7 @@ class SunatApiClient
             return ['res' => false, 'msg' => 'Sin items para el resumen de baja'];
         }
 
-        $this->subirCertificado($emp['ruc']);
+        $this->subirCertificado($emp['ruc'], $emp['modo'] ?? 'beta');
 
         $body = [
             'endpoint'         => $emp['modo'] ?? 'beta',

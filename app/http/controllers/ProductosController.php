@@ -29,6 +29,15 @@ class ProductosController extends Controller
         }
         
         $almacenes = $almacen->listar();
+        
+        // Convertir id_almacen a entero para consistencia con Vue
+        foreach ($almacenes as &$alm) {
+            $alm['id_almacen'] = (int)$alm['id_almacen'];
+            $alm['principal'] = (int)$alm['principal'];
+            $alm['id_empresa'] = (int)$alm['id_empresa'];
+        }
+        unset($alm);
+        
         echo json_encode(['estado' => true, 'almacenes' => $almacenes]);
     }
 

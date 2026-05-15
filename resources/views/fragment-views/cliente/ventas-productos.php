@@ -655,8 +655,14 @@ if (isset($_GET["guia"]) || isset($guia)) {
                                     <div class="form-group  mb-3">
                                         <div class="col-lg-12">
                                             <button @click="guardarVenta" type="button"
+                                                :disabled="!enProceso"
                                                 class="btn btn-lg bg-rojo text-white" id="btn_finalizar_pedido">
-                                                <i class="fa fa-save"></i> Guardar
+                                                <template v-if="!enProceso">
+                                                    <i class="fa fa-spinner fa-spin"></i> Guardando...
+                                                </template>
+                                                <template v-else>
+                                                    <i class="fa fa-save"></i> Guardar
+                                                </template>
                                             </button>
                                         </div>
                                     </div>
@@ -1977,6 +1983,7 @@ if (isset($_GET["guia"]) || isset($guia)) {
                                         data.equiposVenta = JSON.stringify(equiposData)
                                     }
 
+                                    $("#loader-menor").show()
                                     _ajax("/ajs/ventas/add", "POST",
                                         data,
                                         function (resp) {

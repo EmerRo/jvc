@@ -141,9 +141,9 @@ $getAll = $c_venta->ingresosEgresosRender();
                                             <label class="control-label">Ingreso Almacén</label>
                                             <div class="input-group">
                                                 <select name="almacen" id="almacen" v-model="producto.almacen"
-                                                    class="form-control" @change="onChangeAlmacen($event)">
+                                                    class="form-control select-almacen" @change="onChangeAlmacen($event)">
                                                     <option value="" disabled selected>Seleccionar</option>
-                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
                                                         {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
                                                     </option>
                                                 </select>
@@ -211,9 +211,9 @@ $getAll = $c_venta->ingresosEgresosRender();
                                             <label class="control-label">Del Almacén</label>
                                             <div class="input-group">
                                                 <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
-                                                    class="form-control" @change="onChangeAlmacen($event)">
+                                                    class="form-control select-almacen" @change="onChangeAlmacen($event)">
                                                     <option value="" disabled selected>Seleccionar</option>
-                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
                                                         {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
                                                     </option>
                                                 </select>
@@ -225,10 +225,10 @@ $getAll = $c_venta->ingresosEgresosRender();
                                         <div class="mb-3 col-md-5">
                                             <label class="control-label">Al Almacén</label>
                                             <div class="input-group">
-                                                <select v-model="producto.alAlmacen" class="form-control">
+                                                <select v-model="producto.alAlmacen" class="form-control select-almacen">
                                                     <option value="" disabled selected>Seleccionar</option>
                                                     <option v-for="alm in almacenes.filter(a => a.id_almacen != producto.almacen)" 
-                                                            :key="alm.id_almacen" :value="alm.id_almacen">
+                                                            :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
                                                         {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
                                                     </option>
                                                 </select>
@@ -288,6 +288,20 @@ $getAll = $c_venta->ingresosEgresosRender();
             },
             mounted() {
                 this.cargarAlmacenes();
+                // Forzar actualización de selects después de cargar datos
+                this.$nextTick(() => {
+                    this.$forceUpdate();
+                });
+            },
+            updated() {
+                // Actualizar selects de almacén cuando Vue actualice el DOM
+                this.$nextTick(() => {
+                    $('.select-almacen').each(function() {
+                        if (!$(this).data('bs.select')) {
+                            // Inicializar bootstrap-select si está disponible
+                        }
+                    });
+                });
             },
             methods: {
                 cargarAlmacenes() {
@@ -295,13 +309,22 @@ $getAll = $c_venta->ingresosEgresosRender();
                     _get('/ajs/almacenes/listar', function(res) {
                         if (res.estado) {
                             self.almacenes = res.almacenes;
-                            // Establecer almacén principal como default
+                            // Establecer almacén principal como default (usar integers para match con v-model)
                             var principal = res.almacenes.find(a => a.principal == 1);
                             if (principal) {
-                                self.producto.almacen = principal.id_almacen.toString();
+                                self.producto.almacen = parseInt(principal.id_almacen);
                             } else if (res.almacenes.length > 0) {
-                                self.producto.almacen = res.almacenes[0].id_almacen.toString();
+                                self.producto.almacen = parseInt(res.almacenes[0].id_almacen);
                             }
+                            
+                            // Forzar actualización de Vue después de cargar
+                            self.$forceUpdate();
+                            
+                            // Actualizar selects después de que Vue renderice
+                            self.$nextTick(function() {
+                                $('#nuevoIngreso select[name="almacen"]').val(self.producto.almacen);
+                                $('#nuevaSalida select[name="delAlmacen"]').val(self.producto.almacen);
+                            });
                         }
                     });
                 },
@@ -507,11 +530,10 @@ $getAll = $c_venta->ingresosEgresosRender();
                                 this.producto.cantidad = 0;
                                 this.producto.stock = data.data[0].cantidad;
                                 this.producto.codigo = data.data[0].codigo;
-                                this.producto.almacen = data.data[0].almacen;
+                                this.producto.almacen = parseInt(data.data[0].almacen);
 
                                 $('#input_buscar_productos').val("");
-                                $('#almacen').prop("disabled", false);
-                                $('#delAlmacen').prop("disabled", false);
+                                $('#almacen, #delAlmacen').prop("disabled", false);
 
                                 this.actualizarStock();
                             } else {
@@ -539,16 +561,25 @@ $getAll = $c_venta->ingresosEgresosRender();
                     });
                 },
                 btnCerrar() {
+                    // Obtener el primer almacén disponible para establecer como默认值
+                    var primerAlmacen = this.almacenes.length > 0 ? this.almacenes[0].id_almacen : '';
+                    var segundoAlmacen = this.almacenes.length > 1 ? this.almacenes[1].id_almacen : primerAlmacen;
+                    
                     this.producto = {
                         productoid: "",
                         nombre: "",
                         cantidad: "",
                         stock: "0",
                         codigo: "",
-                        almacen: "1",
-                        alAlmacen: "2",
+                        almacen: primerAlmacen ? parseInt(primerAlmacen) : "",
+                        alAlmacen: segundoAlmacen ? parseInt(segundoAlmacen) : "",
                         observaciones: ""
                     };
+                    
+                    // Forzar actualización de Vue para los selects
+                    this.$nextTick(() => {
+                        this.$forceUpdate();
+                    });
                 },
                 addIngreso() {
                     if (this.producto.nombre.length > 0) {
@@ -655,12 +686,13 @@ $getAll = $c_venta->ingresosEgresosRender();
                 app.producto.cantidad = 0;
                 app.producto.stock = ui.item.cnt;
                 app.producto.codigo = ui.item.codigo;
-                app.producto.almacen = ui.item.almacen;
+                app.producto.almacen = parseInt(ui.item.almacen);
 
                 $(this).val("");
                 $('#almacen, #delAlmacen').prop("disabled", false);
 
                 app.actualizarStock();
+                app.$forceUpdate();
             }
         });
 
