@@ -2,6 +2,7 @@
 
 require_once "utils/lib/exel/vendor/autoload.php";
 require_once "app/models/Producto.php";
+require_once "app/models/Almacen.php";
 
 
 class ProductosController extends Controller
@@ -15,6 +16,34 @@ class ProductosController extends Controller
 
         /*   $c_producto->setIdEmpresa($_SESSION['id_empresa']); */
     }
+
+    public function listarAlmacenes()
+    {
+        $almacen = new Almacen();
+        $almacen->setIdEmpresa($_SESSION['id_empresa']);
+        $almacenes = $almacen->listar();
+        echo json_encode(['estado' => true, 'almacenes' => $almacenes]);
+    }
+
+    public function agregarAlmacen()
+    {
+        $nombre = $_POST['nombre'] ?? '';
+        if (empty(trim($nombre))) {
+            echo json_encode(['estado' => false, 'mensaje' => 'El nombre es requerido']);
+            return;
+        }
+
+        $almacen = new Almacen();
+        $almacen->setIdEmpresa($_SESSION['id_empresa']);
+        $id = $almacen->agregar(trim($nombre));
+
+        if ($id) {
+            echo json_encode(['estado' => true, 'mensaje' => 'Almacén agregado', 'id' => $id]);
+        } else {
+            echo json_encode(['estado' => false, 'mensaje' => 'Error al agregar almacén']);
+        }
+    }
+
     public function listaProductoServerSide()
     {
         require_once "app/clases/serverside.php";

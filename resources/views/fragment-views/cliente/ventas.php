@@ -509,7 +509,7 @@
                                 } else {
                                     let bntSend = '';
                                     if (dataParts[1] == '2' || dataParts[1] == '1') {
-                                        bntSend = '<i data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>';
+                                        bntSend = '<button data-venta="' + desData[0] + '" class="btn-send-sunat btn btn-sm btn-info"><i class="fas fa-location-arrow"></i></button>';
                                     }
                                     return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
                                 }

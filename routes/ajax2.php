@@ -33,6 +33,10 @@ Route::post("/ajs/empresa/actualizar", "EmpresaController@actualizarEmpresa")->M
 Route::get("/data/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataCotizacionSS")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataTallerCotizacionSS")->middleware([ValidarTokenMiddleware::class]);
 
+/* ====================== RUTAS DE ALMACENES ========================================= */
+Route::get("/ajs/almacenes/listar", "ProductosController@listarAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/almacenes/agregar", "ProductosController@agregarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+
 /* ====================== INICO DE LAS RUTAS DE PRODUCTOS CONTROLLER ========================================= */
 Route::post("/ajs/data/producto/guardar/precios", "ProductosController@guardarPrecios")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/producto/obtener/precios", "ProductosController@obtenerPrecios")->Middleware([ValidarTokenMiddleware::class]);

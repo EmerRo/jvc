@@ -249,18 +249,32 @@ public function render()
     // Método para generar PDF como base64 (para vista previa)
     public function generarPDFBase64()
     {
+        // Suprimir warnings/notices que rompen el JSON
+        @ini_set('display_errors', '0');
+        error_reporting(0);
+        ob_start();
+
+        header('Content-Type: application/json');
+
         if (isset($_GET['id'])) {
-            $id_informe = intval($_GET['id']);
-            $pdfBase64 = $this->informePDF->generarInformePDFBase64($id_informe);
-            
-            // Devolver como JSON
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'pdfBase64' => $pdfBase64
-            ]);
+            try {
+                $id_informe = intval($_GET['id']);
+                ob_clean();
+                $pdfBase64 = $this->informePDF->generarInformePDFBase64($id_informe);
+                ob_end_clean();
+                echo json_encode([
+                    'success' => true,
+                    'pdfBase64' => $pdfBase64
+                ]);
+            } catch (Exception $e) {
+                ob_end_clean();
+                echo json_encode([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]);
+            }
         } else {
-            header('Content-Type: application/json');
+            ob_end_clean();
             echo json_encode([
                 'success' => false,
                 'error' => 'ID de informe no proporcionado'

@@ -90,7 +90,7 @@
     #formEmpresa .form-control:focus,
     #formEmpresa .form-select:focus {
         border-color: #ca3438;
-        box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.15);
+        box-shadow: none;
     }
 
     .btn-guardar {

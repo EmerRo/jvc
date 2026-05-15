@@ -224,14 +224,17 @@ $almacenProducto = 1;
                     <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
 
                         <div class="row align-items-end">
-                            <div class="form-group col-md-2">
+                            <div class="form-group col-md-3">
                                 <label for="">Almacén</label>
-                                <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                    @change="changeAlmacen($event)" v-model="almacen">
-                                    <option value="1">Almacén 1</option>
-                                    <option value="2">Almacén 2</option>
-                                    <option value="3">Almacén 3</option>
-                                </select>
+                                <div class="d-flex align-items-center gap-1">
+                                    <select name="almacenSelect" id="almacenSelect" class="form-control"
+                                        @change="changeAlmacen($event)" v-model="almacen">
+                                        <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">{{ alm.nombre }}</option>
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;" data-bs-toggle="modal" data-bs-target="#modal-agregar-almacen" title="Agregar almacén">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Toggle de Vista y Filtros para pantallas grandes -->
@@ -423,6 +426,30 @@ $almacenProducto = 1;
 
             <!-- Modal Disminuir Stock de Productos resources\views\fragment-views\cliente\modals\product-modal-disminuir-stock.php-->
             <?php include __DIR__ . '/modals/product-modal-disminuir-stock.php' ?>
+
+            <!-- Modal Agregar Almacén -->
+            <div class="modal fade" id="modal-agregar-almacen" tabindex="-1" aria-labelledby="modalAgregarAlmacenLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content" style="border-radius: 15px;">
+                        <div class="modal-header" style="border-bottom: 1px solid #eee;">
+                            <h6 class="modal-title" id="modalAgregarAlmacenLabel"><i class="fa fa-warehouse me-2"></i>Nuevo Almacén</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="nombreAlmacenNuevo">Nombre</label>
+                                <input type="text" class="form-control" id="nombreAlmacenNuevo" v-model="nuevoAlmacen" placeholder="Ej: Almacén Principal" maxlength="100">
+                            </div>
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid #eee;">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-danger btn-sm" @click="guardarAlmacen()">
+                                <i class="fa fa-save me-1"></i> Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Modal Traslado Entre Almacenes resources\views\fragment-views\cliente\modals\product-modal-traslado-almacenes.php-->
             <?php include __DIR__ . '/modals/product-modal-traslado-almacenes.php' ?>
@@ -806,6 +833,11 @@ $almacenProducto = 1;
                     nota: ''
                 },
                 historialStock: [],
+                almacenes: [],
+                nuevoAlmacen: '',
+            },
+            mounted() {
+                this.cargarAlmacenes();
             },
             computed: {
                 // Símbolos de moneda para el formulario de agregar
@@ -830,6 +862,31 @@ $almacenProducto = 1;
                 }
             },
             methods: {
+                cargarAlmacenes() {
+                    var self = this;
+                    _get('/ajs/almacenes/listar', function(res) {
+                        if (res.estado) {
+                            self.almacenes = res.almacenes;
+                        }
+                    });
+                },
+                guardarAlmacen() {
+                    if (!this.nuevoAlmacen.trim()) {
+                        alertAdvertencia('Ingrese el nombre del almacén');
+                        return;
+                    }
+                    var self = this;
+                    _post('/ajs/almacenes/agregar', { nombre: this.nuevoAlmacen.trim() }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.nuevoAlmacen = '';
+                            $('#modal-agregar-almacen').modal('hide');
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
                 toggleModoEdicion() {
                     // Mostrar loader genial con color rojo
                     Swal.fire({

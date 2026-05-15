@@ -3832,7 +3832,9 @@ function validarContenido() {
             canvas.style.display = 'none';
 
             // Primero obtener el PDF como base64
-            fetch(pdfUrl)
+            fetch(pdfUrl, {
+                    headers: { 'token-app': localStorage.getItem("_token") }
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.pdfBase64) {
