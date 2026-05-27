@@ -34,9 +34,9 @@ Route::post("/ajs/password/reset", "UsuarioController@resetearPassword");
 
 /* ============================  ConsultasController rutas ======================================*/
 
-Route::get('/ajs/cargar/productos/:id',"ConsultasController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
-Route::get('/ajs/cargar/repuestos/:id',"ConsultasController@buscarRepuesto")->Middleware([ValidarTokenMiddleware::class]);
-Route::get('/ajs/cargar/productos',"ConsultasController@buscarProductoCoti")->Middleware([ValidarTokenMiddleware::class]);
+Route::get('/ajs/cargar/productos/:id',"BusquedaController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
+Route::get('/ajs/cargar/repuestos/:id',"BusquedaController@buscarRepuesto")->Middleware([ValidarTokenMiddleware::class]);
+Route::get('/ajs/cargar/productos',"BusquedaController@buscarProductoCoti")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/servicios',"ConsultasController@cargarVentaServicios")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/productos',"ConsultasController@cargarVentaProductos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/info',"ConsultasController@cargarVentaDetalles")->Middleware([ValidarTokenMiddleware::class]);
@@ -60,7 +60,7 @@ Route::get("/ajs/prealerta/buscar/ns", "ConsultasController@buscarPreAlertaPorNS
 
 Route::get('/ajs/prealerta/buscar/numero/datos',"ConsultasController@buscarDataNumeroPreAlerta")->Middleware([ValidarTokenMiddleware::class]);
 
-Route::post('/ajs/consulta/buscar/producto',"ConsultasController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/consulta/buscar/producto',"BusquedaController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::get("/ajs/buscar/cliente/serie", "ConsultasController@buscarClienteSerie");
 Route::get("/ajs/buscar/series/cliente", "ConsultasController@buscarSeriesPorCliente");

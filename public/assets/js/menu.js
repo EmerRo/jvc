@@ -97,6 +97,32 @@ document.addEventListener("DOMContentLoaded", () => {
             sidebar.classList.remove("show-mobile");
         }
     });
+
+    // Marcar link activo según URL actual
+    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+
+    // Links directos (módulos sin submenú)
+    document.querySelectorAll('.jvc-sidebar-link:not(.jvc-sidebar-dropdown-toggle)').forEach(link => {
+        const href = (link.getAttribute('href') || '').replace(/\/$/, '') || '/';
+        if (href === '#') return;
+        const isActive = href === '/'
+            ? currentPath === '/'
+            : currentPath === href || currentPath.startsWith(href + '/');
+        if (isActive) link.classList.add('active');
+    });
+
+    // Items de submenú (submodulos)
+    document.querySelectorAll('.jvc-sidebar-dropdown-item').forEach(link => {
+        const href = (link.getAttribute('href') || '').replace(/\/$/, '');
+        if (!href || href === '#') return;
+        const isActive = currentPath === href || currentPath.startsWith(href + '/');
+        if (isActive) {
+            link.classList.add('active');
+            // Expande el módulo padre automáticamente
+            const parentItem = link.closest('.jvc-sidebar-item');
+            if (parentItem) parentItem.classList.add('active');
+        }
+    });
   })
   
   

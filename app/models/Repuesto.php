@@ -225,4 +225,81 @@ class Repuesto
         order by descripcion asc";
         return $this->conectar->get_Cursor($sql);
     }
+
+    public function listarAlmacenes()
+    {
+        $sql = "SELECT * FROM almacenes WHERE id_empresa = '$this->id_empresa' AND estado = '1' ORDER BY principal DESC, id_almacen ASC";
+        $result = $this->conectar->query($sql);
+        $almacenes = [];
+        while ($row = $result->fetch_assoc()) {
+            $almacenes[] = $row;
+        }
+        return $almacenes;
+    }
+
+    public function crearVistasFaltantes()
+    {
+        $sql = "SELECT id_almacen, nombre FROM almacenes WHERE id_empresa = '$this->id_empresa' AND estado = '1'";
+        $result = $this->conectar->query($sql);
+        
+        $creados = 0;
+        while ($row = $result->fetch_assoc()) {
+            $almacenId = $row['id_almacen'];
+            $checkSql = "SELECT COUNT(*) as cnt FROM information_schema.views 
+                         WHERE table_schema = DATABASE() AND table_name = 'view_repuestos_$almacenId'";
+            $checkResult = $this->conectar->query($checkSql);
+            $checkRow = $checkResult->fetch_assoc();
+            
+            if ($checkRow['cnt'] == 0) {
+                if ($this->crearVista($almacenId)) {
+                    $creados++;
+                }
+            }
+        }
+        return $creados;
+    }
+
+    private function crearVista($almacenId)
+    {
+        $checkSql = "SELECT COUNT(*) as cnt FROM information_schema.views 
+                     WHERE table_schema = DATABASE() AND table_name = 'view_repuestos_$almacenId'";
+        $checkResult = $this->conectar->query($checkSql);
+        $checkRow = $checkResult->fetch_assoc();
+        
+        if ($checkRow['cnt'] > 0) {
+            return true;
+        }
+
+        $sucursal = $_SESSION['sucursal'] ?? '1';
+        
+        $dropSql = "DROP VIEW IF EXISTS view_repuestos_$almacenId";
+        $this->conectar->query($dropSql);
+        
+        $sql = "CREATE VIEW view_repuestos_$almacenId AS
+            SELECT r.id_repuesto, r.codigo, r.nombre, r.detalle, r.precio, r.costo,
+                   r.cantidad, r.almacen, r.unidad, r.iscbp, r.cod_barra,
+                   r.id_empresa, r.sucursal, r.estado, r.precio_unidad,
+                   r.precio2, r.precio3, r.precio4, r.precio_mayor, r.precio_menor,
+                   r.moneda, r.codsunat, r.razon_social, r.ruc, r.usar_multiprecio,
+                   r.usar_barra, r.ultima_salida, r.descripcion,
+                   c.nombre AS categoria, u.nombre AS unidad_nombre
+            FROM repuestos r
+            LEFT JOIN categorias c ON c.id = r.categoria
+            LEFT JOIN unidades u ON u.id = r.unidad
+            WHERE r.id_empresa = '$this->id_empresa'
+              AND r.sucursal = '$sucursal'
+              AND r.estado = '1'
+              AND r.almacen = '$almacenId'
+            ORDER BY CASE WHEN r.codigo LIKE 'JVC%' THEN 0 ELSE 1 END, r.codigo ASC";
+
+        $result = $this->conectar->query($sql);
+        
+        if ($result) {
+            error_log("Vista view_repuestos_$almacenId creada exitosamente");
+        } else {
+            error_log("Error al crear vista view_repuestos_$almacenId: " . $this->conectar->error);
+        }
+        
+        return $result;
+    }
 }

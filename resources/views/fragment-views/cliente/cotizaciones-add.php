@@ -1,6 +1,7 @@
 <!-- resources\views\fragment-views\cliente\cotizaciones-add.php -->
 
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
+<script src="<?= URL::to('public/js/components/almacen-select.js') ?>"></script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
@@ -271,15 +272,10 @@
                                         <div class="col-md-12">
 
                                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
-                                                <div hidden class="form-group row mb-3">
+                                                <div class="form-group row mb-3">
                                                     <label class="col-lg-2 control-label">Almacén</label>
                                                     <div class="col-lg-3">
-                                                        <select class="form-control idAlmacen"
-                                                            v-model='producto.almacen'
-                                                            @change="onChangeAlmacen($event)">
-                                                            <option value="1">Almacén 1</option>
-                                                            <option value="2">Tienda 1</option>
-                                                        </select>
+                                                        <almacen-select class="form-control idAlmacen" v-model="producto.almacen" @input="onChangeAlmacen"></almacen-select>
                                                     </div>
                                                 </div>
                                                 <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
@@ -2005,9 +2001,7 @@
 
                     });
                 },
-                onChangeAlmacen(event) {
-                    console.log("Cambio de almacén:", event.target.value);
-                    this.producto.almacen = event.target.value;
+                onChangeAlmacen() {
                     var self = this;
 
                     $("#input_buscar_productos").autocomplete({

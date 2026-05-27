@@ -19,7 +19,7 @@ Route::post("/ajs/consulta/sucursales/empresa/info", "ConsultasController@getInf
 Route::post("/ajs/consulta/sucursales/empresa/info/detalle", "ConsultasController@getInfoSucursalDetalle")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/sucursales/empresa/edt", "ConsultasController@actualizarSucursal")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/metodo/pago", "ConsultasController@getMetodoPago")->Middleware([ValidarTokenMiddleware::class]);
-Route::post("/ajs/consulta/stock/almacen", "ConsultasController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/stock/almacen", "BusquedaController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/send/comprobante/email", "ConsultasController@enviarcomprobanteEmail");
 Route::post("/ajs/informacion/venta/fb", "ConsultasController@informacionVentaFb");
 Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");
@@ -77,6 +77,10 @@ Route::post('/ajs/data/repuesto/aumentar/stock', "RepuestosController@aumentarSt
 Route::post('/ajs/data/repuesto/disminuir/stock', "RepuestosController@disminuirStock")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/data/repuesto/traslado/almacenes', "RepuestosController@trasladoAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/data/repuesto/historial/stock", "RepuestosController@obtenerHistorialStock")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/repuesto/almacen/listar", "RepuestosController@listarAlmacenes")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/repuesto/almacen/agregar", "RepuestosController@agregarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/repuesto/almacen/editar", "RepuestosController@editarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/data/repuesto/almacen/eliminar", "RepuestosController@eliminarAlmacen")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::post("/ajs/data/productos/grid", "ProductosController@productosGrid")->Middleware([ValidarTokenMiddleware::class]);
 
@@ -364,8 +368,5 @@ Route::post("/ajs/save/conductor/configuracion", "ConductorConfiguracionControll
 Route::post("/ajs/update/conductor/configuracion", "ConductorConfiguracionController@update"); // NUEVA
 Route::post("/ajs/delete/conductor/configuracion", "ConductorConfiguracionController@delete"); // NUEVA
 
-// Nueva ruta específica para compras que muestra COSTO en lugar de P.Venta
-Route::get("/ajs/cargar/productos/compra/:almacen", "ConsultasController@buscarProductoCompra")->Middleware([ValidarTokenMiddleware::class]);
-
-// Nueva ruta específica para repuestos en compras que muestra COSTO en lugar de P.Venta
-Route::get("/ajs/cargar/repuestos/compra/:almacen", "ConsultasController@buscarRepuestoCompra")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/cargar/productos/compra/:almacen", "BusquedaController@buscarProductoCompra")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/cargar/repuestos/compra/:almacen", "BusquedaController@buscarRepuestoCompra")->Middleware([ValidarTokenMiddleware::class]);

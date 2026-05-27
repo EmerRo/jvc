@@ -7,6 +7,7 @@ $datoEmpresa = $conexion->query("select * from empresas where id_empresa='{$_SES
 $igv_empresa = $datoEmpresa['igv'];
 ?>
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
+<script src="<?= URL::to('public/js/components/almacen-select.js') ?>"></script>
 
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -72,14 +73,10 @@ if (isset($_GET["guia"]) || isset($guia)) {
                         <div class="col-md-12">
                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
 
-                                <div hidden class="form-group row mb-3">
+                                <div class="form-group row mb-3">
                                     <label class="col-lg-2 control-label">Almacén</label>
                                     <div class="col-lg-3">
-                                        <select class="form-control idAlmacen" v-model='producto.almacen'
-                                            @change="onChangeAlmacen($event)">
-                                            <option value="1">Almacén 1</option>
-                                            <option value="2">Tienda 1</option>
-                                        </select>
+                                        <almacen-select class="form-control idAlmacen" v-model="producto.almacen" @input="onChangeAlmacen"></almacen-select>
                                     </div>
                                 </div>
                                 <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
@@ -1774,9 +1771,8 @@ if (isset($_GET["guia"]) || isset($guia)) {
                     this.venta.dias_lista = []
                     this.venta.dias_pago = ''
                 },
-                onChangeAlmacen(event) {
+                onChangeAlmacen() {
                     /*    window.localStorage.removeItem('idChecks'); */
-                    this.producto.almacen = event.target.value
                     var self = this
                     $("#input_buscar_productos").autocomplete({
 

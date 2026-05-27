@@ -256,14 +256,20 @@ $almacenRepuesto = 1;
                 <div class="card-body" style="background: #fff; padding: 24px 16px; border-radius: 0 0 20px 20px;">
                     <div id="table-view" class="table-view">
                         <div class="row">
-                            <div class="form-group col-md-2" style="margin:  1rem 0;">
-                                <label for="">Almacen</label>
-                                <select name="almacenSelect" id="almacenSelect" class="form-control"
-                                    @change="changeAlmacen($event)" v-model="almacen">
-                                    <option value="1">Almacen 1</option>
-                                    <option value="2">Almacen 2</option>
-                                    <option value="3">Almacen 3</option>
-                                </select>
+                            <div class="form-group col-md-3">
+                                <label for="">Almacén</label>
+                                <div class="d-flex align-items-center gap-1">
+                                    <select name="almacenSelect" id="almacenSelect" class="form-control"
+                                        v-model="almacen">
+                                        <option value="" disabled>Seleccionar</option>
+                                        <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                            {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                        </option>
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-outline-success" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;" @click="abrirModalAlmacen()">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -292,11 +298,16 @@ $almacenRepuesto = 1;
                             <div class="row">
                                 <div class="col-md-3">
                                     <label for="grid-almacen-select">Almacen</label>
-                                    <select id="grid-almacen-select" class="form-control">
-                                        <option value="1">Almacen 1</option>
-                                        <option value="2">Almacen 2</option>
-                                        <option value="3">Almacen 3</option>
-                                    </select>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <select id="grid-almacen-select" class="form-control">
+                                            <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
+                                                {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                            </option>
+                                        </select>
+                                        <button type="button" class="btn btn-sm btn-outline-success" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;" @click="abrirModalAlmacen()">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-md-5">
                                     <label>&nbsp;</label>
@@ -361,6 +372,77 @@ $almacenRepuesto = 1;
     <!-- product-modal-codigo-barras -->
 
     <?php include __DIR__ . '/../modals/product-modal-codigo-barras.php' ?>
+
+    <!-- Modal Agregar/Editar Almacén para Repuestos -->
+    <div class="modal fade" id="modal-agregar-almacen-repuesto" tabindex="-1" aria-labelledby="modalAgregarAlmacenRepLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header bg-rojo text-white">
+                    <h6 class="modal-title" id="modalAgregarAlmacenRepLabel">
+                        <i class="fa fa-warehouse me-2"></i>Gestionar Almacenes
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Almacenes</label>
+                        <div class="list-group" style="max-height: 200px; overflow-y: auto;">
+                            <div v-for="alm in almacenes" :key="alm.id_almacen" 
+                                 class="list-group-item d-flex justify-content-between align-items-center"
+                                 :class="{'active': almacenEditando && almacenEditando.id_almacen == alm.id_almacen}"
+                                 style="cursor: pointer;"
+                                 @click="seleccionarAlmacen(alm)">
+                                <span>
+                                    <i class="fa fa-warehouse me-2"></i>{{ alm.nombre }}
+                                    <span v-if="alm.principal == 1" class="badge bg-warning text-dark ms-2">★ Principal</span>
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-light" @click.stop="seleccionarAlmacen(alm)">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr v-if="almacenEditando">
+                    <div v-if="almacenEditando">
+                        <div class="form-group mb-2">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" v-model="nuevoAlmacen" placeholder="Nombre del almacén">
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="marcarPrincipalRep" v-model="marcarPrincipal">
+                            <label class="form-check-label" for="marcarPrincipalRep">
+                                <i class="fa fa-star text-warning me-1"></i>Marcar como Principal
+                            </label>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-warning btn-sm flex-grow-1" @click="guardarAlmacenEdicion()">
+                                <i class="fa fa-save me-1"></i> Actualizar
+                            </button>
+                            <button v-if="almacenEditando.principal != 1" 
+                                    type="button" class="btn btn-danger btn-sm" @click="eliminarAlmacen()">
+                                <i class="fa fa-trash me-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <hr v-if="almacenEditando">
+                    <div class="mt-2">
+                        <label class="form-label">{{ almacenEditando ? 'Agregar otro' : 'Nuevo Almacén' }}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" v-model="nuevoAlmacenNuevo" placeholder="Nombre del nuevo almacén" @keyup.enter="agregarNuevoAlmacen()">
+                            <button type="button" class="btn btn-success" @click="agregarNuevoAlmacen()">
+                                <i class="fa fa-plus me-1"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #eee;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 </div>
@@ -445,16 +527,18 @@ $almacenRepuesto = 1;
     var nombreBarraTemps = ''
     var codeBarraTemps = ''
     var datatable
-    var almacenCod = '<?php echo $_SESSION['sucursal'] ?>'
+    var almacenCod = 4
     var app;
     $(document).ready(function () {
         app = new Vue({
             el: "#conte-vue-modals",
             data: {
 
-                almacen: <?php echo $_SESSION['sucursal'] ?>,
+                almacen: 4,
                 t: 0,
                 listaRep: [],
+                almacenes: [],
+                almacenesLoaded: false,
                 almacenImportacionRep: 1, // Almacén por defecto para importación de repuestos
                 categorias: [],
                 unidades: [],
@@ -462,6 +546,10 @@ $almacenRepuesto = 1;
                 subcategoriasEdit: [],
                 precios: [],
                 preciosNuevos: [],
+                almacenEditando: null,
+                nuevoAlmacen: '',
+                nuevoAlmacenNuevo: '',
+                marcarPrincipal: false,
                 restock: {
                     cod: '',
                     cantidad: '',
@@ -553,6 +641,10 @@ $almacenRepuesto = 1;
                 }
             },
 
+            mounted() {
+                this.cargarAlmacenes();
+            },
+
             methods: {
                 agregarPrecio() {
                     this.precios.push({
@@ -582,6 +674,14 @@ $almacenRepuesto = 1;
                     }).fail((jqXHR, textStatus, errorThrown) => {
                         console.error("Error al cargar las unidades: " + textStatus, errorThrown);
                         alert("No se pudo cargar las unidades. Por favor, intenta nuevamente.");
+                    });
+                },
+                cargarAlmacenes() {
+                    var self = this;
+                    _post('/ajs/data/repuesto/almacen/listar', {}, function(res) {
+                        if (res.estado) {
+                            self.almacenes = res.almacenes;
+                        }
                     });
                 },
                 cargarCategorias() {
@@ -640,6 +740,79 @@ $almacenRepuesto = 1;
                         alert("No se pudo cargar las subcategorías. Por favor, intenta nuevamente.");
                     });
                 },
+                abrirModalAlmacen() {
+                    this.almacenEditando = null;
+                    this.nuevoAlmacen = '';
+                    this.nuevoAlmacenNuevo = '';
+                    this.marcarPrincipal = false;
+                    $('#modal-agregar-almacen-repuesto').modal('show');
+                },
+                seleccionarAlmacen(alm) {
+                    this.almacenEditando = alm;
+                    this.nuevoAlmacen = alm.nombre;
+                    this.marcarPrincipal = alm.principal == 1;
+                },
+                agregarNuevoAlmacen() {
+                    if (!this.nuevoAlmacenNuevo.trim()) {
+                        alertAdvertencia('Ingrese el nombre del almacén');
+                        return;
+                    }
+                    var self = this;
+                    _post('/ajs/data/repuesto/almacen/agregar', { nombre: this.nuevoAlmacenNuevo.trim() }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.nuevoAlmacenNuevo = '';
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                guardarAlmacenEdicion() {
+                    if (!this.nuevoAlmacen.trim() || !this.almacenEditando) return;
+                    
+                    var self = this;
+                    _post('/ajs/data/repuesto/almacen/editar', { 
+                        id: this.almacenEditando.id_almacen, 
+                        nombre: this.nuevoAlmacen.trim(),
+                        principal: this.marcarPrincipal ? 1 : 0
+                    }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                eliminarAlmacen() {
+                    if (!this.almacenEditando || this.almacenEditando.principal == 1) return;
+                    
+                    Swal.fire({
+                        title: '¿Eliminar almacén?',
+                        text: 'Esta acción no se puede deshacer.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var self = this;
+                            _post('/ajs/data/repuesto/almacen/eliminar', { id: this.almacenEditando.id_almacen }, function(res) {
+                                if (res.success) {
+                                    alertExito(res.message);
+                                    self.almacenEditando = null;
+                                    self.nuevoAlmacen = '';
+                                    self.cargarAlmacenes();
+                                } else {
+                                    alertAdvertencia(res.error);
+                                }
+                            });
+                        }
+                    });
+                },
                 agregarIds() {
                     this.t = 5
                     console.log(this.listaIdsss);
@@ -666,20 +839,16 @@ $almacenRepuesto = 1;
                         }
                     )
                 },
-                changeAlmacen(event) {
+changeAlmacen(event) {
                     clearSelection();
 
-
                     $('.filter-option').prop('checked', false);
-
-
 
                     almacenCod = event.target.value;
 
                     if ($.fn.DataTable.isDataTable('#datatable')) {
                         datatable.destroy();
                     }
-
 
                     datatable = $("#datatable").DataTable({
                         order: [[0, 'ASC']],
@@ -739,7 +908,103 @@ $almacenRepuesto = 1;
                                 "targets": [3],
                                 "className": "text-center",
                                 "render": function (data, type, row, meta) {
-                                    // La moneda está en row[7] (índice 7 del array de columnas)
+                                    const moneda = row[7] || 'PEN';
+                                    const simbolo = moneda === 'USD' ? '$' : 'S/';
+                                    return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
+                                }
+                            },
+                            {
+                                "targets": 5,
+                                "render": function (data, type, row, meta) {
+                                    return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
+                                }
+                            },
+                            {
+                                "targets": 6,
+                                "render": function (data, type, row, meta) {
+                                    return `<input type="checkbox" data-id="${row[6]}" class="btnCheckEliminar">`;
+                                }
+                            }
+                        ],
+                        "drawCallback": function (settings) {
+                            $("#datatable_processing").hide();
+                        },
+                        "error": function (xhr, error, thrown) {
+                            console.log('Error en DataTables:', error);
+                            $("#datatable_processing").hide();
+                        }
+                    });
+                },
+                changeAlmacenById(id) {
+                    if (!id) return;
+                    
+                    clearSelection();
+                    $('.filter-option').prop('checked', false);
+                    
+                    almacenCod = id;
+                    
+                    if ($.fn.DataTable.isDataTable('#datatable')) {
+                        datatable.destroy();
+                    }
+
+                    datatable = $("#datatable").DataTable({
+                        order: [[0, 'ASC']],
+                        "processing": true,
+                        "serverSide": true,
+                        "sAjaxSource": _URL + "/ajs/server/sider/repuestos",
+                        "language": {
+                            "sProcessing": "Procesando...",
+                            "sLengthMenu": "Mostrar _MENU_ registros",
+                            "sZeroRecords": "No se encontraron resultados",
+                            "sEmptyTable": "Ningún dato disponible en esta tabla",
+                            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                            "sInfoPostFix": "",
+                            "sSearch": "Buscar:",
+                            "sUrl": "",
+                            "sInfoThousands": ",",
+                            "sLoadingRecords": "Cargando...",
+                            "oPaginate": {
+                                "sFirst": "Primero",
+                                "sLast": "Último",
+                                "sNext": "Siguiente",
+                                "sPrevious": "Anterior"
+                            },
+                            "oAria": {
+                                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                            },
+                            "buttons": {
+                                "copy": "Copiar",
+                                "colvis": "Visibilidad"
+                            }
+                        },
+                        "fnServerParams": function (aoData) {
+                            aoData.push(
+                                { "name": "almacenId", "value": almacenCod },
+                                {
+                                    "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
+                                        $('#implementos').prop('checked') ? 'IMPLE' :
+                                            $('#rep').prop('checked') ? 'REP' : ''
+                                }
+                            );
+                        },
+                        columnDefs: [
+                            {
+                                "targets": [0, 1],
+                                "className": "text-center"
+                            },
+                            {
+                                "targets": 0,
+                                "render": function (data, type, row, meta) {
+                                    return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
+                                }
+                            },
+                            {
+                                "targets": [3],
+                                "className": "text-center",
+                                "render": function (data, type, row, meta) {
                                     const moneda = row[7] || 'PEN';
                                     const simbolo = moneda === 'USD' ? '$' : 'S/';
                                     return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
@@ -1403,105 +1668,33 @@ $almacenRepuesto = 1;
                                     columns: ':visible'
                                 }
                             }
-                        ]
+]
                     });
                 }
             },
-            mounted() {
-                this.cargarCategorias();
-                this.cargarUnidades();
 
-            }
+mounted() {
+                this.cargarAlmacenes();
+},
+            watch: {
+                almacenes: {
+                    handler: function(newAlmacenes) {
+                        if (newAlmacenes && newAlmacenes.length > 0 && !this.almacenesLoaded) {
+                            this.almacenesLoaded = true;
+                            var hasCurrent = newAlmacenes.some(a => a.id_almacen == this.almacen);
+                            if (!hasCurrent) {
+                                this.almacen = newAlmacenes[0].id_almacen;
+                            }
+                            this.$nextTick(function() {
+                                this.changeAlmacenById(this.almacen);
+                            }.bind(this));
+                        }
+                    },
+                    immediate: true
+                }
+            },
 
         })
-
-        datatable = $("#datatable").DataTable({
-            order: [[0, 'ASC']],
-            "processing": true,
-            "serverSide": true,
-            "sAjaxSource": _URL + "/ajs/server/sider/repuestos",
-            "language": {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
-                }
-            },
-            "fnServerParams": function (aoData) {
-                aoData.push(
-                    { "name": "almacenId", "value": almacenCod },
-                    {
-                        "name": "filter", "value": $('#maquinas').prop('checked') ? 'JVC' :
-                            $('#implementos').prop('checked') ? 'IMPLE' :
-                                $('#rep').prop('checked') ? 'REP' : ''
-                    }
-                );
-            },
-            "drawCallback": function (settings) {
-                $("#datatable_processing").hide();
-
-                setTimeout(() => {
-                    if (localStorage.getItem('isChecks')) {
-                        restoreCheckboxStates();
-                    }
-                }, 100)
-            },
-            columnDefs: [
-                {
-                    "targets": [0, 1],
-                    "className": "text-center"
-                },
-                {
-                    "targets": 0,
-                    "render": function (data, type, row, meta) {
-                        return '<a href="javascript:abrirModalBarras(\'' + row[0] + '\',\'' + row[0] + '\')">' + row[0] + '</a>';
-                    }
-                },
-                {
-                    "targets": [3],
-                    "className": "text-center",
-                    "render": function (data, type, row, meta) {
-                        // La moneda está en row[7] (índice 7 del array de columnas)
-                        const moneda = row[7] || 'PEN';
-                        const simbolo = moneda === 'USD' ? '$' : 'S/';
-                        return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
-                    }
-                },
-                {
-                    "targets": 5,
-                    "render": function (data, type, row, meta) {
-                        return `<button data-item="${row[6]}" class="btn-edt btn btn-sm btn-info"><i class="fa fa-edit"></i></button>`;
-                    }
-                },
-                {
-                    "targets": 6,
-                    "render": function (data, type, row, meta) {
-                        return `<input type="checkbox" data-id="${row[6]}" class="btnCheckEliminar">`;
-                    }
-                }
-            ]
-        });
 
         $('.filter-option').on('change', function () {
             $('.filter-option').not(this).prop('checked', false);

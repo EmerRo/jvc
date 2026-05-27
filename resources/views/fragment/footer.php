@@ -23,22 +23,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" ></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js" integrity="sha512-WWzCZDQZ23GuPVKPowBGCF6MhoA1az8iJk/Gjh2a5S3jeeNEvKJHgGPMyDofeUtcOeHeI3AbsPFUILWHfoRP8w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<?php
-// WebSocket Client - SOLO LOCALHOST
-$es_localhost = (
-    $_SERVER['SERVER_NAME'] === 'localhost' ||
-    $_SERVER['SERVER_NAME'] === '127.0.0.1' ||
-    $_SERVER['SERVER_ADDR'] === '127.0.0.1' ||
-    $_SERVER['SERVER_ADDR'] === '::1'
-);
 
-if ($es_localhost) {
-    echo '<script src="' . URL::to('public/assets/js/websocket-client.js') . '?v=' . time() . '"></script>';
-    echo '<!-- ✅ WebSocket habilitado (localhost) -->';
-} else {
-    echo '<!-- 🔒 WebSocket deshabilitado (no localhost) -->';
-}
-?>
 
 <?php
 if (isset($_SESSION['usuario_fac'])){  ?>

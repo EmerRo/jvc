@@ -1,5 +1,6 @@
 <!-- resources\views\fragment-views\cliente\compra-add.php -->
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
+<script src="<?= URL::to('public/js/components/almacen-select.js') ?>"></script>
 
 
 <!-- Incluir Quill CSS -->
@@ -100,13 +101,7 @@
 
                                                                             <!-- Selector de almacén -->
                                                                             <div class="col-lg-4">
-                                                                                <select class="form-select"
-                                                                                    v-model="producto.almacen"
-                                                                                    @change="actualizarAutocomplete">
-                                                                                    <option value="1">Alm 1</option>
-                                                                                    <option value="2">Alm 2</option>
-                                                                                    <option value="3">Alm 3</option>
-                                                                                </select>
+                                                                                <almacen-select class="form-select" v-model="producto.almacen" @input="actualizarAutocomplete"></almacen-select>
                                                                             </div>
                                                                         </div>
                                                                     </div>

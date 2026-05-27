@@ -2,6 +2,7 @@
 
 require_once 'utils/lib/exel/vendor/autoload.php';
 require_once 'app/models/Repuesto.php';
+require_once 'app/models/Almacen.php';
 
 class RepuestosController extends Controller
 {
@@ -933,5 +934,93 @@ class RepuestosController extends Controller
         }
 
         return json_encode($respuesta);
+    }
+
+    public function listarAlmacenes()
+    {
+        $repuesto = new Repuesto();
+        $repuesto->setIdEmpresa($_SESSION['id_empresa']);
+        
+        $almacenesCreados = $repuesto->crearVistasFaltantes();
+        if ($almacenesCreados > 0) {
+            error_log("Se crearon $almacenesCreados vistas para repuestos");
+        }
+        
+        $almacenes = $repuesto->listarAlmacenes();
+        
+        foreach ($almacenes as &$alm) {
+            $alm['id_almacen'] = (int)$alm['id_almacen'];
+            $alm['principal'] = (int)$alm['principal'];
+            $alm['id_empresa'] = (int)$alm['id_empresa'];
+        }
+        unset($alm);
+        
+        echo json_encode(['estado' => true, 'almacenes' => $almacenes]);
+    }
+
+    public function agregarAlmacen()
+    {
+        $nombre = $_POST['nombre'] ?? '';
+        if (empty(trim($nombre))) {
+            echo json_encode(['estado' => false, 'mensaje' => 'El nombre es requerido']);
+            return;
+        }
+
+        $almacenModel = new Almacen();
+        $almacenModel->setIdEmpresa($_SESSION['id_empresa']);
+        $id = $almacenModel->agregar(trim($nombre));
+
+        if ($id) {
+            $repuesto = new Repuesto();
+            $repuesto->setIdEmpresa($_SESSION['id_empresa']);
+            $repuesto->crearVista($id);
+
+            echo json_encode([
+                'estado' => true, 
+                'mensaje' => 'Almacén agregado', 
+                'id' => $id
+            ]);
+        } else {
+            echo json_encode(['estado' => false, 'mensaje' => 'Error al agregar almacén']);
+        }
+    }
+
+    public function editarAlmacen()
+    {
+        $id = $_POST['id'] ?? '';
+        $nombre = $_POST['nombre'] ?? '';
+        $principal = isset($_POST['principal']) ? 1 : 0;
+
+        if (empty($id) || empty(trim($nombre))) {
+            echo json_encode(['estado' => false, 'mensaje' => 'El nombre es requerido']);
+            return;
+        }
+
+        $almacenModel = new Almacen();
+        $almacenModel->setIdEmpresa($_SESSION['id_empresa']);
+
+        if ($principal) {
+            $almacenModel->marcarPrincipal($id);
+        } else {
+            $almacenModel->actualizar($id, trim($nombre));
+        }
+
+        echo json_encode(['estado' => true, 'mensaje' => 'Almacén actualizado']);
+    }
+
+    public function eliminarAlmacen()
+    {
+        $id = $_POST['id'] ?? '';
+
+        if (empty($id)) {
+            echo json_encode(['estado' => false, 'mensaje' => 'ID requerido']);
+            return;
+        }
+
+        $almacenModel = new Almacen();
+        $almacenModel->setIdEmpresa($_SESSION['id_empresa']);
+        $resultado = $almacenModel->eliminar($id);
+
+        echo json_encode($resultado);
     }
 }

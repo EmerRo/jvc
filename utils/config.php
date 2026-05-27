@@ -38,7 +38,7 @@ if ($esLocal) {
     define("PUERTO_SMTP",   "465");
 
     define("ENDPOINT",      "production");
-    define("URL_API_SUNAT", "http://84.247.162.204/api-sunat-laravel");
+    define("URL_API_SUNAT", "https://magus-qa.com/api-sunat-laravel");
 
 }
 

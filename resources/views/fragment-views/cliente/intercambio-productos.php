@@ -8,6 +8,12 @@ $getAll = $c_venta->ingresosEgresosRender();
     .ui-autocomplete {
         z-index: 1065;
     }
+    #datatable td:nth-child(2),
+    #datatable th:nth-child(2) {
+        white-space: normal;
+        word-wrap: break-word;
+        text-align: left;
+    }
 </style>
 
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
@@ -24,61 +30,56 @@ $getAll = $c_venta->ingresosEgresosRender();
     </div>
 </div>
 
-<!-- CAMBIO PRINCIPAL: Seguir la estructura de compras.php -->
 <div class="row">
     <div class="col-12">
         <div class="card"
             style="border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06)">
             <div class="card-body" id="container-vue">
 
-               
                 <div class="card-title-desc text-end">
                     <button data-bs-toggle="modal" data-bs-target="#nuevaSalida" class="btn bg-white text-rojo"
                         @click="btnCerrar"
-                        style="border-radius: 10px; padding: 8px 16px; font-weight: 500; border: 1px solid #CA3438; margin-right: 8px; transition: all 0.3s ease;">
+                        style="border-radius: 10px; border: 1px solid #CA3438; margin-right: 8px;">
                         <i class="fa fa-plus"></i> Nueva Salida
                     </button>
                     <button data-bs-toggle="modal" data-bs-target="#nuevoIngreso" class="btn bg-rojo text-white"
-                        @click="btnCerrar" style="border-radius: 10px; padding: 8px 16px; font-weight: 500;">
+                        @click="btnCerrar" style="border-radius: 10px;">
                         <i class="fa fa-plus"></i> Nuevo Ingreso
                     </button>
                 </div>
 
-                  <div class="table-responsive">
+                <div class="table-responsive">
                     <table id="datatable"
                         class="table table-bordered dt-responsive nowrap text-center table-sm"
                         style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                         <thead>
                             <tr>
-                                <th style="text-align: center;">#</th>
-                                <th style="text-align: center;">Producto</th>
-                                <th style="text-align: center;">Cantidad</th>
-                                <th style="text-align: center;">Tipo</th>
-                                <th style="text-align: center;">Usuario</th>
-                                <th style="text-align: center;">Egreso</th>
-                                <th style="text-align: center;">Ingreso</th>
-                                <th style="text-align: center;">Fecha Creación</th>
-                                <th style="text-align: center;">Fecha Actualización</th>
-                                <th style="text-align: center;">Confirmar <br> Traslado</th>
-                                <th style="text-align: center;">Reporte</th>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Tipo</th>
+                                <th>Usuario</th>
+                                <th>Egreso</th>
+                                <th>Ingreso</th>
+                                <th>Fecha Creación</th>
+                                <th>Fecha Actualización</th>
+                                <th>Confirmar <br> Traslado</th>
+                                <th>Reporte</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($getAll as $row): ?>
                                 <tr>
                                     <td><?php echo $row['intercambio_id'] ?></td>
-                                    <td class="text-start"><?php echo $row['codigo'] ?> | <?php echo $row['nombre'] ?>
-                                    </td>
+                                    <td class="text-start"><?php echo $row['codigo'] ?> | <?php echo $row['nombre'] ?></td>
                                     <td><?php echo $row['cantidad'] ?></td>
-                                    <?php
-                                    $tipo = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida';
-                                    ?>
+                                    <?php $tipo = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida'; ?>
                                     <td><?php echo $tipo ?></td>
-                                   <td><?php echo $row["nombres"] ?></td>
+                                    <td><?php echo $row["nombres"] ?></td>
                                     <td><?php echo $row['almacen_egreso_nombre'] ?></td>
                                     <td><?php echo $row['almacen_ingreso_nombre'] ?></td>
-                                    <td><?php echo isset($row['fecha_creacion_formatted']) ? $row['fecha_creacion_formatted'] : 'N/A' ?></td>
-                                    <td><?php echo isset($row['fecha_actualizacion_formatted']) ? $row['fecha_actualizacion_formatted'] : 'N/A' ?></td>
+                                    <td><?php echo $row['fecha_creacion_formatted'] ?? 'N/A' ?></td>
+                                    <td><?php echo $row['fecha_actualizacion_formatted'] ?? 'N/A' ?></td>
                                     <td class="text-center">
                                         <?php if ($row['tipo'] == 'e' && $row['estado'] == '0'): ?>
                                             <button data-item="<?= $row['intercambio_id'] ?>"
@@ -89,7 +90,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                                     </td>
                                     <td class="text-center">
                                         <a target="_blank"
-                                            href="<?= URL::to('reporte/ingresos/egresos/' . $row['intercambio_id'] . '') ?>"
+                                            href="<?= URL::to('reporte/ingresos/egresos/' . $row['intercambio_id']) ?>"
                                             class="btn-reporte btn btn-sm btn-primary">
                                             <i class="fa fa-file"></i>
                                         </a>
@@ -116,7 +117,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                                         <canvas hidden="" id="qr-canvas2" v-show="toggleCamara2"
                                             style="width: 300px; padding: 10px;"></canvas>
                                         <div class="mb-3 col-md-12">
-                                            <label class="">
+                                            <label>
                                                 <input id="btn-scan-qr2" v-model="usar_scaner2" @click="toggleCamara2"
                                                     type="checkbox"> Usar Scanner
                                             </label>
@@ -139,18 +140,13 @@ $getAll = $c_venta->ingresosEgresosRender();
                                         </div>
                                         <div class="mb-3 col-md-5">
                                             <label class="control-label">Ingreso Almacén</label>
-                                            <div class="input-group">
-                                                <select name="almacen" id="almacen" v-model="producto.almacen"
-                                                    class="form-control select-almacen" @change="onChangeAlmacen($event)">
-                                                    <option value="" disabled selected>Seleccionar</option>
-                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
-                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
-                                                    </option>
-                                                </select>
-                                                <button type="button" class="btn btn-outline-success" @click="abrirModalAlmacen()" title="Gestionar almacenes">
-                                                    <i class="fa fa-cog"></i>
-                                                </button>
-                                            </div>
+                                            <select name="almacen" id="almacen" v-model="producto.almacen"
+                                                class="form-control" @change="onChangeAlmacen($event)">
+                                                <option value="" disabled selected>Seleccionar</option>
+                                                <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
+                                                    {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                </option>
+                                            </select>
                                         </div>
                                         <div class="mb-3 col-md-3">
                                             <label class="control-label">Stock Act.</label>
@@ -190,7 +186,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                                         <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
                                             style="width: 300px; padding: 10px;"></canvas>
                                         <div class="mb-3 col-md-12">
-                                            <label class="">
+                                            <label>
                                                 <input id="btn-scan-qr" v-model="usar_scaner" @click="toggleCamara"
                                                     type="checkbox">
                                                 Usar Scanner
@@ -209,30 +205,23 @@ $getAll = $c_venta->ingresosEgresosRender();
                                         </div>
                                         <div class="mb-3 col-md-5">
                                             <label class="control-label">Del Almacén</label>
-                                            <div class="input-group">
-                                                <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
-                                                    class="form-control select-almacen" @change="onChangeAlmacen($event)">
-                                                    <option value="" disabled selected>Seleccionar</option>
-                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
-                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
-                                                    </option>
-                                                </select>
-                                                <button type="button" class="btn btn-outline-success" @click="abrirModalAlmacen()" title="Gestionar almacenes">
-                                                    <i class="fa fa-cog"></i>
-                                                </button>
-                                            </div>
+                                            <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
+                                                class="form-control" @change="onChangeAlmacen($event)">
+                                                <option value="" disabled selected>Seleccionar</option>
+                                                <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
+                                                    {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                </option>
+                                            </select>
                                         </div>
                                         <div class="mb-3 col-md-5">
                                             <label class="control-label">Al Almacén</label>
-                                            <div class="input-group">
-                                                <select v-model="producto.alAlmacen" class="form-control select-almacen">
-                                                    <option value="" disabled selected>Seleccionar</option>
-                                                    <option v-for="alm in almacenes.filter(a => a.id_almacen != producto.almacen)" 
-                                                            :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
-                                                        {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
-                                                    </option>
-                                                </select>
-                                            </div>
+                                            <select v-model="producto.alAlmacen" class="form-control">
+                                                <option value="" disabled selected>Seleccionar</option>
+                                                <option v-for="alm in almacenes.filter(a => parseInt(a.id_almacen) !== producto.almacen)"
+                                                        :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
+                                                    {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                </option>
+                                            </select>
                                         </div>
                                         <div class="mb-3 col-md-2">
                                             <label class="control-label">Stock Act.</label>
@@ -288,20 +277,6 @@ $getAll = $c_venta->ingresosEgresosRender();
             },
             mounted() {
                 this.cargarAlmacenes();
-                // Forzar actualización de selects después de cargar datos
-                this.$nextTick(() => {
-                    this.$forceUpdate();
-                });
-            },
-            updated() {
-                // Actualizar selects de almacén cuando Vue actualice el DOM
-                this.$nextTick(() => {
-                    $('.select-almacen').each(function() {
-                        if (!$(this).data('bs.select')) {
-                            // Inicializar bootstrap-select si está disponible
-                        }
-                    });
-                });
             },
             methods: {
                 cargarAlmacenes() {
@@ -309,87 +284,13 @@ $getAll = $c_venta->ingresosEgresosRender();
                     _get('/ajs/almacenes/listar', function(res) {
                         if (res.estado) {
                             self.almacenes = res.almacenes;
-                            // Establecer almacén principal como default (usar integers para match con v-model)
                             var principal = res.almacenes.find(a => a.principal == 1);
-                            if (principal) {
-                                self.producto.almacen = parseInt(principal.id_almacen);
-                            } else if (res.almacenes.length > 0) {
-                                self.producto.almacen = parseInt(res.almacenes[0].id_almacen);
+                            var defaultAlm = principal || (res.almacenes.length > 0 ? res.almacenes[0] : null);
+                            if (defaultAlm) {
+                                self.producto.almacen = parseInt(defaultAlm.id_almacen);
+                                var other = res.almacenes.find(a => parseInt(a.id_almacen) !== self.producto.almacen);
+                                if (other) self.producto.alAlmacen = parseInt(other.id_almacen);
                             }
-                            
-                            // Forzar actualización de Vue después de cargar
-                            self.$forceUpdate();
-                            
-                            // Actualizar selects después de que Vue renderice
-                            self.$nextTick(function() {
-                                $('#nuevoIngreso select[name="almacen"]').val(self.producto.almacen);
-                                $('#nuevaSalida select[name="delAlmacen"]').val(self.producto.almacen);
-                            });
-                        }
-                    });
-                },
-                abrirModalAlmacen() {
-                    // Disparar el modal del almacén (asumiendo que existe en almacen-productos.php)
-                    // O abrir un modal aquí mismo
-                    this.abrirModalGestionAlmacen();
-                },
-                abrirModalGestionAlmacen() {
-                    // Crear modal dinámicamente o usar el mismo patrón
-                    var modalHtml = `
-                    <div class="modal fade" id="modal-gestion-almacenes" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content" style="border-radius: 15px;">
-                                <div class="modal-header bg-rojo text-white">
-                                    <h6 class="modal-title"><i class="fa fa-warehouse me-2"></i>Gestionar Almacenes</h6>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="list-group" style="max-height: 200px; overflow-y: auto;">
-                                        <div v-for="alm in almacenes" :key="alm.id_almacen" 
-                                             class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <i class="fa fa-warehouse me-2"></i>{{ alm.nombre }}
-                                                <span v-if="alm.principal == 1" class="badge bg-warning text-dark ms-2">★ Principal</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="nuevo-almacen-nombre" placeholder="Nuevo almacén">
-                                        <button type="button" class="btn btn-success" @click="agregarAlmacenIntercambio()">
-                                            <i class="fa fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-                    
-                    // Verificar si ya existe el modal
-                    if ($('#modal-gestion-almacenes').length === 0) {
-                        $('body').append(modalHtml);
-                    }
-                    
-                    var modal = new bootstrap.Modal($('#modal-gestion-almacenes')[0]);
-                    modal.show();
-                },
-                agregarAlmacenIntercambio() {
-                    var nombre = $('#nuevo-almacen-nombre').val().trim();
-                    if (!nombre) {
-                        alertAdvertencia('Ingrese el nombre del almacén');
-                        return;
-                    }
-                    var self = this;
-                    _post('/ajs/almacenes/agregar', { nombre: nombre }, function(res) {
-                        if (res.estado) {
-                            alertExito(res.mensaje);
-                            self.cargarAlmacenes();
-                            $('#nuevo-almacen-nombre').val('');
-                        } else {
-                            alertAdvertencia(res.mensaje);
                         }
                     });
                 },
@@ -409,9 +310,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                 },
                 encenderCamara() {
                     navigator.mediaDevices
-                        .getUserMedia({
-                            video: { facingMode: "environment" }
-                        })
+                        .getUserMedia({ video: { facingMode: "environment" } })
                         .then((stream) => {
                             this.scanning = true;
                             const video = document.createElement("video");
@@ -433,11 +332,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                             };
 
                             const scan = () => {
-                                try {
-                                    qrcode.decode();
-                                } catch (e) {
-                                    setTimeout(scan, 500);
-                                }
+                                try { qrcode.decode(); } catch (e) { setTimeout(scan, 500); }
                             };
 
                             video.addEventListener("loadeddata", () => {
@@ -446,16 +341,12 @@ $getAll = $c_venta->ingresosEgresosRender();
                                 scan();
                             });
 
-                            qrcode.callback = (respuesta) => {
-                                this.procesarCodigoQR(respuesta);
-                            };
+                            qrcode.callback = (respuesta) => { this.procesarCodigoQR(respuesta); };
                         });
                 },
                 encenderCamara2() {
                     navigator.mediaDevices
-                        .getUserMedia({
-                            video: { facingMode: "environment" }
-                        })
+                        .getUserMedia({ video: { facingMode: "environment" } })
                         .then((stream) => {
                             this.scanning = true;
                             const video = document.createElement("video");
@@ -477,11 +368,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                             };
 
                             const scan = () => {
-                                try {
-                                    qrcode.decode();
-                                } catch (e) {
-                                    setTimeout(scan, 500);
-                                }
+                                try { qrcode.decode(); } catch (e) { setTimeout(scan, 500); }
                             };
 
                             video.addEventListener("loadeddata", () => {
@@ -490,16 +377,13 @@ $getAll = $c_venta->ingresosEgresosRender();
                                 scan();
                             });
 
-                            qrcode.callback = (respuesta) => {
-                                this.procesarCodigoQR(respuesta);
-                            };
+                            qrcode.callback = (respuesta) => { this.procesarCodigoQR(respuesta); };
                         });
                 },
                 cerrarCamara() {
                     this.usar_scaner = false;
                     const video = document.querySelector("video");
                     const canvasElement = document.getElementById("qr-canvas");
-
                     if (video && video.srcObject) {
                         video.srcObject.getTracks().forEach(track => track.stop());
                     }
@@ -510,7 +394,6 @@ $getAll = $c_venta->ingresosEgresosRender();
                     this.usar_scaner2 = false;
                     const video = document.querySelector("video");
                     const canvasElement = document.getElementById("qr-canvas2");
-
                     if (video && video.srcObject) {
                         video.srcObject.getTracks().forEach(track => track.stop());
                     }
@@ -531,25 +414,16 @@ $getAll = $c_venta->ingresosEgresosRender();
                                 this.producto.stock = data.data[0].cantidad;
                                 this.producto.codigo = data.data[0].codigo;
                                 this.producto.almacen = parseInt(data.data[0].almacen);
-
                                 $('#input_buscar_productos').val("");
                                 $('#almacen, #delAlmacen').prop("disabled", false);
-
                                 this.actualizarStock();
                             } else {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Advertencia',
-                                    text: 'No se encontró ningún producto',
-                                    confirmButtonText: 'Cerrar'
-                                });
+                                Swal.fire({ icon: 'warning', title: 'Advertencia', text: 'No se encontró ningún producto', confirmButtonText: 'Cerrar' });
                             }
                             this.usar_scaner = false;
                             this.cerrarCamara();
                         },
-                        error: () => {
-                            alert('Error al buscar el producto.');
-                        }
+                        error: () => { alert('Error al buscar el producto.'); }
                     });
                 },
                 actualizarStock() {
@@ -561,49 +435,36 @@ $getAll = $c_venta->ingresosEgresosRender();
                     });
                 },
                 btnCerrar() {
-                    // Obtener el primer almacén disponible para establecer como默认值
-                    var primerAlmacen = this.almacenes.length > 0 ? this.almacenes[0].id_almacen : '';
-                    var segundoAlmacen = this.almacenes.length > 1 ? this.almacenes[1].id_almacen : primerAlmacen;
-                    
+                    var principal = this.almacenes.find(a => a.principal == 1);
+                    var defaultAlm = principal || (this.almacenes.length > 0 ? this.almacenes[0] : null);
+                    var defaultId = defaultAlm ? parseInt(defaultAlm.id_almacen) : '';
+                    var other = this.almacenes.find(a => parseInt(a.id_almacen) !== defaultId);
+
                     this.producto = {
                         productoid: "",
                         nombre: "",
                         cantidad: "",
                         stock: "0",
                         codigo: "",
-                        almacen: primerAlmacen ? parseInt(primerAlmacen) : "",
-                        alAlmacen: segundoAlmacen ? parseInt(segundoAlmacen) : "",
+                        almacen: defaultId,
+                        alAlmacen: other ? parseInt(other.id_almacen) : '',
                         observaciones: ""
                     };
-                    
-                    // Forzar actualización de Vue para los selects
-                    this.$nextTick(() => {
-                        this.$forceUpdate();
-                    });
                 },
                 addIngreso() {
                     if (this.producto.nombre.length > 0) {
-                        const data = {
-                            ...this.producto,
-                            tipo: 'i'
-                        };
-                        _ajax("/ajs/ingreso/almacen/add", "POST", data,
-                            (resp) => {
-                                if (resp.res) {
-                                    alertExito('Bien', "Registro Correcto")
-                                        .then(() => location.reload());
-                                } else {
-                                    alertAdvertencia("No se pudo Guardar el Ingreso");
-                                }
+                        const data = { ...this.producto, tipo: 'i' };
+                        _ajax("/ajs/ingreso/almacen/add", "POST", data, (resp) => {
+                            if (resp.res) {
+                                alertExito('Bien', "Registro Correcto").then(() => location.reload());
+                            } else {
+                                alertAdvertencia("No se pudo Guardar el Ingreso");
                             }
-                        );
+                        });
                     } else {
-                        alertAdvertencia("Busque un producto primero")
-                            .then(() => {
-                                setTimeout(() => {
-                                    $("#input_buscar_productos").focus();
-                                }, 500);
-                            });
+                        alertAdvertencia("Busque un producto primero").then(() => {
+                            setTimeout(() => { $("#input_buscar_productos").focus(); }, 500);
+                        });
                     }
                 },
                 addSalida() {
@@ -614,46 +475,28 @@ $getAll = $c_venta->ingresosEgresosRender();
                             $("#btnguardarSalida").prop('disabled', false);
                             return;
                         }
-
-                        const data = {
-                            ...this.producto,
-                            tipo: 'e'
-                        };
-
-                        _ajax("/ajs/egreso/almacen/add", "POST", data,
-                            (resp) => {
-                                if (resp.res) {
-                                    alertExito('Bien', "Registro Correcto")
-                                        .then(() => location.reload());
-                                } else {
-                                    alertAdvertencia(resp.msg || "No se pudo Guardar la Salida");
-                                    $("#btnguardarSalida").prop('disabled', false);
-                                }
+                        const data = { ...this.producto, tipo: 'e' };
+                        _ajax("/ajs/egreso/almacen/add", "POST", data, (resp) => {
+                            if (resp.res) {
+                                alertExito('Bien', "Registro Correcto").then(() => location.reload());
+                            } else {
+                                alertAdvertencia(resp.msg || "No se pudo Guardar la Salida");
+                                $("#btnguardarSalida").prop('disabled', false);
                             }
-                        );
+                        });
                     } else {
-                        alertAdvertencia("Busque un producto primero o verifique stock")
-                            .then(() => {
-                                setTimeout(() => {
-                                    $("#input_buscar_productos").focus();
-                                }, 500);
-                            });
+                        alertAdvertencia("Busque un producto primero o verifique stock").then(() => {
+                            setTimeout(() => { $("#input_buscar_productos").focus(); }, 500);
+                        });
                         $("#btnguardarSalida").prop('disabled', false);
                     }
                 },
                 onChangeAlmacen(event) {
-                    const newAlmacen = event.target.value;
-
-                    if (newAlmacen === '1') {
-                        this.producto.alAlmacen = '2';
-                    } else if (newAlmacen === '2') {
-                        this.producto.alAlmacen = '1';
-                    } else if (newAlmacen === '3') {
-                        this.producto.alAlmacen = '1';
-                    }
-
-                    if (this.producto.nombre) {
-                        this.producto.almacen = newAlmacen;
+                    const newAlmacen = parseInt(event.target.value);
+                    this.producto.almacen = newAlmacen;
+                    var other = this.almacenes.find(a => parseInt(a.id_almacen) !== newAlmacen);
+                    if (other) this.producto.alAlmacen = parseInt(other.id_almacen);
+                    if (this.producto.productoid) {
                         this.actualizarStock();
                     }
                 },
@@ -661,13 +504,6 @@ $getAll = $c_venta->ingresosEgresosRender();
                     const keyCode = ($event.keyCode ? $event.keyCode : $event.which);
                     if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
                         $event.preventDefault();
-                    }
-                }
-            },
-            watch: {
-                'producto.almacen': function (newVal, oldVal) {
-                    if (newVal !== oldVal) {
-                        this.onChangeAlmacen({ target: { value: newVal } });
                     }
                 }
             }
@@ -687,12 +523,9 @@ $getAll = $c_venta->ingresosEgresosRender();
                 app.producto.stock = ui.item.cnt;
                 app.producto.codigo = ui.item.codigo;
                 app.producto.almacen = parseInt(ui.item.almacen);
-
                 $(this).val("");
                 $('#almacen, #delAlmacen').prop("disabled", false);
-
                 app.actualizarStock();
-                app.$forceUpdate();
             }
         });
 
@@ -721,10 +554,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                         return meta.row + 1;
                     }
                 }
-            ],
-            "orderFixed": {
-                "pre": [0, 'asc']
-            }
+            ]
         });
 
         $("#datatable").on("click", ".btn-confirmar", function (evt) {
@@ -736,16 +566,13 @@ $getAll = $c_venta->ingresosEgresosRender();
                 denyButtonText: 'No',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    _ajax("/ajs/confirmar/traslado", "POST", { cod },
-                        function (resp) {
-                            if (resp.res) {
-                                Swal.fire('Buen trabajo', 'Traslado Exitoso', 'success')
-                                    .then(() => location.reload());
-                            } else {
-                                alertAdvertencia("Ocurrió un error");
-                            }
+                    _ajax("/ajs/confirmar/traslado", "POST", { cod }, function (resp) {
+                        if (resp.res) {
+                            Swal.fire('Buen trabajo', 'Traslado Exitoso', 'success').then(() => location.reload());
+                        } else {
+                            alertAdvertencia("Ocurrió un error");
                         }
-                    );
+                    });
                 }
             });
         });

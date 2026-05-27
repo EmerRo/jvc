@@ -640,3 +640,26 @@ body[data-layout-mode="dark"] .jvc-sidebar::-webkit-scrollbar-thumb:hover,
 body.dark-mode .jvc-sidebar::-webkit-scrollbar-thumb:hover {
   background: #c0392b;
 }
+
+/* ── Estado activo según URL actual ───────────────────────────────────────── */
+.jvc-sidebar-link.active {
+  color: #e74c3c;
+  font-weight: 600;
+  background-color: rgba(231, 76, 60, 0.08);
+  border-radius: 4px;
+}
+
+.jvc-sidebar-link.active i {
+  color: #c0392b;
+}
+
+.jvc-sidebar-dropdown-item.active {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.jvc-sidebar-dropdown-item.active::before {
+  background-color: #c0392b;
+  width: 8px;
+  height: 8px;
+}
