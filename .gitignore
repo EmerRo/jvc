@@ -5,3 +5,5 @@ facturacion/
 *.pem
 .claude/
 .atl
+.error.log
+error.log
