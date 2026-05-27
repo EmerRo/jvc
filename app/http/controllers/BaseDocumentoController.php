@@ -98,6 +98,7 @@ abstract class BaseDocumentoController extends Controller
                 $footer_image = null;
                 $imagen1 = null;
                 $imagen2 = null;
+                $imagen3 = null;
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
                     $header_image = $this->procesarImagen($_FILES['header_image']);
@@ -121,6 +122,12 @@ abstract class BaseDocumentoController extends Controller
                     $imagen2 = $this->procesarImagen($_FILES['imagen2']);
                 } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
                     $imagen2 = $_POST['imagen2_base64'];
+                }
+                
+                if (isset($_FILES['imagen3']) && $_FILES['imagen3']['error'] === UPLOAD_ERR_OK) {
+                    $imagen3 = $this->procesarImagen($_FILES['imagen3']);
+                } else if (isset($_POST['imagen3_base64']) && !empty($_POST['imagen3_base64'])) {
+                    $imagen3 = $_POST['imagen3_base64'];
                 }
                 
                 // Obtener un ID de usuario válido
@@ -147,6 +154,7 @@ abstract class BaseDocumentoController extends Controller
                 $this->modelo->setFooterImage($footer_image);
                 $this->modelo->setImagen1($imagen1);
                 $this->modelo->setImagen2($imagen2);
+                $this->modelo->setImagen3($imagen3);
                 $this->modelo->setIdCliente($id_cliente);
                 $this->modelo->setUsuarioId($usuario_id);
                 $this->modelo->setEstado('borrador');
@@ -208,6 +216,7 @@ abstract class BaseDocumentoController extends Controller
                 $footer_image = $this->modelo->getFooterImage();
                 $imagen1 = $this->modelo->getImagen1();
                 $imagen2 = $this->modelo->getImagen2();
+                $imagen3 = $this->modelo->getImagen3();
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
                     $header_image = $this->procesarImagen($_FILES['header_image']);
@@ -233,6 +242,12 @@ abstract class BaseDocumentoController extends Controller
                     $imagen2 = $_POST['imagen2_base64'];
                 }
                 
+                if (isset($_FILES['imagen3']) && $_FILES['imagen3']['error'] === UPLOAD_ERR_OK) {
+                    $imagen3 = $this->procesarImagen($_FILES['imagen3']);
+                } else if (isset($_POST['imagen3_base64']) && !empty($_POST['imagen3_base64'])) {
+                    $imagen3 = $_POST['imagen3_base64'];
+                }
+                
                 // Configurar el objeto documento
                 $this->modelo->setTipo($tipo);
                 $this->modelo->setTitulo($titulo);
@@ -241,6 +256,7 @@ abstract class BaseDocumentoController extends Controller
                 $this->modelo->setFooterImage($footer_image);
                 $this->modelo->setImagen1($imagen1);
                 $this->modelo->setImagen2($imagen2);
+                $this->modelo->setImagen3($imagen3);
                 $this->modelo->setIdCliente($id_cliente);
                 $this->modelo->setEstado($estado);
                 
@@ -774,25 +790,10 @@ abstract class BaseDocumentoController extends Controller
                 throw new Exception("Número de teléfono inválido");
             }
 
-            // Obtener el documento usando consulta directa
-            $tabla = $this->documentType . 's';
-            $sql = "SELECT d.*, c.datos as cliente_nombre, c.documento as cliente_documento 
-                    FROM {$tabla} d 
-                    LEFT JOIN clientes c ON d.id_cliente = c.id_cliente 
-                    WHERE d.id = ?";
-            
-            $stmt = $this->conectar->prepare($sql);
-            if (!$stmt) {
-                throw new Exception("Error al preparar consulta: " . $this->conectar->error);
-            }
-            
-            $stmt->bind_param("i", $id_documento);
-            $stmt->execute();
-            $resultado = $stmt->get_result();
-            $documento = $resultado->fetch_assoc();
-            $stmt->close();
+            // Obtener el documento usando el modelo
+            $this->modelo->obtenerDocumento($id_documento);
 
-            if (!$documento) {
+            if (!$this->modelo->getId()) {
                 throw new Exception(ucfirst($this->documentType) . " no encontrado");
             }
 
@@ -802,15 +803,20 @@ abstract class BaseDocumentoController extends Controller
             // Construir mensaje de WhatsApp
             $tipoDocumento = strtoupper($this->documentType);
             $mensaje = "📋 *" . $tipoDocumento . "*\n\n";
-            $mensaje .= "📄 *" . $documento['titulo'] . "*\n\n";
-            $mensaje .= "🗂️ *Tipo:* " . ($documento['tipo'] ?: 'General') . "\n\n";
+            $mensaje .= "📄 *" . $this->modelo->getTitulo() . "*\n\n";
+            $mensaje .= "🗂️ *Tipo:* " . ($this->modelo->getTipo() ?: 'General') . "\n\n";
             
-            if ($documento['id_cliente']) {
-                $mensaje .= "👤 *Cliente:* " . ($documento['cliente_nombre'] ?: 'Cliente') . "\n\n";
+            if ($this->modelo->getIdCliente()) {
+                $mensaje .= "👤 *Cliente:* " . ($this->modelo->getClienteNombre() ?: 'Cliente') . "\n\n";
             }
             
-            $mensaje .= "📅 *Fecha:* " . date('d/m/Y', strtotime($documento['fecha_creacion'])) . "\n\n";
+            $mensaje .= "📅 *Fecha:* " . date('d/m/Y', strtotime($this->modelo->getFechaCreacion())) . "\n\n";
             $mensaje .= "📄 *Ver PDF:* " . $urlPDF . "\n\n";
+            
+            if (!empty($_POST['mensaje'])) {
+                $mensaje .= "💬 *Mensaje:* " . trim($_POST['mensaje']) . "\n\n";
+            }
+            
             $mensaje .= "📱 *Compartido desde JVC*\n";
             $mensaje .= "🌐 " . $_SERVER['HTTP_HOST'];
 

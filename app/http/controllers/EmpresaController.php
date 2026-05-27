@@ -36,6 +36,8 @@ class EmpresaController extends Controller
         $telefono3 = mysqli_real_escape_string($con, $_POST['telefono3']);
         $user_sol = mysqli_real_escape_string($con, $_POST['user_sol']);
         $clave_sol = mysqli_real_escape_string($con, $_POST['clave_sol']);
+        $client_id_sunat = mysqli_real_escape_string($con, $_POST['client_id_sunat'] ?? '');
+        $client_secret_sunat = mysqli_real_escape_string($con, $_POST['client_secret_sunat'] ?? '');
         $ubigeo = mysqli_real_escape_string($con, $_POST['ubigeo']);
         $distrito = mysqli_real_escape_string($con, $_POST['distrito']);
         $provincia = mysqli_real_escape_string($con, $_POST['provincia']);
@@ -54,7 +56,7 @@ class EmpresaController extends Controller
             $logoSQL = ", logo='$nombreArchivo'";
         }
 
-        $sql = "UPDATE empresas SET 
+        $sql = "UPDATE empresas SET
             ruc='$ruc',
             razon_social='$razon_social',
             comercial='$comercial',
@@ -65,6 +67,8 @@ class EmpresaController extends Controller
             telefono3='$telefono3',
             user_sol='$user_sol',
             clave_sol='$clave_sol',
+            client_id_sunat='$client_id_sunat',
+            client_secret_sunat='$client_secret_sunat',
             ubigeo='$ubigeo',
             distrito='$distrito',
             provincia='$provincia',
@@ -78,5 +82,55 @@ class EmpresaController extends Controller
         $this->consulta->exeSQL($sql);
 
         echo json_encode(["status" => "ok", "mensaje" => "Datos actualizados correctamente"]);
+    }
+
+    // Obtener series de documentos de la empresa
+    public function getSeries()
+    {
+        $id_empresa = $_SESSION['id_empresa'];
+        $con = $this->consulta->getConectar();
+
+        $sql = "SELECT de.id_tido, de.sucursal, de.serie, de.numero, ds.nombre, ds.abreviatura, ds.cod_sunat
+                FROM documentos_sunat ds
+                LEFT JOIN documentos_empresas de ON ds.id_tido = de.id_tido AND de.id_empresa = $id_empresa
+                WHERE de.id_empresa = $id_empresa AND de.sucursal = 1
+                ORDER BY de.id_tido ASC";
+
+        $result = $con->query($sql);
+        $series = [];
+        while ($row = $result->fetch_assoc()) {
+            $series[] = $row;
+        }
+
+        echo json_encode(['success' => true, 'series' => $series]);
+    }
+
+    // Actualizar serie/número de un documento
+    public function actualizarSeries()
+    {
+        $id_empresa = $_SESSION['id_empresa'];
+        $con = $this->consulta->getConectar();
+
+        $id_tido   = intval($_POST['id_tido']);
+        $sucursal  = intval($_POST['sucursal']);
+        $serie     = mysqli_real_escape_string($con, trim($_POST['serie']));
+        $numero    = intval($_POST['numero']);
+
+        // Verificar si ya existe el registro
+        $check = $con->query("SELECT 1 FROM documentos_empresas WHERE id_empresa=$id_empresa AND id_tido=$id_tido AND sucursal=$sucursal");
+
+        if ($check && $check->num_rows > 0) {
+            $sql = "UPDATE documentos_empresas SET serie='$serie', numero=$numero
+                    WHERE id_empresa=$id_empresa AND id_tido=$id_tido AND sucursal=$sucursal";
+        } else {
+            $sql = "INSERT INTO documentos_empresas (id_empresa, id_tido, sucursal, serie, numero)
+                    VALUES ($id_empresa, $id_tido, $sucursal, '$serie', $numero)";
+        }
+
+        if ($con->query($sql)) {
+            echo json_encode(['success' => true, 'mensaje' => 'Serie actualizada correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'mensaje' => 'Error: ' . $con->error]);
+        }
     }
 }

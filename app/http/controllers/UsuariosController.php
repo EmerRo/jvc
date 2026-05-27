@@ -58,6 +58,7 @@ class UsuariosController extends Controller
                     email,
                     nombres,
                     telefono,
+                    u.sueldo,
                     CASE
                         WHEN sucursal = 1 THEN 'Tienda 435'
                         ELSE 'Tienda 426'
@@ -89,6 +90,7 @@ class UsuariosController extends Controller
                     telefono,
                     sucursal,
                     rotativo,
+                    sueldo,
                     foto_perfil
                 FROM
                     usuarios u
@@ -144,12 +146,14 @@ class UsuariosController extends Controller
             $rotativo = isset($_POST['rotativo']) ? (int)$_POST['rotativo'] : 0;
             $idEmpresa = $_SESSION['id_empresa'];
 
+            $sueldo = isset($_POST['sueldo']) ? floatval($_POST['sueldo']) : 0;
+
             $sql = "INSERT INTO usuarios (
                         codigo, id_empresa, id_rol, num_doc, usuario, clave,
-                        email, nombres, telefono, sucursal, rotativo, foto_perfil
+                        email, nombres, telefono, sucursal, rotativo, sueldo, foto_perfil
                     ) VALUES (
                         '$codigo', '$idEmpresa', '$rol', '$ndoc', '$usuario', '$clave',
-                        '$email', '$nombres', '$telefono', 1, '$rotativo', '$fotoPerfil'
+                        '$email', '$nombres', '$telefono', 1, '$rotativo', '$sueldo', '$fotoPerfil'
                     )";
 
             if (mysqli_query($this->conectar, $sql)) {
@@ -241,6 +245,8 @@ class UsuariosController extends Controller
             $tienda = isset($_POST["tiendau"]) ? $_POST["tiendau"] : 1;
             $rotativo = isset($_POST["rotativou"]) ? $_POST["rotativou"] : 0;
 
+            $sueldo = isset($_POST['sueldou']) ? floatval($_POST['sueldou']) : 0;
+
             $sql = "UPDATE usuarios SET
                         id_rol='{$_POST["rol"]}',
                         nombres='{$_POST["datosEditar"]}',
@@ -251,7 +257,8 @@ class UsuariosController extends Controller
                         telefono='{$_POST["telefonoEditar"]}',
                         email='{$_POST["emailEditar"]}',
                         sucursal=$tienda,
-                        rotativo=$rotativo
+                        rotativo=$rotativo,
+                        sueldo=$sueldo
                     WHERE usuario_id = {$_POST["idCliente"]}";
 
             if (mysqli_query($this->conectar, $sql)) {

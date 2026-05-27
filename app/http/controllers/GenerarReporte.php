@@ -284,8 +284,11 @@ class GenerarReporte extends Controller
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
     }
 
     public function generarExcelRVTA($fecha)
@@ -402,8 +405,11 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+exit;
     }
 
     public function generarExcelProductoImporte()
@@ -543,12 +549,15 @@ class GenerarReporte extends Controller
                 ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
         }
 
-        // Guardar archivo
+        // Descargar archivo directamente al navegador
         $nombre_exel = 'plantilla-productos-importar.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+        header('Cache-Control: max-age=0');
+        
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-
-        header('Location: ' . URL::to($nombre_exel));
+        $writer->save('php://output');
+        exit;
     }
 
     public function generarExcelCaja($id)
@@ -665,8 +674,11 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+exit;
     }
 
     public function reporteVentaPorVendedor()
@@ -1042,8 +1054,11 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+exit;
     }
 
     // Generar Plantilla Excel para Importar Repuestos
@@ -1108,8 +1123,11 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+exit;
     }
 
     // Generar Excel de Repuestos con búsqueda
@@ -1176,8 +1194,11 @@ class GenerarReporte extends Controller
         $reader = new \PhpOffice\PhpSpreadsheet\Reader\Html();
         $spreadsheet = $reader->loadFromString($tabla);
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save($nombre_exel);
-        header('Location: ' . URL::to($nombre_exel));
+header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
+header('Cache-Control: max-age=0');
+$writer->save('php://output');
+exit;
     }
 
     public function historialStockExcel()

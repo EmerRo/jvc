@@ -333,6 +333,26 @@
                                                                                     readonly>
                                                                             </div>
                                                                         </div>
+                                                                        <div class="row mt-2" v-if="venta.tipo_doc == '2'">
+                                                                            <div class="col-12 text-center">
+                                                                                <label class="form-label w-100 text-primary">
+                                                                                    <i class="fas fa-file-invoice me-1"></i>Datos de la Factura del Proveedor
+                                                                                </label>
+                                                                            </div>
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label class="form-label w-100">Serie Proveedor</label>
+                                                                                <input v-model="venta.serie_proveedor" type="text"
+                                                                                    class="form-control text-center"
+                                                                                    placeholder="Ej: F001">
+                                                                            </div>
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label class="form-label w-100">Número Proveedor</label>
+                                                                                <input v-model="venta.numero_proveedor"
+                                                                                    type="text"
+                                                                                    class="form-control text-center"
+                                                                                    placeholder="Ej: 00012345">
+                                                                            </div>
+                                                                        </div>
                                                                         <div class="row mt-2">
                                                                             <div class="col-md-6 text-center">
                                                                                 <label
@@ -714,6 +734,8 @@
                     tipoventa: 1,
                     total: 0,
                     moneda: "1",
+                    serie_proveedor: '',
+                    numero_proveedor: '',
                     dias_lista: [],
 
                 },

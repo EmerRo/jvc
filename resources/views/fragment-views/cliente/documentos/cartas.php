@@ -992,7 +992,7 @@
                         <i class="fas fa-comment me-1"></i>Mensaje adicional (opcional)
                     </label>
                     <textarea class="form-control" id="mensajeWhatsAppCarta" rows="3" 
-                              placeholder="Mensaje adicional que desee agregar..."></textarea>
+                              placeholder="Mensaje adicional que desee agregar...">Estimado(a), reciba un cordial saludo. Le comparto este documento para su revisión.</textarea>
                 </div>
             </div>
             <div class="modal-footer">

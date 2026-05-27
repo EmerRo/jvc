@@ -160,6 +160,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                     <th>Usuario</th>
                                     <th>Email</th>
                                     <th>Teléfono</th>
+                                    <th>Sueldo</th>
                                     <!-- <th>Tienda</th> -->
                                     <!-- <th>Rotativo</th> -->
                                     <th>Acciones</th>
@@ -259,12 +260,19 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="2">Tienda 426</option>
                             </select>
                         </div> -->
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label ">Rotativo</label>
                             <select name="rotativo" id="rotativo" class="form-select form-select-sm">
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
                             </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="fa fa-money-bill-wave me-1"></i>Sueldo (S/)
+                            </label>
+                            <input type="number" name="sueldo" id="sueldo" class="form-control form-control-sm"
+                                step="0.01" min="0" placeholder="0.00" value="0">
                         </div>
 
                         <!-- Quinta fila - Foto de perfil -->
@@ -408,6 +416,13 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                                 <option value="0">No</option>
                                 <option value="1">Si</option>
                             </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">
+                                <i class="fa fa-money-bill-wave me-1"></i>Sueldo (S/)
+                            </label>
+                            <input type="number" name="sueldou" id="sueldou" class="form-control form-control-sm"
+                                step="0.01" min="0" placeholder="0.00" value="0">
                         </div>
 
                         <!-- Quinta fila - Foto de perfil -->
@@ -1011,6 +1026,16 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
             class: "text-center",
         },
         {
+            data: "sueldo",
+            class: "text-center",
+            render: function (data, type, row) {
+                if (data && parseFloat(data) > 0) {
+                    return 'S/ ' + parseFloat(data).toFixed(2);
+                }
+                return 'S/ 0.00';
+            },
+        },
+        {
             data: null,
             class: "text-center",
             render: function (data, type, row) {
@@ -1061,6 +1086,7 @@ $c_cliente->setIdEmpresa($_SESSION['id_empresa']);
                         $("#telefonoEditar").val(json.telefono);
                         $("#tiendau").val(json.sucursal || 1);
                         $("#rotativou").val(json.rotativo || 0);
+                        $("#sueldou").val(json.sueldo || 0);
                         $("#idCliente").val(id);
 
                         // Cargar foto actual

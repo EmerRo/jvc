@@ -41,13 +41,13 @@ class OtroArchivo extends BaseDocumento
 
     protected function buildInsertQuery()
     {
-        return "INSERT INTO {$this->tableName} (titulo, tipo, motivo, id_cliente, usuario_id, contenido, header_image, footer_image, estado) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return "INSERT INTO {$this->tableName} (titulo, tipo, motivo, id_cliente, usuario_id, contenido, header_image, footer_image, imagen1, imagen2, imagen3, estado) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
 
     protected function bindInsertParams($stmt)
     {
-        $stmt->bind_param("sssiissss", 
+        $stmt->bind_param("sssiisssssss", 
             $this->titulo, 
             $this->tipo, 
             $this->motivo,
@@ -55,7 +55,10 @@ class OtroArchivo extends BaseDocumento
             $this->usuario_id, 
             $this->contenido, 
             $this->header_image, 
-            $this->footer_image, 
+            $this->footer_image,
+            $this->imagen1,
+            $this->imagen2,
+            $this->imagen3,
             $this->estado
         );
     }
@@ -68,20 +71,23 @@ class OtroArchivo extends BaseDocumento
     protected function buildUpdateQuery()
     {
         return "UPDATE {$this->tableName} 
-                SET titulo = ?, tipo = ?, motivo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, estado = ? 
+                SET titulo = ?, tipo = ?, motivo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, imagen1 = ?, imagen2 = ?, imagen3 = ?, estado = ? 
                 WHERE id = ?";
     }
 
     protected function bindUpdateParams($stmt)
     {
-        $stmt->bind_param("sssissssi", 
+        $stmt->bind_param("sssisssssssi", 
             $this->titulo, 
             $this->tipo, 
             $this->motivo,
             $this->id_cliente, 
             $this->contenido, 
             $this->header_image, 
-            $this->footer_image, 
+            $this->footer_image,
+            $this->imagen1,
+            $this->imagen2,
+            $this->imagen3,
             $this->estado, 
             $this->id
         );

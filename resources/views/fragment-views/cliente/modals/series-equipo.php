@@ -10,18 +10,34 @@
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="equipo_nombre"
-                                        placeholder="Nombre del equipo">
-                                    <button type="button" class="btn bg-rojo" id="btnAgregarEquipo">
-                                        <i class="fa fa-save"></i>
-                                    </button>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <select class="form-select" id="equipo_marca_id">
+                                            <option value="">-- Marca --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <select class="form-select" id="equipo_modelo_id">
+                                            <option value="">-- Modelo --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="equipo_nombre"
+                                                placeholder="Nombre del equipo">
+                                            <button type="button" class="btn bg-rojo" id="btnAgregarEquipo">
+                                                <i class="fa fa-save"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="table-scroll">
                                 <table class="table table-striped" id="tablaEquipos">
                                     <thead>
                                         <tr>
+                                            <th><i class="fa fa-tag me-1"></i> Marca</th>
+                                            <th><i class="fa fa-cube me-1"></i> Modelo</th>
                                             <th><i class="fa fa-laptop me-1"></i> Nombre</th>
                                             <th><i class="fa fa-cogs me-1"></i> Acciones</th>
                                         </tr>

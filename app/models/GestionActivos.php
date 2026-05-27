@@ -201,12 +201,12 @@ class GestionActivos
         $sql = "SELECT *, 
                 CASE 
                     WHEN estado = 'CONFIRMADO' THEN 0
-                    WHEN fecha_ingreso IS NULL OR fecha_ingreso = '0000-00-00' THEN NULL
+                    WHEN fecha_ingreso IS NULL THEN NULL
                     ELSE DATEDIFF(fecha_ingreso, CURDATE())
                 END as dias_restantes,
                 CASE 
                     WHEN estado = 'CONFIRMADO' THEN 'CONFIRMADO'
-                    WHEN fecha_ingreso IS NULL OR fecha_ingreso = '0000-00-00' THEN 'SIN_FECHA'
+                    WHEN fecha_ingreso IS NULL THEN 'SIN_FECHA'
                     WHEN DATEDIFF(fecha_ingreso, CURDATE()) < 0 THEN 'VENCIDO'
                     WHEN DATEDIFF(fecha_ingreso, CURDATE()) <= 3 THEN 'URGENTE'
                     ELSE 'NORMAL'
@@ -216,30 +216,15 @@ class GestionActivos
         return $this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function eliminar($id)
-    {
-        $sql = "DELETE FROM gestion_activos WHERE id = ?";
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
-    }
-
-    // NUEVO MÉTODO PARA OBTENER EL ÚLTIMO ID
-    public function idLast()
-    {
-        return $this->id;
-    }
-
-    // NUEVO MÉTODO PARA OBTENER ESTADÍSTICAS DE DÍAS
     public function obtenerEstadisticasDias()
     {
         $sql = "SELECT 
                 COUNT(CASE WHEN estado = 'CONFIRMADO' THEN 1 END) as confirmados,
-                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) < 0 THEN 1 END) as vencidos,
-                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) BETWEEN 0 AND 3 THEN 1 END) as urgentes,
-                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(fecha_ingreso, CURDATE()) > 3 THEN 1 END) as normales
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(NULLIF(fecha_ingreso, '0000-00-00'), CURDATE()) < 0 THEN 1 END) as vencidos,
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(NULLIF(fecha_ingreso, '0000-00-00'), CURDATE()) BETWEEN 0 AND 3 THEN 1 END) as urgentes,
+                COUNT(CASE WHEN estado = 'PENDIENTE' AND DATEDIFF(NULLIF(fecha_ingreso, '0000-00-00'), CURDATE()) > 3 THEN 1 END) as normales
                 FROM gestion_activos 
-                WHERE fecha_ingreso IS NOT NULL AND fecha_ingreso != '0000-00-00'";
+                WHERE fecha_ingreso IS NOT NULL";
         
         $result = $this->conectar->query($sql);
         return $result->fetch_assoc();

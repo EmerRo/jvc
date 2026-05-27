@@ -1342,37 +1342,91 @@ window.vueApp = new Vue({
         },
 
         abrirModalMeta() {
-            // Limpiar el campo antes de abrir el modal
+            const now = new Date();
+            const mesSelect = document.getElementById('mesSelect');
+            const anioInput = document.getElementById('anioInput');
             const metaInput = document.getElementById('metaTotalInput');
-            if (metaInput) {
-                metaInput.value = '';
-            }
-            
+
+            if (mesSelect) mesSelect.value = now.getMonth() + 1;
+            if (anioInput) anioInput.value = now.getFullYear();
+            if (metaInput) metaInput.value = '';
+
             const modal = new bootstrap.Modal(document.getElementById('metaModal'));
             modal.show();
         },
 
         abrirModalEditarMeta() {
-            // Pre-cargar el monto actual en el campo
+            const now = new Date();
+            const mesSelect = document.getElementById('mesSelect');
+            const anioInput = document.getElementById('anioInput');
+
+            if (mesSelect) mesSelect.value = now.getMonth() + 1;
+            if (anioInput) anioInput.value = now.getFullYear();
+
             this.$nextTick(() => {
                 const metaInput = document.getElementById('metaTotalInput');
                 if (metaInput && this.montoMetaActual) {
                     metaInput.value = this.montoMetaActual;
                 }
             });
-            
+
             const modal = new bootstrap.Modal(document.getElementById('metaModal'));
             modal.show();
         },
 
-        guardarMetaTotal() {
-            console.log('Guardando meta total...');
-            Swal.fire({
-                icon: 'info',
-                title: 'Funcionalidad en desarrollo',
-                text: 'El guardado de metas estará disponible próximamente',
-                confirmButtonText: 'Entendido'
-            });
+        async guardarMetaTotal() {
+            const mes = document.getElementById('mesSelect')?.value;
+            const anio = document.getElementById('anioInput')?.value;
+            const metaTotal = document.getElementById('metaTotalInput')?.value;
+
+            if (!metaTotal || parseFloat(metaTotal) <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo requerido',
+                    text: 'Ingresa un monto válido para la meta',
+                });
+                return;
+            }
+
+            const btn = document.querySelector('#metaModal .btn-primary');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...'; }
+
+            try {
+                const formData = new FormData();
+                formData.append('mes', mes);
+                formData.append('anio', anio);
+                formData.append('meta_total', metaTotal);
+
+                const response = await fetch(`${_URL}/ajs/dashboard/guardar-meta-total`, {
+                    method: 'POST',
+                    headers: { 'token-app': localStorage.getItem('_token') || '' },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Meta establecida!',
+                        text: data.message || 'Meta total guardada correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    bootstrap.Modal.getInstance(document.getElementById('metaModal'))?.hide();
+                    this.cargarDatosVendedores();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo guardar la meta',
+                    });
+                }
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'Error de conexión', text: e.message });
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save me-1"></i>Establecer Meta Total'; }
+            }
         },
 
         // Función stub para filtrar stock

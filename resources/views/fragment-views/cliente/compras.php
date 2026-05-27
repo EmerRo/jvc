@@ -47,6 +47,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="text-align: center;">Documento</th>
+                                <th style="text-align: center;">Doc. Proveedor</th>
                                 <th style="text-align: center;">F. Emision</th>
                                 <th style="text-align: center;">F. Vencimiento</th>
                                 <th style="text-align: center;" width="50%">Razon Social</th>
@@ -162,7 +163,17 @@
                 
                 
             {
-                data: "fecha_emision",
+                    data: null,
+                    class: "text-center",
+                    render: function (data, type, row) {
+                        if (row.serie_proveedor || row.numero_proveedor) {
+                            return (row.serie_proveedor || '') + (row.serie_proveedor && row.numero_proveedor ? '-' : '') + (row.numero_proveedor || '');
+                        }
+                        return '-';
+                    },
+                },
+                {
+                    data: "fecha_emision",
                 class: "text-center",
             },
             {
@@ -211,6 +222,8 @@
                     // Columna Estado con badges
                     if (row.estado === '1') {
                         return `<span class="badge bg-success">Normal</span>`;
+                    } else if (row.estado === '3') {
+                        return `<span class="badge bg-warning text-dark">Devuelta</span>`;
                     } else {
                         return `<span class="badge bg-danger">Anulada</span>`;
                     }
@@ -234,11 +247,23 @@
                     // Icono de anular (solo si está activa)
                     if (row.estado === '1') {
                         iconos += `<button data-id="${row.id_compra}"
-                                          class="btn btn-sm btn-danger btnAnular"
+                                          class="btn btn-sm btn-danger btnAnular me-1"
                                           title="Anular"
                                           data-bs-toggle="tooltip">
                                      <i class="fa fa-trash"></i>
                                    </button>`;
+                        iconos += `<button data-id="${row.id_compra}"
+                                          class="btn btn-sm btn-dark btnDevolver"
+                                          title="Devolver"
+                                          data-bs-toggle="tooltip">
+                                     <i class="fa fa-undo"></i>
+                                   </button>`;
+                    }
+                    
+                    if (row.estado === '3') {
+                        iconos += `<span class="text-warning" title="${row.devolucion_observaciones || 'Sin observaciones'}" data-bs-toggle="tooltip">
+                                     <i class="fa fa-info-circle"></i> Devuelto
+                                   </span>`;
                     }
 
                     return `<div class="text-center">${iconos}</div>`;
@@ -352,7 +377,129 @@
             window.location.href = _URL + '/compras/editar/' + id;
         });
 
-        // Event listener para Anular
+        // Event listener para Devolver
+        $("#datatable").on("click", ".btnDevolver", function (event) {
+            var id = $(this).data("id");
+            $("#loader-menor").show();
+            
+            $.ajax({
+                type: 'POST',
+                url: _URL + '/ajs/compra/detalle-devolucion',
+                data: { id: id },
+                success: function (resp) {
+                    $("#loader-menor").hide();
+                    let data = JSON.parse(resp);
+                    if (data.res) {
+                        $('#devolucionCompraId').val(id);
+                        $('#devolucionCompraTitulo').text('Devolver: ' + data.compra.serie + '-' + data.compra.numero + (data.compra.razon_social ? ' - ' + data.compra.razon_social : ''));
+                        
+                        let html = '';
+                        if (data.detalle.productos.length > 0) {
+                            html += '<tr class="table-secondary"><td colspan="4"><strong>Productos</strong></td></tr>';
+                            data.detalle.productos.forEach(function(p) {
+                                let disponible = parseFloat(p.cantidad) - parseFloat(p.cantidad_devuelta || '0');
+                                if (disponible <= 0) return;
+                                let nombre = (p.codigo ? p.codigo + ' - ' : '') + (p.descripcion || 'Producto #' + p.id_producto);
+                                html += `<tr>
+                                    <td>${nombre}</td>
+                                    <td class="text-center">${p.cantidad}</td>
+                                    <td class="text-center">${p.cantidad_devuelta || '0'}</td>
+                                    <td class="text-center"><input type="number" class="form-control form-control-sm devolver-cantidad" 
+                                        data-tipo="producto" data-id="${p.id_producto}" 
+                                        min="0" max="${disponible}" value="0" style="width:80px;display:inline;"></td>
+                                </tr>`;
+                            });
+                        }
+                        if (data.detalle.repuestos.length > 0) {
+                            html += '<tr class="table-secondary"><td colspan="4"><strong>Repuestos</strong></td></tr>';
+                            data.detalle.repuestos.forEach(function(r) {
+                                let disponible = parseFloat(r.cantidad) - parseFloat(r.cantidad_devuelta || '0');
+                                if (disponible <= 0) return;
+                                let nombre = r.descripcion || 'Repuesto #' + r.id_repuesto;
+                                html += `<tr>
+                                    <td>${nombre}</td>
+                                    <td class="text-center">${r.cantidad}</td>
+                                    <td class="text-center">${r.cantidad_devuelta || '0'}</td>
+                                    <td class="text-center"><input type="number" class="form-control form-control-sm devolver-cantidad" 
+                                        data-tipo="repuesto" data-id="${r.id_repuesto}" 
+                                        min="0" max="${disponible}" value="0" style="width:80px;display:inline;"></td>
+                                </tr>`;
+                            });
+                        }
+                        
+                        $('#devolucionItemsBody').html(html);
+                        $('#devolucionObservaciones').val(data.compra.devolucion_observaciones || '');
+                        $('#devolverCompraModal').modal('show');
+                    } else {
+                        Swal.fire('Error', data.msg || 'No se pudo cargar el detalle', 'error');
+                    }
+                },
+                error: function() {
+                    $("#loader-menor").hide();
+                    Swal.fire('Error', 'Error de conexión', 'error');
+                }
+            });
+        });
+        
+        $("#btnConfirmarDevolucion").on("click", function() {
+            var id = $('#devolucionCompraId').val();
+            var observaciones = $('#devolucionObservaciones').val().trim();
+            var items = [];
+            
+            $('.devolver-cantidad').each(function() {
+                var cant = parseFloat($(this).val()) || 0;
+                if (cant > 0) {
+                    items.push({
+                        tipo: $(this).data('tipo'),
+                        id: $(this).data('id'),
+                        cantidad: cant
+                    });
+                }
+            });
+            
+            if (items.length === 0) {
+                Swal.fire('Atención', 'Debe indicar al menos una cantidad para devolver', 'warning');
+                return;
+            }
+            
+            Swal.fire({
+                title: '¿Confirmar devolución?',
+                text: 'Se revertirá el stock de los productos seleccionados.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, devolver',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $("#loader-menor").show();
+                    $.ajax({
+                        type: 'POST',
+                        url: _URL + '/ajs/compra/devolver',
+                        data: {
+                            id: id,
+                            observaciones: observaciones,
+                            items: JSON.stringify(items)
+                        },
+                        success: function (resp) {
+                            $("#loader-menor").hide();
+                            let data = JSON.parse(resp);
+                            if (data.res) {
+                                $('#devolverCompraModal').modal('hide');
+                                Swal.fire('Devuelta', data.msg, 'success').then(() => {
+                                    datatable.ajax.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', data.msg || 'No se pudo devolver la compra.', 'error');
+                            }
+                        },
+                        error: function() {
+                            $("#loader-menor").hide();
+                            Swal.fire('Error', 'Error de conexión', 'error');
+                        }
+                    });
+                }
+            });
+        });
         $("#datatable").on("click", ".btnAnular", function (event) {
             var id = $(this).data("id");
 
@@ -405,3 +552,42 @@
         });
     })
 </script>
+
+<!-- Modal de Devolución -->
+<div class="modal fade" id="devolverCompraModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title" id="devolucionCompraTitulo">Devolver Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="devolucionCompraId">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Cant. Comprada</th>
+                                <th class="text-center">Ya Devuelto</th>
+                                <th class="text-center">Devolver ahora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="devolucionItemsBody"></tbody>
+                    </table>
+                </div>
+                <div class="mb-3 mt-3">
+                    <label class="form-label">Observaciones</label>
+                    <textarea class="form-control" id="devolucionObservaciones" rows="2" 
+                        placeholder="Motivo de la devolución..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn bg-rojo text-white" id="btnConfirmarDevolucion">
+                    <i class="fa fa-undo me-1"></i>Confirmar Devolución
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

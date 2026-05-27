@@ -13,6 +13,7 @@ abstract class BaseDocumento
     protected $footer_image;
     protected $imagen1;
     protected $imagen2;
+    protected $imagen3;
     protected $estado;
     protected $fecha_creacion;
     protected $fecha_modificacion;
@@ -26,6 +27,17 @@ abstract class BaseDocumento
     
     // Debe ser definido en las clases hijas
     protected $tableName;
+    protected $fkCliente = 'id_cliente';
+    
+    public function getTableName()
+    {
+        return $this->tableName;
+    }
+    
+    public function getFkCliente()
+    {
+        return $this->fkCliente;
+    }
     
     public function __construct()
     {
@@ -133,6 +145,16 @@ abstract class BaseDocumento
         $this->imagen2 = $imagen2;
     }
     
+    public function getImagen3()
+    {
+        return $this->imagen3;
+    }
+    
+    public function setImagen3($imagen3)
+    {
+        $this->imagen3 = $imagen3;
+    }
+    
     public function getEstado()
     {
         return $this->estado;
@@ -208,7 +230,7 @@ abstract class BaseDocumento
                 cl.documento AS cliente_documento,
                 cl.direccion AS cliente_direccion
                 FROM {$this->tableName} d
-                LEFT JOIN clientes cl ON d.id_cliente = cl.id_cliente
+                LEFT JOIN clientes cl ON d.{$this->fkCliente} = cl.id_cliente
                 WHERE d.id = ?";
         $stmt = $this->conectar->prepare($sql);
         $stmt->bind_param("i", $id);
@@ -225,7 +247,7 @@ abstract class BaseDocumento
     protected function mapearDatos($fila)
     {
         $this->id = $fila['id'];
-        $this->id_cliente = $fila['id_cliente'];
+        $this->id_cliente = $fila[$this->fkCliente];
         $this->usuario_id = $fila['usuario_id'] ?? null;
         $this->tipo = $fila['tipo'];
         $this->titulo = $fila['titulo'];
@@ -238,6 +260,9 @@ abstract class BaseDocumento
         $this->cliente_nombre = $fila['cliente_nombre'] ?? null;
         $this->cliente_documento = $fila['cliente_documento'] ?? null;
         $this->cliente_direccion = $fila['cliente_direccion'] ?? null;
+        $this->imagen1 = $fila['imagen1'] ?? null;
+        $this->imagen2 = $fila['imagen2'] ?? null;
+        $this->imagen3 = $fila['imagen3'] ?? null;
     }
     
     public function insertarDocumento()
@@ -290,18 +315,18 @@ abstract class BaseDocumento
     protected function buildInsertQuery()
     {
         if ($this->tableName === 'cartas') {
-            return "INSERT INTO {$this->tableName} (id_cliente, id_usuario, tipo, titulo, contenido, header_image, footer_image, imagen1, imagen2, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} ({$this->fkCliente}, id_usuario, tipo, titulo, contenido, header_image, footer_image, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            return "INSERT INTO {$this->tableName} (titulo, tipo, id_cliente, usuario_id, contenido, header_image, footer_image, imagen1, imagen2, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} (titulo, tipo, {$this->fkCliente}, usuario_id, contenido, header_image, footer_image, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         }
     }
     
     protected function bindInsertParams($stmt)
     {
         if ($this->tableName === 'cartas') {
-            $stmt->bind_param("iissssssss", 
+            $stmt->bind_param("iissssss", 
                 $this->id_cliente, 
                 $this->usuario_id, 
                 $this->tipo, 
@@ -309,12 +334,10 @@ abstract class BaseDocumento
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->imagen1,
-                $this->imagen2,
                 $this->estado
             );
         } else {
-            $stmt->bind_param("ssiissssss", 
+            $stmt->bind_param("ssiissss", 
                 $this->titulo, 
                 $this->tipo, 
                 $this->id_cliente,
@@ -322,8 +345,6 @@ abstract class BaseDocumento
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->imagen1,
-                $this->imagen2,
                 $this->estado
             );
         }
@@ -341,13 +362,13 @@ abstract class BaseDocumento
     {
         if ($this->tableName === 'cartas') {
             return "UPDATE {$this->tableName} 
-                    SET id_cliente = ?, id_usuario = ?, tipo = ?, titulo = ?, 
+                    SET {$this->fkCliente} = ?, id_usuario = ?, tipo = ?, titulo = ?, 
                         contenido = ?, header_image = ?, footer_image = ?, 
-                        imagen1 = ?, imagen2 = ?, estado = ? 
+                        estado = ? 
                     WHERE id = ?";
         } else {
             return "UPDATE {$this->tableName} 
-                    SET titulo = ?, tipo = ?, id_cliente = ?, contenido = ?, header_image = ?, footer_image = ?, imagen1 = ?, imagen2 = ?, estado = ? 
+                    SET titulo = ?, tipo = ?, {$this->fkCliente} = ?, contenido = ?, header_image = ?, footer_image = ?, estado = ? 
                     WHERE id = ?";
         }
     }
@@ -355,7 +376,7 @@ abstract class BaseDocumento
     protected function bindUpdateParams($stmt)
     {
         if ($this->tableName === 'cartas') {
-            $stmt->bind_param("iisssssssi", 
+            $stmt->bind_param("iisssssi", 
                 $this->id_cliente, 
                 $this->usuario_id, 
                 $this->tipo, 
@@ -363,21 +384,17 @@ abstract class BaseDocumento
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->imagen1,
-                $this->imagen2,
                 $this->estado, 
                 $this->id
             );
         } else {
-            $stmt->bind_param("ssissssssi", 
+            $stmt->bind_param("ssissssi", 
                 $this->titulo, 
                 $this->tipo, 
                 $this->id_cliente, 
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->imagen1,
-                $this->imagen2,
                 $this->estado, 
                 $this->id
             );
@@ -412,7 +429,7 @@ abstract class BaseDocumento
                     cl.direccion AS cliente_direccion,
                     u.usuario AS usuario_nombre
                     FROM {$this->tableName} d
-                    LEFT JOIN clientes cl ON d.id_cliente = cl.id_cliente
+                    LEFT JOIN clientes cl ON d.{$this->fkCliente} = cl.id_cliente
                     LEFT JOIN usuarios u ON d.{$userColumn} = u.usuario_id
                     WHERE 1=1";
             

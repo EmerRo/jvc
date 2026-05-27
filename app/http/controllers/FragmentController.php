@@ -118,6 +118,12 @@ public function ventasProductos()
     {
         return $this->view("fragment-views/cliente/almacen-productos");
     }
+
+    public function almacenEquipos()
+    {
+        return $this->view("fragment-views/cliente/almacen-equipos");
+    }
+
     public function almacenIntercambioProductos()
     {
         return $this->view("fragment-views/cliente/intercambio-productos");

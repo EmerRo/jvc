@@ -58,11 +58,133 @@
 
     .pdf-preview-canvas {
         width: 100% !important;
-        height: auto !important;
-        max-height: 100%;
-        object-fit: contain;
+    }
+
+    .image-preview-container {
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        padding: 10px;
+        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+        min-height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .image-preview-container:hover {
+        border-color: #CA3438;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        transform: translateY(-2px);
+    }
+
+    .preview-image {
+        max-height: 120px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .preview-image:hover {
+        transform: scale(1.05);
+    }
+
+    .image-actions {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .btn-image-action {
+        padding: 4px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-image-action.btn-view {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-image-action.btn-view:hover {
+        background-color: #138496;
+    }
+
+    .btn-image-action.btn-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-image-action.btn-remove:hover {
+        background-color: #c82333;
+    }
+
+    .upload-placeholder {
+        color: #999;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .upload-icon {
+        font-size: 36px;
+        color: #CA3438;
+        opacity: 0.7;
+        margin-bottom: 8px;
         display: block;
-        margin: 0 auto;
+        text-align: center;
+    }
+
+    .image-info {
+        background: rgba(255,255,255,0.8);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+    }
+
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.9);
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .image-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 40px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .image-modal-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .image-modal-content img {
+        max-width: 90%;
+        max-height: 90%;
     }
 
     .btn-outline-secondary {
@@ -135,6 +257,9 @@
         <input type="hidden" id="contenido_otro_archivo" name="contenido">
         <input type="hidden" id="header_image_data" name="header_image">
         <input type="hidden" id="footer_image_data" name="footer_image">
+        <input type="hidden" id="imagen1_data" name="imagen1">
+        <input type="hidden" id="imagen2_data" name="imagen2">
+        <input type="hidden" id="imagen3_data" name="imagen3">
 
         <div class="row mb-4">
             <div class="col-md-6">
@@ -189,6 +314,92 @@
         <div class="mb-3">
             <label for="editor-container-otro-archivo" class="form-label">Contenido del Otro Archivo</label>
             <div id="editor-container-otro-archivo" class="editor-container"></div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <h6 class="fw-medium text-negro mb-3">
+                    <i class="fas fa-images me-2"></i>Imágenes del Otro Archivo (Opcional)
+                </h6>
+            </div>
+            <div class="col-md-4">
+                <label for="imagen1_otro" class="form-label fw-medium text-negro">Imagen 1</label>
+                <div class="image-preview-container" id="preview-container-otro-1">
+                    <input type="file" class="d-none" id="imagen1_otro" name="imagen1" 
+                           accept="image/png,image/jpeg,image/gif" onchange="handleImagePreviewOtro(this, 1)">
+                    <div id="upload-area-otro-1" class="upload-area" onclick="document.getElementById('imagen1_otro').click()">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-placeholder">
+                            <strong>Haz clic para seleccionar</strong><br>
+                            <small>o arrastra una imagen aquí</small>
+                        </div>
+                    </div>
+                    <div id="preview-area-otro-1" class="preview-area" style="display: none;">
+                        <img id="preview-img-otro-1" class="preview-image" onclick="showImageModalOtro(this.src)">
+                        <div class="image-actions">
+                            <button type="button" class="btn-image-action btn-view" onclick="showImageModalOtro(document.getElementById('preview-img-otro-1').src)">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreviewOtro(1)">
+                                <i class="fas fa-trash"></i> Quitar
+                            </button>
+                        </div>
+                        <div class="image-info" id="image-info-otro-1"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="imagen2_otro" class="form-label fw-medium text-negro">Imagen 2</label>
+                <div class="image-preview-container" id="preview-container-otro-2">
+                    <input type="file" class="d-none" id="imagen2_otro" name="imagen2" 
+                           accept="image/png,image/jpeg,image/gif" onchange="handleImagePreviewOtro(this, 2)">
+                    <div id="upload-area-otro-2" class="upload-area" onclick="document.getElementById('imagen2_otro').click()">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-placeholder">
+                            <strong>Haz clic para seleccionar</strong><br>
+                            <small>o arrastra una imagen aquí</small>
+                        </div>
+                    </div>
+                    <div id="preview-area-otro-2" class="preview-area" style="display: none;">
+                        <img id="preview-img-otro-2" class="preview-image" onclick="showImageModalOtro(this.src)">
+                        <div class="image-actions">
+                            <button type="button" class="btn-image-action btn-view" onclick="showImageModalOtro(document.getElementById('preview-img-otro-2').src)">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreviewOtro(2)">
+                                <i class="fas fa-trash"></i> Quitar
+                            </button>
+                        </div>
+                        <div class="image-info" id="image-info-otro-2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="imagen3_otro" class="form-label fw-medium text-negro">Imagen 3</label>
+                <div class="image-preview-container" id="preview-container-otro-3">
+                    <input type="file" class="d-none" id="imagen3_otro" name="imagen3" 
+                           accept="image/png,image/jpeg,image/gif" onchange="handleImagePreviewOtro(this, 3)">
+                    <div id="upload-area-otro-3" class="upload-area" onclick="document.getElementById('imagen3_otro').click()">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div class="upload-placeholder">
+                            <strong>Haz clic para seleccionar</strong><br>
+                            <small>o arrastra una imagen aquí</small>
+                        </div>
+                    </div>
+                    <div id="preview-area-otro-3" class="preview-area" style="display: none;">
+                        <img id="preview-img-otro-3" class="preview-image" onclick="showImageModalOtro(this.src)">
+                        <div class="image-actions">
+                            <button type="button" class="btn-image-action btn-view" onclick="showImageModalOtro(document.getElementById('preview-img-otro-3').src)">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button type="button" class="btn-image-action btn-remove" onclick="clearImagePreviewOtro(3)">
+                                <i class="fas fa-trash"></i> Quitar
+                            </button>
+                        </div>
+                        <div class="image-info" id="image-info-otro-3"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
@@ -775,6 +986,75 @@
     // Exportar funciones globalmente
     window.compartirWhatsAppOtroArchivo = compartirWhatsAppOtroArchivo;
     window.enviarWhatsAppOtroArchivo = enviarWhatsAppOtroArchivo;
+
+    // Funciones para manejo de imágenes en Otro Archivo
+    function handleImagePreviewOtro(input, imageNumber) {
+        const file = input.files[0];
+        const uploadArea = document.getElementById('upload-area-otro-' + imageNumber);
+        const previewArea = document.getElementById('preview-area-otro-' + imageNumber);
+        const previewImg = document.getElementById('preview-img-otro-' + imageNumber);
+        const imageInfo = document.getElementById('image-info-otro-' + imageNumber);
+        const container = document.getElementById('preview-container-otro-' + imageNumber);
+
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                Swal.fire({ title: 'Archivo muy grande', text: 'El archivo debe ser menor a 5MB', icon: 'warning' });
+                input.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                Swal.fire({ title: 'Tipo no válido', text: 'Solo se permiten imágenes (PNG, JPG, GIF)', icon: 'warning' });
+                input.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                document.getElementById('imagen' + imageNumber + '_data').value = e.target.result;
+                uploadArea.style.display = 'none';
+                previewArea.style.display = 'block';
+                if (container) container.classList.add('has-image');
+                const sizeKB = (file.size / 1024).toFixed(1);
+                imageInfo.innerHTML = '<strong>' + file.name + '</strong><br>Tamaño: ' + sizeKB + ' KB';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearImagePreviewOtro(imageNumber) {
+        document.getElementById('imagen' + imageNumber + '_otro').value = '';
+        document.getElementById('imagen' + imageNumber + '_data').value = '';
+        document.getElementById('upload-area-otro-' + imageNumber).style.display = 'block';
+        document.getElementById('preview-area-otro-' + imageNumber).style.display = 'none';
+        var container = document.getElementById('preview-container-otro-' + imageNumber);
+        if (container) container.classList.remove('has-image');
+    }
+
+    function showImageModalOtro(src) {
+        var modal = document.getElementById('imageModalOtro');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'imageModalOtro';
+            modal.className = 'image-modal';
+            modal.onclick = function() { closeImageModalOtro(); };
+            modal.innerHTML = '<span class="image-modal-close">&times;</span><div class="image-modal-content"><img id="modalImageOtro"></div>';
+            document.body.appendChild(modal);
+        }
+        modal.style.display = 'block';
+        document.getElementById('modalImageOtro').src = src;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModalOtro() {
+        var modal = document.getElementById('imageModalOtro');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    window.handleImagePreviewOtro = handleImagePreviewOtro;
+    window.clearImagePreviewOtro = clearImagePreviewOtro;
+    window.showImageModalOtro = showImageModalOtro;
+    window.closeImageModalOtro = closeImageModalOtro;
 </script>
 
 <!-- Modal para compartir por WhatsApp -->
@@ -800,7 +1080,7 @@
                         <i class="fas fa-comment me-1"></i>Mensaje adicional (opcional)
                     </label>
                     <textarea class="form-control" id="mensajeWhatsAppOtroArchivo" rows="3" 
-                              placeholder="Mensaje adicional que desee agregar..."></textarea>
+                              placeholder="Mensaje adicional que desee agregar...">Estimado(a), reciba un cordial saludo. Le comparto este documento para su revisión.</textarea>
                 </div>
             </div>
             <div class="modal-footer">

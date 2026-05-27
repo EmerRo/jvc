@@ -45,11 +45,7 @@
                                         <i class="fa fa-plus me-2"></i> Facturar Productos
                                     </a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item" href="/ventas/servicios">
-                                        <i class="fa fa-plus me-2"></i> Facturar Servicios
-                                    </a>
-                                </li>
+
                                 <li>
                                     <a class="dropdown-item" href="/nota/electronica">
                                         <i class="fa fa-plus me-2"></i> Nota Electrónica
@@ -115,7 +111,7 @@
                     <button class="btn btn-sm bg-white text-rojo border-rojo btn-ventas-desktop" data-bs-toggle="modal"
                         data-bs-target="#ventas-xls-reporte-rvta"><i class="fa fa-table me-1"></i> Reporte RVTA</button>
                     <a href="/nota/electronica" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-sticky-note me-1"></i> Nota Electrónica</a>
-                    <a href="/ventas/servicios" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-wrench me-1"></i> Facturar Servicios</a>
+
                     <a href="/ventas/productos" class="btn btn-sm bg-rojo text-white bordes btn-ventas-desktop"><i class="fa fa-shopping-cart me-1"></i> Facturar Productos</a>
                 </div>
 

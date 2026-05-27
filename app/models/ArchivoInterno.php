@@ -6,6 +6,7 @@ require_once "app/models/BaseDocumento.php";
 class ArchivoInterno extends BaseDocumento
 {
     protected $tableName = 'archivos_internos';
+    protected $fkCliente = 'cliente_id';
     
     public function __construct()
     {

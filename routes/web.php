@@ -63,6 +63,7 @@ Route::postBase("/nota/electronica","FragmentController@notaElectronica");
 Route::postBase("/nota/electronica/lista","FragmentController@notaElectronicaLista");
 
 Route::postBase("/almacen/productos","FragmentController@almacenProductos");
+Route::postBase("/almacen/equipos","FragmentController@almacenEquipos");
 Route::postBase("/almacen/productos/add","FragmentController@productoAdd");
 Route::postBase("/test","FragmentController@test");
 

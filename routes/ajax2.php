@@ -29,6 +29,8 @@ Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");
 /* ====================== RUTAS MI EMPRESA ========================================= */
 Route::post("/ajs/empresa/info", "EmpresaController@infoEmpresa")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/empresa/actualizar", "EmpresaController@actualizarEmpresa")->Middleware([ValidarTokenMiddleware::class]);
+Route::get("/ajs/empresa/series", "EmpresaController@getSeries")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/empresa/series/actualizar", "EmpresaController@actualizarSeries")->Middleware([ValidarTokenMiddleware::class]);
 
 Route::get("/data/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataCotizacionSS")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/data/taller/cotizaciones/lista/ss", "ConsultaDelcontroller@getDataTallerCotizacionSS")->middleware([ValidarTokenMiddleware::class]);
@@ -134,6 +136,8 @@ Route::post("/ajs/save/observaciones/temp", "ComprasController@saveObservacionTe
 Route::post("/ajs/save/observaciones/default", "ComprasController@saveObservacionDefault");
 Route::get("/ajs/compra/serie-numero", "ComprasController@obtenerSerieNumeroCompra");
 Route::post("/ajs/compra/anular", "ComprasController@anular");
+Route::post("/ajs/compra/devolver", "ComprasController@devolver");
+Route::post("/ajs/compra/detalle-devolucion", "ComprasController@getDetalleDevolucion");
 Route::post("/ajs/compra/obtener", "ComprasController@obtenerCompra");
 Route::post("/ajs/compra/actualizar", "ComprasController@actualizarCompra");
 
@@ -207,6 +211,7 @@ Route::post("/ajs/delete/tecnicos", "TecnicosController@deleteTecnico");
 
 // equipos
 Route::get("/ajs/get/equipos", "EquiposController@getEquipo");
+Route::get("/ajs/get/equipos/by-modelo/:id_modelo", "EquiposController@getEquiposByModelo");
 Route::post("/ajs/save/equipos", "EquiposController@saveEquipo");
 Route::post("/ajs/getOne/equipos", "EquiposController@getOneEquipo");
 Route::post("/ajs/update/equipos", "EquiposController@updateEquipo");
@@ -221,6 +226,7 @@ Route::post("/ajs/delete/marcas", "MarcasController@deleteMarca");
 
 // modelos
 Route::get("/ajs/get/modelos", "ModelosController@getModelo");
+Route::get("/ajs/get/modelos/by-marca/:id_marca", "ModelosController@getModelosByMarca");
 Route::post("/ajs/save/modelos", "ModelosController@saveModelo");
 Route::post("/ajs/getOne/modelos", "ModelosController@getOneModelo");
 Route::post("/ajs/update/modelos", "ModelosController@updateModelo");

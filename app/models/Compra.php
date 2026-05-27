@@ -447,12 +447,16 @@ class Compra
         order by concat(year(fecha), LPAD(month(fecha), 2, 0)) desc";
         return $this->conectar->get_Cursor($sql);
     }
-    public function insertarCompra($id_tido, $id_tipo_pago, $id_proveedor, $fecha_emision, $fecha_vencimiento, $direccion, $serie, $numero, $total, $id_empresa, $moneda, $id_usuario)
+    public function insertarCompra($id_tido, $id_tipo_pago, $id_proveedor, $fecha_emision, $fecha_vencimiento, $direccion, $serie, $numero, $total, $id_empresa, $moneda, $id_usuario, $serie_proveedor = null, $numero_proveedor = null)
     {
-        $sql = "INSERT INTO compras(id_tido,id_tipo_pago,id_proveedor,fecha_emision,fecha_vencimiento,direccion,serie,numero,total,id_empresa,moneda,sucursal, id_usuario)
-        VALUES ($id_tido,$id_tipo_pago,$id_proveedor,'$fecha_emision','$fecha_vencimiento','$direccion','$serie','$numero',$total,$id_empresa,'$moneda','{$_SESSION['sucursal']}', $id_usuario)";
+        $sql = "INSERT INTO compras(id_tido,id_tipo_pago,id_proveedor,fecha_emision,fecha_vencimiento,direccion,serie,numero,total,id_empresa,moneda,sucursal, id_usuario";
+        if ($serie_proveedor !== null) $sql .= ",serie_proveedor";
+        if ($numero_proveedor !== null) $sql .= ",numero_proveedor";
+        $sql .= ") VALUES ($id_tido,$id_tipo_pago,$id_proveedor,'$fecha_emision','$fecha_vencimiento','$direccion','$serie','$numero',$total,$id_empresa,'$moneda','{$_SESSION['sucursal']}', $id_usuario";
+        if ($serie_proveedor !== null) $sql .= ",'$serie_proveedor'";
+        if ($numero_proveedor !== null) $sql .= ",'$numero_proveedor'";
+        $sql .= ")";
         $result = $this->conectar->query($sql);
-        /*    $sql = "update productos set cantidad = cantidad+$cantidad where id_producto=$idProducto"; */
         if ($result) {
             return $this->conectar->insert_id;
         } else {
@@ -514,6 +518,99 @@ public function insertRepuestosCompras($id_repuesto, $id_compra, $cantidad, $pre
             VALUES ($id_repuesto, $id_compra, $cantidad, '$precio')";
     $result = $this->conectar->query($sql);
     return $result ? $result : false;
+}
+
+public function devolver($id_compra, $observaciones)
+{
+    $id_compra = $this->conectar->real_escape_string($id_compra);
+    $observaciones = $this->conectar->real_escape_string($observaciones);
+    $sql = "UPDATE compras SET estado = '3', devolucion_observaciones = '$observaciones' WHERE id_compra = '$id_compra' AND estado = '1'";
+    $result = $this->conectar->query($sql);
+    return $result && $this->conectar->affected_rows > 0;
+}
+
+public function registrarDevolucionParcial($id_compra, $observaciones)
+{
+    $id_compra = $this->conectar->real_escape_string($id_compra);
+    $observaciones = $this->conectar->real_escape_string($observaciones);
+    $sql = "UPDATE compras SET devolucion_observaciones = CONCAT(IFNULL(devolucion_observaciones,''), '\n', '$observaciones') WHERE id_compra = '$id_compra'";
+    return $this->conectar->query($sql);
+}
+
+public function updateCantidadDevueltaProducto($id_compra, $id_producto, $cantidad)
+{
+    $id_compra = $this->conectar->real_escape_string($id_compra);
+    $id_producto = $this->conectar->real_escape_string($id_producto);
+    $cantidad = $this->conectar->real_escape_string($cantidad);
+    $sql = "UPDATE productos_compras SET cantidad_devuelta = cantidad_devuelta + $cantidad WHERE id_compra = '$id_compra' AND id_producto = '$id_producto'";
+    return $this->conectar->query($sql);
+}
+
+public function updateCantidadDevueltaRepuesto($id_compra, $id_repuesto, $cantidad)
+{
+    $id_compra = $this->conectar->real_escape_string($id_compra);
+    $id_repuesto = $this->conectar->real_escape_string($id_repuesto);
+    $cantidad = $this->conectar->real_escape_string($cantidad);
+    $sql = "UPDATE repuestos_compras SET cantidad_devuelta = cantidad_devuelta + $cantidad WHERE id_compra = '$id_compra' AND id_repuesto = '$id_repuesto'";
+    return $this->conectar->query($sql);
+}
+
+public function getDetalleParaDevolucion($id_compra)
+{
+    $detalle = ['productos' => [], 'repuestos' => []];
+    
+    $sql = "SELECT pc.id_producto, pc.cantidad, COALESCE(pc.cantidad_devuelta, '0') as cantidad_devuelta, p.nombre as descripcion, p.codigo
+            FROM productos_compras pc
+            JOIN productos p ON pc.id_producto = p.id_producto
+            WHERE pc.id_compra = '$id_compra'";
+    $result = $this->conectar->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $detalle['productos'][] = $row;
+        }
+    }
+    
+    $sql = "SELECT rc.id_repuesto, rc.cantidad, COALESCE(rc.cantidad_devuelta, '0') as cantidad_devuelta, r.nombre as descripcion
+            FROM repuestos_compras rc
+            JOIN repuestos r ON rc.id_repuesto = r.id_repuesto
+            WHERE rc.id_compra = '$id_compra'";
+    $result = $this->conectar->query($sql);
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $detalle['repuestos'][] = $row;
+        }
+    }
+    
+    return $detalle;
+}
+
+public function reverseStockProducto($idProducto, $cantidad)
+{
+    $sql = "UPDATE productos SET cantidad = GREATEST(cantidad - $cantidad, 0) WHERE id_producto = $idProducto";
+    return $this->conectar->query($sql);
+}
+
+public function reverseStockRepuesto($idRepuesto, $cantidad)
+{
+    $sql = "UPDATE repuestos SET cantidad = GREATEST(cantidad - $cantidad, 0) WHERE id_repuesto = $idRepuesto";
+    return $this->conectar->query($sql);
+}
+
+public function getDetalleProductos($id_compra)
+{
+    $sql = "SELECT pc.id_producto, pc.cantidad FROM productos_compras pc WHERE pc.id_compra = '$id_compra'";
+    return $this->conectar->query($sql);
+}
+
+public function getDetalleRepuestos($id_compra)
+{
+    $sql = "SELECT rc.id_repuesto, rc.cantidad FROM repuestos_compras rc WHERE rc.id_compra = '$id_compra'";
+    return $this->conectar->query($sql);
+}
+
+public function getSqlError()
+{
+    return $this->conectar->error;
 }
 
     

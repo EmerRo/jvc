@@ -113,12 +113,14 @@ class ComprasController extends Controller
         $moneda = $_POST['moneda'] !== '' ? $_POST['moneda'] : '';
         $tipoventa = $_POST['tipoventa'] !== '' ? $_POST['tipoventa'] : '';
         $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL';
+        $serie_proveedor = !empty($_POST['serie_proveedor']) ? $_POST['serie_proveedor'] : null;
+        $numero_proveedor = !empty($_POST['numero_proveedor']) ? $_POST['numero_proveedor'] : null;
 
 
         if ($id_tido !== '' && $tipo_pago !== '' && $fecha !== '' && $fechaVen !== '' && $dir_cli !== '' && $serie !== '' && $numero !== '' && $total > 0 && $moneda !== '' && $idProveedor !== '') {
             $array_detalle = json_decode($_POST['listaPro'], true);
             $listaPagos = json_decode($_POST['dias_lista'], true);
-            $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario);
+            $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario, $serie_proveedor, $numero_proveedor);
 
             if (is_int($insertarCompra)) {
                 // Actualizar el número correlativo después de guardar exitosamente
@@ -139,8 +141,18 @@ class ComprasController extends Controller
                 foreach ($array_detalle as $row) {
                     if ($row['tipo'] == 'producto') {
                         $updateStock = $c_compra->updateStock($row['cantidad'], $row['productoid'], $row['precio']);
+                        if ($updateStock) {
+                            $sqlHist = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones, tipo_origen) 
+                                        VALUES ('{$row['productoid']}', 'INGRESO', '{$row['cantidad']}', '{$row['precio']}', NOW(), '$id_usuario', 'Compra OC-{$serie}-{$numero}', 'COMPRA')";
+                            $this->conectar->query($sqlHist);
+                        }
                     } else if ($row['tipo'] == 'repuesto') {
                         $updateStock = $c_compra->updateStockRepuesto($row['cantidad'], $row['productoid'], $row['precio']);
+                        if ($updateStock) {
+                            $sqlHist = "INSERT INTO historial_stock_repuestos (id_repuesto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones) 
+                                        VALUES ('{$row['productoid']}', 'INGRESO', '{$row['cantidad']}', '{$row['precio']}', NOW(), '$id_usuario', 'Compra OC-{$serie}-{$numero}')";
+                            $this->conectar->query($sqlHist);
+                        }
                     }
                 }
 
@@ -240,7 +252,7 @@ class ComprasController extends Controller
             $where = ($rol == 1) ? "" : "AND c.sucursal = " . intval($sucursal) . " ";
             
             $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero,
-            c.estado, p.razon_social, u.nombres, u.apellidos, u.usuario_id
+            c.estado, c.serie_proveedor, c.numero_proveedor, c.devolucion_observaciones, p.razon_social, u.nombres, u.apellidos, u.usuario_id
             FROM compras AS c
             LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id
             LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id
@@ -462,8 +474,8 @@ class ComprasController extends Controller
 
         $compra = $result->fetch_assoc();
 
-        if ($compra['estado'] === '0') {
-            $respuesta['msg'] = 'La orden de compra ya está anulada';
+        if ($compra['estado'] !== '1') {
+            $respuesta['msg'] = 'Solo se pueden anular compras activas';
             return json_encode($respuesta);
         }
 
@@ -483,6 +495,146 @@ class ComprasController extends Controller
         $stmt_anular->close();
 
         return json_encode($respuesta);
+    }
+
+    public function getDetalleDevolucion()
+    {
+        $respuesta = ["res" => false];
+
+        if (!isset($_POST['id'])) {
+            $respuesta['msg'] = 'ID de compra no proporcionado';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $id_compra = $_POST['id'];
+        $c_compra = new Compra();
+
+        $sql = "SELECT c.id_compra, c.serie, c.numero, c.estado, c.devolucion_observaciones, p.razon_social 
+                FROM compras c 
+                LEFT JOIN proveedores p ON c.id_proveedor = p.proveedor_id 
+                WHERE c.id_compra = '$id_compra'";
+        $result = $this->conectar->query($sql);
+        $compra = $result->fetch_assoc();
+
+        if (!$compra) {
+            $respuesta['msg'] = 'Compra no encontrada';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $detalle = $c_compra->getDetalleParaDevolucion($id_compra);
+
+        $respuesta['res'] = true;
+        $respuesta['compra'] = $compra;
+        $respuesta['detalle'] = $detalle;
+
+        echo json_encode($respuesta);
+    }
+
+    public function devolver()
+    {
+        $respuesta = ["res" => false];
+
+        if (!isset($_POST['id'])) {
+            $respuesta['msg'] = 'ID de compra no proporcionado';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $id_compra = $_POST['id'];
+        $observaciones = isset($_POST['observaciones']) ? trim($_POST['observaciones']) : '';
+        $items = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+
+        if (empty($items)) {
+            $respuesta['msg'] = 'No se seleccionaron productos para devolver';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $sql_check = "SELECT estado FROM compras WHERE id_compra = ?";
+        $stmt_check = $this->conectar->prepare($sql_check);
+        $stmt_check->bind_param("i", $id_compra);
+        $stmt_check->execute();
+        $result = $stmt_check->get_result();
+
+        if ($result->num_rows === 0) {
+            $respuesta['msg'] = 'La orden de compra no existe';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $compra = $result->fetch_assoc();
+        if ($compra['estado'] !== '1') {
+            $respuesta['msg'] = 'Solo se pueden devolver compras activas';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $c_compra = new Compra();
+        $todoDevuelto = true;
+
+        $detalle = $c_compra->getDetalleParaDevolucion($id_compra);
+
+        foreach ($items as $item) {
+            $tipo = $item['tipo'] ?? '';
+            $idItem = $item['id'] ?? 0;
+            $cantidadDevolver = floatval($item['cantidad'] ?? 0);
+
+            if ($cantidadDevolver <= 0) continue;
+
+            if ($tipo === 'producto') {
+                $c_compra->reverseStockProducto($idItem, $cantidadDevolver);
+                $c_compra->updateCantidadDevueltaProducto($id_compra, $idItem, $cantidadDevolver);
+                $this->conectar->query("INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones, tipo_origen) 
+                    VALUES ('$idItem', 'EGRESO', '$cantidadDevolver', NOW(), '{$_SESSION['usuario_fac']}', 'Devolución compra #$id_compra', 'DEVOLUCION')");
+                
+                foreach ($detalle['productos'] as $prod) {
+                    if ($prod['id_producto'] == $idItem) {
+                        $restante = floatval($prod['cantidad']) - floatval($prod['cantidad_devuelta']) - $cantidadDevolver;
+                        if ($restante > 0) $todoDevuelto = false;
+                    }
+                }
+            } else if ($tipo === 'repuesto') {
+                $c_compra->reverseStockRepuesto($idItem, $cantidadDevolver);
+                $c_compra->updateCantidadDevueltaRepuesto($id_compra, $idItem, $cantidadDevolver);
+                $this->conectar->query("INSERT INTO historial_stock_repuestos (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+                    VALUES ('$idItem', 'EGRESO', '$cantidadDevolver', NOW(), '{$_SESSION['usuario_fac']}', 'Devolución compra #$id_compra')");
+
+                foreach ($detalle['repuestos'] as $rep) {
+                    if ($rep['id_repuesto'] == $idItem) {
+                        $restante = floatval($rep['cantidad']) - floatval($rep['cantidad_devuelta']) - $cantidadDevolver;
+                        if ($restante > 0) $todoDevuelto = false;
+                    }
+                }
+            }
+        }
+
+        // Check remaining items that weren't in this return batch
+        if ($todoDevuelto) {
+            foreach ($detalle['productos'] as $prod) {
+                $yaDevuelto = floatval($prod['cantidad_devuelta']);
+                $total = floatval($prod['cantidad']);
+                if ($yaDevuelto < $total) $todoDevuelto = false;
+            }
+            foreach ($detalle['repuestos'] as $rep) {
+                $yaDevuelto = floatval($rep['cantidad_devuelta']);
+                $total = floatval($rep['cantidad']);
+                if ($yaDevuelto < $total) $todoDevuelto = false;
+            }
+        }
+
+        if ($todoDevuelto) {
+            $c_compra->devolver($id_compra, $observaciones);
+            $respuesta["msg"] = "Compra devuelta completamente. Stock revertido.";
+        } else {
+            $c_compra->registrarDevolucionParcial($id_compra, $observaciones ?: 'Devolución parcial');
+            $respuesta["msg"] = "Devolución parcial registrada. Stock revertido para los items seleccionados.";
+        }
+
+        $respuesta["res"] = true;
+
+        echo json_encode($respuesta);
     }
 
     public function obtenerCompra()
@@ -599,17 +751,23 @@ class ComprasController extends Controller
                        fecha_vencimiento = ?,
                        id_tipo_pago = ?,
                        direccion = ?,
-                       total = ?
+                       total = ?,
+                       serie_proveedor = ?,
+                       numero_proveedor = ?
                        WHERE id_compra = ?";
 
         $stmt_update = $this->conectar->prepare($sql_update);
-        $stmt_update->bind_param("isssssi",
+        $serie_proveedor = !empty($_POST['serie_proveedor']) ? $_POST['serie_proveedor'] : null;
+        $numero_proveedor = !empty($_POST['numero_proveedor']) ? $_POST['numero_proveedor'] : null;
+        $stmt_update->bind_param("isssssssi",
             $_POST['id_proveedor'],
             $_POST['fecha_emision'],
             $_POST['fecha_vencimiento'],
             $_POST['id_tipo_pago'],
             $_POST['direccion'],
             $_POST['total'],
+            $serie_proveedor,
+            $numero_proveedor,
             $id_compra
         );
 

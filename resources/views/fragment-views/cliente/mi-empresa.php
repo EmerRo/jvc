@@ -124,6 +124,24 @@
     </div>
 </div>
 
+<!-- TABS -->
+<ul class="nav nav-tabs mb-3" id="empresaTabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab-datos">
+            <i class="fa fa-building me-1"></i>Datos de la Empresa
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-series" id="tabSeriesLink">
+            <i class="fa fa-list-ol me-1"></i>Series de Documentos
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+
+<!-- ======================== TAB 1: DATOS ======================== -->
+<div class="tab-pane fade show active" id="tab-datos">
 <div class="row">
     <div class="col-12">
         <div class="card empresa-card position-relative">
@@ -276,6 +294,27 @@
                                             <option value="production">🟢 Producción</option>
                                         </select>
                                     </div>
+                                    <!-- Credenciales Guía de Remisión -->
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-2 mb-0" style="font-size:12px;">
+                                            <i class="fa fa-truck me-1"></i>
+                                            <strong>Credenciales para Guía de Remisión Electrónica</strong> — Client ID y Client Secret del portal SUNAT (API Gateway).
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="fa fa-id-badge me-1"></i>Client ID (Guía Remisión)
+                                        </label>
+                                        <input type="text" id="emp_client_id_sunat" name="client_id_sunat" class="form-control form-control-sm" maxlength="100"
+                                            placeholder="Ej: 4c4fd4c3-c380-4447-9223-...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="fa fa-lock me-1"></i>Client Secret (Guía Remisión)
+                                        </label>
+                                        <input type="password" id="emp_client_secret_sunat" name="client_secret_sunat" class="form-control form-control-sm" maxlength="100"
+                                            placeholder="Client Secret del portal SUNAT">
+                                    </div>
                                 </div>
                             </div>
 
@@ -315,6 +354,36 @@
         </div>
     </div>
 </div>
+</div><!-- /tab-pane tab-datos -->
+
+<!-- ======================== TAB 2: SERIES ======================== -->
+<div class="tab-pane fade" id="tab-series">
+    <div class="card empresa-card">
+        <div class="card-body p-4">
+            <div class="seccion-titulo">
+                <i class="fa fa-list-ol me-1"></i> Series de Documentos
+            </div>
+            <p class="text-muted small mb-3">Configurá la serie y el número actual de cada tipo de documento por sucursal. Hacé clic en una fila para editar.</p>
+            <div id="loadingSeries" class="text-center py-3"><div class="spinner-border text-danger spinner-border-sm"></div></div>
+            <div id="tablaSeries" class="d-none">
+                <table class="table table-sm table-bordered table-hover align-middle" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Documento</th>
+                            <th>Cód. SUNAT</th>
+                            <th>Serie</th>
+                            <th>N° Actual</th>
+                            <th style="width:90px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodySeries"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div><!-- /tab-pane tab-series -->
+
+</div><!-- /tab-content -->
 
 <script>
 $(document).ready(function () {
@@ -362,6 +431,8 @@ $(document).ready(function () {
         $('#emp_distrito').val(emp.distrito || '');
         $('#emp_user_sol').val(emp.user_sol || '');
         $('#emp_clave_sol').val(emp.clave_sol || '');
+        $('#emp_client_id_sunat').val(emp.client_id_sunat || '');
+        $('#emp_client_secret_sunat').val(emp.client_secret_sunat || '');
         $('#emp_modo').val(emp.modo || 'beta');
 
         // Logo
@@ -489,6 +560,96 @@ $(document).ready(function () {
             }
         });
     }
+
+    // ---- TAB SERIES ----
+    var seriesCargadas = false;
+
+    $('#tabSeriesLink').on('shown.bs.tab', function () {
+        if (!seriesCargadas) cargarSeries();
+    });
+
+    function cargarSeries() {
+        $('#loadingSeries').show();
+        $('#tablaSeries').addClass('d-none');
+
+        $.ajax({
+            url: _URL + '/ajs/empresa/series',
+            type: 'GET',
+            headers: { 'token-app': localStorage.getItem("_token") },
+            success: function (resp) {
+                var data = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                $('#loadingSeries').hide();
+                if (!data.success) return;
+
+                var rows = '';
+                data.series.forEach(function (s) {
+                    rows += `<tr>
+                        <td><strong>${s.nombre}</strong></td>
+                        <td><span class="badge" style="background:#ca3438;color:#fff;">${s.cod_sunat}</span></td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm serie-input"
+                                data-tido="${s.id_tido}" data-sucursal="${s.sucursal}"
+                                value="${s.serie || ''}" maxlength="10" style="width:90px;">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm numero-input"
+                                data-tido="${s.id_tido}" data-sucursal="${s.sucursal}"
+                                value="${s.numero || 0}" min="0" style="width:90px;">
+                        </td>
+                        <td>
+                            <button class="btn btn-sm bg-rojo text-white btn-guardar-serie"
+                                data-tido="${s.id_tido}" data-sucursal="${s.sucursal}">
+                                <i class="fa fa-save"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+
+                $('#tbodySeries').html(rows);
+                $('#tablaSeries').removeClass('d-none');
+                seriesCargadas = true;
+            },
+            error: function () {
+                $('#loadingSeries').hide();
+                Swal.fire('Error', 'No se pudieron cargar las series.', 'error');
+            }
+        });
+    }
+
+    $(document).on('click', '.btn-guardar-serie', function () {
+        var btn = $(this);
+        var tido = btn.data('tido');
+        var sucursal = btn.data('sucursal');
+        var serie = $(`input.serie-input[data-tido="${tido}"][data-sucursal="${sucursal}"]`).val().trim();
+        var numero = $(`input.numero-input[data-tido="${tido}"][data-sucursal="${sucursal}"]`).val();
+
+        if (!serie) {
+            Swal.fire('Requerido', 'La serie no puede estar vacía.', 'warning');
+            return;
+        }
+
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: _URL + '/ajs/empresa/series/actualizar',
+            type: 'POST',
+            headers: { 'token-app': localStorage.getItem("_token") },
+            data: { id_tido: tido, sucursal: sucursal, serie: serie, numero: numero },
+            success: function (resp) {
+                var data = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Guardado', text: data.mensaje, timer: 1500, showConfirmButton: false });
+                } else {
+                    Swal.fire('Error', data.mensaje, 'error');
+                }
+            },
+            error: function () {
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i>');
+                Swal.fire('Error', 'No se pudo guardar.', 'error');
+            }
+        });
+    });
 
 });
 </script>

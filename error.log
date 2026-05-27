@@ -1,0 +1,276 @@
+[27-May-2026 14:55:25 America/Lima] Buscando productos con almacen: 4 y filtro: 
+[27-May-2026 14:55:25 America/Lima] Usando vista: view_productos_4
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:36 America/Lima] Buscando productos con almacen: 4 y filtro: 
+[27-May-2026 14:55:36 America/Lima] Usando vista: view_productos_4
+[27-May-2026 14:55:41 America/Lima] Buscando productos con almacen: 4 y filtro: 
+[27-May-2026 14:55:41 America/Lima] Usando vista: view_productos_4
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:45 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:55:46 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:03 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:04 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 14:59:29 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 14:59:30 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 15:02:11 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 27
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 26
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 25
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 24
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 23
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 22
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 21
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 20
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() llamado con ID: 18
+[27-May-2026 15:02:12 America/Lima] verificarGarantias() completado exitosamente

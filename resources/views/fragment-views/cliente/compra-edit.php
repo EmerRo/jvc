@@ -344,6 +344,26 @@ $idCompra = isset($id) ? $id : null;
                                                                                     readonly>
                                                                             </div>
                                                                         </div>
+                                                                        <div class="row mt-2" v-if="venta.tipo_doc == '2'">
+                                                                            <div class="col-12 text-center">
+                                                                                <label class="form-label w-100 text-primary">
+                                                                                    <i class="fas fa-file-invoice me-1"></i>Datos de la Factura del Proveedor
+                                                                                </label>
+                                                                            </div>
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label class="form-label w-100">Serie Proveedor</label>
+                                                                                <input v-model="venta.serie_proveedor" type="text"
+                                                                                    class="form-control text-center"
+                                                                                    placeholder="Ej: F001">
+                                                                            </div>
+                                                                            <div class="col-md-6 text-center">
+                                                                                <label class="form-label w-100">Número Proveedor</label>
+                                                                                <input v-model="venta.numero_proveedor"
+                                                                                    type="text"
+                                                                                    class="form-control text-center"
+                                                                                    placeholder="Ej: 00012345">
+                                                                            </div>
+                                                                        </div>
                                                                         <div class="row mt-2">
                                                                             <div class="col-md-6 text-center">
                                                                                 <label
@@ -725,6 +745,8 @@ $idCompra = isset($id) ? $id : null;
                     tipoventa: 1,
                     total: 0,
                     moneda: "1",
+                    serie_proveedor: '',
+                    numero_proveedor: '',
                     dias_lista: [],
                     id_proveedor: null, // ID del proveedor para actualización
 
@@ -796,6 +818,8 @@ $idCompra = isset($id) ? $id : null;
                                 vue.venta.dir_cli = compra.direccion;
                                 vue.venta.num_doc = compra.proveedor_documento;
                                 vue.venta.nom_cli = compra.razon_social;
+                                vue.venta.serie_proveedor = compra.serie_proveedor || '';
+                                vue.venta.numero_proveedor = compra.numero_proveedor || '';
                                 // IMPORTANTE: Guardar el ID del proveedor para actualización
                                 vue.venta.id_proveedor = compra.id_proveedor;
 
@@ -1474,6 +1498,8 @@ $idCompra = isset($id) ? $id : null;
                                 id_tipo_pago: this.venta.tipo_pago,
                                 direccion: this.venta.dir_cli,
                                 total: this.venta.total,
+                                serie_proveedor: this.venta.serie_proveedor || '',
+                                numero_proveedor: this.venta.numero_proveedor || '',
                                 listaPro: JSON.stringify(this.productos),
                                 dias_lista: JSON.stringify(this.venta.dias_lista),
                                 tipo_pago: this.venta.tipo_pago // Para la validación de crédito

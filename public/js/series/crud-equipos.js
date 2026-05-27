@@ -62,13 +62,54 @@ function cancelarEdicion(td, texto) {
         });
 
         $(document).on("click", ".editar-modelo", function () {
-            const td = $(this).closest("tr").find(".nombre-campo");
-            habilitarEdicionEnLinea(td, "modelo");
+            var $tr      = $(this).closest("tr");
+            var id       = $tr.data("id");
+            var marcaId  = $tr.data("marca-id") || '';
+            var nombre   = $tr.find(".nombre-campo").text();
+
+            var opcionesMarca = '<option value="">-- Marca --</option>' +
+                _allMarcas.map(m => `<option value="${m.id}" ${String(m.id)===String(marcaId)?'selected':''}>${m.nombre}</option>`).join('');
+
+            $tr.find(".marca-campo").html(`<select class="form-select form-select-sm edit-marca-sel" style="min-width:100px">${opcionesMarca}</select>`);
+            $tr.find(".nombre-campo").html(`
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" value="${nombre}">
+                    <button class="btn btn-success btn-guardar-modelo" data-id="${id}"><i class="fa fa-check"></i></button>
+                    <button class="btn btn-danger btn-cancelar-edicion"><i class="fa fa-times"></i></button>
+                </div>`);
         });
 
         $(document).on("click", ".editar-equipo", function () {
-            const td = $(this).closest("tr").find(".nombre-campo");
-            habilitarEdicionEnLinea(td, "equipo");
+            var $tr      = $(this).closest("tr");
+            var id       = $tr.data("id");
+            var marcaId  = $tr.data("marca-id")  || '';
+            var modeloId = $tr.data("modelo-id") || '';
+            var nombre   = $tr.find(".nombre-campo").text();
+
+            var opcionesMarca = '<option value="">-- Marca --</option>' +
+                _allMarcas.map(m => `<option value="${m.id}" ${String(m.id)===String(marcaId)?'selected':''}>${m.nombre}</option>`).join('');
+
+            var modelosFiltrados = marcaId ? _allModelos.filter(m => String(m.marca_id) === String(marcaId)) : _allModelos;
+            var opcionesModelo = '<option value="">-- Modelo --</option>' +
+                modelosFiltrados.map(m => `<option value="${m.id}" ${String(m.id)===String(modeloId)?'selected':''}>${m.nombre}</option>`).join('');
+
+            $tr.find(".marca-campo").html(`<select class="form-select form-select-sm edit-marca-eq-sel" style="min-width:100px">${opcionesMarca}</select>`);
+            $tr.find(".modelo-campo").html(`<select class="form-select form-select-sm edit-modelo-eq-sel" style="min-width:100px">${opcionesModelo}</select>`);
+            $tr.find(".nombre-campo").html(`
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" value="${nombre}">
+                    <button class="btn btn-success btn-guardar-equipo" data-id="${id}"><i class="fa fa-check"></i></button>
+                    <button class="btn btn-danger btn-cancelar-edicion"><i class="fa fa-times"></i></button>
+                </div>`);
+        });
+
+        // Cascade en inline-edit equipo: marca → modelos
+        $(document).on("change", ".edit-marca-eq-sel", function () {
+            var marcaId = $(this).val();
+            var modelosFiltrados = marcaId ? _allModelos.filter(m => String(m.marca_id) === String(marcaId)) : _allModelos;
+            var opcionesModelo = '<option value="">-- Modelo --</option>' +
+                modelosFiltrados.map(m => `<option value="${m.id}">${m.nombre}</option>`).join('');
+            $(this).closest("tr").find(".edit-modelo-eq-sel").html(opcionesModelo);
         });
 
         // Guardar edición en línea
@@ -92,38 +133,43 @@ function cancelarEdicion(td, texto) {
         });
 
         $(document).on("click", ".btn-guardar-modelo", function () {
-            const id = $(this).data("id");
-            const td = $(this).closest("td");
-            const nuevoNombre = td.find("input").val();
+            var id       = $(this).data("id");
+            var $tr      = $(this).closest("tr");
+            var nombre   = $tr.find(".nombre-campo input").val();
+            var marcaId  = $tr.find(".edit-marca-sel").val() || '';
 
             $.ajax({
                 url: _URL + "/ajs/update/modelos",
                 type: "POST",
-                data: { id: id, nombre: nuevoNombre },
-                success: (response) => {
+                data: { id: id, nombre: nombre, marca_id: marcaId },
+                success: function () {
                     cargarTablaModelos();
+                    cargarTodosLosDatos(); // refrescar memoria para cascade
                     mostrarAlerta("Éxito", "Modelo actualizado correctamente", "success");
                 },
-                error: () => {
+                error: function () {
                     mostrarAlerta("Error", "No se pudo actualizar el modelo", "error");
                 },
             });
         });
 
         $(document).on("click", ".btn-guardar-equipo", function () {
-            const id = $(this).data("id");
-            const td = $(this).closest("td");
-            const nuevoNombre = td.find("input").val();
+            var id       = $(this).data("id");
+            var $tr      = $(this).closest("tr");
+            var nombre   = $tr.find(".nombre-campo input").val();
+            var marcaId  = $tr.find(".edit-marca-eq-sel").val()  || '';
+            var modeloId = $tr.find(".edit-modelo-eq-sel").val() || '';
 
             $.ajax({
                 url: _URL + "/ajs/update/equipos",
                 type: "POST",
-                data: { id: id, nombre: nuevoNombre },
-                success: (response) => {
+                data: { id: id, nombre: nombre, marca_id: marcaId, modelo_id: modeloId },
+                success: function () {
                     cargarTablaEquipos();
+                    cargarTodosLosDatos();
                     mostrarAlerta("Éxito", "Equipo actualizado correctamente", "success");
                 },
-                error: () => {
+                error: function () {
                     mostrarAlerta("Error", "No se pudo actualizar el equipo", "error");
                 },
             });
@@ -160,8 +206,9 @@ function cancelarEdicion(td, texto) {
         });
 
         // Agregar nuevo modelo
-        $("#btnAgregarModelo").click(() => {
-            const nombre = $("#modelo_nombre").val();
+        $("#btnAgregarModelo").click(function () {
+            var nombre  = $("#modelo_nombre").val().trim();
+            var marcaId = $("#modelo_marca_id").val() || '';
             if (!nombre) {
                 mostrarAlerta("Error", "Por favor ingrese un nombre de modelo", "error");
                 return;
@@ -170,21 +217,24 @@ function cancelarEdicion(td, texto) {
             $.ajax({
                 url: _URL + "/ajs/save/modelos",
                 type: "POST",
-                data: { nombre: nombre },
-                success: (response) => {
+                data: { nombre: nombre, marca_id: marcaId },
+                success: function () {
                     $("#modelo_nombre").val("");
                     cargarTablaModelos();
+                    cargarTodosLosDatos();
                     mostrarAlerta("Éxito", "Modelo agregado correctamente", "success");
                 },
-                error: () => {
+                error: function () {
                     mostrarAlerta("Error", "No se pudo agregar el modelo", "error");
                 },
             });
         });
 
         // Agregar nuevo equipo
-        $("#btnAgregarEquipo").click(() => {
-            const nombre = $("#equipo_nombre").val();
+        $("#btnAgregarEquipo").click(function () {
+            var nombre   = $("#equipo_nombre").val().trim();
+            var marcaId  = $("#equipo_marca_id").val()  || '';
+            var modeloId = $("#equipo_modelo_id").val() || '';
             if (!nombre) {
                 mostrarAlerta("Error", "Por favor ingrese un nombre de equipo", "error");
                 return;
@@ -193,13 +243,14 @@ function cancelarEdicion(td, texto) {
             $.ajax({
                 url: _URL + "/ajs/save/equipos",
                 type: "POST",
-                data: { nombre: nombre },
-                success: (response) => {
+                data: { nombre: nombre, marca_id: marcaId, modelo_id: modeloId },
+                success: function () {
                     $("#equipo_nombre").val("");
                     cargarTablaEquipos();
+                    cargarTodosLosDatos();
                     mostrarAlerta("Éxito", "Equipo agregado correctamente", "success");
                 },
-                error: () => {
+                error: function () {
                     mostrarAlerta("Error", "No se pudo agregar el equipo", "error");
                 },
             });
@@ -241,15 +292,12 @@ function cancelarEdicion(td, texto) {
                             url: _URL + "/ajs/delete/modelos",
                             type: "POST",
                             data: { id: id },
-                            success: () => {
+                            success: function () {
                                 cargarTablaModelos();
-                                mostrarAlerta(
-                                    "Éxito",
-                                    "Modelo eliminado correctamente",
-                                    "success"
-                                );
+                                cargarTodosLosDatos();
+                                mostrarAlerta("Éxito", "Modelo eliminado correctamente", "success");
                             },
-                            error: () => {
+                            error: function () {
                                 mostrarAlerta("Error", "No se pudo eliminar el modelo", "error");
                             },
                         });
@@ -267,19 +315,24 @@ function cancelarEdicion(td, texto) {
                             url: _URL + "/ajs/delete/equipos",
                             type: "POST",
                             data: { id: id },
-                            success: () => {
+                            success: function () {
                                 cargarTablaEquipos();
-                                mostrarAlerta(
-                                    "Éxito",
-                                    "Equipo eliminado correctamente",
-                                    "success"
-                                );
+                                cargarTodosLosDatos();
+                                mostrarAlerta("Éxito", "Equipo eliminado correctamente", "success");
                             },
-                            error: () => {
+                            error: function () {
                                 mostrarAlerta("Error", "No se pudo eliminar el equipo", "error");
                             },
                         });
                     }
                 }
             );
+        });
+
+        // Al abrir los modales de gestión, inicializar sus selects
+        $('#modalModelo').on('show.bs.modal', function () {
+            if (_datosListos) inicializarSelectsModales();
+        });
+        $('#modalEquipo').on('show.bs.modal', function () {
+            if (_datosListos) inicializarSelectsModales();
         });

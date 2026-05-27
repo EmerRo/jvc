@@ -103,44 +103,22 @@
                                 <!-- Sección para máquinas idénticas (inicialmente oculta) -->
                                 <div id="seccion_maquinas_identicas" class="seccion-maquinas-identicas"
                                     style="display: none;">
-                                    <div class="row mb-3">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Marca</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="marca_comun" required>
-                                                    <option value="">Seleccionar Marca</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_marca"
-                                                    data-bs-toggle="modal" data-bs-target="#modalMarca">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
+                                    <div class="row mb-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Equipo <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="equipo_comun" required>
+                                                <option value="">Seleccionar equipo...</option>
+                                            </select>
+                                            <input type="hidden" id="marca_comun">
+                                            <input type="hidden" id="modelo_comun">
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Modelo</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="modelo_comun" required>
-                                                    <option value="">Seleccionar Modelo</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_modelo"
-                                                    data-bs-toggle="modal" data-bs-target="#modalModelo">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
+                                            <input type="text" class="form-control" id="marca_modelo_comun_display" readonly
+                                                placeholder="Se completa al elegir equipo"
+                                                style="background:#f8f9fa;cursor:default;">
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Equipo</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="equipo_comun" required>
-                                                    <option value="">Seleccionar Equipo</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo" id="btn_seleccionar_equipo"
-                                                    data-bs-toggle="modal" data-bs-target="#modalEquipo">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                             <label class="form-label">Cantidad de equipos</label>
                                             <input type="number" class="form-control" id="cantidad_equipos"
                                                 name="cantidad_equipos" min="1" value="1" required>
@@ -186,12 +164,10 @@
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <h5 class="card-title mb-0">Equipo 1</h5>
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-danger btn-eliminar-equipo">
+                                                        <button type="button" class="btn btn-sm btn-danger btn-eliminar-equipo">
                                                             <i class="fa fa-trash"></i>
                                                         </button>
                                                     </div>
-                                                    <!-- NUEVO: Buscador de producto del almacén -->
                                                     <div class="row mb-2">
                                                         <div class="col-md-12">
                                                             <label class="form-label">
@@ -210,62 +186,33 @@
                                                             <small class="text-muted producto-seleccionado-info"></small>
                                                         </div>
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="col-md-3">
-                                                            <label class="form-label">Marca</label>
-                                                            <div class="input-group">
-                                                                <select class="form-select" name="equipos[0][marca]"
-                                                                    required>
-                                                                    <option value="">Seleccionar Marca</option>
-                                                                </select>
-                                                                <button type="button" class="btn btn-selector"
-                                                                    data-bs-toggle="modal" data-bs-target="#modalMarca">
-                                                                    <i class="fa fa-list"></i>
-                                                                </button>
-                                                            </div>
+                                                    <div class="row align-items-end">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Equipo <span class="text-danger">*</span></label>
+                                                            <select class="form-select select-equipo" name="equipos[0][equipo]" required>
+                                                                <option value="">Seleccionar equipo...</option>
+                                                            </select>
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <label class="form-label">Modelo</label>
-                                                            <div class="input-group">
-                                                                <select class="form-select" name="equipos[0][modelo]"
-                                                                    required>
-                                                                    <option value="">Seleccionar Modelo</option>
-                                                                </select>
-                                                                <button type="button" class="btn btn-selector"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#modalModelo">
-                                                                    <i class="fa fa-list"></i>
-                                                                </button>
-                                                            </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
+                                                            <input type="text" class="form-control input-marca-modelo" readonly
+                                                                placeholder="Se completa al elegir equipo"
+                                                                style="background:#f8f9fa;cursor:default;">
+                                                            <input type="hidden" name="equipos[0][marca]" class="hidden-marca">
+                                                            <input type="hidden" name="equipos[0][modelo]" class="hidden-modelo">
                                                         </div>
-                                                        <div class="col-md-3">
-                                                            <label class="form-label">Equipo</label>
-                                                            <div class="input-group">
-                                                                <select class="form-select" name="equipos[0][equipo]"
-                                                                    required>
-                                                                    <option value="">Seleccionar Equipo</option>
-                                                                </select>
-                                                                <button type="button" class="btn btn-selector"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#modalEquipo">
-                                                                    <i class="fa fa-list"></i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-3 mb-2">
+                                                        <div class="col-md-4">
                                                             <label class="form-label">Número de Serie</label>
                                                             <div class="input-group">
                                                                 <input type="text" class="form-control"
                                                                     name="equipos[0][numero_serie]"
                                                                     placeholder="Número de Serie" required>
-                                                                <button type="button" class="btn btn-generar-serie"
-                                                                    title="Generar número de serie">
+                                                                <button type="button" class="btn btn-generar-serie" title="Generar número de serie">
                                                                     <i class="fa fa-magic"></i>
                                                                 </button>
                                                             </div>
                                                             <div class="feedback-container"></div>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>

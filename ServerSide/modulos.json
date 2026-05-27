@@ -111,6 +111,12 @@
           "nombre": "Intercambio de productos",
           "descripcion": "Gestión de intercambio de productos",
           "ruta": "/almacen/intercambio/productos"
+        },
+        {
+          "id": "marcas_modelos_equipos",
+          "nombre": "Marcas / Modelos / Equipos",
+          "descripcion": "Gestión de marcas, modelos y equipos",
+          "ruta": "/almacen/equipos"
         }
       ]
     },
