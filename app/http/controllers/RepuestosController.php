@@ -3,6 +3,7 @@
 require_once 'utils/lib/exel/vendor/autoload.php';
 require_once 'app/models/Repuesto.php';
 require_once 'app/models/Almacen.php';
+require_once 'app/helpers/ImageStorage.php';
 
 class RepuestosController extends Controller
 {
@@ -293,16 +294,8 @@ class RepuestosController extends Controller
 
             // Manejo de la imagen (código existente)
             $nombreImagen = null;
-            $rutaDestino = '';
-
             if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
-                $imagen = $_FILES['imagen'];
-                $nombreImagen = $imagen['name'];
-                $rutaDestino = 'public/img/repuestos/' . $nombreImagen;
-
-                if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception('Error al subir la imagen');
-                }
+                $nombreImagen = ImageStorage::save($_FILES['imagen'], 'repuestos');
             }
 
             // ACTUALIZADO: Manejo del código de barras
@@ -426,13 +419,7 @@ class RepuestosController extends Controller
             }
 
             if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
-                $imagen = $_FILES['imagen'];
-                $nombreImagen = $imagen['name'];
-                $rutaDestino = 'public/img/repuestos/' . $nombreImagen;
-
-                if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception('Error al subir la imagen');
-                }
+                $nombreImagen = ImageStorage::save($_FILES['imagen'], 'repuestos');
             }
 
             $sql = 'update repuestos set 

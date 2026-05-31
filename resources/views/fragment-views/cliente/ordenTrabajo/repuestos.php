@@ -2269,7 +2269,7 @@ mounted() {
             gridProducts.forEach(function (product) {
                 var stockClass = getStockClass(product.cantidad);
                 var imageUrl = product.imagen ?
-                    _URL + '/public/img/repuestos/' + product.imagen : null;
+                    _URL + '/img/repuestos/' + product.imagen : null;
 
                 var isChecked = arrayIdsOkUsar.some(function (item) { return item.id === product.id_repuesto + ''; });
 

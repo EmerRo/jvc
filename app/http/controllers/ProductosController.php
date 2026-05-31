@@ -3,6 +3,7 @@
 require_once "utils/lib/exel/vendor/autoload.php";
 require_once "app/models/Producto.php";
 require_once "app/models/Almacen.php";
+require_once "app/helpers/ImageStorage.php";
 
 
 class ProductosController extends Controller
@@ -547,18 +548,9 @@ class ProductosController extends Controller
         try {
             $this->conexion->begin_transaction();
 
-            // Manejo de la imagen
             $nombreImagen = null;
-            $rutaDestino = '';
-
             if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
-                $imagen = $_FILES['imagen'];
-                $nombreImagen = $imagen['name'];
-                $rutaDestino = 'public/img/productos/' . $nombreImagen;
-
-                if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception("Error al subir la imagen");
-                }
+                $nombreImagen = ImageStorage::save($_FILES['imagen'], 'productos');
             }
             $codigoBarras = null;
             if (isset($_POST['usar_barra']) && $_POST['usar_barra'] == 1) {
@@ -671,47 +663,14 @@ class ProductosController extends Controller
                 $imagenAnterior = $row['imagen'];
             }
 
-            // Manejo de imagen
             $nombreImagen = null;
             $eliminarImagen = isset($_POST['eliminar_imagen']) && $_POST['eliminar_imagen'] === '1';
 
             if ($eliminarImagen) {
-                // Si se solicita eliminar la imagen, establecer como NULL
                 $nombreImagen = 'NULL';
-
-                // Eliminar archivo físico de la imagen anterior y su thumbnail
-                if ($imagenAnterior) {
-                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
-                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
-
-                    if (file_exists($rutaImagenAnterior)) {
-                        unlink($rutaImagenAnterior);
-                    }
-                    if (file_exists($rutaThumbnailAnterior)) {
-                        unlink($rutaThumbnailAnterior);
-                    }
-                }
+                ImageStorage::delete('productos', $imagenAnterior);
             } elseif (isset($_FILES['imagen']) && $_FILES['imagen']['error'] == UPLOAD_ERR_OK) {
-                $imagen = $_FILES['imagen'];
-                $nombreImagen = time() . '_' . $imagen['name']; // Nombre único
-                $rutaDestino = 'public/img/productos/' . $nombreImagen;
-
-                if (!move_uploaded_file($imagen['tmp_name'], $rutaDestino)) {
-                    throw new Exception("Error al subir la imagen");
-                }
-
-                // Eliminar archivo físico de la imagen anterior y su thumbnail
-                if ($imagenAnterior) {
-                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
-                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
-
-                    if (file_exists($rutaImagenAnterior)) {
-                        unlink($rutaImagenAnterior);
-                    }
-                    if (file_exists($rutaThumbnailAnterior)) {
-                        unlink($rutaThumbnailAnterior);
-                    }
-                }
+                $nombreImagen = ImageStorage::save($_FILES['imagen'], 'productos', $imagenAnterior);
             }
 
             $codigoBarras = null;
@@ -930,18 +889,8 @@ $stmt->bind_param($types, ...$params);
 
             if ($resultado && $row = $resultado->fetch_assoc()) {
                 $imagenAnterior = $row['imagen'];
-
-                // Eliminar archivos físicos de imagen y thumbnail si existen
                 if ($imagenAnterior) {
-                    $rutaImagenAnterior = 'public/img/productos/' . $imagenAnterior;
-                    $rutaThumbnailAnterior = 'public/img/productos/thumbnails/' . $imagenAnterior;
-
-                    if (file_exists($rutaImagenAnterior)) {
-                        unlink($rutaImagenAnterior);
-                    }
-                    if (file_exists($rutaThumbnailAnterior)) {
-                        unlink($rutaThumbnailAnterior);
-                    }
+                    ImageStorage::delete('productos', $imagenAnterior);
                 }
             }
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once 'app/helpers/ImageStorage.php';
+
 class TallerCotizacion
 {
     private $conectar;
@@ -357,12 +359,7 @@ class TallerCotizacion
             // Si todo fue exitoso, eliminar los archivos físicos
             $errores = [];
             foreach ($fotos as $foto) {
-              $rutaFoto = $_SERVER['DOCUMENT_ROOT'] . '/public/assets/img/cotizaciones/' . $foto;
-                if (file_exists($rutaFoto)) {
-                    if (!unlink($rutaFoto)) {
-                        $errores[] = "No se pudo eliminar el archivo: " . $foto;
-                    }
-                }
+                ImageStorage::delete('cotizaciones-taller', $foto);
             }
 
             $this->conectar->commit();

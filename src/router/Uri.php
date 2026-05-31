@@ -125,12 +125,33 @@ class Uri {
 
     public function importController($class) {
         $file = PATH_CONTROLLERS . $class . ".php";
-        if (!file_exists($file)) {
-            throw new Exception("El controlador ($file) no existe.");
-            return false;
+        if (file_exists($file)) {
+            require_once $file;
+            return true;
         }
-        require_once $file;
-        return true;
+        
+        $file = self::buscarControlador(PATH_CONTROLLERS, $class . ".php");
+        if ($file) {
+            require_once $file;
+            return true;
+        }
+        
+        throw new Exception("El controlador ($class) no existe.");
+    }
+    
+    private static function buscarControlador($carpeta, $nombreArchivo) {
+        $archivos = scandir($carpeta);
+        foreach ($archivos as $archivo) {
+            if ($archivo == '.' || $archivo == '..') continue;
+            $rutaArchivo = $carpeta . DIRECTORY_SEPARATOR . $archivo;
+            if (is_dir($rutaArchivo)) {
+                $encontrado = self::buscarControlador($rutaArchivo, $nombreArchivo);
+                if ($encontrado) return $encontrado;
+            } elseif (is_file($rutaArchivo) && $nombreArchivo == $archivo) {
+                return $rutaArchivo;
+            }
+        }
+        return false;
     }
 
 }

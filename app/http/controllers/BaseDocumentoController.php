@@ -1,6 +1,8 @@
 <?php
 // app/controllers/BaseDocumentoController.php
 
+require_once 'app/helpers/ImageStorage.php';
+
 abstract class BaseDocumentoController extends Controller
 {
     protected $modelo;
@@ -611,47 +613,16 @@ abstract class BaseDocumentoController extends Controller
         }
     }
 
-    // Método auxiliar para procesar imágenes y guardarlas como archivos
+    // Método auxiliar para procesar imágenes usando ImageStorage unificado
     protected function procesarImagen($file)
     {
-        return $this->procesarImagenEnDirectorio($file, 'files/' . $this->documentType . 's/');
+        return ImageStorage::save($file, 'documentos');
     }
     
-    // Método genérico para procesar imágenes en cualquier directorio (similar a InformeController)
+    // Método genérico para procesar imágenes — delega en ImageStorage
     protected function procesarImagenEnDirectorio($file, $uploadDir)
     {
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!in_array($file['type'], $allowedTypes)) {
-            throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, PNG, GIF y WebP.");
-        }
-        
-        // Verificar tamaño del archivo (máximo 10MB)
-        if ($file['size'] > 10 * 1024 * 1024) {
-            throw new Exception("El archivo es demasiado grande. El tamaño máximo permitido es 10MB.");
-        }
-        
-        // Crear directorio si no existe
-        if (!file_exists($uploadDir)) {
-            if (!mkdir($uploadDir, 0755, true)) {
-                throw new Exception("No se pudo crear el directorio de imágenes: $uploadDir");
-            }
-        }
-        
-        // Generar nombre único para el archivo
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
-        $rutaCompleta = $uploadDir . $nombreArchivo;
-        
-        // Optimizar y guardar la imagen
-        $imagenOptimizada = $this->optimizarImagenDocumento($file);
-        
-        // Guardar la imagen optimizada
-        if (!file_put_contents($rutaCompleta, $imagenOptimizada)) {
-            throw new Exception("No se pudo guardar la imagen.");
-        }
-        
-        // Retornar solo la ruta relativa
-        return $rutaCompleta;
+        return ImageStorage::save($file, 'documentos');
     }
     
     /**

@@ -1,5 +1,6 @@
   public function guiaRemision($guia, $nombreXML)
   {
+    require_once 'app/helpers/ImageStorage.php';
     // Configuramos los márgenes del PDF
     $this->mpdf = new \Mpdf\Mpdf([
       'mode' => 'utf-8',
@@ -124,7 +125,7 @@
           </div>";
 
       // Escribir logo y cabecera
-      $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
+      $this->mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . ImageStorage::url('empresas', $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
       $this->mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 196, 130);
 
       $this->mpdf->WriteFixedPosHTML("<span style='font-family: Calibri, Helvetica Neue, sans-serif; font-size: 14px;margin: 1pt 2pt 3pt;'><strong>COMERCIAL & INDUSTRIAL J. V. C. S.A.C.

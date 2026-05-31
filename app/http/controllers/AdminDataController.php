@@ -1,5 +1,7 @@
 <?php
 
+require_once 'app/helpers/ImageStorage.php';
+
 class AdminDataController extends Controller
 {
     private $conexion;
@@ -46,19 +48,11 @@ where u.usuario_id = '{$_POST['usr']}'";
         $nombre_logo=$data['logo'];
         $nombre_certi="";
 
-        if (isset($_FILES['file1'])){
-            $filename = $_FILES['file1']['name'];
-
-            $path_parts = pathinfo($filename, PATHINFO_EXTENSION);
-            $newName =Tools::getToken(80);
-            /* Location */
-            $loc_ruta="files/logos";
-            if (!file_exists($loc_ruta)) {
-                mkdir($loc_ruta, 0777, true);
-            }
-            $location = $loc_ruta."/" . $newName .'.'. $path_parts;
-            if (move_uploaded_file($_FILES['file1']['tmp_name'], $location)){
-                $nombre_logo= $newName.".".$path_parts;
+        if (isset($_FILES['file1']) && $_FILES['file1']['error'] === UPLOAD_ERR_OK) {
+            try {
+                $nombre_logo = ImageStorage::save($_FILES['file1'], 'empresas');
+            } catch (\RuntimeException $e) {
+                error_log("Error al guardar logo: " . $e->getMessage());
             }
         }
         if (isset($_FILES['file2'])){
@@ -155,19 +149,11 @@ where u.usuario_id = '{$_POST['usr']}'";
         if($roww = $this->conexion->query($sql)->fetch_assoc() ){
             $respuesta["msg"]="Esta empresa ya fue registrada";
         }else{
-            if (isset($_FILES['file1'])){
-                $filename = $_FILES['file1']['name'];
-
-                $path_parts = pathinfo($filename, PATHINFO_EXTENSION);
-                $newName =Tools::getToken(80);
-                /* Location */
-                $loc_ruta="files/logos";
-                if (!file_exists($loc_ruta)) {
-                    mkdir($loc_ruta, 0777, true);
-                }
-                $location = $loc_ruta."/" . $newName .'.'. $path_parts;
-                if (move_uploaded_file($_FILES['file1']['tmp_name'], $location)){
-                    $nombre_logo= $newName.".".$path_parts;
+            if (isset($_FILES['file1']) && $_FILES['file1']['error'] === UPLOAD_ERR_OK) {
+                try {
+                    $nombre_logo = ImageStorage::save($_FILES['file1'], 'empresas');
+                } catch (\RuntimeException $e) {
+                    error_log("Error al guardar logo: " . $e->getMessage());
                 }
             }
             if (isset($_FILES['file2'])){

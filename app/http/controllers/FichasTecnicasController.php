@@ -1,5 +1,6 @@
 <?php
 
+require_once 'app/helpers/ImageStorage.php';
 require_once "app/models/GestionArchivo.php";
 require_once "app/models/GestionAdjunto.php";
 require_once "app/models/Producto.php";
@@ -103,15 +104,15 @@ class FichasTecnicasController extends Controller
                 }
                 
                 if ($fila['url_imagen']) {
-                    $imagenes[] = ['url' => $fila['url_imagen']];
+                    $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen'])];
                 }
                 
                 if ($fila['url_imagen_2']) {
-                    $imagenes[] = ['url' => $fila['url_imagen_2']];
+                    $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen_2'])];
                 }
                 
                 if ($fila['url_imagen_3']) {
-                    $imagenes[] = ['url' => $fila['url_imagen_3']];
+                    $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen_3'])];
                 }
                 
                 if ($fila['url_youtube']) {
@@ -337,15 +338,15 @@ class FichasTecnicasController extends Controller
             }
             
             if ($fila['url_imagen']) {
-                $imagenes[] = ['url' => $fila['url_imagen']];
+                $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen'])];
             }
             
             if ($fila['url_imagen_2']) {
-                $imagenes[] = ['url' => $fila['url_imagen_2']];
+                $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen_2'])];
             }
             
             if ($fila['url_imagen_3']) {
-                $imagenes[] = ['url' => $fila['url_imagen_3']];
+                $imagenes[] = ['url' => ImageStorage::url('fichas-tecnicas', $fila['url_imagen_3'])];
             }
             
             if ($fila['url_youtube']) {
@@ -642,13 +643,13 @@ class FichasTecnicasController extends Controller
 
             if ($incluirImagenes) {
                 if ($adjunto['url_imagen']) {
-                    $mensaje .= "🖼️ *Imagen 1:* " . $_SERVER['HTTP_HOST'] . "/" . $adjunto['url_imagen'] . "\n\n";
+                    $mensaje .= "🖼️ *Imagen 1:* " . ImageStorage::url('fichas-tecnicas', $adjunto['url_imagen']) . "\n\n";
                 }
                 if ($adjunto['url_imagen_2']) {
-                    $mensaje .= "🖼️ *Imagen 2:* " . $_SERVER['HTTP_HOST'] . "/" . $adjunto['url_imagen_2'] . "\n\n";
+                    $mensaje .= "🖼️ *Imagen 2:* " . ImageStorage::url('fichas-tecnicas', $adjunto['url_imagen_2']) . "\n\n";
                 }
                 if ($adjunto['url_imagen_3']) {
-                    $mensaje .= "🖼️ *Imagen 3:* " . $_SERVER['HTTP_HOST'] . "/" . $adjunto['url_imagen_3'] . "\n\n";
+                    $mensaje .= "🖼️ *Imagen 3:* " . ImageStorage::url('fichas-tecnicas', $adjunto['url_imagen_3']) . "\n\n";
                 }
             }
 
@@ -967,10 +968,10 @@ class FichasTecnicasController extends Controller
             $total = count($_FILES['imagenes']['name']);
 
             if ($total <= 3) {
-                // Eliminar imágenes anteriores
-                if ($url_imagen && file_exists($url_imagen)) @unlink($url_imagen);
-                if ($url_imagen_2 && file_exists($url_imagen_2)) @unlink($url_imagen_2);
-                if ($url_imagen_3 && file_exists($url_imagen_3)) @unlink($url_imagen_3);
+                // Eliminar imágenes anteriores (soporta rutas antiguas y nuevas basadas en filename)
+                $this->eliminarImagenSiExiste($url_imagen);
+                $this->eliminarImagenSiExiste($url_imagen_2);
+                $this->eliminarImagenSiExiste($url_imagen_3);
 
                 // Resetear URLs de imágenes
                 $url_imagen = null;
@@ -1083,8 +1084,8 @@ class FichasTecnicasController extends Controller
                 return false;
             }
 
-            // Crear directorio si no existe
-            $directorio = 'files/gestion_archivos/imagen/';
+            // Usar ImageStorage para la ruta de destino
+            $directorio = ImageStorage::BASE_PATH . 'fichas-tecnicas/';
             if (!is_dir($directorio)) {
                 mkdir($directorio, 0755, true);
             }
@@ -1154,7 +1155,7 @@ class FichasTecnicasController extends Controller
         imagedestroy($imagenNueva);
 
         return [
-                    'ruta' => $rutaDestino,
+                    'ruta' => $nombreUnico, // Solo filename, consistente con ImageStorage::save()
                     'size' => $tamañoFinal
                 ];
             }
@@ -1217,6 +1218,20 @@ class FichasTecnicasController extends Controller
         }
     }
 
+    // Elimina una imagen soportando tanto rutas completas antiguas como nuevos filenames
+    private function eliminarImagenSiExiste($imagen)
+    {
+        if (empty($imagen)) return;
+
+        if (strpos($imagen, '/') !== false) {
+            // Formato antiguo: ruta completa (files/gestion_archivos/imagen/...)
+            if (file_exists($imagen)) @unlink($imagen);
+        } else {
+            // Nuevo formato: solo filename (guardado via ImageStorage)
+            ImageStorage::delete('fichas-tecnicas', $imagen);
+        }
+    }
+
     // Método para eliminar archivos físicos usando rutas pre-obtenidas
     private function eliminarArchivosFisicosConRutas($rutas)
     {
@@ -1241,7 +1256,13 @@ class FichasTecnicasController extends Controller
                         if (file_exists($rutaActual)) {
                             $rutaCompleta = $rutaActual;
                         } else {
-                            continue;
+                            // Probar con ruta de ImageStorage (nuevo formato: solo filename)
+                            $rutaImg = ImageStorage::BASE_PATH . 'fichas-tecnicas/' . $ruta;
+                            if (file_exists($rutaImg)) {
+                                $rutaCompleta = $rutaImg;
+                            } else {
+                                continue;
+                            }
                         }
                     }
                 }

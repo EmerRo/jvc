@@ -45,7 +45,7 @@ Ejemplos útiles:
 
 ### Sistema de Rutas (`src/router/Route.php`)
 
-Rutas definidas en `routes/web.php`, `routes/ajax2.php`, `routes/ajaxs.php`, `routes/admin.php`. Se cargan automáticamente.
+Rutas definidas en `routes/web.php`, `routes/ajax2.php`, `routes/ajaxs.php`. Se cargan automáticamente.
 
 ```php
 Route::post("/ruta", "NombreController@metodo")->Middleware([ValidarTokenMiddleware::class]);

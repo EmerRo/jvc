@@ -4,7 +4,7 @@
 // Local (Laragon): el host termina en .test  →  $esLocal = true
 // Producción: cualquier otro host            →  $esLocal = false
 $_host   = $_SERVER['HTTP_HOST'] ?? php_uname('n');
-$esLocal = str_ends_with($_host, '.test') || $_host === 'localhost' || $_host === '127.0.0.1';
+$esLocal = (substr($_host, -5) === '.test') || $_host === 'localhost' || $_host === '127.0.0.1';
 
 if ($esLocal) {
 
@@ -26,11 +26,11 @@ if ($esLocal) {
 } else {
 
     // ── PRODUCCIÓN ─────────────────────────────────────────────────────────
-    define("DOMINIO",       "http://185.111.156.125/");
+    define("DOMINIO",       "https://industriajvc.com/");
     define("HOST_SS",       "localhost");
     define("DATABASE_SS",   "magusqao_jvc_factura");
-    define("USER_SS",       "root");
-    define("PASSWORD_SS",   "");
+    define("USER_SS",       "magusqao_factura_jvc");
+    define("PASSWORD_SS",   "v494OxMp12I3TM");
 
     define("HOST_SMTP",     "mail.apperpan.com");
     define("USER_SMTP",     "envios@apperpan.com");
@@ -45,3 +45,4 @@ if ($esLocal) {
 // ─── Constantes comunes (iguales en ambos entornos) ────────────────────────
 define("KEY_ENCRYPT", "matrixsistem_key");
 define("URL_GEN_XML_SUNAT", "http://genxml.des");
+define("DEFAULT_USER_AVATAR", "public/assets/images/users/user-4.jpg");

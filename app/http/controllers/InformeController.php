@@ -4,6 +4,7 @@ require_once "app/models/Informe.php";
 require_once "app/models/InformeTemplate.php";
 require_once "app/models/TipoInforme.php";
 require_once "app/http/controllers/InformePDF.php";
+require_once 'app/helpers/ImageStorage.php';
 
 class InformeController extends Controller
 {
@@ -426,77 +427,51 @@ public function render()
     // Método auxiliar para procesar imágenes (usado para imágenes del informe)
     private function procesarImagen($file)
     {
-        return $this->procesarImagenEnDirectorio($file, 'files/informes/');
+        return ImageStorage::save($file, 'informes');
     }
     
     // Método auxiliar para procesar imágenes de membretes
     private function procesarImagenMembrete($file)
     {
-        return $this->procesarImagenEnDirectorio($file, 'files/informes/membretes/');
+        return ImageStorage::save($file, 'informes');
     }
     
-    // Método genérico para procesar imágenes en cualquier directorio
+    // Método genérico para procesar imágenes en cualquier directorio (mantenido para compatibilidad)
     private function procesarImagenEnDirectorio($file, $uploadDir)
     {
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (!in_array($file['type'], $allowedTypes)) {
-            throw new Exception("Tipo de archivo no permitido. Solo se permiten imágenes JPG, PNG y GIF.");
-        }
-        
-        // Verificar tamaño del archivo (máximo 10MB)
-        if ($file['size'] > 10 * 1024 * 1024) {
-            throw new Exception("El archivo es demasiado grande. El tamaño máximo permitido es 10MB.");
-        }
-        
-        // Crear directorio si no existe
-        if (!file_exists($uploadDir)) {
-            if (!mkdir($uploadDir, 0755, true)) {
-                throw new Exception("No se pudo crear el directorio de imágenes: $uploadDir");
-            }
-        }
-        
-        // Generar nombre único para el archivo
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
-        $rutaCompleta = $uploadDir . $nombreArchivo;
-        
-        // Optimizar y guardar la imagen
-        $imagenOptimizada = $this->optimizarImagenInforme($file);
-        
-        // Guardar la imagen optimizada
-        if (!file_put_contents($rutaCompleta, $imagenOptimizada)) {
-            throw new Exception("No se pudo guardar la imagen.");
-        }
-        
-        // Retornar solo la ruta relativa
-        return $rutaCompleta;
+        return ImageStorage::save($file, 'informes');
     }
     
     /**
      * Elimina una imagen anterior del sistema de archivos
      */
-    private function eliminarImagenAnterior($rutaImagen)
+    private function eliminarImagenAnterior($filename)
     {
-        if (!$rutaImagen) {
+        if (!$filename) {
             return;
         }
         
         // No eliminar si es una imagen base64 o URL externa
-        if (strpos($rutaImagen, 'data:image/') === 0 || strpos($rutaImagen, 'http') === 0) {
+        if (strpos($filename, 'data:image/') === 0 || strpos($filename, 'http') === 0) {
             return;
         }
         
         // No eliminar imágenes por defecto del sistema
-        if (strpos($rutaImagen, 'public/img/garantia/') !== false) {
+        if (strpos($filename, 'public/img/garantia/') !== false) {
             return;
         }
         
-        // Eliminar solo si es un archivo en la carpeta de membretes o informes
-        if (strpos($rutaImagen, 'files/informes/') === 0 && file_exists($rutaImagen)) {
-            try {
-                unlink($rutaImagen);
-            } catch (Exception $e) {
-                error_log("Error al eliminar imagen anterior: " . $e->getMessage());
+        // Extraer solo el nombre de archivo (soporta tanto rutas viejas como nuevos nombres)
+        $basename = basename($filename);
+        
+        // Eliminar si es un archivo de informes (nuevo formato: solo filename, o viejo formato: ruta files/informes/)
+        if (preg_match('/^\d+_[a-f0-9]+\.(jpg|jpeg|png|gif)$/i', $basename) ||
+            strpos($filename, 'files/informes/') === 0) {
+            // Intentar eliminar vía ImageStorage (nuevo storage)
+            ImageStorage::delete('informes', $basename);
+            // Fallback: si el archivo todavía existe en la ubicación antigua, eliminarlo
+            if (strpos($filename, 'files/informes/') === 0 && file_exists($filename)) {
+                @unlink($filename);
             }
         }
     }

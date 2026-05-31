@@ -340,7 +340,7 @@ class SunatApiClient
         if ($tipo_doc === '0') $doc_num = '00000000';
 
         $documento    = ($dataE['cod_notaE'] === '07') ? 'credito' : 'debito';
-        $doc_afectado = str_starts_with((string)$dataE['sn_afectado'], 'F') ? 'factura' : 'boleta';
+        $doc_afectado = (substr((string)$dataE['sn_afectado'], 0, 1) === 'F') ? 'factura' : 'boleta';
         $nom_rs       = $dataE['cliente']['nom_RS'] ?? '-';
 
         $body = [

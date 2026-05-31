@@ -16,7 +16,7 @@
         <?php
         if(isset($_SESSION['id_rol'])) {
             // Obtener la foto de perfil del usuario desde la sesión
-            $fotoPerfilUsuario = URL::to('public/assets/images/users/user-4.jpg'); // Foto por defecto
+            $fotoPerfilUsuario = URL::to(DEFAULT_USER_AVATAR); // Foto por defecto
 
             if(isset($_SESSION['foto_perfil']) && !empty($_SESSION['foto_perfil'])) {
                 $fotoPerfilUsuario = URL::to($_SESSION['foto_perfil']);
@@ -44,7 +44,7 @@
             echo '<span class="nombre-usuario">' . $nombreCompleto . '</span> | <span class="role">' . $rolNombre . '</span>';
             echo '</span>';
         } else {
-            echo '<img src="' . URL::to('public/assets/images/users/user-4.jpg') . '" alt="Foto de perfil" class="jvc-user-avatar">';
+            echo '<img src="' . URL::to(DEFAULT_USER_AVATAR) . '" alt="Foto de perfil" class="jvc-user-avatar">';
             echo '<span class="jvc-user-text">';
             echo '<span class="nombre-usuario">Usuario</span> | <span class="role">INVITADO</span>';
             echo '</span>';

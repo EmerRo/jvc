@@ -68,9 +68,9 @@ class Route {
 
         //Muestra el mensaje de error 404...
         header("Content-Type: text/html");
-        echo (new View())->render("404");
+        echo (new View())->render("404"); //retorna la vista 404 si la uri no se encuentra registrada en el método solicitado.
         //echo 'La uri (<a href="' . $uri . '">' . $uri . '</a>) no se encuentra regiostrada en el método ' . $method . '.';
-        return '';
+        return ''; 
     }
 
 }

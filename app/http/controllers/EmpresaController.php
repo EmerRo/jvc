@@ -1,5 +1,6 @@
 <?php
 require_once "app/models/Consultas.php";
+require_once 'app/helpers/ImageStorage.php';
 
 class EmpresaController extends Controller
 {
@@ -49,11 +50,12 @@ class EmpresaController extends Controller
         // Manejo de logo
         $logoSQL = "";
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-            $extension = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
-            $nombreArchivo = uniqid() . '.' . $extension;
-            $destino = "logos/" . $nombreArchivo;
-            move_uploaded_file($_FILES['logo']['tmp_name'], $destino);
-            $logoSQL = ", logo='$nombreArchivo'";
+            try {
+                $nombreArchivo = ImageStorage::save($_FILES['logo'], 'empresas');
+                $logoSQL = ", logo='$nombreArchivo'";
+            } catch (\RuntimeException $e) {
+                error_log("Error al guardar logo: " . $e->getMessage());
+            }
         }
 
         $sql = "UPDATE empresas SET

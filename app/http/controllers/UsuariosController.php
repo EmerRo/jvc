@@ -1,5 +1,6 @@
 <?php
 require_once   'app/models/ModulosHelper.php';
+require_once   'app/helpers/ImageStorage.php';
 
 class UsuariosController extends Controller
 {
@@ -67,7 +68,7 @@ class UsuariosController extends Controller
                         WHEN rotativo = 0 THEN 'No'
                         ELSE 'Si'
                     END AS rotativo,
-                    COALESCE(foto_perfil, 'public/assets/images/users/user-4.jpg') as foto_perfil
+                    COALESCE(foto_perfil, '" . DEFAULT_USER_AVATAR . "') as foto_perfil
                 FROM
                     usuarios u
                 INNER JOIN roles r ON r.rol_id = u.id_rol
@@ -132,7 +133,7 @@ class UsuariosController extends Controller
             // Manejar la subida de foto
             $fotoPerfil = null;
             if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $fotoPerfil = $this->subirFoto($_FILES['foto_perfil']);
+                $fotoPerfil = ImageStorage::save($_FILES['foto_perfil'], 'usuarios');
             }
 
             // Generar código único de 3 dígitos
@@ -163,39 +164,6 @@ class UsuariosController extends Controller
             }
         } catch (Exception $e) {
             return json_encode(['success' => false, 'error' => 'Error: ' . $e->getMessage()]);
-        }
-    }
-
-    private function subirFoto($archivo)
-    {
-        $directorioDestino = 'public/uploads/usuarios/';
-
-        // Crear directorio si no existe
-        if (!file_exists($directorioDestino)) {
-            mkdir($directorioDestino, 0755, true);
-        }
-
-        // Generar nombre único
-        $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
-        $nombreArchivo = 'usuario_' . time() . '_' . uniqid() . '.' . $extension;
-        $rutaCompleta = $directorioDestino . $nombreArchivo;
-
-        // Validar tipo de archivo
-        $tiposPermitidos = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array(strtolower($extension), $tiposPermitidos)) {
-            throw new Exception('Tipo de archivo no permitido');
-        }
-
-        // Validar tamaño (2MB máximo)
-        if ($archivo['size'] > 2 * 1024 * 1024) {
-            throw new Exception('El archivo es muy grande. Máximo 2MB');
-        }
-
-        // Mover archivo
-        if (move_uploaded_file($archivo['tmp_name'], $rutaCompleta)) {
-            return $rutaCompleta;
-        } else {
-            throw new Exception('Error al subir el archivo');
         }
     }
 
@@ -237,7 +205,7 @@ class UsuariosController extends Controller
             // Manejar actualización de foto
             $fotoUpdate = "";
             if (isset($_FILES['foto_perfil_edit']) && $_FILES['foto_perfil_edit']['error'] === UPLOAD_ERR_OK) {
-                $fotoPerfil = $this->subirFoto($_FILES['foto_perfil_edit']);
+                $fotoPerfil = ImageStorage::save($_FILES['foto_perfil_edit'], 'usuarios');
                 $fotoUpdate = "foto_perfil='$fotoPerfil',";
             }
 

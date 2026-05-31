@@ -1,5 +1,7 @@
 <?php
 
+require_once 'app/helpers/ImageStorage.php';
+
 class PdfHelper
 {
   /**
@@ -9,7 +11,7 @@ class PdfHelper
   public static function escribirEncabezadoEmpresa($mpdf, $datoEmpresa, $htmlCuadroHead)
   {
     // Logo de la empresa
-    $mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . URL::to('files/logos/' . $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
+    $mpdf->WriteFixedPosHTML("<img style='max-width: 300px;max-height: 85px' src='" . ImageStorage::url('empresas', $datoEmpresa['logo']) . "'>", 35, 8, 150, 120);
 
     // Cuadro del encabezado (título del documento)
     $mpdf->WriteFixedPosHTML($htmlCuadroHead, 0, 5, 196, 130);
@@ -38,18 +40,18 @@ class PdfHelper
       return null;
     }
     $extensions = ['jpg', 'jpeg', 'png'];
-    $basePath = 'public/img/productos/';
+    $basePath = ImageStorage::BASE_PATH . 'productos/';
 
     if (pathinfo($imageName, PATHINFO_EXTENSION)) {
       $fullPath = $basePath . $imageName;
       if (file_exists($fullPath)) {
-        return URL::to($fullPath);
+        return ImageStorage::url('productos', $imageName);
       }
     } else {
       foreach ($extensions as $ext) {
         $fullPath = $basePath . $imageName . '.' . $ext;
         if (file_exists($fullPath)) {
-          return URL::to($fullPath);
+          return ImageStorage::url('productos', $imageName . '.' . $ext);
         }
       }
     }

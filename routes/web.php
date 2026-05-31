@@ -35,9 +35,6 @@ Route::get('/venta/pdf/voucher/5.6cm/:voucher',"ReportesVentaController@imprimir
 Route::get('/venta/pdf/voucher/5.6cm/:voucher/:nom',"ReportesVentaController@imprimirvoucher5_6cm");
 
 
-Route::get("/escanear/codigobarra/:empresa/:sucursal","ViewController@escanearBarra");
-
-
 Route::baseStatic("ViewController@index",[ValidarTokenMiddleware::class]);
 
 Route::postBase("/","FragmentController@home");
@@ -208,5 +205,8 @@ Route::postBase("/documentos/archivos/internos", "FragmentController@documentosA
 Route::postBase("/documentos/otros", "FragmentController@documentosOtros");
 
 Route::get("/reporte/cajas/general/excel", "GenerarReporte@generarExcelRegistroCajas");
+
+Route::get("/img/thumb/:categoria/:img", "ImageController@serveThumb");
+Route::get("/img/:categoria/:img", "ImageController@serve");
 
 

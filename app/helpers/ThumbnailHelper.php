@@ -98,14 +98,13 @@ class ThumbnailHelper {
             return null;
         }
 
-        // Si la imagen ya está en la carpeta de thumbnails, la devolvemos directamente
         if (strpos($imagePath, 'thumbnails/') !== false) {
             return file_exists($imagePath) ? $imagePath : null;
         }
 
-        $fullImagePath = 'public/img/productos/' . $imagePath;
-        $thumbnailPath = self::getThumbnailPath($imagePath);
-        $fullThumbnailPath = 'public/img/productos/' . $thumbnailPath;
+        $fullImagePath = ImageStorage::BASE_PATH . 'productos/' . $imagePath;
+        $thumbnailFilename = ImageStorage::getThumbnailFilename($imagePath);
+        $fullThumbnailPath = ImageStorage::BASE_PATH . 'thumbnails/productos/' . $thumbnailFilename;
 
         if (!file_exists($fullThumbnailPath)) {
             if (file_exists($fullImagePath)) {
@@ -113,6 +112,6 @@ class ThumbnailHelper {
             }
         }
 
-        return file_exists($fullThumbnailPath) ? $thumbnailPath : null;
+        return file_exists($fullThumbnailPath) ? $thumbnailFilename : null;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+require_once 'app/helpers/ImageStorage.php';
+
 class TallerFoto
 {
     private $conectar;
@@ -20,45 +22,28 @@ class TallerFoto
         }
 
         try {
-          $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/public/assets/img/cotizaciones/';
-            error_log("DEBUG: Upload directory: " . $uploadDir);
-
-            if (!file_exists($uploadDir)) {
-                error_log("DEBUG: Upload directory does not exist. Attempting to create: " . $uploadDir);
-                if (!mkdir($uploadDir, 0777, true)) {
-                    error_log("ERROR: Failed to create directory: " . $uploadDir);
-                    throw new Exception("No se pudo crear el directorio para las fotos");
-                }
-                error_log("DEBUG: Upload directory created successfully.");
-            }
-
-            if (!is_writable($uploadDir)) {
-                error_log("ERROR: Upload directory is not writable: " . $uploadDir);
-                throw new Exception("El directorio de fotos no tiene permisos de escritura");
-            }
-            error_log("DEBUG: Upload directory is writable.");
-
             $uploadedFiles = [];
             $errors = [];
 
             foreach ($fotos['tmp_name'] as $key => $tmp_name) {
                 error_log("DEBUG: Processing file key: " . $key . ", name: " . $fotos['name'][$key] . ", error: " . $fotos['error'][$key]);
                 if ($fotos['error'][$key] === UPLOAD_ERR_OK) {
-                    $extension = pathinfo($fotos['name'][$key], PATHINFO_EXTENSION);
-                    $fileName = uniqid('img_') . '_' . time() . '.' . $extension;
-                    $targetFilePath = $uploadDir . $fileName;
-                    error_log("DEBUG: Attempting to move file from " . $tmp_name . " to " . $targetFilePath);
-
-                    if (move_uploaded_file($tmp_name, $targetFilePath)) {
-                        error_log("DEBUG: File moved successfully: " . $targetFilePath);
+                    try {
+                        $singleFile = [
+                            'tmp_name' => $tmp_name,
+                            'name'     => $fotos['name'][$key],
+                            'error'    => $fotos['error'][$key],
+                            'size'     => $fotos['size'][$key],
+                        ];
+                        $fileName = ImageStorage::save($singleFile, 'cotizaciones-taller');
+                        error_log("DEBUG: File saved via ImageStorage: " . $fileName);
                         $uploadedFiles[] = [
-                            'nombre' => $fileName,
+                            'nombre'       => $fileName,
                             'equipo_index' => isset($fotosEquipo[$key]) ? intval($fotosEquipo[$key]) : 0
                         ];
-                    } else {
-                        $lastError = error_get_last();
-                        error_log("ERROR: Failed to move file: " . $fotos['name'][$key] . ". move_uploaded_file() returned false. Last PHP error: " . print_r($lastError, true));
-                        $errors[] = "No se pudo mover el archivo: " . $fotos['name'][$key];
+                    } catch (RuntimeException $e) {
+                        error_log("ERROR: ImageStorage save failed: " . $e->getMessage());
+                        $errors[] = "No se pudo guardar el archivo: " . $fotos['name'][$key] . " - " . $e->getMessage();
                     }
                 } else {
                     error_log("ERROR: Upload error for file " . $fotos['name'][$key] . ": " . $fotos['error'][$key] . " (See PHP upload error codes for details).");
@@ -109,11 +94,8 @@ class TallerFoto
                     $this->conectar->rollback();
                     error_log("ERROR: Database transaction failed. Rolling back and deleting uploaded files.");
                     foreach ($uploadedFiles as $file) {
-                        $filePath = $uploadDir . $file['nombre'];
-                        if (file_exists($filePath)) {
-                            unlink($filePath); // Clean up partially uploaded files
-                            error_log("DEBUG: Deleted partially uploaded file: " . $filePath);
-                        }
+                        ImageStorage::delete('cotizaciones-taller', $file['nombre']);
+                        error_log("DEBUG: Deleted partially uploaded file: " . $file['nombre']);
                     }
                     throw $e; // Re-throw the exception after cleanup
                 }
@@ -144,12 +126,7 @@ class TallerFoto
     public function eliminar($id_cotizacion, $nombre_foto, $equipo_index = null)
     {
         // 1. Eliminar el archivo físico
-        $ruta_foto = dirname(dirname(__DIR__)) . '/../public/assets/img/cotizaciones/' . $nombre_foto;
-        if (file_exists($ruta_foto)) {
-            if (!unlink($ruta_foto)) {
-                throw new Exception('No se pudo eliminar el archivo físico');
-            }
-        }
+        ImageStorage::delete('cotizaciones-taller', $nombre_foto);
 
         // 2. Eliminar de la base de datos
         $sql = "DELETE FROM taller_cotizaciones_fotos 

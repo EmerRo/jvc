@@ -2036,7 +2036,7 @@
                                     // Con imagen
                                     html = `
                                         <div style="display: flex; align-items: flex-start; padding: 8px; max-width: 100%;">
-                                            <img src="${_URL}/public/img/productos/${item.imagen}"
+                                            <img src="${_URL}/img/productos/${item.imagen}"
                                                  style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0; margin-top: 2px;"
                                                  loading="lazy"
                                                  onerror="this.style.display='none';" />
@@ -2794,7 +2794,7 @@
                         // Con imagen
                         html = `
                             <div style="display: flex; align-items: flex-start; padding: 8px; max-width: 100%;">
-                                <img src="${_URL}/public/img/productos/${item.imagen}"
+                                <img src="${_URL}/img/productos/${item.imagen}"
                                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0; margin-top: 2px;"
                                      loading="lazy"
                                      onerror="this.style.display='none';" />

@@ -36,7 +36,7 @@ class GeneradoresController extends Controller
     // Configurar el header igual que cotizaciones
     $headerHTML = "
     <div style='width: 100%; margin: 0; padding: 0;'>
-    <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
+    <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . ImageStorage::url('empresas', $empresa['logo']) . "'>
     </div>";
 
     // Establecer el header y configurarlo para todas las páginas
@@ -212,7 +212,7 @@ public function reportePeriodoVenta($periodo)
     // Configurar el header igual que cotizaciones
     $headerHTML = "
     <div style='width: 100%; margin: 0; padding: 0;'>
-    <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . URL::to('files/logo/' . $empresa['logo']) . "'>
+    <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . ImageStorage::url('empresas', $empresa['logo']) . "'>
     </div>";
 
     // Establecer el header y configurarlo para todas las páginas

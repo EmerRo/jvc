@@ -78,7 +78,7 @@ $(document).ready(() => {
   function buildImageUrl(fileName) {
     // Asegurarse de que la URL base termine con una barra
     const baseUrl = _URL.endsWith("/") ? _URL : _URL + "/"
-    return `${baseUrl}public/assets/img/cotizaciones/${fileName}`
+    return `${baseUrl}img/cotizaciones-taller/${fileName}`
   }
 
   // Función para agregar vista previa de imagen
