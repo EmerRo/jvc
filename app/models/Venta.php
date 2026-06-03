@@ -32,6 +32,9 @@ private $sql_error;
     public function __construct()
     {
         $this->conectar = (new Conexion())->getConexion();
+        if (!class_exists('DB')) {
+            require_once 'app/clases/DB.php';
+        }
     }
 
     /**
@@ -397,59 +400,177 @@ public function setDocReferencia($doc_referencia): void
     }
     public function insertar()
     {
-        $sqlData='';
-        if (isset($_POST['segundoPago']) && $_POST['segundoPago']){
-            $sqlData=" ,is_segun_pago='1',medoto_pago2_id='{$_POST['metodo2']}',pagado2='{$_POST['pagacon2']}' ";
-        }
-        
         // Asegurar que tc tenga un valor válido cuando moneda es 1 (Soles)
         $tc = isset($_POST['tc']) && !empty($_POST['tc']) ? $_POST['tc'] : '0';
-    
-        // Si la moneda es Soles (1), establecer tc a 0 o 1
         if (isset($_POST['moneda']) && $_POST['moneda'] == '1') {
             $tc = '1';
         }
-        
-        $idCotiValue = isset($this->idCoti) && $this->idCoti !== '' ? $this->idCoti : 'NULL';
-        $docReferencia = isset($_POST['doc_referencia']) ? $_POST['doc_referencia'] : '';
 
-        $sql = "insert into ventas set doc_referencia='$docReferencia', moneda='{$_POST['moneda']}',cm_tc='{$tc}',pagado='{$_POST['pagacon']}', apli_igv='$this->apli_igv', id_tido='$this->id_tido',id_tipo_pago='$this->id_tipo_pago',fecha_emision='$this->fecha',
-        fecha_vencimiento='$this->fechaVenc',dias_pagos='$this->dias_pagos',direccion='$this->direccion',
-        serie='$this->serie',numero='$this->numero',id_cliente='$this->id_cliente',total='$this->total', estado='1',
-                       
-        enviado_sunat='0',igv='$this->igv',id_empresa='$this->id_empresa',sucursal='{$_SESSION['sucursal']}', observacion='$this->observa',medoto_pago_id='$this->metodo',id_coti ='$idCotiValue', id_vendedor='{$_SESSION["usuario_fac"]}' ".$sqlData;
-        $result = $this->conectar->query($sql);
-        if ($result) {
-            $this->id_venta = $this->conectar->insert_id;
-        } else {
-            // Guardar el error para depuración
-            $this->sql_error = $this->conectar->error;
+        $sucursal      = DB::int($_SESSION['sucursal'] ?? 0);
+        $usuarioFac    = DB::int($_SESSION['usuario_fac'] ?? 0);
+        $moneda        = DB::int($_POST['moneda'] ?? 1);
+        $tcF           = DB::float($tc, 1.0);
+        $pagado        = DB::float($_POST['pagacon'] ?? 0);
+        $docReferencia = DB::str($_POST['doc_referencia'] ?? '');
+        $apliIgv       = DB::int($this->apli_igv);
+        $idTido        = DB::int($this->id_tido);
+        $idTipoPago    = DB::int($this->id_tipo_pago);
+        $fechaEm       = DB::str($this->fecha);
+        $fechaVe       = DB::str($this->fechaVenc);
+        $diasPagos     = DB::str($this->dias_pagos);
+        $direccion     = DB::str($this->direccion);
+        $serie         = DB::str($this->serie);
+        $numero        = DB::str($this->numero);
+        $idCliente     = DB::int($this->id_cliente);
+        $totalV        = DB::float($this->total);
+        $igvV          = DB::float($this->igv);
+        $idEmpresa     = DB::int($this->id_empresa);
+        $observa       = DB::str($this->observa);
+        $metodo        = DB::int($this->metodo);
+
+        // id_coti puede ser NULL ⇒ si no se setea, lo dejamos como 0 (placeholder)
+        // pero el campo `id_coti` en la tabla puede tolerar 0. Si necesitás NULL real,
+        // ajustá la columna a permitir NULL y cambiá el bind a 's' con 'NULL'.
+        $idCoti = (isset($this->idCoti) && $this->idCoti !== '' && $this->idCoti !== null)
+            ? DB::int($this->idCoti)
+            : 0;
+
+        // Bloque opcional de segundo pago (no rompe la firma original)
+        $isSegundo = isset($_POST['segundoPago']) && $_POST['segundoPago'];
+        $metodo2   = $isSegundo ? DB::int($_POST['metodo2'] ?? 0)   : 0;
+        $pagado2   = $isSegundo ? DB::float($_POST['pagacon2'] ?? 0) : 0.0;
+        $isSegFlag = $isSegundo ? 1 : 0;
+
+        $sql = "INSERT INTO ventas
+                SET doc_referencia    = ?,
+                    moneda            = ?,
+                    cm_tc             = ?,
+                    pagado            = ?,
+                    apli_igv          = ?,
+                    id_tido           = ?,
+                    id_tipo_pago      = ?,
+                    fecha_emision     = ?,
+                    fecha_vencimiento = ?,
+                    dias_pagos        = ?,
+                    direccion         = ?,
+                    serie             = ?,
+                    numero            = ?,
+                    id_cliente        = ?,
+                    total             = ?,
+                    estado            = '1',
+                    enviado_sunat     = '0',
+                    igv               = ?,
+                    id_empresa        = ?,
+                    sucursal          = ?,
+                    observacion       = ?,
+                    medoto_pago_id    = ?,
+                    id_coti           = ?,
+                    id_vendedor       = ?,
+                    is_segun_pago     = ?,
+                    medoto_pago2_id   = ?,
+                    pagado2           = ?";
+
+        // Tipos: s i d d i i i s s s s s s i d d i i s i i i i i d
+        $types  = 'siddiiissssssidd' . 'iisiiiiiid';
+        $params = [
+            $docReferencia, // s
+            $moneda,        // i
+            $tcF,           // d
+            $pagado,        // d
+            $apliIgv,       // i
+            $idTido,        // i
+            $idTipoPago,    // i
+            $fechaEm,       // s
+            $fechaVe,       // s
+            $diasPagos,     // s
+            $direccion,     // s
+            $serie,         // s
+            $numero,        // s
+            $idCliente,     // i
+            $totalV,        // d
+            $igvV,          // d
+            $idEmpresa,     // i
+            $sucursal,      // i
+            $observa,       // s
+            $metodo,        // i
+            $idCoti,        // i
+            $usuarioFac,    // i
+            $isSegFlag,     // i
+            $metodo2,       // i
+            $pagado2,       // d
+        ];
+
+        $insertId = DB::insert($this->conectar, $sql, $types, $params);
+        if ($insertId > 0) {
+            $this->id_venta = $insertId;
+            return true;
         }
-        return $result;
+        $this->sql_error = $this->conectar->error;
+        $this->sql       = $sql;
+        return false;
     }
     public function editar($id_venta)
     {
-        $sql = "UPDATE ventas set medoto_pago_id='{$_POST['metodo']}',moneda='{$_POST['moneda']}',cm_tc='{$_POST['tc']}',apli_igv='$this->apli_igv', id_tido='$this->id_tido',id_tipo_pago='$this->id_tipo_pago',fecha_emision='$this->fecha',
-        fecha_vencimiento='$this->fechaVenc',dias_pagos='$this->dias_pagos',direccion='$this->direccion',
-        id_cliente='$this->id_cliente',total='$this->total',igv='$this->igv',id_empresa='$this->id_empresa',
-                   observacion='$this->observa' WHERE id_venta = '$id_venta' ";
-
-        //var_dump($sql);
-        $result = $this->conectar->query($sql);
-        if ($result) {
-            $this->id_venta = $this->conectar->insert_id;
-        } else {
-            //echo $this->conectar->error;
+        $idVentaInt = DB::int($id_venta);
+        if ($idVentaInt <= 0) {
+            return false;
         }
-        return $result;
+
+        $metodo     = DB::int($_POST['metodo'] ?? 0);
+        $moneda     = DB::int($_POST['moneda'] ?? 1);
+        $tc         = DB::float($_POST['tc'] ?? 1, 1.0);
+        $apliIgv    = DB::int($this->apli_igv);
+        $idTido     = DB::int($this->id_tido);
+        $idTipoPago = DB::int($this->id_tipo_pago);
+        $fechaEm    = DB::str($this->fecha);
+        $fechaVe    = DB::str($this->fechaVenc);
+        $diasPagos  = DB::str($this->dias_pagos);
+        $direccion  = DB::str($this->direccion);
+        $idCliente  = DB::int($this->id_cliente);
+        $totalV     = DB::float($this->total);
+        $igvV       = DB::float($this->igv);
+        $idEmpresa  = DB::int($this->id_empresa);
+        $observa    = DB::str($this->observa);
+
+        $sql = "UPDATE ventas
+                SET medoto_pago_id    = ?,
+                    moneda            = ?,
+                    cm_tc             = ?,
+                    apli_igv          = ?,
+                    id_tido           = ?,
+                    id_tipo_pago      = ?,
+                    fecha_emision     = ?,
+                    fecha_vencimiento = ?,
+                    dias_pagos        = ?,
+                    direccion         = ?,
+                    id_cliente        = ?,
+                    total             = ?,
+                    igv               = ?,
+                    id_empresa        = ?,
+                    observacion       = ?
+                WHERE id_venta = ?";
+
+        $types  = 'iidiiissssidd' . 'isi';
+        $params = [
+            $metodo, $moneda, $tc, $apliIgv, $idTido, $idTipoPago,
+            $fechaEm, $fechaVe, $diasPagos, $direccion,
+            $idCliente, $totalV, $igvV,
+            $idEmpresa, $observa, $idVentaInt,
+        ];
+
+        return DB::execute($this->conectar, $sql, $types, $params);
     }
 
     public function anular()
     {
-        $sql = "update ventas 
-        set estado = '2'   
-        where id_venta = '$this->id_venta'";
-        return $this->conectar->query($sql);
+        $id = DB::int($this->id_venta);
+        if ($id <= 0) return false;
+        return DB::execute(
+            $this->conectar,
+            "UPDATE ventas SET estado = '2' WHERE id_venta = ?",
+            'i',
+            [$id]
+        );
     }
 
     public function obtenerId()
@@ -461,57 +582,90 @@ public function setDocReferencia($doc_referencia): void
 
     public function verDetalle()
     {
-        $sql = "select ventas.*, c.documento,c.datos
-        from ventas  join clientes c on c.id_cliente = ventas.id_cliente
-        where id_venta = '$this->id_venta'";
-        $respuesta = ["res" => false];
-        if ($row = $this->conectar->query($sql)->fetch_assoc()) {
+        $idVenta = DB::int($this->id_venta);
+        $respuesta = ['res' => false];
+        if ($idVenta <= 0) {
+            return json_encode($respuesta);
+        }
+
+        $row = DB::selectOne(
+            $this->conectar,
+            "SELECT ventas.*, c.documento, c.datos
+             FROM ventas
+             JOIN clientes c ON c.id_cliente = ventas.id_cliente
+             WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+
+        if ($row) {
             $totalVenta = 0;
-            $row["detalles"] = [];
-            $sql = "SELECT productos_ventas.*,p.nombre,p.codigo FROM productos_ventas join productos p on p.id_producto = productos_ventas.id_producto WHERE id_venta=" . $this->id_venta;
-            $result = $this->conectar->query($sql);
-            foreach ($result as $depro) {
+            $row['detalles'] = [];
+
+            $detallesProd = DB::select(
+                $this->conectar,
+                "SELECT productos_ventas.*, p.nombre, p.codigo
+                 FROM productos_ventas
+                 JOIN productos p ON p.id_producto = productos_ventas.id_producto
+                 WHERE id_venta = ?",
+                'i',
+                [$idVenta]
+            );
+            foreach ($detallesProd as $depro) {
                 $totalVenta += $depro['cantidad'] * $depro['precio'];
-                $row["detalles"][] = $depro;
+                $row['detalles'][] = $depro;
             }
 
-            $sql = "SELECT *,'' as codigo FROM ventas_servicios WHERE id_venta=" . $this->id_venta;
-            $result = $this->conectar->query($sql);
-            foreach ($result as $depro) {
+            $detallesServ = DB::select(
+                $this->conectar,
+                "SELECT *, '' as codigo FROM ventas_servicios WHERE id_venta = ?",
+                'i',
+                [$idVenta]
+            );
+            foreach ($detallesServ as $depro) {
                 $depro['precio'] = $depro['monto'];
                 $totalVenta += $depro['cantidad'] * $depro['monto'];
-                $row["detalles"][] = $depro;
+                $row['detalles'][] = $depro;
             }
 
             // Si es una venta proveniente de cotización de taller, armar estructura por equipos
             $equiposVenta = [];
-            $sqlEq = "SELECT * FROM ventas_equipos WHERE id_venta = " . $this->id_venta . " ORDER BY id_venta_equipo";
-            $resEq = $this->conectar->query($sqlEq);
-            if ($resEq && $resEq->num_rows > 0) {
-                while ($eq = $resEq->fetch_assoc()) {
-                    $idVe = $eq['id_venta_equipo'];
-                    $items = [];
-                    $sqlItems = "SELECT pv.*, p.nombre, p.codigo
-                                 FROM productos_ventas pv
-                                 JOIN productos p ON p.id_producto = pv.id_producto
-                                 WHERE pv.id_venta = {$this->id_venta} AND pv.id_venta_equipo = {$idVe}";
-                    $resItems = $this->conectar->query($sqlItems);
+            $equipos = DB::select(
+                $this->conectar,
+                "SELECT * FROM ventas_equipos WHERE id_venta = ? ORDER BY id_venta_equipo",
+                'i',
+                [$idVenta]
+            );
+            if (!empty($equipos)) {
+                foreach ($equipos as $eq) {
+                    $idVe = DB::int($eq['id_venta_equipo']);
+                    $items = DB::select(
+                        $this->conectar,
+                        "SELECT pv.*, p.nombre, p.codigo
+                         FROM productos_ventas pv
+                         JOIN productos p ON p.id_producto = pv.id_producto
+                         WHERE pv.id_venta = ? AND pv.id_venta_equipo = ?",
+                        'ii',
+                        [$idVenta, $idVe]
+                    );
                     $subtotalEquipo = 0;
-                    foreach ($resItems as $it) {
-                        $items[] = $it;
+                    foreach ($items as $it) {
                         $subtotalEquipo += $it['cantidad'] * $it['precio'];
                     }
                     // Fallback: si no hay items vinculados por id_venta_equipo (ventas anteriores),
                     // intentar recuperar por id_cotizacion_equipo
                     if (empty($items) && !empty($eq['id_cotizacion_equipo'])) {
-                        $idCotiEq = intval($eq['id_cotizacion_equipo']);
-                        $sqlItems2 = "SELECT pv.*, p.nombre, p.codigo
-                                      FROM productos_ventas pv
-                                      JOIN productos p ON p.id_producto = pv.id_producto
-                                      WHERE pv.id_venta = {$this->id_venta} AND pv.id_cotizacion_equipo = {$idCotiEq}";
-                        $resItems2 = $this->conectar->query($sqlItems2);
-                        foreach ($resItems2 as $it2) {
-                            $items[] = $it2;
+                        $idCotiEq = DB::int($eq['id_cotizacion_equipo']);
+                        $items = DB::select(
+                            $this->conectar,
+                            "SELECT pv.*, p.nombre, p.codigo
+                             FROM productos_ventas pv
+                             JOIN productos p ON p.id_producto = pv.id_producto
+                             WHERE pv.id_venta = ? AND pv.id_cotizacion_equipo = ?",
+                            'ii',
+                            [$idVenta, $idCotiEq]
+                        );
+                        foreach ($items as $it2) {
                             $subtotalEquipo += $it2['cantidad'] * $it2['precio'];
                         }
                     }
@@ -523,36 +677,61 @@ public function setDocReferencia($doc_referencia): void
             } else {
                 $row['equipos'] = [];
             }
-            $row["montoTotal"] = number_format($totalVenta, 2, '.', '');
-            $respuesta['res'] = true;
+            $row['montoTotal'] = number_format($totalVenta, 2, '.', '');
+            $respuesta['res']  = true;
             $respuesta['data'] = $row;
         }
         return json_encode($respuesta);
     }
     public function verDetalle2()
     {
-        $sql = "select ventas.*, c.documento,c.datos
-        from ventas  join clientes c on c.id_cliente = ventas.id_cliente
-        where id_venta = '$this->id_venta'";
-        $respuesta = ["res" => false];
-        if ($row = $this->conectar->query($sql)->fetch_assoc()) {
+        $idVenta = DB::int($this->id_venta);
+        $respuesta = ['res' => false];
+        if ($idVenta <= 0) {
+            return $respuesta;
+        }
+
+        $row = DB::selectOne(
+            $this->conectar,
+            "SELECT ventas.*, c.documento, c.datos
+             FROM ventas
+             JOIN clientes c ON c.id_cliente = ventas.id_cliente
+             WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+
+        if ($row) {
             $totalVenta = 0;
-            $row["detalles"] = [];
-            $sql = "SELECT productos_ventas.*,p.descripcion FROM productos_ventas join productos p on p.id_producto = productos_ventas.id_producto WHERE id_venta=" . $this->id_venta;
-            $result = $this->conectar->query($sql);
-            foreach ($result as $depro) {
+            $row['detalles'] = [];
+
+            $detallesProd = DB::select(
+                $this->conectar,
+                "SELECT productos_ventas.*, p.descripcion
+                 FROM productos_ventas
+                 JOIN productos p ON p.id_producto = productos_ventas.id_producto
+                 WHERE id_venta = ?",
+                'i',
+                [$idVenta]
+            );
+            foreach ($detallesProd as $depro) {
                 $totalVenta += $depro['cantidad'] * $depro['precio'];
-                $row["detalles"][] = $depro;
+                $row['detalles'][] = $depro;
             }
-            $sql = "SELECT * FROM ventas_servicios WHERE id_venta=" . $this->id_venta;
-            $result = $this->conectar->query($sql);
-            foreach ($result as $depro) {
+
+            $detallesServ = DB::select(
+                $this->conectar,
+                "SELECT * FROM ventas_servicios WHERE id_venta = ?",
+                'i',
+                [$idVenta]
+            );
+            foreach ($detallesServ as $depro) {
                 $depro['precio'] = $depro['monto'];
                 $totalVenta += $depro['cantidad'] * $depro['monto'];
-                $row["detalles"][] = $depro;
+                $row['detalles'][] = $depro;
             }
-            $row["montoTotal"] = number_format($totalVenta, 2, '.', '');
-            $respuesta['res'] = true;
+            $row['montoTotal'] = number_format($totalVenta, 2, '.', '');
+            $respuesta['res']  = true;
             $respuesta['data'] = $row;
         }
         return $respuesta;
@@ -560,212 +739,240 @@ public function setDocReferencia($doc_referencia): void
 
     public function obtenerDatos()
     {
-        $sql = "select * 
-        from ventas 
-        where id_venta = '$this->id_venta'";
-        $fila = $this->conectar->query($sql)->fetch_assoc();
-        $this->fecha = $fila['fecha_emision'];
-        $this->id_tido = $fila['id_tido'];
-        $this->serie = $fila['serie'];
-        $this->numero = $fila['numero'];
-        $this->id_cliente = $fila['id_cliente'];
-        $this->total = $fila['total'];
-        $this->estado = $fila['estado'];
+        $idVenta = DB::int($this->id_venta);
+        if ($idVenta <= 0) return;
+
+        $fila = DB::selectOne(
+            $this->conectar,
+            "SELECT * FROM ventas WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+        if (!$fila) return;
+
+        $this->fecha         = $fila['fecha_emision'];
+        $this->id_tido       = $fila['id_tido'];
+        $this->serie         = $fila['serie'];
+        $this->numero        = $fila['numero'];
+        $this->id_cliente    = $fila['id_cliente'];
+        $this->total         = $fila['total'];
+        $this->estado        = $fila['estado'];
         $this->enviado_sunat = $fila['enviado_sunat'];
-        $this->id_empresa = $fila['id_empresa'];
-        $this->sucursal = $fila['sucursal'];
+        $this->id_empresa    = $fila['id_empresa'];
+        $this->sucursal      = $fila['sucursal'];
     }
 
     public function actualizar_envio()
     {
-        $query = "update ventas 
-        set enviado_sunat = 1 
-        where id_venta = '$this->id_venta'";
-        return $this->conectar->ejecutar_idu($query);
+        $id = DB::int($this->id_venta);
+        if ($id <= 0) return false;
+        return DB::execute(
+            $this->conectar,
+            "UPDATE ventas SET enviado_sunat = 1 WHERE id_venta = ?",
+            'i',
+            [$id]
+        );
     }
 
     public function validarVenta()
     {
-        $sql = "select id_venta as codigo  
-            from ventas
-            where id_tido = '$this->id_tido' and 
-                  serie = '$this->serie' and numero = '$this->numero' and id_empresa='{$_SESSION['id_empresa']}'";
-        //echo $sql;
-        if ($row = $this->conectar->query($sql)->fetch_assoc()) {
-            $this->id_venta = $row['codigo'];
-        } else {
-            $this->id_venta = null;
-        }
+        $idTido    = DB::int($this->id_tido);
+        $serie     = DB::str($this->serie);
+        $numero    = DB::str($this->numero);
+        $idEmpresa = DB::int($_SESSION['id_empresa'] ?? 0);
+
+        $row = DB::selectOne(
+            $this->conectar,
+            "SELECT id_venta AS codigo
+             FROM ventas
+             WHERE id_tido = ? AND serie = ? AND numero = ? AND id_empresa = ?",
+            'issi',
+            [$idTido, $serie, $numero, $idEmpresa]
+        );
+        $this->id_venta = $row ? $row['codigo'] : null;
     }
 
     public function verFilasPeriodoGanancia($periodo)
     {
+        $temoAr     = explode('-', $periodo);
+        $idEmpresa  = DB::int($this->id_empresa);
+        $sucursal   = DB::int($_SESSION['sucursal'] ?? 0);
+        $anio       = DB::int($temoAr[0] ?? 0);
+        $mes        = DB::int($temoAr[1] ?? 0);
+        $diaTok     = $temoAr[2] ?? '0';
 
-        $temoAr = explode('-', $periodo);
+        $base = "SELECT v.id_venta, v.fecha_emision, ds.abreviatura,
+                v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado,
+                v.enviado_sunat, vs.nombre_xml, metodo_pago.nombre AS metodo
+             FROM ventas AS v
+                 LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                 LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+                 LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago = v.medoto_pago_id";
 
-
-        if ($temoAr[2] >0) {
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,
-            v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-             from ventas as v
-                 LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-                 LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-                 LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-                 where v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
-               and YEAR(v.fecha_emision) = '$temoAr[0]'  and MONTH(v.fecha_emision) = '$temoAr[1]'  and day(v.fecha_emision) = '$temoAr[2]'  
-             order by v.fecha_emision asc, v.numero asc";
-        } elseif ($temoAr[2] == 'nn' ) {
-
-
-
-            $periodo = $temoAr[0] . $temoAr[1];
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-            LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-        where v.id_empresa = '$this->id_empresa' and YEAR(v.fecha_emision) = '$temoAr[0]' and MONTH(v.fecha_emision) = '$temoAr[1]'  
-        order by v.fecha_emision asc, v.numero asc";
-
-
-        }else {
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-            LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-  
-        where v.id_empresa = '$this->id_empresa' and concat(year(v.fecha_emision), LPAD(month(v.fecha_emision), 2, 0)) = '$periodo'
-        order by v.fecha_emision asc, v.numero asc";
+        if ((int)$diaTok > 0) {
+            // Día específico (filtra también por sucursal)
+            $dia  = DB::int($diaTok);
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.id_empresa = ? AND v.sucursal = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ? AND DAY(v.fecha_emision) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iiiii',
+                [$idEmpresa, $sucursal, $anio, $mes, $dia]
+            );
+        } elseif ($diaTok === 'nn') {
+            // Mes completo, sin filtro de sucursal
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.id_empresa = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iii',
+                [$idEmpresa, $anio, $mes]
+            );
+        } else {
+            // Período YYYYMM
+            $periodoF = sprintf('%04d%02d', $anio, $mes);
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.id_empresa = ?
+                   AND CONCAT(YEAR(v.fecha_emision), LPAD(MONTH(v.fecha_emision), 2, 0)) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'is',
+                [$idEmpresa, $periodoF]
+            );
         }
 
-
-
-        $rest = $this->conectar->query($sql);
         $lista = [];
         foreach ($rest as $row) {
-            $sql="SELECT  SUM(pv.cantidad*pv.costo) costo FROM productos_ventas pv WHERE pv.id_venta = '{$row['id_venta']}'";
-            $rest22 = $this->conectar->query($sql);
-            $costorTwemp=0;
-            if ($temDa=$rest22->fetch_assoc()){
-                $costorTwemp=$temDa['costo'];
-            }
-            $row['costo'] = $costorTwemp;
-            $row['cod_v'] = $row['id_venta'];
+            $costo = DB::selectValue(
+                $this->conectar,
+                "SELECT SUM(pv.cantidad * pv.costo) AS costo FROM productos_ventas pv WHERE pv.id_venta = ?",
+                'i',
+                [DB::int($row['id_venta'])]
+            );
+            $row['costo']    = $costo !== null ? $costo : 0;
+            $row['cod_v']    = $row['id_venta'];
             $row['id_venta'] = $row['id_venta'] . '--' . $row['nombre_xml'];
-            $lista[] = $row;
+            $lista[]         = $row;
         }
         return $lista;
     }
     public function verFilasPeriodo($periodo)
     {
-      
+        $temoAr    = explode('-', $periodo);
+        $idEmpresa = DB::int($this->id_empresa);
+        $sucursal  = DB::int($_SESSION['sucursal'] ?? 0);
+        $anio      = DB::int($temoAr[0] ?? 0);
+        $mes       = DB::int($temoAr[1] ?? 0);
+        $diaTok    = $temoAr[2] ?? '0';
+        $metodo    = DB::int($temoAr[3] ?? 0);
 
-        $temoAr = explode('-', $periodo);
+        $base = "SELECT v.id_venta, v.fecha_emision, ds.abreviatura, mdp2.nombre AS metodo2,
+                v.pagado, v.pagado2,
+                v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado,
+                v.enviado_sunat, vs.nombre_xml, metodo_pago.nombre AS metodo
+             FROM ventas AS v
+                 LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                 LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+                 LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago = v.medoto_pago_id
+                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago = v.medoto_pago2_id";
 
-        $metodo = isset($temoAr[3]) ? $temoAr[3] : 0;
-
-        if (isset($temoAr[2]) && $temoAr[2] > 0 && $metodo != 0) {
-            // Caso específico: día específico + método específico
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
-            v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-             from ventas as v
-                 LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-                 LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-                 LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
-                 where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
-               and YEAR(v.fecha_emision) = '$temoAr[0]'  and MONTH(v.fecha_emision) = '$temoAr[1]'  and day(v.fecha_emision) = '$temoAr[2]'   AND metodo_pago.id_metodo_pago = '$metodo'
-             order  by v.fecha_emision asc, v.numero asc";
-        } elseif (isset($temoAr[2]) && $temoAr[2] == 'nn' && $metodo != 0) {
-            // Caso: mes completo + método específico
-            $periodo = $temoAr[0] . $temoAr[1];
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2,v.pagado,v.pagado2,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-            LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-            LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
-                                                                
-        where v.estado<>2 and v.id_empresa = '$this->id_empresa' and YEAR(v.fecha_emision) = '$temoAr[0]' and MONTH(v.fecha_emision) = '$temoAr[1]'  AND metodo_pago.id_metodo_pago = '$metodo'
-        order by v.fecha_emision asc, v.numero asc";
-        } elseif (isset($temoAr[2]) && $temoAr[2] == 'nn' && $metodo == 0) {
-            // Caso: mes completo + todos los métodos
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2,v.pagado,v.pagado2,
-            v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-             from ventas as v
-                 LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-                 LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-                 LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
-             where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
-             and YEAR(v.fecha_emision) = '$temoAr[0]' and MONTH(v.fecha_emision) = '$temoAr[1]'
-             order by v.fecha_emision asc, v.numero asc";
-        } elseif (isset($temoAr[2]) && $temoAr[2] > 0 && $metodo == 0) {
-            // Caso: día específico + todos los métodos
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
-            v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-             from ventas as v
-                 LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-                 LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-                 LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-                 LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-                 LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
-                 where v.estado<>2 and v.id_empresa = '$this->id_empresa' and v.sucursal='{$_SESSION['sucursal']}' 
-               and YEAR(v.fecha_emision) = '$temoAr[0]'  and MONTH(v.fecha_emision) = '$temoAr[1]'  and day(v.fecha_emision) = '$temoAr[2]' 
-             order by v.fecha_emision asc, v.numero asc";
+        if ((int)$diaTok > 0 && $metodo != 0) {
+            $dia = DB::int($diaTok);
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.estado <> 2 AND v.id_empresa = ? AND v.sucursal = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ? AND DAY(v.fecha_emision) = ?
+                   AND metodo_pago.id_metodo_pago = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iiiiii',
+                [$idEmpresa, $sucursal, $anio, $mes, $dia, $metodo]
+            );
+        } elseif ($diaTok === 'nn' && $metodo != 0) {
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.estado <> 2 AND v.id_empresa = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ?
+                   AND metodo_pago.id_metodo_pago = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iiii',
+                [$idEmpresa, $anio, $mes, $metodo]
+            );
+        } elseif ($diaTok === 'nn' && $metodo == 0) {
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.estado <> 2 AND v.id_empresa = ? AND v.sucursal = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iiii',
+                [$idEmpresa, $sucursal, $anio, $mes]
+            );
+        } elseif ((int)$diaTok > 0 && $metodo == 0) {
+            $dia = DB::int($diaTok);
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.estado <> 2 AND v.id_empresa = ? AND v.sucursal = ?
+                   AND YEAR(v.fecha_emision) = ? AND MONTH(v.fecha_emision) = ? AND DAY(v.fecha_emision) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'iiiii',
+                [$idEmpresa, $sucursal, $anio, $mes, $dia]
+            );
         } else {
-            // Caso por defecto: formato YYYYMM
-            $sql = "select v.id_venta, v.fecha_emision, ds.abreviatura,mdp2.nombre AS metodo2, v.pagado,v.pagado2,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml,metodo_pago.nombre AS metodo
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-            LEFT JOIN metodo_pago ON metodo_pago.id_metodo_pago=v.medoto_pago_id
-            LEFT JOIN metodo_pago mdp2 ON mdp2.id_metodo_pago=v.medoto_pago2_id
-        where v.estado<>2 and  v.id_empresa = '$this->id_empresa' and concat(year(v.fecha_emision), LPAD(month(v.fecha_emision), 2, 0)) = '$periodo'
-        order by v.fecha_emision asc, v.numero asc";
+            $periodoF = sprintf('%04d%02d', $anio, $mes);
+            $rest = DB::select(
+                $this->conectar,
+                "$base
+                 WHERE v.estado <> 2 AND v.id_empresa = ?
+                   AND CONCAT(YEAR(v.fecha_emision), LPAD(MONTH(v.fecha_emision), 2, 0)) = ?
+                 ORDER BY v.fecha_emision ASC, v.numero ASC",
+                'is',
+                [$idEmpresa, $periodoF]
+            );
         }
 
-        $rest = $this->conectar->query($sql);
         $lista = [];
         foreach ($rest as $row) {
-            $row['cod_v'] = $row['id_venta'];
+            $row['cod_v']    = $row['id_venta'];
             $row['id_venta'] = $row['id_venta'] . '--' . $row['nombre_xml'];
-            $lista[] = $row;
+            $lista[]         = $row;
         }
-        
-     
         return $lista;
     }
     public function verFilasPorEmpresas($empresa, $sucuarsal)
     {
-        $sql = "select v.igv,v.id_venta, v.fecha_emision, ds.abreviatura,
-       v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total, v.estado, v.enviado_sunat, vs.nombre_xml
-        from ventas as v
-            LEFT JOIN documentos_sunat ds on v.id_tido = ds.id_tido
-            LEFT JOIN clientes c on v.id_cliente = c.id_cliente
-            LEFT JOIN ventas_sunat vs on v.id_venta = vs.id_venta
-        where v.id_empresa = '$empresa' and v.sucursal='$sucuarsal'
-        order by v.fecha_emision asc, v.numero asc";
+        $idEmpresa = DB::int($empresa);
+        $sucursal  = DB::int($sucuarsal);
 
+        $rest = DB::select(
+            $this->conectar,
+            "SELECT v.igv, v.id_venta, v.fecha_emision, ds.abreviatura,
+                    v.id_tido, v.serie, v.numero, c.documento, c.datos, v.total,
+                    v.estado, v.enviado_sunat, vs.nombre_xml
+             FROM ventas AS v
+                LEFT JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                LEFT JOIN clientes c ON v.id_cliente = c.id_cliente
+                LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+             WHERE v.id_empresa = ? AND v.sucursal = ?
+             ORDER BY v.fecha_emision ASC, v.numero ASC",
+            'ii',
+            [$idEmpresa, $sucursal]
+        );
 
-        $rest = $this->conectar->query($sql);
         $lista = [];
         foreach ($rest as $row) {
-            $row['cod_v'] = $row['id_venta'];
+            $row['cod_v']    = $row['id_venta'];
             $row['id_venta'] = $row['id_venta'] . '--' . $row['nombre_xml'];
-            $lista[] = $row;
+            $lista[]         = $row;
         }
         return $lista;
     }

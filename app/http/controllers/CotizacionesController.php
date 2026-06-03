@@ -184,7 +184,7 @@ class CotizacionesController extends Controller
     // treer datos de la cotizacion
     public function getInformacion()
     {
-        error_log("=== Inicio de getInformacion() ===");
+        // error_log("=== Inicio de getInformacion() ===");
 
         try {
             if (!isset($_POST['coti'])) {
@@ -301,7 +301,7 @@ class CotizacionesController extends Controller
             LEFT JOIN repuestos r ON r.id_repuesto = pc.id_producto AND pc.tipo_producto = 'repuesto'
             WHERE pc.id_coti = ?";
 
-            error_log("Consultando productos de cotización: $cotizacion");
+            // error_log("Consultando productos de cotización: $cotizacion");
 
             $stmt = $this->conexion->prepare($sql);
             $stmt->bind_param("i", $cotizacion);
@@ -339,7 +339,7 @@ class CotizacionesController extends Controller
                 ];
             }
 
-            error_log("Datos recuperados exitosamente para la cotización: $cotizacion");
+            // error_log("Datos recuperados exitosamente para la cotización: $cotizacion");
             return json_encode($data);
 
         } catch (Exception $e) {
@@ -644,12 +644,22 @@ class CotizacionesController extends Controller
 
     public function getVendedores()
     {
-        $sql = "SELECT usuario_id,nombres from usuarios where id_rol =  1";
-        //echo $sql;
+        $sql = "SELECT usuario_id, nombres, COALESCE(foto_perfil, '') AS foto_perfil
+                FROM usuarios
+                WHERE id_rol = 1
+                ORDER BY nombres ASC";
 
         $rest = $this->conexion->query($sql);
         $lista = [];
         foreach ($rest as $row) {
+            $foto = trim((string) $row['foto_perfil']);
+            if ($foto === '') {
+                $row['foto_url'] = URL::to('public/assets/images/users/user-4.jpg');
+            } elseif (strpos($foto, '/') !== false) {
+                $row['foto_url'] = $foto;
+            } else {
+                $row['foto_url'] = URL::to('/img/usuarios/' . $foto);
+            }
             $lista[] = $row;
         }
         return json_encode($lista);

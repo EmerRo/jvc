@@ -154,9 +154,10 @@ class ConsultasController extends Controller
                 ->addArchivo($rutaArchivo, $_POST['nombrefile']);
 
             // Adjuntar XML si existe (solo para ventas)
-            if (!$esCotizacion && file_exists("files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml")) {
+            $rucXml = (ENDPOINT === 'beta') ? '20000000001' : $empresa['ruc'];
+            if (!$esCotizacion && file_exists("files/facturacion/xml/" . $rucXml . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml")) {
                 $sendEmail->addArchivo(
-                    "files/facturacion/xml/" . $empresa['ruc'] . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml",
+                    "files/facturacion/xml/" . $rucXml . '/' . basename($_POST['nombrefile'], ".pdf") . ".xml",
                     basename($_POST['nombrefile'], ".pdf") . ".xml"
                 );
             }

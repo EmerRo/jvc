@@ -415,7 +415,7 @@
                     console.log(resp);
                     if (resp.res) {
                         alertExito("Enviado a la sunat")
-                        tes();
+                        tabla.ajax.reload();
                     } else {
                         Swal.fire({
                             icon: 'warning',
@@ -543,6 +543,7 @@
                             const desData = data.split("--");
 
                             const stpan = '<span id="' + desData[0] + '-nom-xml" style="display: none">' + desData[1] + "</span>";
+                            const rucXml = desData[1] !== "-" ? desData[1].substring(0, 11) : "";
 
                             return stpan + `
                 <div class="action-menu">
@@ -557,13 +558,13 @@
                             <i class="fas fa-paper-plane text-primary"></i> Enviar Comprobante
                         </a>
                         ${desData[1] != "-" ? `
-                            <a href="${_URL}/files/facturacion/xml/20602281761/${desData[1]}.xml" target="_blank">
+                            <a href="${_URL}/files/facturacion/xml/${rucXml}/${desData[1]}.xml" target="_blank">
                                 <i class="fas fa-file-code text-info"></i> XML
                             </a>
                         ` : ""}
                         ${estadoSunat != "0" ? `
-                            <a href="${_URL}/files/facturacion/cdr/20602281761/R-${desData[1]}.zip" target="_blank">
-                                <i class="fa fa-file-zip text-success"></i> CDR
+                            <a href="${_URL}/files/facturacion/cdr/${rucXml}/R-${desData[1]}.zip" target="_blank">
+                                <i class="fa fa-file-archive text-success"></i> CDR
                             </a>
                         ` : ""}
                         <div class="divider"></div>
@@ -794,9 +795,13 @@
                     $("#modal_ver_detalle").modal("show")
 
                     // Encabezado común
+                    const cotiOrigen = resp.data.id_coti
+                        ? `<br>Cotización origen: <strong>COT-${String(resp.data.id_coti).padStart(2, '0')}</strong>`
+                        : '';
                     let headerHTML = 'Fecha : ' + resp.data.fecha_emision +
                         '<br>Documento : ' + (resp.data.id_tido == '2' ? 'FT' : 'BT') + ' | ' + resp.data.serie + ' - ' + resp.data.numero +
                         '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos +
+                        cotiOrigen +
                         '<br>Total : ' + resp.data.montoTotal + '<br><hr>';
 
                     // Si hay equipos, renderizar agrupado por equipos (sin pestañas)

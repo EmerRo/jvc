@@ -730,35 +730,24 @@ class ReportesVentaController extends Controller
 
 
 
-    $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);;
-    $listaProd2 = $listaProd2 = $this->service->obtenerServiciosVenta($venta);;
-    $ventaSunat = $ventaSunat = $this->service->obtenerVentaSunat($venta);;
+$listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
+    $listaProd2 = $this->service->obtenerServiciosVenta($venta);
+    $ventaSunat = $this->service->obtenerVentaSunat($venta);
     $guiaRealionada = '';
     if ($rowGuia = $this->service->obtenerGuiaRemision($venta)) {
       $guiaRealionada = $rowGuia["serie"] . '-' . Tools::numeroParaDocumento($rowGuia["numero"], 6);
     }
 
     $datoVenta = $this->service->obtenerVenta($venta);
+    $datoEmpresa = $this->service->obtenerEmpresa($datoVenta['id_empresa']);
     $monedaVisual = $datoVenta["moneda"] == "1" ? "SOLES" : 'DOLAR';
-    $datoEmpresa = $datoEmpresa = $this->service->obtenerEmpresa($datoVenta['id_empresa']);;
-
-
-    /*   var_dump("SELECT * FROM sucursales WHERE cod_sucursal ='{$_SESSION['sucursal']}' AND empresa_id=" . $datoVenta['id_empresa']);
-    die();  */
-    /*   if (is_null($datoSucursal)) {
-      var_dump('es nulo');
-      die();
-    } else {
-      var_dump($datoSucursal);
-      die();
-    } */
 
 
     $igv_venta_sel = $datoVenta['igv'];
 
     $S_N = $datoVenta['serie'] . '-' . Tools::numeroParaDocumento($datoVenta['numero'], 6);
     $tipoDocNom = $datoVenta['id_tido'] == 1 ? 'BOLETA' : 'FACTURA';
-    $resultC = $resultC = $this->service->obtenerCliente($datoVenta['id_cliente']);;
+    $resultC = $this->service->obtenerCliente($datoVenta['id_cliente']);
     $dataDocumento = strlen($resultC['documento']) == 8 ? "DNI" : strlen($resultC['documento'] == 11 ? 'RUC' : '');
     $fecha_emision = Tools::formatoFechaVisual($datoVenta['fecha_emision']);
     $fecha_vencimiento = Tools::formatoFechaVisual($datoVenta['fecha_vencimiento']);
@@ -942,7 +931,7 @@ class ReportesVentaController extends Controller
 
 
 
-    $datoSucursal = $this->service->obtenerSucursal($datoVenta['sucursal'], $datoVenta['id_empresa']);;
+    $datoSucursal = $this->service->obtenerSucursal($datoVenta['sucursal'], $datoVenta['id_empresa']);
     if ($datoVenta['sucursal'] == '1') {
       $this->mpdf->WriteFixedPosHTML("<span style=' font-size: 12px'><strong>Dirección:</strong> <span style='font-size: 10px'>{$datoEmpresa['direccion']}</span></span>", 15, 36, 120, 130);
     } else {
@@ -1196,12 +1185,11 @@ class ReportesVentaController extends Controller
     } else {
       $listaProd1 = $this->service->obtenerProductosVenta($venta);
     }
-
-    $listaProd2 = $listaProd2 = $this->service->obtenerServiciosVenta($venta);;
-    $ventaSunat = $ventaSunat = $this->service->obtenerVentaSunat($venta);;
+    $listaProd2 = $this->service->obtenerServiciosVenta($venta);
+    $ventaSunat = $this->service->obtenerVentaSunat($venta);
 
     $datoVenta = $this->service->obtenerVenta($venta);
-    $datoEmpresa = $datoEmpresa = $this->service->obtenerEmpresa($datoVenta['id_empresa']);;
+    $datoEmpresa = $this->service->obtenerEmpresa($datoVenta['id_empresa']);
 
     // Si NO viene de guía (ordenCompra está vacío), usar doc_referencia de la venta
     if (empty($ordenCompra)) {
@@ -1227,7 +1215,7 @@ class ReportesVentaController extends Controller
 
     $S_N = $datoVenta['serie'] . '-' . Tools::numeroParaDocumento($datoVenta['numero'], 6);
     $tipoDocNom = $datoVenta['id_tido'] == 1 ? 'BOLETA' : 'FACTURA';
-    $resultC = $resultC = $this->service->obtenerCliente($datoVenta['id_cliente']);;
+    $resultC = $this->service->obtenerCliente($datoVenta['id_cliente']);
     $dataDocumento = strlen($resultC['documento']) == 8 ? "DNI" : strlen($resultC['documento'] == 11 ? 'RUC' : '');
     $fecha_emision = Tools::formatoFechaVisual($datoVenta['fecha_emision']);
     $fecha_vencimiento = Tools::formatoFechaVisual($datoVenta['fecha_vencimiento']);

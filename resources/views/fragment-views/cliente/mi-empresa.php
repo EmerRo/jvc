@@ -437,7 +437,7 @@ $(document).ready(function () {
 
         // Logo
         if (emp.logo) {
-            $('#logoPreview').attr('src', _URL + '/logos/' + emp.logo).removeClass('d-none');
+            $('#logoPreview').attr('src', _URL + '/img/empresas/' + emp.logo).removeClass('d-none');
             $('#logoPlaceholder').addClass('d-none');
         } else {
             $('#logoPreview').addClass('d-none');

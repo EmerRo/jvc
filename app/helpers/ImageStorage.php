@@ -49,7 +49,9 @@ class ImageStorage
         }
 
         $ext = self::extByMime($mime);
-        $filename = time() . '_' . substr(md5(uniqid('', true)), 0, 10) . '.' . $ext;
+        $safeName = strtolower(preg_replace('/[^a-zA-Z0-9_-]/', '', pathinfo($file['name'], PATHINFO_FILENAME)));
+        $safeName = substr($safeName, 0, 40);
+        $filename = time() . '_' . $safeName . '_' . substr(md5(uniqid('', true)), 0, 8) . '.' . $ext;
 
         $targetDir = self::BASE_PATH . $category . '/';
         self::ensureDir($targetDir);

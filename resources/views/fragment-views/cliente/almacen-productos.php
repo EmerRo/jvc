@@ -23,23 +23,6 @@ $almacenProducto = 1;
                         style="font-weight: 500; color: #CA3438;">Kardex</a></li>
             </ol>
         </div>
-        <div class="col-md-4">
-            <div class="float-end d-none d-md-block">
-                <div hidden class="dropdown">
-                    <button class="btn btn-primary  dropdown-toggle" type="button" id="dropdownMenuButton"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="mdi mdi-cog me-2"></i> Settings
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Separated link</a>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -170,52 +153,52 @@ $almacenProducto = 1;
                         <!-- Contenedor Derecho: Botones individuales para pantallas grandes -->
                         <div class="grid-view-buttons d-none d-lg-flex flex-wrap justify-content-end gap-2">
                             <button onclick="descarFunccc()" class="btn bg-white text-rojo border-rojo btn-sm">
-                                <i class="fa fa-file-excel"></i>
+                                <i class="fa fa-file-excel me-1"></i>
                                 <span class="d-none d-lg-inline">Descargar Excel por búsqueda</span>
                             </button>
                             <button data-bs-toggle="modal" data-bs-target="#modal-reporte-movimientos" class="btn bg-white text-rojo border-rojo btn-sm">
-                                <i class="fa fa-chart-line"></i>
+                                <i class="fa fa-chart-line me-1"></i>
                                 <span class="d-none d-lg-inline">Reporte Movimientos</span>
                             </button>
                             <button data-bs-toggle="modal" data-bs-target="#importarModal"
                                 class="btn bg-white text-rojo border-rojo btn-sm">
-                                <i class="fa fa-file-excel"></i>
+                                <i class="fa fa-file-excel me-1"></i>
                                 <span class="d-none d-lg-inline">Importar</span>
                             </button>
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-aumentar-stock">
-                                <i class="fa fa-plus"></i>
+                                <i class="fa fa-plus me-1"></i>
                                 <span class="d-none d-lg-inline">Aumentar Stock</span>
                             </button>
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-disminuir-stock">
-                                <i class="fa fa-minus"></i>
+                                <i class="fa fa-minus me-1"></i>
                                 <span class="d-none d-lg-inline">Disminuir Stock</span>
                             </button>
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-traslado-almacenes">
-                                <i class="fa fa-exchange-alt"></i>
+                                <i class="fa fa-exchange-alt me-1"></i>
                                 <span class="d-none d-lg-inline">Traslado Almacenes</span>
                             </button>
                             <button class="btn border-rojo bg-white btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#modal-historial-stock">
-                                <i class="fa fa-history"></i>
+                                <i class="fa fa-history me-1"></i>
                                 <span class="d-none d-lg-inline">Historial Stock</span>
                             </button>
                             <a href="/unidades" class="btn bg-white text-rojo border-rojo button-link btn-sm">
-                                <i class="fa fa-ruler"></i>
+                                <i class="fa fa-ruler me-1"></i>
                                 <span class="d-none d-lg-inline">Unidades</span>
                             </a>
                             <a href="/categorias" class="btn bg-white text-rojo border-rojo button-link btn-sm">
-                                <i class="fa fa-folder"></i>
+                                <i class="fa fa-folder me-1"></i>
                                 <span class="d-none d-lg-inline">Categorías</span>
                             </a>
                             <button class="btn bg-rojo text-white btn-sm" id="add-prod">
-                                <i class="fa fa-plus"></i>
+                                <i class="fa fa-plus me-1"></i>
                                 <span class="d-none d-lg-inline">Agregar Producto</span>
                             </button>
                             <button class="btn bg-rojo btnBorrar btn-sm">
-                                <i class="fa fa-trash"></i>
+                                <i class="fa fa-trash me-1"></i>
                                 <span class="d-none d-lg-inline">Borrar</span>
                             </button>
                         </div>

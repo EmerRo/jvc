@@ -203,6 +203,39 @@
         });
     }
 
+    // Función global para cargar almacenes en el selector del modal
+    function cargarAlmacenesSelector() {
+        const $sel = $('#selector_almacen');
+        if (!$sel.length) return;
+        if ($sel.data('cargado')) return; // ya cargado
+        $sel.html('<option value="">Cargando almacenes...</option>');
+        $.ajax({
+            url: _URL + '/ajs/almacenes/listar',
+            method: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                if (!res || !res.estado || !Array.isArray(res.almacenes)) {
+                    $sel.html('<option value="">Error al cargar</option>');
+                    return;
+                }
+                $sel.empty();
+                res.almacenes.forEach(function (alm) {
+                    const marca = alm.principal == 1 ? ' ★' : '';
+                    $sel.append('<option value="' + alm.id_almacen + '">' + alm.nombre + marca + '</option>');
+                });
+                // Si no hay selección, elegir el principal
+                if (!$sel.val()) {
+                    const principal = res.almacenes.find(a => a.principal == 1) || res.almacenes[0];
+                    if (principal) $sel.val(String(principal.id_almacen));
+                }
+                $sel.data('cargado', true);
+            },
+            error: function () {
+                $sel.html('<option value="">Error al cargar</option>');
+            }
+        });
+    }
+
     $(document).ready(function () {
         // Establecer la fecha actual por defecto
         const fechaActual = new Date().toISOString().split('T')[0];
@@ -265,6 +298,22 @@
             actualizarTituloModal(); // <CHANGE> Agregar llamada para actualizar título
             // Inicializar estado del checkbox y campos
             inicializarEstadoModal();
+            // Cargar almacenes en el selector (solo si está vacío)
+            cargarAlmacenesSelector();
+        });
+
+        // También disparar cuando el modal ya está mostrándose (por si se reabre)
+        $('#modalAgregar').on('shown.bs.modal', function () {
+            cargarAlmacenesSelector();
+        });
+
+        // Al cambiar de almacén, limpiar los inputs de producto para forzar nueva búsqueda
+        $('#selector_almacen').on('change', function () {
+            $('.input-buscar-producto').each(function () {
+                $(this).val('');
+                $(this).closest('.input-group').find('.input-id-producto').val('');
+                $(this).closest('.col-md-12').find('.producto-seleccionado-info').empty();
+            });
         });
 
         // Evento para cargar el último número de serie al abrir el modal de editar
@@ -1092,8 +1141,9 @@
 
             $input.autocomplete({
                 source: function (request, response) {
+                    const almacen = $('#selector_almacen').val() || '';
                     $.ajax({
-                        url: _URL + "/ajs/cargar/productos/" + (window.currentSucursal || ''),
+                        url: _URL + "/ajs/cargar/productos/" + almacen,
                         method: "GET",
                         dataType: "json",
                         data: { term: request.term },

@@ -744,7 +744,7 @@ var tabla_clientes = $("#tabla_clientes").DataTable({
         {
             data: "nombres", class: "text-left",
             render(data, type, row) {
-                const foto = row.foto_perfil || DEFAULT_AVATAR;
+                const foto = row.foto_perfil ? (row.foto_perfil.includes('/') ? row.foto_perfil : _URL + '/img/usuarios/' + row.foto_perfil) : DEFAULT_AVATAR;
                 return `<div class="d-flex align-items-center">
                     <img src="${foto}" alt="Foto" class="rounded-circle me-3"
                          style="width:32px;height:32px;object-fit:cover;border:2px solid #dee2e6;">
@@ -832,7 +832,8 @@ $("#updateCliente").click(function() {
                 if (response.new_token) {
                     localStorage.setItem("_token", response.new_token);
                     if (response.foto_perfil) {
-                        $('.jvc-user-avatar').attr('src', _URL + '/' + response.foto_perfil);
+                        const imgUrl = response.foto_perfil.includes('/') ? response.foto_perfil : _URL + '/img/usuarios/' + response.foto_perfil;
+                        $('.jvc-user-avatar').attr('src', imgUrl);
                     }
                 }
                 tabla_clientes.ajax.reload(null, false);

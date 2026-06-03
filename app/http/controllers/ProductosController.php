@@ -152,11 +152,11 @@ class ProductosController extends Controller
         $almacen = isset($_GET['almacenId']) ? $_GET['almacenId'] : '1';
         $filter = isset($_GET['filter']) ? $_GET['filter'] : '';
 
-        error_log("Buscando productos con almacen: $almacen y filtro: $filter");
+        // error_log("Buscando productos con almacen: $almacen y filtro: $filter");
 
         $table_data = new TableData();
         $view = "view_productos_$almacen";
-        error_log("Usando vista: $view");
+        // error_log("Usando vista: $view");
 
         // Construir cláusula WHERE para filtrado
 
@@ -203,7 +203,7 @@ class ProductosController extends Controller
 
         if (!$result) {
             // Log del error para debugging
-            error_log("Error en listaProductoServerSide: No se pudieron obtener datos de $view");
+            // error_log("Error en listaProductoServerSide: No se pudieron obtener datos de $view");
             echo json_encode([
                 "sEcho" => intval($_GET['sEcho']),
                 "iTotalRecords" => 0,

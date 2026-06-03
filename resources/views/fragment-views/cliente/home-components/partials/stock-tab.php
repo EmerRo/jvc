@@ -23,8 +23,7 @@
                     <i class="fas fa-search"></i>
                 </span>
                 <input type="text" class="form-control"
-                    placeholder="Buscar productos por nombre, código..." v-model="filtroStock"
-                    @input="filtrarStock">
+                    placeholder="Buscar productos por nombre, código...">
             </div>
         </div>
     </div>
@@ -75,8 +74,8 @@
                         <strong>¡Atención!</strong> Hay productos con stock crítico.
                     </div>
 
-                    <div style="max-height: 260px; overflow-y: auto;">
-                        <ul class="list-group list-group-flush">
+                    <div style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                        <ul class="list-group list-group-flush" id="lista-alertas-stock">
                             <?php if ($productos_stock_bajo && $productos_stock_bajo->num_rows > 0): ?>
                                 <?php while ($producto = $productos_stock_bajo->fetch_assoc()): ?>
                                     <li

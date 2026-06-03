@@ -95,6 +95,7 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
 ?>
 
 <!-- Dashboard funcionando correctamente -->
+<link href="<?= URL::to('public/css/dashboard-tabs.css') ?>?v=<?= time() ?>" rel="stylesheet" type="text/css">
 
 <div id="app">
     <div class="container-fluid">
@@ -173,106 +174,6 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
                     </li>
                 </ul>
 
-                <style>
-                    /* Estilos para tabs responsivos */
-                    .nav-tabs-responsive {
-                        flex-wrap: nowrap;
-                        overflow-x: auto;
-                        overflow-y: hidden;
-                        -webkit-overflow-scrolling: touch;
-                        scrollbar-width: thin;
-                        scrollbar-color: #CA3438 #f1f1f1;
-                    }
-
-                    .nav-tabs-responsive::-webkit-scrollbar {
-                        height: 4px;
-                    }
-
-                    .nav-tabs-responsive::-webkit-scrollbar-track {
-                        background: #f1f1f1;
-                        border-radius: 10px;
-                    }
-
-                    .nav-tabs-responsive::-webkit-scrollbar-thumb {
-                        background: #CA3438;
-                        border-radius: 10px;
-                    }
-
-                    .nav-tabs-responsive::-webkit-scrollbar-thumb:hover {
-                        background: #9a1f24;
-                    }
-
-                    .nav-tabs-responsive .nav-item {
-                        flex-shrink: 0;
-                    }
-
-                    .nav-tabs-responsive .nav-link {
-                        white-space: nowrap;
-                        padding: 0.75rem 1rem;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        border: 1px solid transparent;
-                        border-bottom: 2px solid transparent;
-                        transition: all 0.3s ease;
-                    }
-
-                    .nav-tabs-responsive .nav-link:hover {
-                        border-color: #e9ecef #e9ecef #CA3438;
-                        background-color: #f8f9fa;
-                    }
-
-                    .nav-tabs-responsive .nav-link.active {
-                        color: #CA3438;
-                        background-color: #fff;
-                        border-color: #dee2e6 #dee2e6 #fff;
-                        border-bottom: 2px solid #CA3438;
-                        font-weight: 600;
-                    }
-
-                    .nav-tabs-responsive .nav-link i {
-                        font-size: 1.1rem;
-                    }
-
-                    /* Responsive: Ocultar texto en móviles pequeños, solo mostrar iconos */
-                    @media (max-width: 576px) {
-                        .nav-tabs-responsive .nav-link {
-                            padding: 0.75rem 0.75rem;
-                            min-width: 50px;
-                            justify-content: center;
-                        }
-
-                        .nav-tabs-responsive .nav-link .tab-text {
-                            display: none;
-                        }
-
-                        .nav-tabs-responsive .nav-link i {
-                            font-size: 1.3rem;
-                            margin: 0;
-                        }
-                    }
-
-                    /* Tablets: Mostrar texto pero más compacto */
-                    @media (min-width: 577px) and (max-width: 768px) {
-                        .nav-tabs-responsive .nav-link {
-                            padding: 0.6rem 0.8rem;
-                            font-size: 0.9rem;
-                        }
-
-                        .nav-tabs-responsive .nav-link .tab-text {
-                            font-size: 0.85rem;
-                        }
-                    }
-
-                    /* Desktop: Mostrar todo normal */
-                    @media (min-width: 769px) {
-                        .nav-tabs-responsive {
-                            flex-wrap: wrap;
-                            overflow-x: visible;
-                        }
-                    }
-                </style>
-
                 <!-- Tab content -->
                 <div class="tab-content mt-3" id="dashboardTabsContent">
                     <?php include __DIR__ . '/home-components/partials/ventas-tab.php'; ?>
@@ -291,6 +192,16 @@ echo "<!-- Dashboard data preparado: " . count($dashboardData) . " elementos -->
         <?php include __DIR__ . '/home-components/partials/modales.php'; ?>
     </div>
 </div>
+
+<script>
+$(document).on('input', 'input[placeholder*="Buscar productos"]', function() {
+    var term = this.value.toLowerCase();
+    $('#lista-alertas-stock li').each(function() {
+        var $li = $(this);
+        $li[this.textContent.toLowerCase().includes(term) ? 'show' : 'hide']();
+    });
+});
+</script>
 
 <!-- Scripts necesarios -->
 <!-- Librerías externas -->

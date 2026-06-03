@@ -382,8 +382,7 @@ WHERE
   AND cantidad <= 10 
   AND estado = '1'
 ORDER BY 
-  cantidad ASC
-LIMIT 5";
+    cantidad ASC";
 
 $productos_stock_bajo = $conexion->query($sql_stock_bajo);
 

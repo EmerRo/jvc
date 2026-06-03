@@ -81,15 +81,23 @@
 
                                 <!-- Añadir el campo para el último número de serie -->
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="ultimo_numero_serie" class="form-label">Último número de serie
                                             registrado</label>
                                         <input type="text" class="form-control" id="ultimo_numero_serie" readonly>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="fecha_creacion" class="form-label">Fecha De Creación</label>
                                         <input type="date" class="form-control" id="fecha_creacion"
                                             name="fecha_creacion" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="selector_almacen" class="form-label">
+                                            <i class="fa fa-warehouse me-1"></i>Almacén
+                                        </label>
+                                        <select class="form-select" id="selector_almacen">
+                                            <option value="">Cargando almacenes...</option>
+                                        </select>
                                     </div>
                                 </div>
 

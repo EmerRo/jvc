@@ -19,7 +19,8 @@
             $fotoPerfilUsuario = URL::to(DEFAULT_USER_AVATAR); // Foto por defecto
 
             if(isset($_SESSION['foto_perfil']) && !empty($_SESSION['foto_perfil'])) {
-                $fotoPerfilUsuario = URL::to($_SESSION['foto_perfil']);
+                $foto = $_SESSION['foto_perfil'];
+                $fotoPerfilUsuario = (strpos($foto, '/') !== false) ? URL::to($foto) : URL::to('img/usuarios/' . $foto);
             }
 
             // Obtener el nombre del usuario

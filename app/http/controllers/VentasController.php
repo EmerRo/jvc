@@ -10,6 +10,7 @@ require_once "app/models/VentaSunat.php";
 require_once "app/models/VentaAnulada.php";
 require_once "app/models/GuiaRemision.php";
 require_once "app/clases/SunatApiClient.php";
+require_once "app/clases/DB.php";
 
 
 class VentasController extends Controller
@@ -76,25 +77,39 @@ class VentasController extends Controller
     // Mantén los otros métodos como los tienes:
     public function ingresoAlmacen()
     {
-        $respuesta['res'] = false;
-        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+        $respuesta = ['res' => false];
 
-        $sql = "INSERT INTO ingreso_egreso 
-            SET id_producto = '{$_POST['productoid']}', 
-                tipo = '{$_POST['tipo']}',
-                cantidad = '{$_POST['cantidad']}', 
-                id_usuario = '{$_SESSION['usuario_fac']}', 
-                almacen_ingreso = '{$_POST['almacen']}',
-                observaciones = '$observaciones',
-                fecha_creacion = NOW(),
-                fecha_actualizacion = NOW()";
+        $productoId    = DB::int($_POST['productoid'] ?? 0);
+        $tipo          = DB::str($_POST['tipo'] ?? '');
+        $cantidad      = DB::float($_POST['cantidad'] ?? 0);
+        $almacen       = DB::str($_POST['almacen'] ?? '');
+        $idUsuario     = DB::int($_SESSION['usuario_fac'] ?? 0);
+        $observaciones = DB::str($_POST['observaciones'] ?? '');
 
-        if ($this->conexion->query($sql)) {
-            // Actualizar el stock del producto
-            $sql = "UPDATE productos 
-               SET cantidad = cantidad + '{$_POST['cantidad']}' 
-               WHERE id_producto = '{$_POST['productoid']}'";
-            $this->conexion->query($sql);
+        if ($productoId <= 0 || $cantidad <= 0) {
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $sql = "INSERT INTO ingreso_egreso
+                SET id_producto         = ?,
+                    tipo                = ?,
+                    cantidad            = ?,
+                    id_usuario          = ?,
+                    almacen_ingreso     = ?,
+                    observaciones       = ?,
+                    fecha_creacion      = NOW(),
+                    fecha_actualizacion = NOW()";
+
+        if (DB::execute($this->conexion, $sql, 'isdiss',
+            [$productoId, $tipo, $cantidad, $idUsuario, $almacen, $observaciones])) {
+
+            DB::execute(
+                $this->conexion,
+                "UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ?",
+                'di',
+                [$cantidad, $productoId]
+            );
             $respuesta['res'] = true;
         }
 
@@ -103,47 +118,62 @@ class VentasController extends Controller
 
     public function egresoAlmacen()
     {
-        $respuesta['res'] = false;
-        $observaciones = isset($_POST['observaciones']) ? $this->conexion->real_escape_string($_POST['observaciones']) : '';
+        $respuesta = ['res' => false];
 
-        // Verificar stock disponible antes de realizar el egreso
-        $sql = "SELECT cantidad FROM productos WHERE id_producto = '{$_POST['productoid']}' AND almacen = '{$_POST['almacen']}'";
-        $result = $this->conexion->query($sql);
+        $productoId    = DB::int($_POST['productoid'] ?? 0);
+        $tipo          = DB::str($_POST['tipo'] ?? '');
+        $cantidad      = DB::float($_POST['cantidad'] ?? 0);
+        $almacenOrigen = DB::str($_POST['almacen'] ?? '');
+        $almacenDest   = DB::str($_POST['alAlmacen'] ?? '');
+        $idUsuario     = DB::int($_SESSION['usuario_fac'] ?? 0);
+        $observaciones = DB::str($_POST['observaciones'] ?? '');
 
-        if ($result && $result->num_rows > 0) {
-            $stock_actual = $result->fetch_assoc()['cantidad'];
+        if ($productoId <= 0 || $cantidad <= 0) {
+            echo json_encode($respuesta);
+            return;
+        }
 
-            if ($stock_actual >= $_POST['cantidad']) {
-                // Insertar el registro de egreso
-                $sql = "INSERT INTO ingreso_egreso 
-                    SET id_producto = '{$_POST['productoid']}', 
-                        tipo = '{$_POST['tipo']}',
-                        cantidad = '{$_POST['cantidad']}', 
-                        id_usuario = '{$_SESSION['usuario_fac']}', 
-                        almacen_ingreso = '{$_POST['alAlmacen']}', 
-                        almacen_egreso = '{$_POST['almacen']}', 
-                        estado = 0,
-                        observaciones = '$observaciones',
-                        fecha_creacion = NOW(),
-                        fecha_actualizacion = NOW()";
+        $row = DB::selectOne(
+            $this->conexion,
+            "SELECT cantidad FROM productos WHERE id_producto = ? AND almacen = ?",
+            'is',
+            [$productoId, $almacenOrigen]
+        );
 
-                if ($this->conexion->query($sql)) {
-                    // Actualizar el stock inmediatamente en el almacén de origen
-                    $sql = "UPDATE productos 
-                       SET cantidad = cantidad - {$_POST['cantidad']} 
-                       WHERE id_producto = '{$_POST['productoid']}' 
-                       AND almacen = '{$_POST['almacen']}'";
-                    $this->conexion->query($sql);
+        if (!$row) {
+            $respuesta['msg'] = 'Producto no encontrado';
+            echo json_encode($respuesta);
+            return;
+        }
 
-                    $respuesta['res'] = true;
-                }
-            } else {
-                $respuesta['res'] = false;
-                $respuesta['msg'] = "Stock insuficiente";
-            }
-        } else {
-            $respuesta['res'] = false;
-            $respuesta['msg'] = "Producto no encontrado";
+        if ((float) $row['cantidad'] < $cantidad) {
+            $respuesta['msg'] = 'Stock insuficiente';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $sqlIns = "INSERT INTO ingreso_egreso
+                   SET id_producto         = ?,
+                       tipo                = ?,
+                       cantidad            = ?,
+                       id_usuario          = ?,
+                       almacen_ingreso     = ?,
+                       almacen_egreso      = ?,
+                       estado              = 0,
+                       observaciones       = ?,
+                       fecha_creacion      = NOW(),
+                       fecha_actualizacion = NOW()";
+
+        if (DB::execute($this->conexion, $sqlIns, 'isdisss',
+            [$productoId, $tipo, $cantidad, $idUsuario, $almacenDest, $almacenOrigen, $observaciones])) {
+
+            DB::execute(
+                $this->conexion,
+                "UPDATE productos SET cantidad = cantidad - ? WHERE id_producto = ? AND almacen = ?",
+                'dis',
+                [$cantidad, $productoId, $almacenOrigen]
+            );
+            $respuesta['res'] = true;
         }
 
         echo json_encode($respuesta);
@@ -151,67 +181,90 @@ class VentasController extends Controller
 
     public function confirmarTraslado()
     {
-        if (isset($_POST['cod'])) {
-            $id = $_POST['cod'];
-
-            // Obtener información del traslado
-            $sql = "SELECT * FROM ingreso_egreso WHERE intercambio_id = '$id'";
-            $result = $this->conexion->query($sql);
-
-            if ($result && $result->num_rows > 0) {
-                $traslado = $result->fetch_assoc();
-
-                // Actualizar stock en almacén de destino (sumar)
-                $sql = "UPDATE productos 
-                   SET cantidad = cantidad + '{$traslado['cantidad']}' 
-                   WHERE id_producto = '{$traslado['id_producto']}' 
-                   AND almacen = '{$traslado['almacen_ingreso']}'";
-                $this->conexion->query($sql);
-
-                // Marcar el traslado como confirmado y actualizar fecha
-                $sql = "UPDATE ingreso_egreso 
-                   SET estado = 1, 
-                       fecha_actualizacion = NOW()
-                   WHERE intercambio_id = '$id'";
-                $this->conexion->query($sql);
-
-                echo json_encode(['res' => true]);
-                return;
-            }
+        $id = DB::int($_POST['cod'] ?? 0);
+        if ($id <= 0) {
+            echo json_encode(['res' => false]);
+            return;
         }
 
-        echo json_encode(['res' => false]);
+        $traslado = DB::selectOne(
+            $this->conexion,
+            "SELECT cantidad, id_producto, almacen_ingreso FROM ingreso_egreso WHERE intercambio_id = ?",
+            'i',
+            [$id]
+        );
+
+        if (!$traslado) {
+            echo json_encode(['res' => false]);
+            return;
+        }
+
+        // Suma stock en almacén destino (valores que vienen de la BD, ya confiables, pero los pasamos bind igualmente)
+        DB::execute(
+            $this->conexion,
+            "UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ? AND almacen = ?",
+            'dis',
+            [(float) $traslado['cantidad'], (int) $traslado['id_producto'], (string) $traslado['almacen_ingreso']]
+        );
+
+        DB::execute(
+            $this->conexion,
+            "UPDATE ingreso_egreso SET estado = 1, fecha_actualizacion = NOW() WHERE intercambio_id = ?",
+            'i',
+            [$id]
+        );
+
+        echo json_encode(['res' => true]);
     }
 
     public function envioComunicacionBajaPorEmpresa()
     {
-        $listaBoletas = [];
-        foreach (json_decode($_POST['boletas'], true) as $bol) {
-            $listaBoletas[] = "v.id_venta='$bol'";
+        $boletasInput = json_decode($_POST['boletas'] ?? '[]', true);
+        if (!is_array($boletasInput) || empty($boletasInput)) {
+            return json_encode(['msg_resumen' => 'Sin items']);
         }
 
-        $sql = "select v.id_venta, v.enviado_sunat,vs.nombre_xml from ventas v
-        join ventas_sunat vs on v.id_venta = vs.id_venta
-        where " . implode(" OR ", $listaBoletas);
+        // Solo enteros válidos para el IN
+        [$inSql, $inTypes, $inParams] = DB::safeInInts($boletasInput);
+        if ($inSql === 'NULL') {
+            return json_encode(['msg_resumen' => 'Sin items']);
+        }
 
-        $listaPorEnviar = $this->venta->exeSQL($sql);
+        $empresa     = DB::int($_POST['empresa'] ?? 0);
+        $fechaResu   = DB::str($_POST['fecharesumen'] ?? '');
+        $fechaGen    = DB::str($_POST['fechagen'] ?? '');
+        $correlativo = DB::str($_POST['correlativo1'] ?? '');
+
+        $sql = "SELECT v.id_venta, v.enviado_sunat, vs.nombre_xml
+                FROM ventas v
+                JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
+                WHERE v.id_venta IN ($inSql)";
+
+        $listaPorEnviar = DB::select($this->conexion, $sql, $inTypes, $inParams);
 
         foreach ($listaPorEnviar as $vpr) {
             if ($vpr['enviado_sunat'] == '0') {
-                if ($this->sunatApi->envioIndividualDocumentoVPorEmpresa($vpr['nombre_xml'], $_POST['empresa'])) {
-                    $sql = "update ventas set enviado_sunat='1' where id_venta='{$vpr['id_venta']}'";
-                    $this->venta->exeSQL($sql);
+                if ($this->sunatApi->envioIndividualDocumentoVPorEmpresa($vpr['nombre_xml'], $empresa)) {
+                    DB::execute(
+                        $this->conexion,
+                        "UPDATE ventas SET enviado_sunat = '1' WHERE id_venta = ?",
+                        'i',
+                        [(int) $vpr['id_venta']]
+                    );
                 }
                 sleep(2);
             }
         }
+
+        // La firma original pasaba el array de fragmentos SQL; ahora pasamos la lista de IDs
+        // a las funciones del SunatApiClient para que ellas lo manejen.
         $respuesta = [];
         $respuesta['msg_resumen'] = $this->sunatApi->comunicacionBajaPorEmpresa(
-            $listaBoletas,
-            $_POST['empresa'],
-            $_POST['fecharesumen'],
-            $_POST["fechagen"],
-            $_POST['correlativo1']
+            $boletasInput,
+            $empresa,
+            $fechaResu,
+            $fechaGen,
+            $correlativo
         );
 
         return json_encode($respuesta);
@@ -219,162 +272,242 @@ class VentasController extends Controller
 
     public function envioResumenDiarioPorEmpresa()
     {
-        $listaBoletas = [];
-        foreach (json_decode($_POST['boletas'], true) as $bol) {
-            $listaBoletas[] = "v.id_venta='$bol'";
+        $boletasInput = json_decode($_POST['boletas'] ?? '[]', true);
+        if (!is_array($boletasInput)) {
+            $boletasInput = [];
         }
+
+        $empresa      = DB::int($_POST['empresa'] ?? 0);
+        $fechaGen     = DB::str($_POST['fechagen'] ?? '');
+        $fechaResu    = DB::str($_POST['fecharesumen'] ?? '');
+        $correlativo1 = DB::str($_POST['correlativo1'] ?? '');
+        $correlativo2 = DB::str($_POST['correlativo2'] ?? '');
+
         return json_encode([
             $this->sunatApi->resumenDiarioPorEmpresa(
-                $listaBoletas,
-                $_POST['empresa'],
-                $_POST['fechagen'],
-                $_POST['fecharesumen'],
-                $_POST['correlativo1']
+                $boletasInput,
+                $empresa,
+                $fechaGen,
+                $fechaResu,
+                $correlativo1
             ),
             $this->sunatApi->resumenDiarioBajaPorEmpresa(
-                $listaBoletas,
-                $_POST['empresa'],
-                $_POST['fechagen'],
-                $_POST['fecharesumen'],
-                $_POST['correlativo2']
+                $boletasInput,
+                $empresa,
+                $fechaGen,
+                $fechaResu,
+                $correlativo2
             )
         ]);
     }
 
     public function enviarDocumentoSunatPorEmpresa()
     {
-        $sql = "select vs.*,v.id_empresa from ventas_sunat vs
-        join ventas v on v.id_venta = vs.id_venta
-        where vs.id_venta = '{$_POST["cod"]}'";
-        $resultado = ["res" => false];
-        if ($row = $this->venta->exeSQL($sql)->fetch_assoc()) {
-            if ($this->sunatApi->envioIndividualDocumentoVPorEmpresa($row["nombre_xml"], $row['id_empresa'])) {
-                $sql = "update ventas set  enviado_sunat='1'
-                where id_venta = '{$_POST["cod"]}'";
-                $this->venta->exeSQL($sql);
-                $resultado['res'] = true;
-            } else {
-                $resultado['msg'] = $this->sunatApi->getMensaje();
-            }
+        $cod = DB::int($_POST['cod'] ?? 0);
+        $resultado = ['res' => false];
+
+        if ($cod <= 0) {
+            return json_encode($resultado);
+        }
+
+        $row = DB::selectOne(
+            $this->conexion,
+            "SELECT vs.*, v.id_empresa
+             FROM ventas_sunat vs
+             JOIN ventas v ON v.id_venta = vs.id_venta
+             WHERE vs.id_venta = ?",
+            'i',
+            [$cod]
+        );
+
+        if (!$row) {
+            return json_encode($resultado);
+        }
+
+        if ($this->sunatApi->envioIndividualDocumentoVPorEmpresa($row['nombre_xml'], $row['id_empresa'])) {
+            DB::execute(
+                $this->conexion,
+                "UPDATE ventas SET enviado_sunat = '1' WHERE id_venta = ?",
+                'i',
+                [$cod]
+            );
+            $resultado['res'] = true;
+        } else {
+            $resultado['msg'] = $this->sunatApi->getMensaje();
         }
         return json_encode($resultado);
     }
 
     public function regenerarXML()
     {
-        $venta = $_POST["venta"];
+        $venta = DB::int($_POST['venta'] ?? 0);
+        $respuesta = ['res' => false];
 
-        $sql = "SELECT * from ventas where id_venta='$venta'";
-        $ventaData = $this->venta->exeSQL($sql)->fetch_assoc();
-        $empresa = $this->venta->exeSQL("select * from empresas where id_empresa='{$ventaData['id_empresa']}'")->fetch_assoc();
-        $cliente = $this->venta->exeSQL("select * from clientes where id_cliente='{$ventaData['id_cliente']}'")->fetch_assoc();
+        if ($venta <= 0) {
+            return json_encode($respuesta);
+        }
 
+        $ventaData = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM ventas WHERE id_venta = ?",
+            'i',
+            [$venta]
+        );
+        if (!$ventaData) {
+            return json_encode($respuesta);
+        }
+
+        $empresa = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [(int) $ventaData['id_empresa']]
+        );
+        $cliente = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM clientes WHERE id_cliente = ?",
+            'i',
+            [(int) $ventaData['id_cliente']]
+        );
+
+        if (!$empresa || !$cliente) {
+            return json_encode($respuesta);
+        }
 
         $dataSend = [];
-        $dataSend["certGlobal"] = false;
+        $dataSend['certGlobal'] = false;
 
-        $direccionselk = $cliente["direccion"];
-
-
-
-        if (strlen(trim($direccionselk)) == "") {
+        $direccionselk = $cliente['direccion'];
+        if (strlen(trim($direccionselk)) == 0) {
             $direccionselk = '-';
         }
-        if (trim($cliente["datos"]) == "") {
-            $cliente["datos"] = '-';
+        if (trim($cliente['datos']) == '') {
+            $cliente['datos'] = '-';
         }
 
         $dataSend['cliente'] = json_encode([
-            'doc_num' => $cliente["documento"],
-            'nom_RS' => $cliente["datos"],
+            'doc_num'   => $cliente['documento'],
+            'nom_RS'    => $cliente['datos'],
             'direccion' => $direccionselk
         ]);
-        $dataSend['productos'] = [];
-        $dataSend['apli_igv'] = $ventaData['apli_igv'] == 1;
-        $dataSend['total'] = $ventaData["total"];
-        $dataSend['serie'] = $ventaData["serie"];
-        $dataSend['numero'] = $ventaData["numero"];
-        $dataSend['fechaE'] = $ventaData["fecha_emision"];
-        $dataSend['fechaV'] = $ventaData["fecha_vencimiento"];
-        $dataSend['tipo_pago'] = $ventaData["id_tipo_pago"];
-        $dataSend['igv_venta'] = $ventaData["igv"];
+        $dataSend['productos']  = [];
+        $dataSend['apli_igv']   = $ventaData['apli_igv'] == 1;
+        $dataSend['total']      = $ventaData['total'];
+        $dataSend['serie']      = $ventaData['serie'];
+        $dataSend['numero']     = $ventaData['numero'];
+        $dataSend['fechaE']     = $ventaData['fecha_emision'];
+        $dataSend['fechaV']     = $ventaData['fecha_vencimiento'];
+        $dataSend['tipo_pago']  = $ventaData['id_tipo_pago'];
+        $dataSend['igv_venta']  = $ventaData['igv'];
         $dataSend['dias_pagos'] = [];
-        $dataSend['moneda'] = "PEN";
+        $dataSend['moneda']     = 'PEN';
 
-        $sql = "select * from dias_ventas where id_venta='$venta'";
-        $cuotasVentas = $this->venta->exeSQL($sql);
-
+        $cuotasVentas = DB::select(
+            $this->conexion,
+            "SELECT monto, fecha FROM dias_ventas WHERE id_venta = ?",
+            'i',
+            [$venta]
+        );
         foreach ($cuotasVentas as $cuotas) {
             $dataSend['dias_pagos'][] = [
-                "monto" => $cuotas['monto'],
-                "fecha" => $cuotas['fecha']
+                'monto' => $cuotas['monto'],
+                'fecha' => $cuotas['fecha'],
             ];
         }
 
-        $sql = "select pv.*,p.descripcion from productos_ventas pv
-        join productos p on p.id_producto = pv.id_producto
-        where pv.id_venta='$venta'";
-        $listaProductos = $this->venta->exeSQL($sql);
+        $listaProductos = DB::select(
+            $this->conexion,
+            "SELECT pv.*, p.descripcion
+             FROM productos_ventas pv
+             JOIN productos p ON p.id_producto = pv.id_producto
+             WHERE pv.id_venta = ?",
+            'i',
+            [$venta]
+        );
         foreach ($listaProductos as $prod) {
             $dataSend['productos'][] = [
-                "precio" => number_format($prod['precio'], 2, ".", ""),
-                "cantidad" => number_format($prod['cantidad'], 0),
-                "cod_pro" => $prod['id_producto'],
-                "cod_sunat" => "",
-                "descripcion" => $prod['descripcion']
+                'precio'      => number_format($prod['precio'], 2, '.', ''),
+                'cantidad'    => number_format($prod['cantidad'], 0),
+                'cod_pro'     => $prod['id_producto'],
+                'cod_sunat'   => '',
+                'descripcion' => $prod['descripcion'],
             ];
         }
 
-        $sql = "select * from ventas_servicios where  id_venta='$venta'";
-        $listaProductos = $this->venta->exeSQL($sql);
-        foreach ($listaProductos as $prod) {
+        $listaServicios = DB::select(
+            $this->conexion,
+            "SELECT * FROM ventas_servicios WHERE id_venta = ?",
+            'i',
+            [$venta]
+        );
+        foreach ($listaServicios as $prod) {
             $dataSend['productos'][] = [
-                "precio" => number_format($prod['monto'], 2, ".", ""),
-                "cantidad" => number_format($prod['cantidad'], 0),
-                "cod_pro" => $prod['id_item'],
-                "cod_sunat" => $prod['codsunat'],
-                "descripcion" => $prod['descripcion']
+                'precio'      => number_format($prod['monto'], 2, '.', ''),
+                'cantidad'    => number_format($prod['cantidad'], 0),
+                'cod_pro'     => $prod['id_item'],
+                'cod_sunat'   => $prod['codsunat'],
+                'descripcion' => $prod['descripcion'],
             ];
         }
 
-        $dataSend["endpoints"] = $empresa['modo'];
-
-        $dataSend['empresa'] = json_encode([
-            'ruc' => $empresa['ruc'],
+        $dataSend['endpoints'] = $empresa['modo'];
+        $dataSend['empresa']   = json_encode([
+            'ruc'          => $empresa['ruc'],
             'razon_social' => $empresa['razon_social'],
-            'direccion' => $empresa['direccion'],
-            'ubigeo' => $empresa['ubigeo'],
-            'distrito' => $empresa['distrito'],
-            'provincia' => $empresa['provincia'],
+            'direccion'    => $empresa['direccion'],
+            'ubigeo'       => $empresa['ubigeo'],
+            'distrito'     => $empresa['distrito'],
+            'provincia'    => $empresa['provincia'],
             'departamento' => $empresa['departamento'],
-            'clave_sol' => $empresa['clave_sol'],
-            'usuario_sol' => $empresa['user_sol']
+            'clave_sol'    => $empresa['clave_sol'],
+            'usuario_sol'  => $empresa['user_sol'],
         ]);
-        $respuesta = ["res" => false];
 
         if ($ventaData['id_tido'] == 1 || $ventaData['id_tido'] == 2) {
             $dataSend['dias_pagos'] = json_encode($dataSend['dias_pagos']);
+            $dataSend['productos']  = json_encode($dataSend['productos']);
 
-            $dataSend['productos'] = json_encode($dataSend['productos']);
-            file_put_contents("Dataaaaaaaaaaaaaaaaaaaa.json", json_encode($dataSend));
-            if ($ventaData['id_tido'] == 1) {
-                $dataResp = $this->sunatApi->genBoletaXML($dataSend);
-            } else {
-                $dataResp = $this->sunatApi->genFacturaXML($dataSend);
-            }
-            if ($dataResp["res"]) {
-                $respuesta["res"] = true;
-                $sql = "select * from ventas_sunat where id_venta = '$venta'";
-                if ($rrroooo = $this->venta->exeSQL($sql)->fetch_assoc()) {
-                    $sql = "update ventas_sunat set hash='{$dataResp['data']['hash']}',
-                      nombre_xml='{$dataResp['data']['nombre_archivo']}',
-                      qr_data='{$dataResp['data']['qr']}' where id_venta = '$venta' ";
-                    $this->venta->exeSQL($sql);
+            $dataResp = ($ventaData['id_tido'] == 1)
+                ? $this->sunatApi->genBoletaXML($dataSend)
+                : $this->sunatApi->genFacturaXML($dataSend);
+
+            if ($dataResp['res']) {
+                $respuesta['res'] = true;
+
+                $existe = DB::selectOne(
+                    $this->conexion,
+                    "SELECT id_venta_sunat FROM ventas_sunat WHERE id_venta = ?",
+                    'i',
+                    [$venta]
+                );
+
+                if ($existe) {
+                    DB::execute(
+                        $this->conexion,
+                        "UPDATE ventas_sunat
+                         SET hash = ?, nombre_xml = ?, qr_data = ?
+                         WHERE id_venta = ?",
+                        'sssi',
+                        [
+                            (string) $dataResp['data']['hash'],
+                            (string) $dataResp['data']['nombre_archivo'],
+                            (string) $dataResp['data']['qr'],
+                            $venta,
+                        ]
+                    );
                 } else {
-                    $sql = "insert into ventas_sunat set hash='{$dataResp['data']['hash']}',
-                      nombre_xml='{$dataResp['data']['nombre_archivo']}',
-                      qr_data='{$dataResp['data']['qr']}',  id_venta = '$venta' ";
-                    $this->venta->exeSQL($sql);
+                    DB::execute(
+                        $this->conexion,
+                        "INSERT INTO ventas_sunat
+                         SET hash = ?, nombre_xml = ?, qr_data = ?, id_venta = ?",
+                        'sssi',
+                        [
+                            (string) $dataResp['data']['hash'],
+                            (string) $dataResp['data']['nombre_archivo'],
+                            (string) $dataResp['data']['qr'],
+                            $venta,
+                        ]
+                    );
                 }
             }
         }
@@ -384,53 +517,82 @@ class VentasController extends Controller
 
     public function listaVentasPorEmpresa()
     {
-        return json_encode($this->venta->verFilasPorEmpresas($_POST["empresa"], $_POST["sucursal"]));
+        $empresa  = DB::int($_POST['empresa'] ?? 0);
+        $sucursal = DB::int($_POST['sucursal'] ?? 0);
+        return json_encode($this->venta->verFilasPorEmpresas($empresa, $sucursal));
     }
 
 
     public function enviarDocumentoSunat()
     {
-        $sql = "select * from ventas_sunat where id_venta = '{$_POST["cod"]}'";
-        $resultado = ["res" => false];
-        if ($row = $this->venta->exeSQL($sql)->fetch_assoc()) {
-            if ($this->sunatApi->envioIndividualDocumentoV($row["nombre_xml"])) {
-                $sql = "update ventas set  enviado_sunat='1' where id_venta = '{$_POST["cod"]}'";
-                $this->venta->exeSQL($sql);
-                $resultado['res'] = true;
-            } else {
-                $resultado['msg'] = $this->sunatApi->getMensaje();
-            }
+        $cod = DB::int($_POST['cod'] ?? 0);
+        $resultado = ['res' => false];
+
+        if ($cod <= 0) {
+            return json_encode($resultado);
+        }
+
+        $row = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM ventas_sunat WHERE id_venta = ?",
+            'i',
+            [$cod]
+        );
+
+        if (!$row) {
+            return json_encode($resultado);
+        }
+
+        if ($this->sunatApi->envioIndividualDocumentoV($row['nombre_xml'])) {
+            DB::execute(
+                $this->conexion,
+                "UPDATE ventas SET enviado_sunat = '1' WHERE id_venta = ?",
+                'i',
+                [$cod]
+            );
+            $resultado['res'] = true;
+        } else {
+            $resultado['msg'] = $this->sunatApi->getMensaje();
         }
         return json_encode($resultado);
     }
 
     public function anularVenta()
     {
-        $this->venta->setIdVenta($_POST['iventa']);
+        $idVenta = DB::int($_POST['iventa'] ?? 0);
+        $resultado = ['res' => false];
+
+        if ($idVenta <= 0) {
+            return json_encode($resultado);
+        }
+
+        $this->venta->setIdVenta($idVenta);
         $c_anulada = new VentaAnulada();
-        $c_producto = new ProductoVenta();
 
-        /*$c_producto->setIdVenta($this->venta->getIdVenta());
-        $c_producto->eliminar();*/
+        $ventaData = DB::selectOne(
+            $this->conexion,
+            "SELECT id_cliente, total FROM ventas WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
 
-        // Obtener datos de la venta antes de anular
-        $sql = "SELECT id_cliente, total FROM ventas WHERE id_venta = '{$this->venta->getIdVenta()}'";
-        $ventaData = $this->conexion->query($sql)->fetch_assoc();
+        $c_anulada->setIdVenta($idVenta);
+        $c_anulada->setFecha(date('Y-m-d'));
+        $c_anulada->setMotivo('-');
 
-        $c_anulada->setIdVenta($this->venta->getIdVenta());
-        $c_anulada->setFecha(date("Y-m-d"));
-        $c_anulada->setMotivo("-");
-        $resultado = ["res" => false];
         if ($this->venta->anular()) {
             $resultado['res'] = true;
             $c_anulada->insertar();
 
-            // ✅ Actualizar total_venta del cliente (restar el monto anulado)
             if ($ventaData) {
-                $sql = "UPDATE clientes SET 
-                        total_venta = GREATEST(0, COALESCE(total_venta, 0) - {$ventaData['total']})
-                        WHERE id_cliente = '{$ventaData['id_cliente']}'";
-                $this->conexion->query($sql);
+                DB::execute(
+                    $this->conexion,
+                    "UPDATE clientes
+                     SET total_venta = GREATEST(0, COALESCE(total_venta, 0) - ?)
+                     WHERE id_cliente = ?",
+                    'di',
+                    [(float) $ventaData['total'], (int) $ventaData['id_cliente']]
+                );
             }
         }
         return json_encode($resultado);
@@ -443,10 +605,18 @@ class VentasController extends Controller
             header('Pragma: no-cache');
             header('Cache-Control: no-store, no-cache, must-revalidate');
 
-            // Obtener el filtro de tipo si existe
-            $tipoFiltro = isset($_GET['tipo_filtro']) ? $_GET['tipo_filtro'] : '';
+            // Whitelist estricta para el filtro de tipo (no inyectable)
+            $tipoFiltro    = $_GET['tipo_filtro'] ?? '';
+            $filtrosValidos = ['productos', 'servicios', 'mixto'];
+            if (!in_array($tipoFiltro, $filtrosValidos, true)) {
+                $tipoFiltro = '';
+            }
 
-            // Construir la consulta base
+            // id_empresa: hardcodeado a 12 (negocio mono-empresa, OK)
+            // sucursal/rol: vienen de sesión, forzamos enteros para que nunca rompan
+            $rolSesion       = DB::int($_SESSION['rol'] ?? 0);
+            $sucursalSesion  = DB::int($_SESSION['sucursal'] ?? 0);
+
             $baseQuery = "SELECT 
             v.id_venta as cod_v,
             CONCAT(ds.abreviatura, ' | ', v.serie, ' - ', v.numero) as sn_v,
@@ -474,7 +644,7 @@ class VentasController extends Controller
         LEFT JOIN ventas_sunat vs ON v.id_venta = vs.id_venta
         WHERE v.id_empresa = '12'";
 
-            // Agregar filtro según el tipo seleccionado
+            // Sub-queries pre-armados (no toman input del usuario)
             if ($tipoFiltro === 'productos') {
                 $baseQuery .= " AND EXISTS (SELECT 1 FROM productos_ventas pv WHERE pv.id_venta = v.id_venta)
                            AND NOT EXISTS (SELECT 1 FROM ventas_servicios vserv WHERE vserv.id_venta = v.id_venta)";
@@ -486,9 +656,9 @@ class VentasController extends Controller
                            AND EXISTS (SELECT 1 FROM ventas_servicios vserv WHERE vserv.id_venta = v.id_venta)";
             }
 
-            // Filtro de sucursal si no es admin
-            if ($_SESSION['rol'] != 1) {
-                $baseQuery .= " AND v.sucursal = {$_SESSION["sucursal"]}";
+            // Filtro de sucursal si no es admin (ahora con int forzado)
+            if ($rolSesion !== 1) {
+                $baseQuery .= " AND v.sucursal = " . $sucursalSesion;
             }
 
             $baseQuery .= " ORDER BY v.fecha_emision ASC, v.numero ASC";
@@ -533,38 +703,51 @@ class VentasController extends Controller
 
     public function detalleVenta()
     {
-        //echo $_POST['iventa'];
-        $this->venta->setIdVenta($_POST['iventa']);
+        $idVenta = DB::int($_POST['iventa'] ?? 0);
+        $this->venta->setIdVenta($idVenta);
         return $this->venta->verDetalle();
     }
+
     public function tipoVenta()
     {
-        //echo $_POST['iventa'];
-        $idVenta = $_POST['iventa'];
-        $sqlProducto = "SELECT * FROM productos_ventas WHERE id_venta = $idVenta";
-        $sqlServicio = "SELECT * FROM ventas_servicios WHERE id_venta = $idVenta";
-        $returnFetch = $this->venta->exeSQL($sqlProducto)->fetch_assoc();
-        $respuesta['tipo'] = '';
-        $respuesta['res'] = false;
-        if (empty($returnFetch)) {
-            $returnFetchServicios = $this->venta->exeSQL($sqlServicio)->fetch_assoc();
-            $respuesta['tipo'] = 'servicio';
-            $respuesta['data'] = $returnFetchServicios;
-            $respuesta['res'] = true;
-            return json_encode($respuesta);
-        } else {
-            $respuesta['tipo'] = 'productos';
-            $respuesta['data'] = $returnFetch;
-            $respuesta['res'] = true;
+        $idVenta = DB::int($_POST['iventa'] ?? 0);
+
+        $respuesta = ['tipo' => '', 'res' => false];
+        if ($idVenta <= 0) {
             return json_encode($respuesta);
         }
+
+        $producto = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM productos_ventas WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+
+        if (empty($producto)) {
+            $servicio = DB::selectOne(
+                $this->conexion,
+                "SELECT * FROM ventas_servicios WHERE id_venta = ?",
+                'i',
+                [$idVenta]
+            );
+            $respuesta['tipo'] = 'servicio';
+            $respuesta['data'] = $servicio;
+            $respuesta['res']  = true;
+            return json_encode($respuesta);
+        }
+
+        $respuesta['tipo'] = 'productos';
+        $respuesta['data'] = $producto;
+        $respuesta['res']  = true;
+        return json_encode($respuesta);
     }
 
 
     public function detalleVenta2()
     {
-        //echo $_POST['iventa'];
-        $this->venta->setIdVenta($_POST['iventa']);
+        $idVenta = DB::int($_POST['iventa'] ?? 0);
+        $this->venta->setIdVenta($idVenta);
         return $this->venta->verDetalle2();
     }
 
@@ -589,9 +772,12 @@ class VentasController extends Controller
 
         $id_empresa = $_SESSION['id_empresa'];
 
-        $sql = "SELECT * from empresas where id_empresa = " . $id_empresa;
-
-        $respEmpre = $c_venta->exeSQL($sql)->fetch_assoc();
+        $respEmpre = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [DB::int($id_empresa)]
+        );
 
         $igv_empr_sel = $respEmpre['igv'];
 
@@ -682,16 +868,32 @@ class VentasController extends Controller
         $dataSend['dias_pagos'] = [];
         $dataSend['moneda'] = "PEN"; */
 
-        $listaPagos = json_decode($_POST['dias_lista'], true);
+        $listaPagos = json_decode($_POST['dias_lista'] ?? '[]', true);
+        if (!is_array($listaPagos)) {
+            $listaPagos = [];
+        }
 
-        if ($c_venta->editar($_POST['idVenta'])) {
+        $idVentaEdit = DB::int($_POST['idVenta'] ?? 0);
+
+        if ($idVentaEdit > 0 && $c_venta->editar($idVentaEdit)) {
 
             $resultado["res"] = true;
-            $array_detalle = json_decode($_POST['listaPro'], true);
+            $array_detalle = json_decode($_POST['listaPro'] ?? '[]', true);
+            if (!is_array($array_detalle)) {
+                $array_detalle = [];
+            }
             foreach ($listaPagos as $diaP) {
-                $sql = "insert into dias_ventas set id_venta='{$c_venta->getIdVenta()}',
-                    monto='{$diaP['monto']}',fecha='{$diaP['fecha']}',estado='0'";
-                $c_venta->exeSQL($sql);
+                DB::execute(
+                    $this->conexion,
+                    "INSERT INTO dias_ventas
+                     SET id_venta = ?, monto = ?, fecha = ?, estado = '0'",
+                    'ids',
+                    [
+                        DB::int($c_venta->getIdVenta()),
+                        DB::float($diaP['monto'] ?? 0),
+                        DB::str($diaP['fecha'] ?? ''),
+                    ]
+                );
                 /*  $dataSend['dias_pagos'][] = [
                     "monto" => $diaP['monto'],
                     "fecha" => $diaP['fecha']
@@ -703,7 +905,7 @@ class VentasController extends Controller
 
 
             /*  $c_servicio->setIdventa(); */
-            $c_servicio->eliminar($_POST['idVenta']);
+            $c_servicio->eliminar($idVentaEdit);
 
             foreach ($array_detalle as $fila) {
                 $c_servicio->setDescripcion($fila['descripcion']);
@@ -712,7 +914,7 @@ class VentasController extends Controller
                 $c_servicio->setCodsunat(isset($fila['codsunat']) ? $fila['codsunat'] : '');
                 $c_servicio->setIditem($nroitem);
                 /*  $c_servicio->setIdventa($_POST['idVenta']); */
-                $c_servicio->editar($_POST['idVenta']);
+                $c_servicio->editar($idVentaEdit);
                 $nroitem++;
                 /*     $dataSend['productos'][] = [
                     "precio" => $fila['precio'],
@@ -812,9 +1014,12 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
         $id_empresa = $_SESSION['id_empresa'];
 
-        $sql = "SELECT * from empresas where id_empresa = " . $id_empresa;
-
-        $respEmpre = $c_venta->exeSQL($sql)->fetch_assoc();
+        $respEmpre = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [DB::int($id_empresa)]
+        );
 
         $igv_empr_sel = $respEmpre['igv'];
 
@@ -903,16 +1108,32 @@ $resultado["valor"] = $c_venta->getIdVenta();
         $dataSend['dias_pagos'] = [];
         $dataSend['moneda'] = "PEN"; */
 
-        $listaPagos = json_decode($_POST['dias_lista'], true);
+        $listaPagos = json_decode($_POST['dias_lista'] ?? '[]', true);
+        if (!is_array($listaPagos)) {
+            $listaPagos = [];
+        }
 
-        if ($c_venta->editar($_POST['idVenta'])) {
+        $idVentaEdit = DB::int($_POST['idVenta'] ?? 0);
+
+        if ($idVentaEdit > 0 && $c_venta->editar($idVentaEdit)) {
 
             $resultado["res"] = true;
-            $array_detalle = json_decode($_POST['listaPro'], true);
+            $array_detalle = json_decode($_POST['listaPro'] ?? '[]', true);
+            if (!is_array($array_detalle)) {
+                $array_detalle = [];
+            }
             foreach ($listaPagos as $diaP) {
-                $sql = "insert into dias_ventas set id_venta='{$c_venta->getIdVenta()}',
-                    monto='{$diaP['monto']}',fecha='{$diaP['fecha']}',estado='0'";
-                $c_venta->exeSQL($sql);
+                DB::execute(
+                    $this->conexion,
+                    "INSERT INTO dias_ventas
+                     SET id_venta = ?, monto = ?, fecha = ?, estado = '0'",
+                    'ids',
+                    [
+                        DB::int($c_venta->getIdVenta()),
+                        DB::float($diaP['monto'] ?? 0),
+                        DB::str($diaP['fecha'] ?? ''),
+                    ]
+                );
                 /*  $dataSend['dias_pagos'][] = [
                     "monto" => $diaP['monto'],
                     "fecha" => $diaP['fecha']
@@ -922,7 +1143,7 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
 
             /* $c_detalle->setIdVenta($c_venta->getIdVenta()); */
-            $c_detalle->eliminar($_POST['idVenta']);
+            $c_detalle->eliminar($idVentaEdit);
 
             /*  $c_servicio->eliminar($_POST['idVenta']);   */
 
@@ -931,7 +1152,7 @@ $resultado["valor"] = $c_venta->getIdVenta();
                 $c_detalle->setCantidad(isset($fila['cantidad']) ? $fila['cantidad'] : 0);
                 $c_detalle->setCosto(isset($fila['costo']) ? $fila['costo'] : 0);
                 $c_detalle->setPrecio(isset($fila['precio']) ? $fila['precio'] : 0);
-                $c_detalle->setIdVenta($_POST['idVenta']);
+                $c_detalle->setIdVenta($idVentaEdit);
                 $c_detalle->setPrecioUsado(isset($fila['precio_usado']) ? $fila['precio_usado'] : 1);
                 $c_detalle->insertar();
                 /*   $dataSend['productos'][] = [
@@ -1047,8 +1268,8 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
             $id_empresa = $_SESSION['id_empresa'];
 
-            $sql = "SELECT * from empresas where id_empresa = " . $id_empresa;
-            $respEmpre = $c_venta->exeSQL($sql)->fetch_assoc();
+            $sql = "SELECT * FROM empresas WHERE id_empresa = ?";
+            $respEmpre = DB::selectOne($this->conexion, $sql, 'i', [DB::int($id_empresa)]);
             $igv_empr_sel = $respEmpre['igv'];
 
             $c_cliente->setIdEmpresa($id_empresa);
@@ -1135,41 +1356,74 @@ $resultado["valor"] = $c_venta->getIdVenta();
             $listaPagos = isset($_POST['dias_lista']) ? json_decode($_POST['dias_lista'], true) : [];
 
             if ($c_venta->insertar()) {
-                if (isset($_POST['pagos'])) {
+                if (isset($_POST['pagos']) && is_array($_POST['pagos'])) {
                     $pagos = $_POST["pagos"];
                     foreach ($pagos as $i => $pago) {
                         $npago = $i + 1;
                         if (isset($pago["metodoPago"]) && $pago["metodoPago"] !== "" && isset($pago['montoPago']) && $pago['montoPago'] !== "") {
-                            $sql = "insert into ventas_pagos set id_venta='{$c_venta->getIdVenta()}',
-                            metodo_pago='{$pago['metodoPago']}',monto='{$pago['montoPago']}',npago='{$npago}'";
-                            $c_venta->exeSQL($sql);
+                            DB::execute(
+                                $this->conexion,
+                                "INSERT INTO ventas_pagos
+                                 SET id_venta = ?, metodo_pago = ?, monto = ?, npago = ?",
+                                'iidi',
+                                [
+                                    DB::int($c_venta->getIdVenta()),
+                                    DB::int($pago['metodoPago']),
+                                    DB::float($pago['montoPago']),
+                                    DB::int($npago),
+                                ]
+                            );
                         }
                     }
                 }
 
                 if (isset($_POST['idCoti']) && $_POST['idCoti']) {
                     $tipoCoti = isset($_POST['tipoCotizacion']) ? $_POST['tipoCotizacion'] : 'normal';
+                    $idCotiInt = DB::int($_POST['idCoti']);
 
                     if ($tipoCoti === 'taller') {
-                        $sql = "UPDATE taller_cotizaciones set estado = '1' WHERE id_cotizacion = '{$_POST['idCoti']}'";
+                        DB::execute(
+                            $this->conexion,
+                            "UPDATE taller_cotizaciones SET estado = '1' WHERE id_cotizacion = ?",
+                            'i',
+                            [$idCotiInt]
+                        );
                     } else {
-                        $sql = "UPDATE cotizaciones set estado = '1' WHERE cotizacion_id = '{$_POST['idCoti']}'";
+                        DB::execute(
+                            $this->conexion,
+                            "UPDATE cotizaciones SET estado = '1' WHERE cotizacion_id = ?",
+                            'i',
+                            [$idCotiInt]
+                        );
                     }
-                    $this->conexion->query($sql);
                 }
 
                 // ✅ NUEVO: Actualizar guía de remisión si viene desde una guía
                 if (isset($_POST['idGuia']) && $_POST['idGuia']) {
-                    $sql = "UPDATE guia_remision SET id_venta = '{$c_venta->getIdVenta()}' WHERE id_guia_remision = '{$_POST['idGuia']}'";
-                    $this->conexion->query($sql);
+                    DB::execute(
+                        $this->conexion,
+                        "UPDATE guia_remision SET id_venta = ? WHERE id_guia_remision = ?",
+                        'ii',
+                        [
+                            DB::int($c_venta->getIdVenta()),
+                            DB::int($_POST['idGuia']),
+                        ]
+                    );
                 }
 
                 // ✅ Actualizar ultima_venta y total_venta del cliente con fecha y hora actual
-                $sql = "UPDATE clientes SET 
-                        ultima_venta = NOW(),
-                        total_venta = COALESCE(total_venta, 0) + {$c_venta->getTotal()}
-                        WHERE id_cliente = '{$c_cliente->getIdCliente()}'";
-                $this->conexion->query($sql);
+                DB::execute(
+                    $this->conexion,
+                    "UPDATE clientes
+                     SET ultima_venta = NOW(),
+                         total_venta  = COALESCE(total_venta, 0) + ?
+                     WHERE id_cliente = ?",
+                    'di',
+                    [
+                        DB::float($c_venta->getTotal()),
+                        DB::int($c_cliente->getIdCliente()),
+                    ]
+                );
 
                 $resultado["res"] = true;
                 $array_detalle = isset($_POST['listaPro']) ? json_decode($_POST['listaPro'], true) : [];
@@ -1180,9 +1434,17 @@ $resultado["valor"] = $c_venta->getIdVenta();
                 error_log("guardarVentas listaPro count=" . (is_array($array_detalle) ? count($array_detalle) : 0));
 
                 foreach ($listaPagos as $diaP) {
-                    $sql = "insert into dias_ventas set id_venta='{$c_venta->getIdVenta()}',
-                        monto='{$diaP['monto']}',fecha='{$diaP['fecha']}',estado='0'";
-                    $c_venta->exeSQL($sql);
+                    DB::execute(
+                        $this->conexion,
+                        "INSERT INTO dias_ventas
+                         SET id_venta = ?, monto = ?, fecha = ?, estado = '0'",
+                        'ids',
+                        [
+                            DB::int($c_venta->getIdVenta()),
+                            DB::float($diaP['monto'] ?? 0),
+                            DB::str($diaP['fecha'] ?? ''),
+                        ]
+                    );
                     $dataSend['dias_pagos'][] = [
                         "monto" => $diaP['monto'],
                         "fecha" => $diaP['fecha']
@@ -1202,20 +1464,35 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     if (isset($_POST['tipoCotizacion']) && $_POST['tipoCotizacion'] === 'taller') {
                         $tieneEquipos = true;
                         $equiposVenta = isset($_POST['equiposVenta']) ? json_decode($_POST['equiposVenta'], true) : [];
+                        if (!is_array($equiposVenta)) $equiposVenta = [];
                         foreach ($equiposVenta as $eq) {
-                            $marca = $this->conexion->real_escape_string($eq['marca'] ?? '');
-                            $equipo = $this->conexion->real_escape_string($eq['equipo'] ?? '');
-                            $modelo = $this->conexion->real_escape_string($eq['modelo'] ?? '');
-                            $serie = $this->conexion->real_escape_string($eq['numero_serie'] ?? '');
-                            $idCotiEq = isset($eq['id_cotizacion_equipo']) ? intval($eq['id_cotizacion_equipo']) : 'NULL';
+                            $marca   = DB::str($eq['marca'] ?? '');
+                            $equipo  = DB::str($eq['equipo'] ?? '');
+                            $modelo  = DB::str($eq['modelo'] ?? '');
+                            $serie   = DB::str($eq['numero_serie'] ?? '');
+                            $idCotiEq = isset($eq['id_cotizacion_equipo']) ? DB::int($eq['id_cotizacion_equipo']) : 0;
+                            $idVentaCur = DB::int($c_venta->getIdVenta());
 
-                            $sqlInsEq = "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
-                                         VALUES ('{$c_venta->getIdVenta()}', " . ($idCotiEq === 'NULL' ? 'NULL' : "'$idCotiEq'") . ", '$marca', '$equipo', '$modelo', '$serie')";
-                            if ($this->conexion->query($sqlInsEq)) {
-                                $idVe = $this->conexion->insert_id;
-                                if ($idCotiEq !== 'NULL') {
-                                    $mapEquipo[$idCotiEq] = $idVe;
-                                }
+                            if ($idCotiEq > 0) {
+                                $idVe = DB::insert(
+                                    $this->conexion,
+                                    "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
+                                     VALUES (?, ?, ?, ?, ?, ?)",
+                                    'iissss',
+                                    [$idVentaCur, $idCotiEq, $marca, $equipo, $modelo, $serie]
+                                );
+                            } else {
+                                $idVe = DB::insert(
+                                    $this->conexion,
+                                    "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
+                                     VALUES (?, NULL, ?, ?, ?, ?)",
+                                    'issss',
+                                    [$idVentaCur, $marca, $equipo, $modelo, $serie]
+                                );
+                            }
+
+                            if ($idVe > 0 && $idCotiEq > 0) {
+                                $mapEquipo[$idCotiEq] = $idVe;
                             }
                         }
                     }
@@ -1224,51 +1501,52 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     if (isset($_POST['idGuia']) && $_POST['idGuia'] && isset($_POST['equiposVenta'])) {
                         $tieneEquipos = true;
                         $equiposVenta = json_decode($_POST['equiposVenta'], true);
+                        if (!is_array($equiposVenta)) $equiposVenta = [];
                         
                         // Consultar la guía original para obtener relación producto-equipo
-                        $guiaId = intval($_POST['idGuia']);
-                        $sqlGuiaInfo = "SELECT gd.id_producto, gd.id_guia_equipo, ge.numero_serie 
-                                       FROM guia_detalles gd 
-                                       LEFT JOIN guia_equipos ge ON gd.id_guia_equipo = ge.id_guia_equipo 
-                                       WHERE gd.id_guia = $guiaId";
-                        $resultGuiaInfo = $this->conexion->query($sqlGuiaInfo);
+                        $guiaId = DB::int($_POST['idGuia']);
+                        $rowsGuia = DB::select(
+                            $this->conexion,
+                            "SELECT gd.id_producto, gd.id_guia_equipo, ge.numero_serie
+                             FROM guia_detalles gd
+                             LEFT JOIN guia_equipos ge ON gd.id_guia_equipo = ge.id_guia_equipo
+                             WHERE gd.id_guia = ?",
+                            'i',
+                            [$guiaId]
+                        );
                         
                         // Crear mapeo de producto -> serie de equipo
                         $productoEquipoMap = [];
-                        if ($resultGuiaInfo) {
-                            while ($row = $resultGuiaInfo->fetch_assoc()) {
-                                if ($row['numero_serie']) {
-                                    $productoEquipoMap[$row['id_producto']] = $row['numero_serie'];
-                                    error_log("Mapeo producto {$row['id_producto']} -> equipo serie {$row['numero_serie']}");
-                                }
+                        foreach ($rowsGuia as $row) {
+                            if (!empty($row['numero_serie'])) {
+                                $productoEquipoMap[$row['id_producto']] = $row['numero_serie'];
+                                error_log("Mapeo producto {$row['id_producto']} -> equipo serie {$row['numero_serie']}");
                             }
-                        } else {
-                            error_log("Error en consulta guía: " . $this->conexion->error);
-                            error_log("SQL ejecutado: $sqlGuiaInfo");
                         }
                         
                         foreach ($equiposVenta as $eq) {
                             // Los equipos de guía vienen con descripción, extraer datos
                             $descripcion = $eq['descripcion'] ?? '';
                             if (preg_match('/EQUIPO: (.+?) - Modelo: (.+?) - Serie: (.+?)$/', $descripcion, $matches)) {
-                                $marcaEquipo = trim($matches[1]);
-                                $modelo = trim($matches[2]);
-                                $serie = trim($matches[3]);
+                                $marcaEquipo  = trim($matches[1]);
+                                $modelo       = trim($matches[2]);
+                                $serie        = trim($matches[3]);
                                 
                                 // Separar marca y equipo (formato: "MARCA EQUIPO")
-                                $partes = explode(' ', $marcaEquipo, 2);
-                                $marca = $partes[0] ?? '';
-                                $equipoNombre = $partes[1] ?? $marcaEquipo;
-                                
-                                $marca = $this->conexion->real_escape_string($marca);
-                                $equipoNombre = $this->conexion->real_escape_string($equipoNombre);
-                                $modelo = $this->conexion->real_escape_string($modelo);
-                                $serie = $this->conexion->real_escape_string($serie);
-                                
-                                $sqlInsEq = "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
-                                             VALUES ('{$c_venta->getIdVenta()}', NULL, '$marca', '$equipoNombre', '$modelo', '$serie')";
-                                if ($this->conexion->query($sqlInsEq)) {
-                                    $idVentaEquipo = $this->conexion->insert_id;
+                                $partes        = explode(' ', $marcaEquipo, 2);
+                                $marca         = $partes[0] ?? '';
+                                $equipoNombre  = $partes[1] ?? $marcaEquipo;
+
+                                $idVentaCur = DB::int($c_venta->getIdVenta());
+                                $idVentaEquipo = DB::insert(
+                                    $this->conexion,
+                                    "INSERT INTO ventas_equipos (id_venta, id_cotizacion_equipo, marca, equipo, modelo, numero_serie)
+                                     VALUES (?, NULL, ?, ?, ?, ?)",
+                                    'issss',
+                                    [$idVentaCur, $marca, $equipoNombre, $modelo, $serie]
+                                );
+
+                                if ($idVentaEquipo > 0) {
                                     // Mapear por serie para usar en productos
                                     $mapEquipo[$serie] = $idVentaEquipo;
                                     error_log("Equipo desde guía guardado: $marca $equipoNombre - $modelo - $serie (ID: $idVentaEquipo)");
@@ -1378,7 +1656,12 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     $dataSend["endpoints"] = $respEmpre['modo'];
 
                     if ($_SESSION['sucursal'] != '1') {
-                        $datoSucursal = $this->conexion->query("SELECT * FROM sucursales WHERE cod_sucursal ='{$_SESSION['sucursal']}' AND empresa_id=" . $_SESSION['id_empresa'])->fetch_assoc();
+                        $datoSucursal = DB::selectOne(
+                            $this->conexion,
+                            "SELECT * FROM sucursales WHERE cod_sucursal = ? AND empresa_id = ?",
+                            'ii',
+                            [DB::int($_SESSION['sucursal']), DB::int($_SESSION['id_empresa'])]
+                        );
                         $dataSend['empresa'] = json_encode([
                             'ruc' => $respEmpre['ruc'],
                             'razon_social' => $respEmpre['razon_social'],
@@ -1411,6 +1694,7 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     } else {
                         $dataResp = $this->sunatApi->genFacturaXML($dataSend);
                     }
+                    error_log("SUNAT API response: " . json_encode($dataResp));
 
                     if (isset($dataResp["res"]) && $dataResp["res"]) {
                         $c_sunat->setIdVenta($c_venta->getIdVenta());
@@ -1426,7 +1710,8 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     $c_sunat->setHash("-");
                     $c_sunat->setNombreXml("-");
                     $c_sunat->setQrData('-');
-                    $c_sunat->insertar();
+                    $insertResult = $c_sunat->insertar();
+                    error_log("SUNAT fallback insert: id_venta=" . $c_venta->getIdVenta() . ", result=" . ($insertResult ? 'OK' : 'FAIL') . ", error=" . ($insertResult ? '' : $c_venta->getSqlError()));
 
                     $resultado["valor"] = $c_venta->getIdVenta();
                 }

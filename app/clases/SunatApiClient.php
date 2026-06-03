@@ -13,6 +13,9 @@ class SunatApiClient
     public function __construct()
     {
         $this->conexion = (new Conexion())->getConexion();
+        if (!class_exists('DB')) {
+            require_once 'app/clases/DB.php';
+        }
     }
 
     public function getMensaje(): string
@@ -107,7 +110,7 @@ class SunatApiClient
             if ($conPrecio && (empty($p['precio']) || !is_numeric($p['precio']))) continue;
 
             $d = [
-                'cod_producto' => $p['cod_pro'] ?? $p['cod_producto'] ?? '',
+                'cod_producto' => (string)($p['cod_pro'] ?? $p['cod_producto'] ?? ''),
                 'cod_sunat'    => $p['cod_sunat'] ?? '',
                 'unidad'       => 'NIU',
                 'descripcion'  => $p['descripcion'],
@@ -155,6 +158,9 @@ class SunatApiClient
     {
         if (ob_get_level()) ob_clean();
         $this->decodificarArrays($dataE);
+        if (($dataE['endpoints'] ?? '') === 'beta') {
+            $dataE['empresa']['ruc'] = '20000000001';
+        }
         $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $apliIgv = (bool)($dataE['apli_igv'] ?? true);
@@ -196,6 +202,8 @@ class SunatApiClient
         }
 
         $res = $this->post('generar/comprobante', $body);
+        error_log("SUNAT API BODY: " . json_encode($body));
+        error_log("SUNAT API RES: " . json_encode($res));
 
         if (!empty($res['estado'])) {
             $this->guardarXML($dataE['empresa']['ruc'], $res['data']['nombre_archivo'], $res['data']['contenido_xml']);
@@ -206,7 +214,8 @@ class SunatApiClient
             ]];
         }
 
-        $this->mensaje = $res['mensaje'] ?? 'Error al generar factura XML';
+        $this->mensaje = $res['mensaje'] ?? $res['message'] ?? 'Error al generar factura XML';
+        error_log("SUNAT API VALIDATION ERROR: " . json_encode($res));
         return ['res' => false, 'msg' => $this->mensaje];
     }
 
@@ -214,6 +223,9 @@ class SunatApiClient
     {
         if (ob_get_level()) ob_clean();
         $this->decodificarArrays($dataE);
+        if (($dataE['endpoints'] ?? '') === 'beta') {
+            $dataE['empresa']['ruc'] = '20000000001';
+        }
         $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $apliIgv  = (bool)($dataE['apli_igv'] ?? true);
@@ -269,13 +281,17 @@ class SunatApiClient
             ]];
         }
 
-        $this->mensaje = $res['mensaje'] ?? 'Error al generar boleta XML';
+        $this->mensaje = $res['mensaje'] ?? $res['message'] ?? 'Error al generar boleta XML';
+        error_log("SUNAT API VALIDATION ERROR: " . json_encode($res));
         return ['res' => false, 'msg' => $this->mensaje];
     }
 
     public function genGuiaRemision(array $dataE): array
     {
         $this->decodificarArrays($dataE);
+        if (($dataE['endpoints'] ?? '') === 'beta') {
+            $dataE['empresa']['ruc'] = '20000000001';
+        }
         $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $serieRelacionado = null;
@@ -333,6 +349,9 @@ class SunatApiClient
     public function genNotaElectronicaXML(array $dataE): array
     {
         $this->decodificarArrays($dataE);
+        if (($dataE['endpoints'] ?? '') === 'beta') {
+            $dataE['empresa']['ruc'] = '20000000001';
+        }
         $this->subirCertificado($dataE['empresa']['ruc'], $dataE['endpoints'] ?? 'beta');
 
         $doc_num  = $dataE['cliente']['doc_num'];
@@ -383,7 +402,11 @@ class SunatApiClient
 
     private function _enviarDocumento(string $nom_XML, array $empresa): bool
     {
-        $xml_ruta = "files/facturacion/xml/{$empresa['ruc']}/{$nom_XML}.xml";
+        $ruc = $empresa['ruc'];
+        if (($empresa['modo'] ?? '') === 'beta') {
+            $ruc = '20000000001';
+        }
+        $xml_ruta = "files/facturacion/xml/{$ruc}/{$nom_XML}.xml";
         if (!file_exists($xml_ruta)) {
             $this->mensaje = "No se encontró el XML: {$nom_XML}";
             return false;
@@ -401,7 +424,7 @@ class SunatApiClient
         $res = $this->post('enviar/documento/electronico', $body);
 
         if (!empty($res['estado'])) {
-            $this->guardarCDR($empresa['ruc'], $nom_XML, $res['cdr']);
+            $this->guardarCDR($ruc, $nom_XML, $res['cdr']);
             return true;
         }
 
@@ -411,39 +434,69 @@ class SunatApiClient
 
     public function envioIndividualDocumentoV(string $nom_XML): bool
     {
-        $empresa = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'"
-        )->fetch_assoc();
+        $empresa = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [DB::int($_SESSION['id_empresa'] ?? 0)]
+        );
+        if (!$empresa) {
+            $this->mensaje = 'Empresa no encontrada';
+            return false;
+        }
         return $this->_enviarDocumento($nom_XML, $empresa);
     }
 
     public function envioIndividualDocumentoVPorEmpresa(string $nom_XML, $id_empresa): bool
     {
-        $empresa = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa = '$id_empresa'"
-        )->fetch_assoc();
+        $empresa = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [DB::int($id_empresa)]
+        );
+        if (!$empresa) {
+            $this->mensaje = 'Empresa no encontrada';
+            return false;
+        }
         return $this->_enviarDocumento($nom_XML, $empresa);
     }
 
     // ─── Resumen Diario y Comunicación de Baja ───────────────────────────────
 
-    public function comunicacionBajaPorEmpresa($listaFac, $empresa, $fechaComuni, $fechaGene, $correlativo)
+    public function comunicacionBajaPorEmpresa($listaIds, $empresa, $fechaComuni, $fechaGene, $correlativo)
     {
-        $emp = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
-        )->fetch_assoc();
+        $empresaId = DB::int($empresa);
+        $emp = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [$empresaId]
+        );
+        if (!$emp) {
+            return 'Empresa no encontrada';
+        }
 
-        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero
-                FROM ventas_anuladas AS va
-                    INNER JOIN ventas AS v ON v.id_venta = va.id_venta
-                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
-                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
-                WHERE " . implode(' OR ', $listaFac);
+        [$inSql, $inTypes, $inParams] = DB::safeInInts(is_array($listaIds) ? $listaIds : []);
+        if ($inSql === 'NULL') {
+            return 'Sin item';
+        }
 
-        $result   = $this->conexion->query($sql);
-        $detalles = [];
-        while ($fila = $result->fetch_assoc()) {
-            $detalles[] = [
+        $detalles = DB::select(
+            $this->conexion,
+            "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero
+             FROM ventas_anuladas AS va
+                INNER JOIN ventas AS v ON v.id_venta = va.id_venta
+                INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+             WHERE v.id_venta IN ($inSql)",
+            $inTypes,
+            $inParams
+        );
+
+        $detallesPayload = [];
+        foreach ($detalles as $fila) {
+            $detallesPayload[] = [
                 'tipo_doc'    => $fila['cod_sunat'],
                 'serie'       => $fila['serie'],
                 'correlativo' => $fila['numero'],
@@ -451,7 +504,7 @@ class SunatApiClient
             ];
         }
 
-        if (empty($detalles)) {
+        if (empty($detallesPayload)) {
             return 'Sin item';
         }
 
@@ -463,7 +516,7 @@ class SunatApiClient
             'fecha_generacion'   => $fechaGene,
             'fecha_comunicacion' => $fechaComuni,
             'empresa'            => $this->mapearEmpresa($emp),
-            'detalles'           => $detalles,
+            'detalles'           => $detallesPayload,
         ];
 
         $res = $this->post('enviar/comunicacion/baja', $body);
@@ -478,24 +531,40 @@ class SunatApiClient
         return $res['mensaje'] ?? '';
     }
 
-    public function resumenDiarioPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo)
+    public function resumenDiarioPorEmpresa($ventasIds, $empresa, $fechaGene, $fechaResu, $correlativo)
     {
-        $emp = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
-        )->fetch_assoc();
+        $empresaId = DB::int($empresa);
+        $emp = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [$empresaId]
+        );
+        if (!$emp) {
+            return ['res' => false, 'msg' => 'Empresa no encontrada'];
+        }
 
-        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
-                       c.documento, v.total
-                FROM ventas AS v
-                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
-                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
-                WHERE " . implode(' OR ', $ventas);
+        [$inSql, $inTypes, $inParams] = DB::safeInInts(is_array($ventasIds) ? $ventasIds : []);
+        if ($inSql === 'NULL') {
+            return ['res' => false, 'msg' => 'Sin items para el resumen'];
+        }
 
-        $result    = $this->conexion->query($sql);
+        $filas = DB::select(
+            $this->conexion,
+            "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
+                    c.documento, v.total
+             FROM ventas AS v
+                INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+             WHERE v.id_venta IN ($inSql)",
+            $inTypes,
+            $inParams
+        );
+
         $detalles  = [];
         $ids_venta = [];
 
-        while ($fila = $result->fetch_assoc()) {
+        foreach ($filas as $fila) {
             $doc_cliente = '00000000';
             if (strlen($fila['documento']) == 8) {
                 $tipo_doc    = 1;
@@ -507,7 +576,7 @@ class SunatApiClient
                 $tipo_doc = 0;
             }
 
-            $total   = (float)$fila['total'];
+            $total    = (float)$fila['total'];
             $subtotal = round($total / 1.18, 2);
             $igv      = round($total / 1.18 * 0.18, 2);
 
@@ -549,18 +618,24 @@ class SunatApiClient
             $this->guardarCDR($emp['ruc'], $res['nombre_archivo'], $res['cdr']);
 
             foreach ($ids_venta as $id) {
-                $this->conexion->query("UPDATE ventas SET enviado_sunat='1' WHERE id_venta='$id'");
+                DB::execute(
+                    $this->conexion,
+                    "UPDATE ventas SET enviado_sunat = '1' WHERE id_venta = ?",
+                    'i',
+                    [DB::int($id)]
+                );
             }
 
             $fecha    = date('Y-m-d');
-            $ticket   = $this->conexion->real_escape_string($res['ticket'] ?? '');
+            $ticket   = (string) ($res['ticket'] ?? '');
             $cantidad = count($ids_venta);
-            $this->conexion->query("INSERT INTO resumen_diario SET
-                id_empresa='{$emp['id_empresa']}',
-                fecha='$fecha',
-                ticket='$ticket',
-                cantidad_items='$cantidad',
-                tipo='1'");
+            DB::execute(
+                $this->conexion,
+                "INSERT INTO resumen_diario
+                 SET id_empresa = ?, fecha = ?, ticket = ?, cantidad_items = ?, tipo = '1'",
+                'issi',
+                [DB::int($emp['id_empresa']), $fecha, $ticket, $cantidad]
+            );
 
             return ['res' => true, 'msg' => $res['mensaje'] ?? 'Resumen procesado'];
         }
@@ -568,25 +643,41 @@ class SunatApiClient
         return ['res' => false, 'msg' => $res['mensaje'] ?? 'Error al enviar resumen'];
     }
 
-    public function resumenDiarioBajaPorEmpresa($ventas, $empresa, $fechaGene, $fechaResu, $correlativo)
+    public function resumenDiarioBajaPorEmpresa($ventasIds, $empresa, $fechaGene, $fechaResu, $correlativo)
     {
-        $emp = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa='$empresa'"
-        )->fetch_assoc();
+        $empresaId = DB::int($empresa);
+        $emp = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [$empresaId]
+        );
+        if (!$emp) {
+            return ['res' => false, 'msg' => 'Empresa no encontrada'];
+        }
 
-        $sql = "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
-                       c.documento, v.total
-                FROM ventas_anuladas AS va
-                    INNER JOIN ventas AS v ON v.id_venta = va.id_venta
-                    INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
-                    INNER JOIN clientes c ON v.id_cliente = c.id_cliente
-                WHERE " . implode(' OR ', $ventas);
+        [$inSql, $inTypes, $inParams] = DB::safeInInts(is_array($ventasIds) ? $ventasIds : []);
+        if ($inSql === 'NULL') {
+            return ['res' => false, 'msg' => 'Sin items para el resumen de baja'];
+        }
 
-        $result    = $this->conexion->query($sql);
+        $filas = DB::select(
+            $this->conexion,
+            "SELECT v.id_venta, ds.cod_sunat, v.serie, v.numero,
+                    c.documento, v.total
+             FROM ventas_anuladas AS va
+                INNER JOIN ventas AS v ON v.id_venta = va.id_venta
+                INNER JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                INNER JOIN clientes c ON v.id_cliente = c.id_cliente
+             WHERE v.id_venta IN ($inSql)",
+            $inTypes,
+            $inParams
+        );
+
         $detalles  = [];
         $ids_venta = [];
 
-        while ($fila = $result->fetch_assoc()) {
+        foreach ($filas as $fila) {
             $doc_cliente = '00000000';
             if (strlen($fila['documento']) == 8) {
                 $tipo_doc    = 1;
@@ -640,18 +731,24 @@ class SunatApiClient
             $this->guardarCDR($emp['ruc'], $res['nombre_archivo'], $res['cdr']);
 
             foreach ($ids_venta as $id) {
-                $this->conexion->query("UPDATE ventas SET enviado_sunat='1' WHERE id_venta='$id'");
+                DB::execute(
+                    $this->conexion,
+                    "UPDATE ventas SET enviado_sunat = '1' WHERE id_venta = ?",
+                    'i',
+                    [DB::int($id)]
+                );
             }
 
             $fecha    = date('Y-m-d');
-            $ticket   = $this->conexion->real_escape_string($res['ticket'] ?? '');
+            $ticket   = (string) ($res['ticket'] ?? '');
             $cantidad = count($ids_venta);
-            $this->conexion->query("INSERT INTO resumen_diario SET
-                id_empresa='{$emp['id_empresa']}',
-                fecha='$fecha',
-                ticket='$ticket',
-                cantidad_items='$cantidad',
-                tipo='1'");
+            DB::execute(
+                $this->conexion,
+                "INSERT INTO resumen_diario
+                 SET id_empresa = ?, fecha = ?, ticket = ?, cantidad_items = ?, tipo = '1'",
+                'issi',
+                [DB::int($emp['id_empresa']), $fecha, $ticket, $cantidad]
+            );
 
             return ['res' => true, 'msg' => $res['mensaje'] ?? 'Resumen de baja procesado'];
         }
@@ -664,11 +761,21 @@ class SunatApiClient
     /** Reemplaza SunatApi2::envioIndividualGuiaRemi() */
     public function envioIndividualGuiaRemi(string $nom_XML): bool
     {
-        $empresa = $this->conexion->query(
-            "SELECT * FROM empresas WHERE id_empresa = '{$_SESSION['id_empresa']}'"
-        )->fetch_assoc();
-
-        $xml_ruta = "files/facturacion/xml/{$empresa['ruc']}/{$nom_XML}.xml";
+        $empresa = DB::selectOne(
+            $this->conexion,
+            "SELECT * FROM empresas WHERE id_empresa = ?",
+            'i',
+            [DB::int($_SESSION['id_empresa'] ?? 0)]
+        );
+        if (!$empresa) {
+            $this->mensaje = 'Empresa no encontrada';
+            return false;
+        }
+        $ruc = $empresa['ruc'];
+        if (($empresa['modo'] ?? '') === 'beta') {
+            $ruc = '20000000001';
+        }
+        $xml_ruta = "files/facturacion/xml/{$ruc}/{$nom_XML}.xml";
         if (!file_exists($xml_ruta)) {
             $this->mensaje = "No se encontró el XML de guía: {$nom_XML}";
             return false;

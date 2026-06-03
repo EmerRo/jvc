@@ -104,7 +104,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="<?= URL::to('/reporte/cotizaciones/vendedores') ?>" method="POST">
+                <form id="form-reporte-vendedores" action="<?= URL::to('/reporte/cotizaciones/vendedores') ?>" method="POST">
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Fecha</label>
@@ -112,11 +112,14 @@
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Vendedores</label>
-                            <select name="vendedor" id="vendedor" class="form-control">
+                            <select name="vendedor" id="vendedor" class="form-control" style="width:100%">
+                                <option value="0" data-foto="<?= URL::to('public/assets/images/users/user-4.jpg') ?>">--Todos--</option>
                             </select>
                         </div>
                         <div class="col-md-12 mb-3 text-center">
-                            <button type="submit" class="btn border-rojo text-rojo bg-white">Generar</button>
+                            <button type="submit" id="btn-generar-reporte" class="btn border-rojo text-rojo bg-white">
+                                <i class="fa fa-file-excel me-1"></i> Generar
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -127,6 +130,67 @@
         </div>
     </div>
 </div>
+
+<!-- Overlay de carga durante la generación del Excel -->
+<div id="overlay-reporte-vendedores" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:200000; align-items:center; justify-content:center; flex-direction:column; gap:18px;">
+    <div style="background:#fff; border-radius:14px; padding:28px 36px; box-shadow:0 18px 50px rgba(0,0,0,.25); text-align:center; min-width:280px;">
+        <div class="spinner-border text-rojo" role="status" style="width:3rem; height:3rem; color:#CA3438 !important;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <div style="margin-top:14px; font-weight:600; color:#1e293b;">Generando reporte...</div>
+        <div id="overlay-reporte-vendedores-msg" style="margin-top:4px; font-size:.85rem; color:#64748b;">Esto puede tardar unos segundos</div>
+    </div>
+</div>
+
+<!-- Select2 CSS+JS (solo se cargan en este modal) -->
+<link rel="stylesheet" href="<?= URL::to('public/assets/libs/select2/css/select2.min.css') ?>?v=<?= time() ?>">
+<style>
+    /* Avatares del select2 */
+    .vendedor-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        object-fit: cover; display: inline-block; vertical-align: middle;
+        border: 1px solid #e5e7eb; flex-shrink: 0;
+    }
+    .vendedor-item { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+    .vendedor-item .vendedor-nombre { font-weight: 500; color: #1e293b; }
+
+    /* Contenedor del select */
+    .select2-container--default .select2-selection--single {
+        height: 48px; padding: 4px 12px; border: 1px solid #ced4da; border-radius: 6px;
+        display: flex; align-items: center;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: normal; padding-left: 0; display: flex; align-items: center;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px; right: 10px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-width: 6px 5px 0 5px;
+    }
+
+    /* Dropdown dentro del modal */
+    .select2-container--default .select2-dropdown {
+        border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        z-index: 10060 !important;  /* encima del backdrop del modal */
+    }
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 280px; min-width: 100%; padding: 4px 0;
+    }
+    .select2-container--default .select2-results__option {
+        padding: 0;  /* el padding lo da .vendedor-item */
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #fee2e2; color: #1e293b;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #CA3438; color: #fff;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] .vendedor-nombre {
+        color: #fff;
+    }
+</style>
+<script src="<?= URL::to('public/assets/libs/select2/js/select2.min.js') ?>?v=<?= time() ?>"></script>
 
 <!-- Modal de Enviar Comprobante (WhatsApp + Email) -->
 <?php include __DIR__ . '/modals/modal-enviar-comprobante.php'; ?>
@@ -183,6 +247,11 @@
             ],
             language: {
                 url: "ServerSide/Spanish.json",
+            },
+            drawCallback: function() {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    bootstrap.Tooltip.getOrCreateInstance(el);
+                });
             },
             columnDefs: [
                 {
@@ -244,7 +313,15 @@
                 {
                     targets: 8, // Vender
                     width: "60px",
-                    render(data) {
+                    render(data, type, row) {
+                        if (row[7] == '1') {
+                            const label = row[13] ? `Venta N° ${row[13]}` : 'Ya vendida';
+                            return `<button class="btn btn-secondary btn-sm" disabled
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="${label}">
+                                        <i class="fa fa-align-justify"></i>
+                                    </button>`;
+                        }
                         return `<a href="/ventas/productos?coti=${data}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
                     }
                 },
@@ -332,33 +409,167 @@
         
         // Manejar clic en reporte tanto para desktop como mobile
         $("#ventas-reporte, #ventas-reporte-mobile").on('click', function () {
+            const $btn = $(this);
+            $btn.prop('disabled', true);
             $.ajax({
                 type: "POST",
                 url: _URL + "/ajs/cotizaciones/getvendedores",
                 success: function (response) {
                     $('#rangoFechas').daterangepicker({
-                        opens: 'left', // posición del selector de fechas
+                        opens: 'left',
                         locale: {
-                            format: 'YYYY-MM-DD', // formato de fecha
-                            applyLabel: 'Aplicar', // etiqueta para aplicar el rango seleccionado
-                            cancelLabel: 'Cancelar', // etiqueta para cancelar la selección
-                            fromLabel: 'Desde', // etiqueta para el input de fecha de inicio
-                            toLabel: 'Hasta', // etiqueta para el input de fecha de fin
-                            customRangeLabel: 'Rango personalizado', // etiqueta para un rango de fechas personalizado
-                            daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'], // días de la semana
-                            monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] // nombres de los meses
+                            format: 'YYYY-MM-DD',
+                            applyLabel: 'Aplicar',
+                            cancelLabel: 'Cancelar',
+                            fromLabel: 'Desde',
+                            toLabel: 'Hasta',
+                            customRangeLabel: 'Rango personalizado',
+                            daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'],
+                            monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
                         }
                     });
+
                     let data = JSON.parse(response);
-                    let options = "<option value='0'>--Todos--</option>";
-                    $.each(data, function (i, d) {
-                        options += `<option value="${d.usuario_id}">${d.nombres}</option>`;
+                    const $select = $('#vendedor');
+
+                    // Resetear
+                    $select.empty();
+                    $select.append(new Option('--Todos--', '0', false, false));
+                    $select.find('option[value="0"]').attr('data-foto', _URL + '/public/assets/images/users/user-4.jpg');
+
+                    data.forEach(function (d) {
+                        const opt = new Option(d.nombres, d.usuario_id, false, false);
+                        $(opt).attr('data-foto', d.foto_url || (_URL + '/public/assets/images/users/user-4.jpg'));
+                        $select.append(opt);
                     });
-                    $('#vendedor').html(options);
+
+                    // Inicializar Select2 con template HTML (avatar + nombre)
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        $select.select2('destroy');
+                    }
+                    $select.select2({
+                        width: '100%',
+                        placeholder: 'Seleccione un vendedor...',
+                        allowClear: false,
+                        minimumResultsForSearch: 10,  // con 4 vendedores no hace falta search
+                        dropdownParent: $('#ventas-reporte-bs'),  // renderiza DENTRO del modal
+                        dropdownAutoWidth: true,
+                        templateResult: function (option) {
+                            if (!option.id) return option.text;
+                            const foto = $(option.element).attr('data-foto') || (_URL + '/public/assets/images/users/user-4.jpg');
+                            return $(`
+                                <div class="vendedor-item">
+                                    <img class="vendedor-avatar" src="${foto}" alt=""
+                                         onerror="this.onerror=null;this.src='${_URL}/public/assets/images/users/user-4.jpg';" />
+                                    <span class="vendedor-nombre">${option.text}</span>
+                                </div>
+                            `);
+                        },
+                        templateSelection: function (option) {
+                            if (!option.id) return option.text;
+                            const foto = $(option.element).attr('data-foto') || (_URL + '/public/assets/images/users/user-4.jpg');
+                            return $(`
+                                <span class="vendedor-item">
+                                    <img class="vendedor-avatar" src="${foto}" alt=""
+                                         onerror="this.onerror=null;this.src='${_URL}/public/assets/images/users/user-4.jpg';" />
+                                    <span class="vendedor-nombre">${option.text}</span>
+                                </span>
+                            `);
+                        },
+                        escapeMarkup: function (m) { return m; }
+                    });
+
+                    $btn.prop('disabled', false);
                     $('#ventas-reporte-bs').modal('show');
-                }, error: function (response) {
+                },
+                error: function (response) {
                     console.log(response);
+                    $btn.prop('disabled', false);
                 }
+            });
+        });
+
+        // Submit del formulario de reporte con fetch + overlay + descarga
+        const $overlay = $('#overlay-reporte-vendedores');
+        const $overlayMsg = $('#overlay-reporte-vendedores-msg');
+        const $btnGenerar = $('#btn-generar-reporte');
+        const $formReporte = $('#form-reporte-vendedores');
+
+        $formReporte.on('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+            const url = $(form).attr('action');
+
+            // Mostrar overlay
+            $overlayMsg.text('Generando archivo Excel...');
+            $overlay.css('display', 'flex');
+            $btnGenerar.prop('disabled', true);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(function (resp) {
+                if (!resp.ok) {
+                    throw new Error('HTTP ' + resp.status);
+                }
+                return resp.blob().then(function (blob) {
+                    return { blob: blob, resp: resp };
+                });
+            })
+            .then(function (data) {
+                const blob = data.blob;
+                const contentType = data.resp.headers.get('Content-Type') || '';
+                const contentDisposition = data.resp.headers.get('Content-Disposition') || '';
+
+                // Si el servidor devolvió un JSON de error (no es xlsx)
+                if (contentType.indexOf('application/json') !== -1 || contentType.indexOf('text/html') !== -1) {
+                    return blob.text().then(function (text) {
+                        throw new Error(text || 'Error desconocido al generar el reporte');
+                    });
+                }
+
+                // Extraer nombre del archivo del header
+                let filename = 'reporte_cotizaciones_vendedores.xlsx';
+                const m = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (m && m[1]) {
+                    filename = m[1].replace(/['"]/g, '');
+                }
+
+                // Disparar descarga
+                const urlBlob = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlBlob;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function () { URL.revokeObjectURL(urlBlob); }, 1500);
+
+                // Cerrar modal y overlay
+                $('#ventas-reporte-bs').modal('hide');
+                if (typeof alertExito === 'function') {
+                    alertExito('Reporte generado correctamente');
+                }
+            })
+            .catch(function (err) {
+                console.error(err);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al generar',
+                        text: err.message || 'No se pudo generar el reporte'
+                    });
+                } else {
+                    alert('Error: ' + (err.message || 'no se pudo generar el reporte'));
+                }
+            })
+            .finally(function () {
+                $overlay.hide();
+                $btnGenerar.prop('disabled', false);
             });
         });
     });
