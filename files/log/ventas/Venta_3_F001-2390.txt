@@ -1,9 +1,0 @@
-Venta: 3, fecha: 2025-09-09
-
-Prod: insert into productos_ventas 
-        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
-        values ('1', '3', '1', '3651.00000', '0', '4', NULL, '5') - trueProd: insert into productos_ventas 
-        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
-        values ('2', '3', '1', '110.00000', '0', '5', NULL, '5') - trueProd: insert into productos_ventas 
-        (id_producto, id_venta, cantidad, precio, costo, id_venta_equipo, id_cotizacion_equipo, precio_usado)
-        values ('11', '3', '1', '212.00000', '0', '6', NULL, '5') - true

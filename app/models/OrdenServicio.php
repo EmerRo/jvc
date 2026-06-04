@@ -11,6 +11,7 @@ class OrdenServicio
     private $tiene_cotizacion;
     private $estado;
     private $observaciones;
+    private $id_almacen;
     private $detalles;
     private $conectar;
 
@@ -102,6 +103,15 @@ class OrdenServicio
         $this->observaciones = $observaciones;
     }
 
+    public function getIdAlmacen()
+    {
+        return $this->id_almacen;
+    }
+    public function setIdAlmacen($id_almacen)
+    {
+        $this->id_almacen = $id_almacen;
+    }
+
     public function getDetalles()
     {
         return $this->detalles;
@@ -120,20 +130,22 @@ class OrdenServicio
             // Insertar orden de servicio principal
             $sql = "INSERT INTO orden_servicio_pre (
                          numero,
-                        cliente_razon_social, 
-                        cliente_ruc, 
-                        direccion, 
-                        atencion_encargado, 
-                        fecha_ingreso, 
-                        estado, 
-                        observaciones
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                        cliente_razon_social,
+                        cliente_ruc,
+                        direccion,
+                        atencion_encargado,
+                        fecha_ingreso,
+                        estado,
+                        observaciones,
+                        id_almacen
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->conectar->prepare($sql);
             $estado = $this->estado ?: 'PENDIENTE';
+            $id_almacen = $this->id_almacen ?: null;
 
             $stmt->bind_param(
-                "ssssssss",
+                "ssssssssi",
                 $numero,
                 $this->cliente_razon_social,
                 $this->cliente_ruc,
@@ -141,7 +153,8 @@ class OrdenServicio
                 $this->atencion_encargado,
                 $this->fecha_ingreso,
                 $estado,
-                $this->observaciones
+                $this->observaciones,
+                $id_almacen
             );
 
             if (!$stmt->execute()) {
@@ -153,23 +166,29 @@ class OrdenServicio
             // Insertar detalles de equipos
             if (!empty($this->detalles)) {
                 $sql_detalle = "INSERT INTO orden_servicio_detalles (
-                                    id_orden_servicio, 
-                                    marca, 
-                                    equipo, 
-                                    modelo, 
-                                    numero_serie
-                                ) VALUES (?, ?, ?, ?, ?)";
+                                    id_orden_servicio,
+                                    marca,
+                                    equipo,
+                                    modelo,
+                                    numero_serie,
+                                    id_producto
+                                ) VALUES (?, ?, ?, ?, ?, ?)";
 
                 $stmt_detalle = $this->conectar->prepare($sql_detalle);
 
                 foreach ($this->detalles as $detalle) {
+                    $id_producto = isset($detalle['id_producto']) && $detalle['id_producto'] !== ''
+                        ? (int)$detalle['id_producto']
+                        : null;
+
                     $stmt_detalle->bind_param(
-                        "issss",
+                        "issssi",
                         $id_orden_servicio,
                         $detalle['marca'],
                         $detalle['equipo'],
                         $detalle['modelo'],
-                        $detalle['numero_serie']
+                        $detalle['numero_serie'],
+                        $id_producto
                     );
 
                     if (!$stmt_detalle->execute()) {
@@ -192,7 +211,7 @@ class OrdenServicio
     public function getAllData()
     {
         try {
-            $sql = "SELECT os.*, 
+            $sql = "SELECT os.*,
                            COUNT(osd.id_detalle) as total_equipos
                     FROM orden_servicio_pre os
                     LEFT JOIN orden_servicio_detalles osd ON os.id_orden_servicio = osd.id_orden_servicio
@@ -221,9 +240,9 @@ class OrdenServicio
     public function getOne($id)
     {
         try {
-            $sql = "SELECT os.*, 
+            $sql = "SELECT os.*,
                            GROUP_CONCAT(
-                               CONCAT_WS('|', osd.marca, osd.equipo, osd.modelo, osd.numero_serie) 
+                               CONCAT_WS('|', osd.marca, osd.equipo, osd.modelo, osd.numero_serie, IFNULL(osd.id_producto, ''))
                                SEPARATOR '##'
                            ) as equipos
                     FROM orden_servicio_pre os
@@ -241,12 +260,13 @@ class OrdenServicio
                 $equiposArray = [];
                 $equipos = explode('##', $data['equipos']);
                 foreach ($equipos as $equipo) {
-                    list($marca, $tipo, $modelo, $serie) = explode('|', $equipo);
+                    $parts = explode('|', $equipo);
                     $equiposArray[] = [
-                        'marca' => $marca,
-                        'equipo' => $tipo,
-                        'modelo' => $modelo,
-                        'numero_serie' => $serie
+                        'marca'        => $parts[0] ?? '',
+                        'equipo'       => $parts[1] ?? '',
+                        'modelo'       => $parts[2] ?? '',
+                        'numero_serie' => $parts[3] ?? '',
+                        'id_producto'  => isset($parts[4]) && $parts[4] !== '' ? (int)$parts[4] : null,
                     ];
                 }
                 $data['equipos'] = $equiposArray;
@@ -268,23 +288,26 @@ class OrdenServicio
             $this->conectar->begin_transaction();
 
             // Actualizar datos principales
-            $sql = "UPDATE orden_servicio_pre SET 
-                        cliente_razon_social = ?, 
-                        cliente_ruc = ?, 
-                        atencion_encargado = ?, 
-                        fecha_ingreso = ?, 
+            $sql = "UPDATE orden_servicio_pre SET
+                        cliente_razon_social = ?,
+                        cliente_ruc = ?,
+                        atencion_encargado = ?,
+                        fecha_ingreso = ?,
                         observaciones = ?,
+                        id_almacen = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id_orden_servicio = ?";
 
             $stmt = $this->conectar->prepare($sql);
+            $id_almacen = isset($datos['id_almacen']) && $datos['id_almacen'] !== '' ? (int)$datos['id_almacen'] : null;
             $stmt->bind_param(
-                "sssssi",
+                "sssssii",
                 $datos['cliente_razon_social'],
                 $datos['cliente_ruc'],
                 $datos['atencion_encargado'],
                 $datos['fecha_ingreso'],
                 $datos['observaciones'],
+                $id_almacen,
                 $id
             );
 
@@ -301,23 +324,29 @@ class OrdenServicio
             // Insertar nuevos detalles
             if (!empty($equipos)) {
                 $sql_detalle = "INSERT INTO orden_servicio_detalles (
-                                    id_orden_servicio, 
-                                    marca, 
-                                    equipo, 
-                                    modelo, 
-                                    numero_serie
-                                ) VALUES (?, ?, ?, ?, ?)";
+                                    id_orden_servicio,
+                                    marca,
+                                    equipo,
+                                    modelo,
+                                    numero_serie,
+                                    id_producto
+                                ) VALUES (?, ?, ?, ?, ?, ?)";
 
                 $stmt_detalle = $this->conectar->prepare($sql_detalle);
 
                 foreach ($equipos as $equipo) {
+                    $id_producto = isset($equipo['id_producto']) && $equipo['id_producto'] !== ''
+                        ? (int)$equipo['id_producto']
+                        : null;
+
                     $stmt_detalle->bind_param(
-                        "issss",
+                        "issssi",
                         $id,
                         $equipo['marca'],
                         $equipo['equipo'],
                         $equipo['modelo'],
-                        $equipo['numero_serie']
+                        $equipo['numero_serie'],
+                        $id_producto
                     );
 
                     if (!$stmt_detalle->execute()) {

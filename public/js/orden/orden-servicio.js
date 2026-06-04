@@ -11,10 +11,12 @@ $(document).ready(() => {
         cliente_Rsocial: "",
       },
       cantidadEquipos: 1,
-      equipos: [{ marca: "", modelo: "", tipo: "", serie: "" }],
+      equipos: [{ marca: "", modelo: "", tipo: "", serie: "", id_producto: null, producto_busqueda: "" }],
       marcasDisponibles: [],
       modelosDisponibles: [],
       equiposDisponibles: [],
+      almacenesDisponibles: [],
+      idAlmacen: null,
       editando: {
         id_orden_servicio: null,
         cliente_Rsocial: "",
@@ -22,12 +24,13 @@ $(document).ready(() => {
         atencion_Encargado: "",
         fecha_ingreso: "",
         observaciones: "",
+        id_almacen: null,
         equipos: [],
       },
       maquinasIdenticas: false,
       cantidadMaquinasIdenticas: 1,
       seriesMultiples: "",
-      equipoBase: { marca: "", modelo: "", tipo: "" },
+      equipoBase: { marca: "", modelo: "", tipo: "", id_producto: null, producto_busqueda: "" },
       validationErrors: {
         num_doc: "",
         cliente_Rsocial: "",
@@ -45,6 +48,7 @@ $(document).ready(() => {
     mounted() {
       this.inicializarEquipos();
       this.cargarCatalogos();
+      this.cargarAlmacenes();
     },
     methods: {
       validateForm() {
@@ -76,8 +80,6 @@ $(document).ready(() => {
         }
 
         if (this.maquinasIdenticas) {
-          if (!this.equipoBase.marca) { this.validationErrors.marca = "Por favor seleccione una marca"; isValid = false; }
-          if (!this.equipoBase.modelo) { this.validationErrors.modelo = "Por favor seleccione un modelo"; isValid = false; }
           if (!this.equipoBase.tipo) { this.validationErrors.equipo = "Por favor seleccione un equipo"; isValid = false; }
           if (!this.cantidadMaquinasIdenticas || this.cantidadMaquinasIdenticas < 1) {
             this.validationErrors.cantidad = "La cantidad debe ser mayor a 0"; isValid = false;
@@ -90,9 +92,7 @@ $(document).ready(() => {
         } else {
           const equiposValidos = this.equipos.every((equipo, index) => {
             let equipoValido = true;
-            if (!equipo.marca) { this.validationErrors[`equipo_${index}_marca`] = "Por favor seleccione una marca"; equipoValido = false; }
-            if (!equipo.modelo) { this.validationErrors[`equipo_${index}_modelo`] = "Por favor seleccione un modelo"; equipoValido = false; }
-            if (!equipo.tipo) { this.validationErrors[`equipo_${index}_tipo`] = "Por favor seleccione un tipo"; equipoValido = false; }
+            if (!equipo.tipo) { this.validationErrors[`equipo_${index}_tipo`] = "Por favor seleccione un equipo"; equipoValido = false; }
             if (!equipo.serie) { this.validationErrors[`equipo_${index}_serie`] = "Por favor ingrese un número de serie"; equipoValido = false; }
             return equipoValido;
           });
@@ -119,7 +119,7 @@ $(document).ready(() => {
       },
 
       inicializarEquipos() {
-        this.equipos = [{ marca: "", modelo: "", tipo: "", serie: "" }];
+        this.equipos = [{ marca: "", modelo: "", tipo: "", serie: "", id_producto: null, producto_busqueda: "" }];
       },
 
       cargarCatalogos() {
@@ -128,11 +128,105 @@ $(document).ready(() => {
         $.get(_URL + "/ajs/get/equipos", (data) => { this.equiposDisponibles = JSON.parse(data); });
       },
 
+      cargarAlmacenes() {
+        $.get(_URL + "/ajs/almacenes/listar", (resp) => {
+          try {
+            const data = typeof resp === "string" ? JSON.parse(resp) : resp;
+            if (data && data.estado && Array.isArray(data.almacenes)) {
+              this.almacenesDisponibles = data.almacenes;
+              // Si aún no hay almacén elegido, default = principal
+              if (!this.idAlmacen) {
+                const principal = data.almacenes.find(a => Number(a.principal) === 1);
+                if (principal) this.idAlmacen = Number(principal.id_almacen);
+              }
+            }
+          } catch (e) {
+            console.warn("No se pudieron cargar almacenes:", e);
+          }
+        });
+      },
+
+      onCambiarAlmacen() {
+        // Re-wire autocomplete de cada input de producto del modal Agregar
+        this.$nextTick(() => this.wireProductosAutocomplete(".input-buscar-producto-prealerta:not([data-edit])", this.equipos, "agregar"));
+      },
+
+      onCambiarAlmacenEdit() {
+        this.$nextTick(() => this.wireProductosAutocomplete(".input-buscar-producto-prealerta[data-edit]", this.editando.equipos, "editar"));
+      },
+
+      wireProductosAutocomplete(selector, items, modo) {
+        const vm = this;
+        const idAlmacen = modo === "agregar" ? this.idAlmacen : this.editando.id_almacen;
+        if (!idAlmacen) return;
+        $(selector).each(function () {
+          if ($(this).hasClass("ui-autocomplete-input")) {
+            $(this).autocomplete("destroy");
+          }
+          $(this).autocomplete({
+            minLength: 1,
+            source: function (request, response) {
+              $.get(_URL + "/ajs/cargar/productos/" + idAlmacen, { term: request.term }, (data) => {
+                try {
+                  const arr = typeof data === "string" ? JSON.parse(data) : data;
+                  response($.map(arr, function (item) {
+                    return {
+                      label: item.value || (item.codigo_pp + " | " + item.nombre),
+                      value: item.codigo_pp + " | " + item.nombre,
+                      item: item,
+                    };
+                  }));
+                } catch (e) { response([]); }
+              });
+            },
+            select: function (event, ui) {
+              const $input = $(this);
+              const idx = parseInt($input.data("index"), 10);
+              const prod = ui.item.item;
+              if (!isNaN(idx) && items[idx]) {
+                Vue.set(items[idx], "id_producto", prod.codigo || null);
+                Vue.set(items[idx], "producto_busqueda", ui.item.value);
+                // Autocompletar Equipo con el nombre del producto
+                if (prod.nombre) Vue.set(items[idx], "tipo", prod.nombre);
+                // Forzar autocompletado de marca/modelo desde el option correspondiente
+                vm.$nextTick(() => {
+                  const $sel = $input.closest(".equipo-item").find("select.select-equipo, select.v-model-tipo");
+                  if ($sel.length && prod.nombre) {
+                    $sel.find("option").each(function () {
+                      if ($(this).val() === prod.nombre) {
+                        const marca = $(this).attr("data-marca-nombre") || "";
+                        const modelo = $(this).attr("data-modelo-nombre") || "";
+                        Vue.set(items[idx], "marca", marca);
+                        Vue.set(items[idx], "modelo", modelo);
+                        return false;
+                      }
+                    });
+                  }
+                });
+              }
+              $input.siblings(".producto-seleccionado-info-prealerta").html(
+                '<i class="fa fa-check-circle text-success"></i> Producto vinculado al kardex'
+              );
+              return false;
+            },
+            open: function () { $(this).autocomplete("widget").css("z-index", 10050); }
+          });
+        });
+      },
+
+      limpiarProductoEquipo(item) {
+        item.id_producto = null;
+        item.producto_busqueda = "";
+        item.marca = "";
+        item.modelo = "";
+        item.tipo = "";
+      },
+
       actualizarEquipos() {
         const cantidad = Math.max(1, Number.parseInt(this.cantidadEquipos) || 1);
         this.cantidadEquipos = cantidad;
         while (this.equipos.length < cantidad) {
-          this.equipos.push({ marca: "", modelo: "", tipo: "", serie: "" });
+          this.equipos.push({ marca: "", modelo: "", tipo: "", serie: "", id_producto: null, producto_busqueda: "" });
         }
         if (this.equipos.length > cantidad) {
           this.equipos = this.equipos.slice(0, cantidad);
@@ -142,7 +236,7 @@ $(document).ready(() => {
       cargarDatosEdicion(id) {
         this.maquinasIdenticas = false;
         this.seriesMultiples = "";
-        this.equipoBase = { marca: "", modelo: "", tipo: "" };
+        this.equipoBase = { marca: "", modelo: "", tipo: "", id_producto: null, producto_busqueda: "" };
         this.cantidadMaquinasIdenticas = 1;
         this.editando = {
           id_orden_servicio: null, cliente_Rsocial: "", cliente_ruc: "",
@@ -170,7 +264,12 @@ $(document).ready(() => {
               this.editando.atencion_Encargado = datos.atencion_encargado;
               this.editando.fecha_ingreso = datos.fecha_ingreso;
               this.editando.observaciones = datos.observaciones || "";
-              this.editando.equipos = datos.equipos || [];
+              this.editando.id_almacen = datos.id_almacen || null;
+              this.editando.equipos = (datos.equipos || []).map((eq) => ({
+                ...eq,
+                id_producto: eq.id_producto || null,
+                producto_busqueda: "",
+              }));
 
               if (this.editando.equipos.length > 1) {
                 prepararEdicionEquiposIdenticos(this);
@@ -197,7 +296,7 @@ $(document).ready(() => {
       },
 
       agregarEquipoEdicion() {
-        this.editando.equipos.push({ id: null, marca: "", equipo: "", modelo: "", numero_serie: "" });
+        this.editando.equipos.push({ id: null, marca: "", equipo: "", modelo: "", numero_serie: "", id_producto: null, producto_busqueda: "" });
       },
 
       eliminarEquipoEdicion(index) {
@@ -214,10 +313,10 @@ $(document).ready(() => {
           if (!procesarSeriesMultiplesEdicion(this)) return;
         } else {
           const equiposValidos = this.editando.equipos.every(
-            (eq) => eq.marca && eq.equipo && eq.modelo && eq.numero_serie
+            (eq) => eq.equipo && eq.numero_serie
           );
           if (!equiposValidos) {
-            Swal.fire({ icon: "warning", title: "Advertencia", text: "Por favor complete todos los datos de los equipos" });
+            Swal.fire({ icon: "warning", title: "Advertencia", text: "Por favor complete equipo y número de serie" });
             return;
           }
         }
@@ -229,6 +328,7 @@ $(document).ready(() => {
           atencion_encargado: this.editando.atencion_Encargado,
           fecha_ingreso: this.editando.fecha_ingreso,
           observaciones: this.editando.observaciones,
+          id_almacen: this.editando.id_almacen || null,
           equipos: this.editando.equipos,
         };
 
@@ -265,6 +365,44 @@ $(document).ready(() => {
 
       prepararEdicionEquiposIdenticos() {
         prepararEdicionEquiposIdenticos(this);
+      },
+
+      marcaModeloDisplay(equipo) {
+        const marca = equipo.marca || "";
+        const modelo = equipo.modelo || "";
+        if (marca && modelo) return marca + " / " + modelo;
+        return marca || modelo || "";
+      },
+
+      alCambiarEquipo(item) {
+        const idx = this.equipos.indexOf(item);
+        if (idx === -1) return;
+        const opt = event.target.selectedOptions[0];
+        if (!opt) return;
+        const marca = opt.getAttribute("data-marca-nombre") || "";
+        const modelo = opt.getAttribute("data-modelo-nombre") || "";
+        Vue.set(this.equipos[idx], "marca", marca);
+        Vue.set(this.equipos[idx], "modelo", modelo);
+      },
+
+      alCambiarEquipoEdicion(item) {
+        const idx = this.editando.equipos.indexOf(item);
+        if (idx === -1) return;
+        const opt = event.target.selectedOptions[0];
+        if (!opt) return;
+        const marca = opt.getAttribute("data-marca-nombre") || "";
+        const modelo = opt.getAttribute("data-modelo-nombre") || "";
+        Vue.set(this.editando.equipos[idx], "marca", marca);
+        Vue.set(this.editando.equipos[idx], "modelo", modelo);
+      },
+
+      alCambiarEquipoBase() {
+        const opt = event.target.selectedOptions[0];
+        if (!opt) return;
+        const marca = opt.getAttribute("data-marca-nombre") || "";
+        const modelo = opt.getAttribute("data-modelo-nombre") || "";
+        Vue.set(this.equipoBase, "marca", marca);
+        Vue.set(this.equipoBase, "modelo", modelo);
       },
     },
     watch: {
@@ -318,7 +456,7 @@ $(document).ready(() => {
 
   // ===== FUNCIONES ESPECÍFICAS =====
   window.verCotizacion = (id) => {
-    window.location.href = `/taller/coti/view/`;
+    window.location.href = `/tallers/coti/view/`;
   };
 
   function mostrarDetalles(id) {
@@ -405,9 +543,9 @@ $(document).ready(() => {
       return;
     }
 
-    const equiposValidos = app.equipos.every((eq) => eq.marca && eq.modelo && eq.tipo && eq.serie);
+    const equiposValidos = app.equipos.every((eq) => eq.tipo && eq.serie);
     if (!equiposValidos) {
-      Swal.fire({ icon: "error", title: "Error", text: "Por favor complete todos los datos de los equipos" });
+      Swal.fire({ icon: "error", title: "Error", text: "Por favor complete equipo y número de serie de cada uno" });
       return;
     }
 
@@ -419,8 +557,13 @@ $(document).ready(() => {
       origen: "Ord Servicio",
       direccion: $("#direccion").val(),
       observaciones: $("#observaciones").val(),
+      id_almacen: app.idAlmacen || null,
       equipos: app.equipos.map((eq) => ({
-        marca: eq.marca, modelo: eq.modelo, equipo: eq.tipo, numero_serie: eq.serie,
+        marca: eq.marca || "",
+        modelo: eq.modelo || "",
+        equipo: eq.tipo,
+        numero_serie: eq.serie,
+        id_producto: eq.id_producto || null,
       })),
     };
 
@@ -447,7 +590,8 @@ $(document).ready(() => {
             app.inicializarEquipos();
             app.maquinasIdenticas = false;
             app.seriesMultiples = "";
-            app.equipoBase = { marca: "", modelo: "", tipo: "" };
+            app.equipoBase = { marca: "", modelo: "", tipo: "", id_producto: null, producto_busqueda: "" };
+            app.idAlmacen = null;
             app.validationErrors = { marca: "", modelo: "", equipo: "", cantidad: "", series: "" };
           } else {
             throw new Error(response.error || "Error al guardar");
@@ -510,12 +654,26 @@ $(document).ready(() => {
     if (app) {
       app.maquinasIdenticas = false;
       app.seriesMultiples = "";
-      app.equipoBase = { marca: "", modelo: "", tipo: "" };
+      app.equipoBase = { marca: "", modelo: "", tipo: "", id_producto: null, producto_busqueda: "" };
       app.cantidadMaquinasIdenticas = 1;
       app.editando = {
         id_orden_servicio: null, cliente_Rsocial: "", cliente_ruc: "",
-        atencion_Encargado: "", fecha_ingreso: "", equipos: [],
+        atencion_Encargado: "", fecha_ingreso: "", id_almacen: null, equipos: [],
       };
     }
+  });
+
+  // Re-wire autocomplete cuando se abre el modal Agregar
+  $("#modalAgregar").on("shown.bs.modal", function () {
+    if (!app) return;
+    // Si no hay almacén elegido y hay disponibles, default = principal
+    if (!app.idAlmacen && app.almacenesDisponibles && app.almacenesDisponibles.length) {
+      const principal = app.almacenesDisponibles.find(a => Number(a.principal) === 1);
+      if (principal) app.idAlmacen = Number(principal.id_almacen);
+    }
+    if (app.idAlmacen) app.onCambiarAlmacen();
+  });
+  $("#modalEditar").on("shown.bs.modal", function () {
+    if (app && app.editando.id_almacen) app.onCambiarAlmacenEdit();
   });
 });

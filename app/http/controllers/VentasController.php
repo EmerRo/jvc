@@ -625,7 +625,7 @@ class VentasController extends Controller
             CONCAT(IF(v.moneda = 1, 'S/ ', '$ '), ROUND(IF(v.apli_igv = '1', v.total / (v.igv + 1) * v.igv, 0), 2)) as igv_v,
             CONCAT(v.enviado_sunat, '-', v.id_tido, '-', v.id_venta) as doc_ventae,
             CONCAT(v.id_venta, '--', vs.nombre_xml) as id_venta,
-            v.fecha_emision,
+            v.created_at as fecha_emision,
             ds.abreviatura,
             v.apli_igv,
             v.igv,
@@ -661,7 +661,7 @@ class VentasController extends Controller
                 $baseQuery .= " AND v.sucursal = " . $sucursalSesion;
             }
 
-            $baseQuery .= " ORDER BY v.fecha_emision ASC, v.numero ASC";
+            $baseQuery .= " ORDER BY v.id_venta DESC";
 
             // Crear una vista temporal para ServerSide
             $tempViewName = "temp_filtered_ventas";
@@ -685,7 +685,8 @@ class VentasController extends Controller
                 ],
                 false,
                 "",
-                false
+                false,
+                "ORDER BY id_venta DESC"
             );
 
         } catch (Exception $e) {
@@ -1492,7 +1493,13 @@ $resultado["valor"] = $c_venta->getIdVenta();
                             }
 
                             if ($idVe > 0 && $idCotiEq > 0) {
-                                $mapEquipo[$idCotiEq] = $idVe;
+                                $mapEquipo[$idCotiEq] = [
+                                    'id_venta_equipo' => $idVe,
+                                    'marca' => $eq['marca'] ?? '',
+                                    'equipo' => $eq['equipo'] ?? '',
+                                    'modelo' => $eq['modelo'] ?? '',
+                                    'numero_serie' => $eq['numero_serie'] ?? '',
+                                ];
                             }
                         }
                     }
@@ -1557,6 +1564,10 @@ $resultado["valor"] = $c_venta->getIdVenta();
 
                     $insertados = 0;
                     foreach ($array_detalle as $fila) {
+                        // Si el item es servicio, lo maneja la bifurcación de ventas_servicios (línea 1624)
+                        if (isset($fila['esServicio']) && $fila['esServicio']) {
+                            continue;
+                        }
                         $c_detalle->setIdProducto(isset($fila['productoid']) ? $fila['productoid'] : 0);
                         $c_detalle->setCantidad(isset($fila['cantidad']) ? $fila['cantidad'] : 0);
                         $c_detalle->setCosto(isset($fila['costo']) ? $fila['costo'] : 0);
@@ -1577,7 +1588,7 @@ $resultado["valor"] = $c_venta->getIdVenta();
                         
                         if ($idCotiEqFila && isset($mapEquipo[$idCotiEqFila])) {
                             // Caso: Viene de cotización de taller
-                            $c_detalle->setIdVentaEquipo($mapEquipo[$idCotiEqFila]);
+                            $c_detalle->setIdVentaEquipo($mapEquipo[$idCotiEqFila]['id_venta_equipo']);
                             $c_detalle->setIdCotizacionEquipo($idCotiEqFila);
                         } else if (isset($productoEquipoMap[$idProducto])) {
                             // Caso: Viene de guía, usar mapeo por producto
@@ -1603,12 +1614,26 @@ $resultado["valor"] = $c_venta->getIdVenta();
                         }
                         if ($c_detalle->getSqlError() == null || $c_detalle->getSqlError() === '') { $insertados++; }
 
+                        $descripcionBase = isset($fila['descripcion']) ? $fila['descripcion'] : '';
+                        $descripcionFull = $descripcionBase;
+                        if ($idCotiEqFila && isset($mapEquipo[$idCotiEqFila]) && is_array($mapEquipo[$idCotiEqFila])) {
+                            $eq = $mapEquipo[$idCotiEqFila];
+                            $equipoInfo = sprintf(
+                                'EQUIPO: %s %s - Modelo: %s - Serie: %s',
+                                trim((string)$eq['marca']),
+                                trim((string)$eq['equipo']),
+                                trim((string)$eq['modelo']),
+                                trim((string)$eq['numero_serie'])
+                            );
+                            $descripcionFull = $equipoInfo . ' | ' . $descripcionBase;
+                        }
+
                         $dataSend['productos'][] = [
                             "precio" => $_POST['moneda'] == '1' ? $precioVenta : number_format($precioVenta / $tc, 2, '.', ''),
                             "cantidad" => isset($fila['cantidad']) ? $fila['cantidad'] : 0,
                             "cod_pro" => isset($fila['productoid']) ? $fila['productoid'] : 0,
                             "cod_sunat" => "",
-                            "descripcion" => isset($fila['descripcion']) ? $fila['descripcion'] : ''
+                            "descripcion" => $descripcionFull
                         ];
                     }
                     error_log("guardarVentas productos insertados=" . $insertados);
@@ -1625,6 +1650,10 @@ $resultado["valor"] = $c_venta->getIdVenta();
                     $nroitem = 1;
                     $c_servicio->setIdventa($c_venta->getIdVenta());
                     foreach ($array_detalle as $fila) {
+                        // Solo procesar items de servicio en la tabla ventas_servicios
+                        if (!isset($fila['esServicio']) || !$fila['esServicio']) {
+                            continue;
+                        }
                         $c_servicio->setDescripcion($fila['descripcion']);
                         $c_servicio->setCantidad($fila['cantidad']);
                         $c_servicio->setMonto($fila['precioVenta']);

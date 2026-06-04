@@ -749,7 +749,7 @@ $(document).ready(() => {
 
   window.verCotizacion = () => {
     // Redirigir a la página de cotización
-    window.location.href = `/taller/coti/view/`;
+    window.location.href = `/tallers/coti/view/`;
   };
   function mostrarDetalles(id) {
     $.ajax({

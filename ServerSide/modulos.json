@@ -185,7 +185,7 @@
       "nombre": "COTIZACIONES TALLER",
       "descripcion": "Gestión de cotizaciones de taller",
       "icono": "ri-file-list-3-line",
-      "ruta": "/taller/coti/view",
+      "ruta": "/tallers/coti/view",
       "submodulos": []
     },
      {

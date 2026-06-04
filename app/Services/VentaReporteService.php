@@ -51,10 +51,12 @@ class VentaReporteService
             $stmt = $this->conexion->prepare($sql);
             $stmt->bind_param("ii", $guiaId, $idVenta);
         } else {
-            $sql = "SELECT productos_ventas.*, p.detalle as descripcion, p.imagen, p.nombre, p.codigo,
+            $sql = "SELECT productos_ventas.*, COALESCE(p.detalle, '') as descripcion, p.imagen,
+                    COALESCE(p.nombre, r.nombre, '') as nombre, COALESCE(p.codigo, '') as codigo,
                     ve.marca, ve.equipo, ve.modelo, ve.numero_serie
                 FROM productos_ventas
-                JOIN productos p ON p.id_producto = productos_ventas.id_producto
+                LEFT JOIN productos p ON p.id_producto = productos_ventas.id_producto
+                LEFT JOIN repuestos r ON r.id_repuesto = productos_ventas.id_producto
                 LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo
                 WHERE productos_ventas.id_venta = ?";
             $stmt = $this->conexion->prepare($sql);
@@ -66,10 +68,10 @@ class VentaReporteService
 
     public function obtenerProductosVentaSimple($idVenta)
     {
-        $sql = "SELECT productos_ventas.*, p.descripcion, p.codigo,
+        $sql = "SELECT productos_ventas.*, COALESCE(p.descripcion, '') as descripcion, COALESCE(p.codigo, '') as codigo,
                 ve.marca, ve.equipo, ve.modelo, ve.numero_serie
             FROM productos_ventas
-            JOIN productos p ON p.id_producto = productos_ventas.id_producto
+            LEFT JOIN productos p ON p.id_producto = productos_ventas.id_producto
             LEFT JOIN ventas_equipos ve ON ve.id_venta_equipo = productos_ventas.id_venta_equipo
             WHERE productos_ventas.id_venta = ?";
         $stmt = $this->conexion->prepare($sql);

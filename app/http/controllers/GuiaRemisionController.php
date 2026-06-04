@@ -171,8 +171,10 @@ class GuiaRemisionController extends Controller
                 // ✅ LIMPIAR cualquier carácter especial restante antes de guardar en BD
                 $descripcion = preg_replace('/[^\x20-\x7E\xA1-\xFF]/', '', $descripcion); // Solo caracteres ASCII y latin1
                 $descripcion = trim($descripcion); // Quitar espacios extra
-                
+
                 $guiaDetalle->setDetalles($descripcion);
+
+                $cantidad = 0;
 
                 // ✅ NUEVO: Establecer ID según tipo de item (producto o repuesto)
                 $tipoItem = isset($prodG['tipo_item']) ? $prodG['tipo_item'] : 'producto';
@@ -252,12 +254,30 @@ class GuiaRemisionController extends Controller
                 }
 
                 // ✅ NUEVO: Agregar a dataSend para SUNAT usando el ID correcto según tipo
-                $codPro = ($tipoItem === 'repuesto') ? 
-                    (isset($idRepuesto) ? $idRepuesto : 0) : 
+                $codPro = ($tipoItem === 'repuesto') ?
+                    (isset($idRepuesto) ? $idRepuesto : 0) :
                     (isset($idProducto) ? $idProducto : 0);
-                    
+
+                // Si viene de taller, prepender info del equipo al descripcion
+                if (!empty($equiposData) && !empty($prodG['id_cotizacion_equipo'])) {
+                    foreach ($equiposData as $eqData) {
+                        if ((int)$eqData['id_cotizacion_equipo'] === (int)$prodG['id_cotizacion_equipo']) {
+                            $equipoInfo = sprintf(
+                                'EQUIPO: %s %s - Modelo: %s - Serie: %s',
+                                trim((string)$eqData['marca']),
+                                trim((string)$eqData['equipo']),
+                                trim((string)$eqData['modelo']),
+                                trim((string)$eqData['numero_serie'])
+                            );
+                            $descripcion = $equipoInfo . ' | ' . $descripcion;
+                            break;
+                        }
+                    }
+                }
+
                 $dataSend['productos'][] = [
-                    'cantidad' => $prodG['cantidad'],
+                    'precio' => $precio,
+                    'cantidad' => $cantidad,
                     'cod_pro' => $codPro,
                     'cod_sunat' => "000",
                     'descripcion' => $descripcion
@@ -265,13 +285,24 @@ class GuiaRemisionController extends Controller
             }
 
             // NUEVO: Guardar equipos y actualizar guia_numero si viene de cotización de taller
+            $equiposData = [];
+            $equipos_map = [];
             if ($tipo_cotizacion === 'taller' && $id_cotizacion) {
-                // Primero guardar equipos y obtener el mapeo de IDs
+                // Cargar info completa de los equipos ANTES del foreach de productos
+                $sqlEqInfo = "SELECT id_cotizacion_equipo, marca, equipo, modelo, numero_serie FROM taller_cotizaciones_equipos WHERE id_cotizacion = " . intval($id_cotizacion);
+                $resEqInfo = $this->conexion->query($sqlEqInfo);
+                if ($resEqInfo) {
+                    while ($rowEq = $resEqInfo->fetch_assoc()) {
+                        $equiposData[] = $rowEq;
+                    }
+                }
+
+                // Luego guardar equipos y obtener el mapeo de IDs
                 $equipos_map = $this->guardarEquiposDeTallerEnGuiaConMapeo($c_guia->getIdGuia(), $id_cotizacion);
-                
+
                 // Actualizar los productos para relacionarlos con sus equipos
                 $this->actualizarProductosConEquipos($c_guia->getIdGuia(), $equipos_map, $listaProd);
-                
+
                 // Actualizar guia_numero en taller_cotizaciones
                 $guia_numero = $c_guia->getSerie() . '-' . $c_guia->getNumero();
                 $sql_update_taller = "UPDATE taller_cotizaciones SET guia_numero = '{$guia_numero}' WHERE id_cotizacion = '{$id_cotizacion}'";

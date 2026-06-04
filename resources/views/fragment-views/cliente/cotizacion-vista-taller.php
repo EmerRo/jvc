@@ -272,7 +272,16 @@
                     render: function (data, type, row, meta) {
                         // Usar data[7] que contiene cotizacion_id
                         var cotizacion_id = row[7];
-                        return `<a href="/ventas/productos?coti-taller=${cotizacion_id}" class="btn btn-success btn-sm button-link"><i class="fa fa-align-justify"></i></a>`;
+                        var tipo_origen = (row[4] || '').toString().toUpperCase();
+                        // Si la cotización es de tipo SERVICIO, redirigir a la vista
+                        // de ventas con flag servicio=1 (la misma vista, modo servicio)
+                        var url = tipo_origen.indexOf('SERVICIO') !== -1
+                            ? '/ventas/productos?coti-taller=' + cotizacion_id + '&servicio=1'
+                            : '/ventas/productos?coti-taller=' + cotizacion_id;
+                        var title = tipo_origen.indexOf('SERVICIO') !== -1
+                            ? 'Vender como Servicio'
+                            : 'Vender (Productos)';
+                        return `<a href="${url}" class="btn btn-success btn-sm button-link" title="${title}"><i class="fa fa-align-justify"></i></a>`;
                     }
                 },
                 // Columna guía - índice 7 (data[7] - segundo cotizacion_id)

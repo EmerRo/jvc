@@ -191,22 +191,30 @@ class ProductoVenta
         $this->conectar->query($sql);
 
         // ✅ Registrar en historial de stock con serie y número
+        // Si id_producto no existe en la tabla productos (ej: repuestos, servicios),
+        // la FK constraint falla. Hacemos try-catch para no matar el flujo.
         $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
-        
+
         // Obtener serie y número de la venta
         $sqlVenta = "SELECT serie, numero FROM ventas WHERE id_venta = '$this->id_venta'";
         $resultVenta = $this->conectar->query($sqlVenta);
         $observacion = 'Venta ID: ' . $this->id_venta;
-        
+
         if ($resultVenta && $rowVenta = $resultVenta->fetch_assoc()) {
             $serie = $rowVenta['serie'];
             $numero = $rowVenta['numero'];
             $observacion = "Venta {$serie}-{$numero}";
         }
-        
-        $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
+
+        $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones)
                          VALUES ('$this->id_producto', 'EGRESO', '$this->cantidad', NOW(), '$usuario', '$observacion')";
-        $this->conectar->query($sqlHistorial);
+        try {
+            $this->conectar->query($sqlHistorial);
+        } catch (\Throwable $e) {
+            // FK constraint fail: el id_producto no existe en la tabla productos
+            // (caso típico: repuestos o items de servicio). No es fatal, continuamos.
+            error_log("ProductoVenta::insertar - historial_stock omitido para id_producto={$this->id_producto}: " . $e->getMessage());
+        }
 
         return $result;
     }

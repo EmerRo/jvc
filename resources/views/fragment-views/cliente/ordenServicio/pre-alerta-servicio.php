@@ -66,7 +66,7 @@ $c_prealerta = new PreAlerta();
             <!-- Modal para mostrar detalles -->
             <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"
                 aria-hidden="true">
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header bg-rojo text-white p-4">
                             <h5 class="modal-title text-light" id="modalDetallesLabel">
@@ -86,7 +86,7 @@ $c_prealerta = new PreAlerta();
                 <!-- Modal Agregar orden de servicio -->
                 <div class="modal fade" id="modalAgregar" tabindex="-1" aria-labelledby="exampleModalLabel"
                     aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header text-white bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">
@@ -194,6 +194,23 @@ $c_prealerta = new PreAlerta();
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">
+                                                <i class="fa fa-warehouse me-1"></i> Almacén
+                                                <small class="text-muted">(para vincular productos del kardex)</small>
+                                            </label>
+                                            <select id="select_almacen_prealerta" class="form-select"
+                                                v-model="idAlmacen"
+                                                @change="onCambiarAlmacen">
+                                                <option value="">— Sin almacén (equipos externos) —</option>
+                                                <option v-for="alm in almacenesDisponibles" :key="alm.id_almacen"
+                                                    :value="alm.id_almacen">
+                                                    {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div v-if="maquinasIdenticas" class="maquinas-identicas-section col-12 mt-3">
                                         <h6 class="mb-3">
                                             <i class="fa fa-cogs me-1"></i>
@@ -201,60 +218,18 @@ $c_prealerta = new PreAlerta();
                                         </h6>
 
                                         <div class="row g-3 mb-3">
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <label class="form-label">
-                                                    <i class="fa fa-tag me-1"></i> Marca
+                                                    <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                                 </label>
                                                 <div class="input-group">
-                                                    <select v-model="equipoBase.marca" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.marca }" required>
-                                                        <option value="">Seleccione marca</option>
-                                                        <option v-for="marca in marcasDisponibles"
-                                                            :value="marca.nombre">
-                                                            {{marca.nombre}}
-                                                        </option>
-                                                    </select>
-                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#modalMarca">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                                <p class="text-danger small mt-1" v-if="validationErrors.marca">
-                                                    {{ validationErrors.marca }}
-                                                </p>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">
-                                                    <i class="fa fa-cube me-1"></i> Modelo
-                                                </label>
-                                                <div class="input-group">
-                                                    <select v-model="equipoBase.modelo" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.modelo }" required>
-                                                        <option value="">Seleccione modelo</option>
-                                                        <option v-for="modelo in modelosDisponibles"
-                                                            :value="modelo.nombre">
-                                                            {{modelo.nombre}}
-                                                        </option>
-                                                    </select>
-                                                    <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#modalModelo">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                                <p class="validation-message" v-if="validationErrors.modelo">
-                                                    {{ validationErrors.modelo }}
-                                                </p>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">
-                                                    <i class="fa fa-laptop me-1"></i> Equipo
-                                                </label>
-                                                <div class="input-group">
-                                                    <select v-model="equipoBase.tipo" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.equipo }" required>
-                                                        <option value="">Seleccione equipo</option>
-                                                        <option v-for="eq in equiposDisponibles" :value="eq.nombre">
-                                                            {{eq.nombre}}
+                                                    <select v-model="equipoBase.tipo" class="form-control" required
+                                                        @change="alCambiarEquipoBase">
+                                                        <option value="">Seleccione equipo...</option>
+                                                        <option v-for="eq in equiposDisponibles" :value="eq.nombre"
+                                                            :data-marca-nombre="eq.marca_nombre || ''"
+                                                            :data-modelo-nombre="eq.modelo_nombre || ''">
+                                                            {{eq.nombre}}{{ eq.marca_nombre || eq.modelo_nombre ? ' — ' + (eq.marca_nombre || '') + (eq.modelo_nombre ? ' / ' + eq.modelo_nombre : '') : '' }}
                                                         </option>
                                                     </select>
                                                     <button class="btn bg-rojo text-white" type="button" data-bs-toggle="modal"
@@ -265,6 +240,15 @@ $c_prealerta = new PreAlerta();
                                                 <p class="validation-message" v-if="validationErrors.equipo">
                                                     {{ validationErrors.equipo }}
                                                 </p>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <label class="form-label text-muted">
+                                                    <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                                </label>
+                                                <input type="text" class="form-control" readonly
+                                                    :value="marcaModeloDisplay(equipoBase)"
+                                                    placeholder="Se completa al elegir equipo"
+                                                    style="background:#f8f9fa;cursor:default;">
                                             </div>
                                         </div>
 
@@ -310,51 +294,39 @@ $c_prealerta = new PreAlerta();
                                                 <i class="fa fa-laptop me-1"></i> Equipo {{index + 1}}
                                             </h6>
                                             <div class="row g-3">
-                                                <div class="col-md-4">
+                                                <div class="col-md-12 mb-2">
                                                     <label class="form-label">
-                                                        <i class="fa fa-tag me-1"></i> Marca
+                                                        <i class="fa fa-box me-1 text-rojo"></i>
+                                                        Producto del almacén
+                                                        <small class="text-muted" v-if="idAlmacen">(opcional — autocompleta el resto)</small>
+                                                        <small class="text-danger" v-else>(elegí un almacén arriba para activar)</small>
                                                     </label>
                                                     <div class="input-group">
-                                                        <select v-model="equipo.marca" class="form-control" required>
-                                                            <option value="">Seleccione marca</option>
-                                                            <option v-for="marca in marcasDisponibles"
-                                                                :value="marca.nombre">
-                                                                {{marca.nombre}}
-                                                            </option>
-                                                        </select>
-                                                        <button class="btn bg-rojo text-white" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#modalMarca">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
+                                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                        <input type="text"
+                                                            class="form-control input-buscar-producto-prealerta"
+                                                            :data-index="index"
+                                                            v-model="equipo.producto_busqueda"
+                                                            :disabled="!idAlmacen"
+                                                            :placeholder="idAlmacen ? 'Buscar por código o nombre...' : 'Elegí un almacén primero'"
+                                                            autocomplete="off">
+                                                        <input type="hidden" class="input-id-producto-prealerta"
+                                                            v-model="equipo.id_producto">
                                                     </div>
+                                                    <small class="text-muted producto-seleccionado-info-prealerta"></small>
                                                 </div>
-                                                <div class="col-md-4">
+                                                <div class="col-md-5">
                                                     <label class="form-label">
-                                                        <i class="fa fa-cube me-1"></i> Modelo
+                                                        <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                                     </label>
                                                     <div class="input-group">
-                                                        <select v-model="equipo.modelo" class="form-control" required>
-                                                            <option value="">Seleccione modelo</option>
-                                                            <option v-for="modelo in modelosDisponibles"
-                                                                :value="modelo.nombre">
-                                                                {{modelo.nombre}}
-                                                            </option>
-                                                        </select>
-                                                        <button class="btn bg-rojo text-white" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#modalModelo">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="form-label">
-                                                        <i class="fa fa-laptop me-1"></i> Equipo
-                                                    </label>
-                                                    <div class="input-group">
-                                                        <select v-model="equipo.tipo" class="form-control" required>
-                                                            <option value="">Seleccione equipo</option>
-                                                            <option v-for="eq in equiposDisponibles" :value="eq.nombre">
-                                                                {{eq.nombre}}
+                                                        <select v-model="equipo.tipo" class="form-control" required
+                                                            @change="alCambiarEquipo(equipo)">
+                                                            <option value="">Seleccione equipo...</option>
+                                                            <option v-for="eq in equiposDisponibles" :value="eq.nombre"
+                                                                :data-marca-nombre="eq.marca_nombre || ''"
+                                                                :data-modelo-nombre="eq.modelo_nombre || ''">
+                                                                {{eq.nombre}}{{ eq.marca_nombre || eq.modelo_nombre ? ' — ' + (eq.marca_nombre || '') + (eq.modelo_nombre ? ' / ' + eq.modelo_nombre : '') : '' }}
                                                             </option>
                                                         </select>
                                                         <button class="btn bg-rojo text-white" type="button"
@@ -363,11 +335,20 @@ $c_prealerta = new PreAlerta();
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label text-muted">
+                                                        <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                                    </label>
+                                                    <input type="text" class="form-control" readonly
+                                                        :value="marcaModeloDisplay(equipo)"
+                                                        placeholder="Se completa al elegir equipo"
+                                                        style="background:#f8f9fa;cursor:default;">
+                                                </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label">
-                                                        <i class="fa fa-barcode me-1"></i> N° De Serie
+                                                        <i class="fa fa-barcode me-1"></i> N° De Serie <span class="text-danger">*</span>
                                                     </label>
-                                                    <input type="text" class="form-control" v-model="equipo.serie">
+                                                    <input type="text" class="form-control" v-model="equipo.serie" required>
                                                 </div>
                                             </div>
                                         </div>
@@ -395,7 +376,7 @@ $c_prealerta = new PreAlerta();
                 <!-- Modal Editar -->
                 <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel"
                     aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header text-white bg-rojo">
                                 <div class="d-flex align-items-center">
@@ -454,60 +435,18 @@ $c_prealerta = new PreAlerta();
                                         </h6>
 
                                         <div class="row g-3 mb-3">
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <label class="form-label">
-                                                    <i class="fa fa-tag me-1"></i> Marca
+                                                    <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                                 </label>
                                                 <div class="input-group">
-                                                    <select v-model="equipoBase.marca" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.marca }" required>
-                                                        <option value="">Seleccione marca</option>
-                                                        <option v-for="marca in marcasDisponibles"
-                                                            :value="marca.nombre">
-                                                            {{marca.nombre}}
-                                                        </option>
-                                                    </select>
-                                                    <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#modalMarca">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                                <p class="text-danger small mt-1" v-if="validationErrors.marca">
-                                                    {{ validationErrors.marca }}
-                                                </p>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">
-                                                    <i class="fa fa-cube me-1"></i> Modelo
-                                                </label>
-                                                <div class="input-group">
-                                                    <select v-model="equipoBase.modelo" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.modelo }" required>
-                                                        <option value="">Seleccione modelo</option>
-                                                        <option v-for="modelo in modelosDisponibles"
-                                                            :value="modelo.nombre">
-                                                            {{modelo.nombre}}
-                                                        </option>
-                                                    </select>
-                                                    <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
-                                                        data-bs-target="#modalModelo">
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                                <p class="validation-message" v-if="validationErrors.modelo">
-                                                    {{ validationErrors.modelo }}
-                                                </p>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">
-                                                    <i class="fa fa-laptop me-1"></i> Equipo
-                                                </label>
-                                                <div class="input-group">
-                                                    <select v-model="equipoBase.tipo" class="form-control"
-                                                        :class="{ 'is-invalid': validationErrors.equipo }" required>
-                                                        <option value="">Seleccione equipo</option>
-                                                        <option v-for="eq in equiposDisponibles" :value="eq.nombre">
-                                                            {{eq.nombre}}
+                                                    <select v-model="equipoBase.tipo" class="form-control" required
+                                                        @change="alCambiarEquipoBase">
+                                                        <option value="">Seleccione equipo...</option>
+                                                        <option v-for="eq in equiposDisponibles" :value="eq.nombre"
+                                                            :data-marca-nombre="eq.marca_nombre || ''"
+                                                            :data-modelo-nombre="eq.modelo_nombre || ''">
+                                                            {{eq.nombre}}{{ eq.marca_nombre || eq.modelo_nombre ? ' — ' + (eq.marca_nombre || '') + (eq.modelo_nombre ? ' / ' + eq.modelo_nombre : '') : '' }}
                                                         </option>
                                                     </select>
                                                     <button class="btn bg-rojo" type="button" data-bs-toggle="modal"
@@ -518,6 +457,15 @@ $c_prealerta = new PreAlerta();
                                                 <p class="validation-message" v-if="validationErrors.equipo">
                                                     {{ validationErrors.equipo }}
                                                 </p>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <label class="form-label text-muted">
+                                                    <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                                </label>
+                                                <input type="text" class="form-control" readonly
+                                                    :value="marcaModeloDisplay(equipoBase)"
+                                                    placeholder="Se completa al elegir equipo"
+                                                    style="background:#f8f9fa;cursor:default;">
                                             </div>
                                         </div>
 
@@ -570,65 +518,41 @@ $c_prealerta = new PreAlerta();
                                                     <i class="fa fa-trash me-1"></i> Eliminar
                                                 </button>
                                             </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
+                                            <div class="row g-3">
+                                                <div class="col-md-12 mb-2">
                                                     <label class="form-label">
-                                                        <i class="fa fa-tag me-1"></i> Marca
+                                                        <i class="fa fa-box me-1 text-rojo"></i>
+                                                        Producto del almacén
+                                                        <small class="text-muted" v-if="editando.id_almacen">(opcional — autocompleta el resto)</small>
+                                                        <small class="text-danger" v-else>(elegí un almacén arriba para activar)</small>
                                                     </label>
                                                     <div class="input-group">
-                                                        <select class="form-control" v-model="equipo.marca"
-                                                            :class="{ 'is-invalid': validationErrors['equipo_'+index+'_marca'] }">
-                                                            <option value="">Seleccione marca</option>
-                                                            <option v-for="marca in marcasDisponibles"
-                                                                :value="marca.nombre">
-                                                                {{marca.nombre}}
-                                                            </option>
-                                                        </select>
-                                                        <button class="btn bg-rojo" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#modalMarca">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
+                                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                        <input type="text"
+                                                            class="form-control input-buscar-producto-prealerta"
+                                                            :data-index="index"
+                                                            data-edit="1"
+                                                            v-model="equipo.producto_busqueda"
+                                                            :disabled="!editando.id_almacen"
+                                                            :placeholder="editando.id_almacen ? 'Buscar por código o nombre...' : 'Elegí un almacén primero'"
+                                                            autocomplete="off">
+                                                        <input type="hidden" class="input-id-producto-prealerta"
+                                                            v-model="equipo.id_producto">
                                                     </div>
-                                                    <p class="validation-message"
-                                                        v-if="validationErrors['equipo_'+index+'_marca']">
-                                                        {{ validationErrors['equipo_'+index+'_marca'] }}
-                                                    </p>
+                                                    <small class="text-muted producto-seleccionado-info-prealerta"></small>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
+                                                <div class="col-md-5">
                                                     <label class="form-label">
-                                                        <i class="fa fa-cube me-1"></i> Modelo
+                                                        <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                                     </label>
                                                     <div class="input-group">
-                                                        <select class="form-control" v-model="equipo.modelo"
-                                                            :class="{ 'is-invalid': validationErrors['equipo_'+index+'_modelo'] }">
-                                                            <option value="">Seleccione modelo</option>
-                                                            <option v-for="modelo in modelosDisponibles"
-                                                                :value="modelo.nombre">
-                                                                {{modelo.nombre}}
-                                                            </option>
-                                                        </select>
-                                                        <button class="btn bg-rojo" type="button"
-                                                            data-bs-toggle="modal" data-bs-target="#modalModelo">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                    <p class="validation-message"
-                                                        v-if="validationErrors['equipo_'+index+'_modelo']">
-                                                        {{ validationErrors['equipo_'+index+'_modelo'] }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label class="form-label">
-                                                        <i class="fa fa-laptop me-1"></i> Equipo
-                                                    </label>
-                                                    <div class="input-group">
-                                                        <select class="form-control" v-model="equipo.equipo"
-                                                            :class="{ 'is-invalid': validationErrors['equipo_'+index+'_equipo'] }">
-                                                            <option value="">Seleccione equipo</option>
-                                                            <option v-for="eq in equiposDisponibles" :value="eq.nombre">
-                                                                {{eq.nombre}}
+                                                        <select v-model="equipo.equipo" class="form-control" required
+                                                            @change="alCambiarEquipoEdicion(equipo)">
+                                                            <option value="">Seleccione equipo...</option>
+                                                            <option v-for="eq in equiposDisponibles" :value="eq.nombre"
+                                                                :data-marca-nombre="eq.marca_nombre || ''"
+                                                                :data-modelo-nombre="eq.modelo_nombre || ''">
+                                                                {{eq.nombre}}{{ eq.marca_nombre || eq.modelo_nombre ? ' — ' + (eq.marca_nombre || '') + (eq.modelo_nombre ? ' / ' + eq.modelo_nombre : '') : '' }}
                                                             </option>
                                                         </select>
                                                         <button class="btn bg-rojo" type="button"
@@ -636,22 +560,22 @@ $c_prealerta = new PreAlerta();
                                                             <i class="fa fa-plus"></i>
                                                         </button>
                                                     </div>
-                                                    <p class="validation-message"
-                                                        v-if="validationErrors['equipo_'+index+'_equipo']">
-                                                        {{ validationErrors['equipo_'+index+'_equipo'] }}
-                                                    </p>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
+                                                <div class="col-md-3">
+                                                    <label class="form-label text-muted">
+                                                        <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                                    </label>
+                                                    <input type="text" class="form-control" readonly
+                                                        :value="marcaModeloDisplay(equipo)"
+                                                        placeholder="Se completa al elegir equipo"
+                                                        style="background:#f8f9fa;cursor:default;">
+                                                </div>
+                                                <div class="col-md-4">
                                                     <label class="form-label">
-                                                        <i class="fa fa-barcode me-1"></i> Número de Serie
+                                                        <i class="fa fa-barcode me-1"></i> Número de Serie <span class="text-danger">*</span>
                                                     </label>
                                                     <input type="text" class="form-control"
-                                                        v-model="equipo.numero_serie"
-                                                        :class="{ 'is-invalid': validationErrors['equipo_'+index+'_serie'] }">
-                                                    <p class="validation-message"
-                                                        v-if="validationErrors['equipo_'+index+'_serie']">
-                                                        {{ validationErrors['equipo_'+index+'_serie'] }}
-                                                    </p>
+                                                        v-model="equipo.numero_serie" required>
                                                 </div>
                                             </div>
                                         </div>
@@ -674,6 +598,21 @@ $c_prealerta = new PreAlerta();
                                         <p class="validation-message" v-if="validationErrors.edit_fecha">
                                             {{ validationErrors.edit_fecha }}
                                         </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            <i class="fa fa-warehouse me-1"></i> Almacén
+                                            <small class="text-muted">(para vincular productos del kardex)</small>
+                                        </label>
+                                        <select id="select_almacen_prealerta_edit" class="form-select"
+                                            v-model="editando.id_almacen"
+                                            @change="onCambiarAlmacenEdit">
+                                            <option :value="null">— Sin almacén (equipos externos) —</option>
+                                            <option v-for="alm in almacenesDisponibles" :key="alm.id_almacen"
+                                                :value="alm.id_almacen">
+                                                {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                            </option>
+                                        </select>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="edit_observaciones">Observaciones</label>

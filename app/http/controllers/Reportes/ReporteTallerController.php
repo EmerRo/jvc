@@ -224,7 +224,7 @@ class ReporteTallerController extends Controller
             ]);
             // Establecer el encabezado HTML
             $headerHTML = '<div style="width: 100%; margin: 0; padding: 0;">
-    <img src="public/assets/img/encabezado.jpg" style="width: 100%; margin: 0; padding: 0; margin-left: 20px;">
+    <img src="public/assets/img/encabezado.svg" style="width: 100%; margin: 0; padding: 0; margin-left: 20px;">
 </div>';
 
             // Configurar el encabezado
@@ -243,7 +243,7 @@ class ReporteTallerController extends Controller
 
             // Definir el pie de página HTML
             $footerHTML = '<div style="position: absolute; bottom: 0; left: 0; right: 0; width: 100%;">
-           <img src="public/assets/img/pie de pagina.jpg" style="width: 100%; display: block; margin-right: 10px;">
+           <img src="public/assets/img/pie_de_pagina.svg" style="width: 100%; display: block; margin-right: 10px;">
        </div>';
             $mpdf->SetHTMLFooter($footerHTML);
 
@@ -324,8 +324,21 @@ class ReporteTallerController extends Controller
             if (ob_get_length()) {
                 ob_end_clean();
             }
+            $numeroReporte = !empty($data['numero']) ? $data['numero'] : $id_cotizacion;
+            $numeroArchivo = preg_replace('/[^A-Za-z0-9_-]+/', '_', (string) $numeroReporte);
+            $numeroArchivo = trim($numeroArchivo, '_');
+            if ($numeroArchivo === '') {
+                $numeroArchivo = (string) $id_cotizacion;
+            }
+
+            $tituloReporte = "Cotizacion Taller JVC {$numeroReporte}";
+            $nombreArchivo = "Cotizacion_Taller_JVC_{$numeroArchivo}.pdf";
+
+            $mpdf->SetTitle($tituloReporte);
+            $mpdf->SetAuthor('JVC');
+            $mpdf->SetSubject($tituloReporte);
             header('Content-Type: application/pdf');
-            $mpdf->Output("Cotizacion_Taller_JVC_{$id_cotizacion}.pdf", 'I');
+            $mpdf->Output($nombreArchivo, 'I');
 
 
         } catch (Exception $e) {

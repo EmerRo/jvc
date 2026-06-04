@@ -81,7 +81,7 @@ if (!isset($_SESSION)) {
                             <i class="fa fa-plus"></i>Actualizar Cotización
                         </button>
                         <button  style="margin-left:25px;" class="btn btn-warning"
-                            onclick="window.location.href='/taller/coti/view'">
+                            onclick="window.location.href='/tallers/coti/view'">
                             <i class="fa fa-arrow-left"></i> Regresar
                         </button>
                     </div>
@@ -521,7 +521,7 @@ if (!isset($_SESSION)) {
                                     </div>
                                 </div>
                                 <div class="modal-footer justify-content-between border-top pt-3">
-                                    <a href="/taller/coti/view" class="btn btn-success">
+                                    <a href="/tallers/coti/view" class="btn btn-success">
                                         <i class="fas fa-list me-2"></i> LISTA DE COTIZACIONES
                                     </a>
                                 </div>
@@ -1619,7 +1619,7 @@ if (!isset($_SESSION)) {
         // Event listener para el modal de cotización
         $('#modal-cotizacion-success').on('hidden.bs.modal', function () {
             // Redireccionar a la vista de cotizaciones cuando se cierra el modal
-            window.location.href = '/taller/coti/view';
+            window.location.href = '/tallers/coti/view';
         });
     });
 </script>

@@ -1,4 +1,0 @@
-Venta: 20, fecha: 2025-08-20
-
-Prod: insert into productos_ventas 
-        values ('2', '20', '1', '110.00', '135.00', '') - true

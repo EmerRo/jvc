@@ -258,7 +258,6 @@ tr:nth-last-child(-n+3) .dropdown-actions {
                                 $pdf_url = URL::to('/guia/remision/pdf/' . $fila['id_guia_remision'] . '/' . $fila['nom_guia_xml']);
                                 ?>
                                 <tr data-tipo="<?php echo $fila['tipo_guia']; ?>">
-                                    <!-- <td><?php echo $item ?></td> -->
                                     <td><a target="_blank" href="<?php echo $pdf_url ?>"><?php echo $doc_guia ?></a></td>
                                     <td><?php echo $c_varios->fecha_mysql_web($fila['fecha_emision']) ?></td>
                                     <td><?php echo $fila['datos'] ?></td>
@@ -294,7 +293,7 @@ tr:nth-last-child(-n+3) .dropdown-actions {
                                                 <a class="whatsapp-share"
                                                    data-pdf-url="<?php echo $pdf_url ?>"
                                                    data-guide="<?php echo htmlspecialchars($doc_guia) ?>"
-                                                   data-client="<?php echo htmlspecialchars($fila['datos']) ?>">
+                                                   data-client="<?php echo htmlspecialchars($fila['datos'] ?? '') ?>">
                                                     <i class="fab fa-whatsapp text-success"></i> Enviar por WhatsApp
                                                 </a>
                                                 <div class="divider"></div>

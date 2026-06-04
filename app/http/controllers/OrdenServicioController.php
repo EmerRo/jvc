@@ -30,26 +30,30 @@ class OrdenServicioController extends Controller
                 error_log("POST recibido: " . print_r($_POST, true));
                 
                 $cliente_Rsocial = isset($_POST['cliente_Rsocial']) ?
-                    trim(filter_var($_POST['cliente_Rsocial'], FILTER_SANITIZE_STRING)) : null;
+                    htmlspecialchars(trim((string)$_POST['cliente_Rsocial']), ENT_QUOTES, 'UTF-8') : null;
                 $cliente_Ruc = isset($_POST['num_doc']) ?
-                    trim(filter_var($_POST['num_doc'], FILTER_SANITIZE_STRING)) : null;
+                    htmlspecialchars(trim((string)$_POST['num_doc']), ENT_QUOTES, 'UTF-8') : null;
 
                 $cliente_documento = isset($_POST['cliente_documento']) ?
-                    trim(filter_var($_POST['cliente_documento'], FILTER_SANITIZE_STRING)) : $cliente_Ruc;
-                
+                    htmlspecialchars(trim((string)$_POST['cliente_documento']), ENT_QUOTES, 'UTF-8') : $cliente_Ruc;
+
                 $direccion = '';
                 if (!empty($cliente_Ruc) && strlen($cliente_Ruc) === 11 && substr($cliente_Ruc, 0, 2) === '20') {
                     $direccion = isset($_POST['direccion']) ?
-                        trim(filter_var($_POST['direccion'], FILTER_SANITIZE_STRING)) : '';
+                        htmlspecialchars(trim((string)$_POST['direccion']), ENT_QUOTES, 'UTF-8') : '';
                 }
 
                 $atencion_Encargado = isset($_POST['atencion_Encargado']) ?
-                    trim(filter_var($_POST['atencion_Encargado'], FILTER_SANITIZE_STRING)) : null;
+                    htmlspecialchars(trim((string)$_POST['atencion_Encargado']), ENT_QUOTES, 'UTF-8') : null;
                 $fecha_ingreso = isset($_POST['fecha_ingreso']) ?
-                    trim(filter_var($_POST['fecha_ingreso'], FILTER_SANITIZE_STRING)) : null;
+                    htmlspecialchars(trim((string)$_POST['fecha_ingreso']), ENT_QUOTES, 'UTF-8') : null;
 
                 $observaciones = isset($_POST['observaciones']) ?
-                    trim(filter_var($_POST['observaciones'], FILTER_SANITIZE_STRING)) : null;
+                    htmlspecialchars(trim((string)$_POST['observaciones']), ENT_QUOTES, 'UTF-8') : null;
+
+                $id_almacen = isset($_POST['id_almacen']) && $_POST['id_almacen'] !== ''
+                    ? (int)$_POST['id_almacen']
+                    : null;
 
                 // Procesar equipos
                 $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];
@@ -61,7 +65,10 @@ class OrdenServicioController extends Controller
                         'marca' => $equipo['marca'],
                         'modelo' => $equipo['modelo'],
                         'equipo' => isset($equipo['tipo']) ? $equipo['tipo'] : $equipo['equipo'],
-                        'numero_serie' => isset($equipo['serie']) ? $equipo['serie'] : $equipo['numero_serie']
+                        'numero_serie' => isset($equipo['serie']) ? $equipo['serie'] : $equipo['numero_serie'],
+                        'id_producto' => isset($equipo['id_producto']) && $equipo['id_producto'] !== ''
+                            ? (int)$equipo['id_producto']
+                            : null
                     ];
                 }
                 
@@ -74,6 +81,7 @@ class OrdenServicioController extends Controller
                     $this->ordenServicio->setAtencion_Encargado($atencion_Encargado);
                     $this->ordenServicio->setFecha_Ingreso($fecha_ingreso);
                     $this->ordenServicio->setObservaciones($observaciones);
+                    $this->ordenServicio->setIdAlmacen($id_almacen);
                     $this->ordenServicio->setDetalles($equiposCorregidos);
 
                     $save = $this->ordenServicio->insertar();
@@ -151,7 +159,8 @@ class OrdenServicioController extends Controller
             'cliente_ruc' => $_POST['cliente_ruc'],
             'atencion_encargado' => $_POST['atencion_encargado'],
             'fecha_ingreso' => $_POST['fecha_ingreso'],
-            'observaciones' => $_POST['observaciones']
+            'observaciones' => $_POST['observaciones'],
+            'id_almacen' => isset($_POST['id_almacen']) ? $_POST['id_almacen'] : null
         ];
         $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];
 

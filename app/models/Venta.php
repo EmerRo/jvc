@@ -470,8 +470,8 @@ public function setDocReferencia($doc_referencia): void
                     medoto_pago2_id   = ?,
                     pagado2           = ?";
 
-        // Tipos: s i d d i i i s s s s s s i d d i i s i i i i i d
-        $types  = 'siddiiissssssidd' . 'iisiiiiiid';
+        // Tipos: s i d d i i i s s s s s s i d d i i s i i i i i d (25 placeholders = 25 chars)
+        $types  = 'siddiiissssssidd' . 'iisiiiiid';
         $params = [
             $docReferencia, // s
             $moneda,        // i

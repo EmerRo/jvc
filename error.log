@@ -1,0 +1,96 @@
+[04-Jun-2026 13:11:18 America/Lima] === INICIO DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] ID Guía: 16
+[04-Jun-2026 13:11:18 America/Lima] ID Producto: 341
+[04-Jun-2026 13:11:18 America/Lima] Detalles: LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12" - MARCA: CRIS-TAURO
+[04-Jun-2026 13:11:18 America/Lima] Unidad: UNIDAD
+[04-Jun-2026 13:11:18 America/Lima] Cantidad: 3
+[04-Jun-2026 13:11:18 America/Lima] Precio: 3958.00
+[04-Jun-2026 13:11:18 America/Lima] SQL a ejecutar: INSERT INTO guia_detalles (
+            id_guia,
+            id_producto,
+            id_repuesto,
+            id_guia_equipo,
+            tipo_item,
+            detalles,
+            unidad,
+            cantidad,
+            precio
+        ) VALUES (
+            '16',
+            '341',
+            NULL,
+            NULL,
+            'producto',
+            'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 12\" - MARCA: CRIS-TAURO',
+            'UNIDAD',
+            '3',
+            '3958.00'
+        )
+[04-Jun-2026 13:11:18 America/Lima] Inserción exitosa. ID insertado: 30
+[04-Jun-2026 13:11:18 America/Lima] === FIN DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] === INICIO DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] ID Guía: 16
+[04-Jun-2026 13:11:18 America/Lima] ID Producto: 371
+[04-Jun-2026 13:11:18 America/Lima] Detalles: LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14" - MARCA: CRIS-TAURO
+[04-Jun-2026 13:11:18 America/Lima] Unidad: UNIDAD
+[04-Jun-2026 13:11:18 America/Lima] Cantidad: 2
+[04-Jun-2026 13:11:18 America/Lima] Precio: 4194.00
+[04-Jun-2026 13:11:18 America/Lima] SQL a ejecutar: INSERT INTO guia_detalles (
+            id_guia,
+            id_producto,
+            id_repuesto,
+            id_guia_equipo,
+            tipo_item,
+            detalles,
+            unidad,
+            cantidad,
+            precio
+        ) VALUES (
+            '16',
+            '371',
+            NULL,
+            NULL,
+            'producto',
+            'LUSTRADORA LAVADORA INDUSTRIAL DE PISOS DE 14\" - MARCA: CRIS-TAURO',
+            'UNIDAD',
+            '2',
+            '4194.00'
+        )
+[04-Jun-2026 13:11:18 America/Lima] Inserción exitosa. ID insertado: 31
+[04-Jun-2026 13:11:18 America/Lima] === FIN DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] === INICIO DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] ID Guía: 16
+[04-Jun-2026 13:11:18 America/Lima] ID Producto: 36
+[04-Jun-2026 13:11:18 America/Lima] Detalles: ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO
+[04-Jun-2026 13:11:18 America/Lima] Unidad: UNIDAD
+[04-Jun-2026 13:11:18 America/Lima] Cantidad: 11
+[04-Jun-2026 13:11:18 America/Lima] Precio: 3422.00
+[04-Jun-2026 13:11:18 America/Lima] SQL a ejecutar: INSERT INTO guia_detalles (
+            id_guia,
+            id_producto,
+            id_repuesto,
+            id_guia_equipo,
+            tipo_item,
+            detalles,
+            unidad,
+            cantidad,
+            precio
+        ) VALUES (
+            '16',
+            '36',
+            NULL,
+            NULL,
+            'producto',
+            'ASPIRADORA INDUSTRIAL DE POLVO Y AGUA DE 12 GALONES - MARCA: CRIS-TAURO',
+            'UNIDAD',
+            '11',
+            '3422.00'
+        )
+[04-Jun-2026 13:11:18 America/Lima] Inserción exitosa. ID insertado: 32
+[04-Jun-2026 13:11:18 America/Lima] === FIN DEPURACIÓN GUIA_DETALLES ===
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto
+[04-Jun-2026 13:11:18 America/Lima] Tipo item detectado: producto

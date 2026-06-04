@@ -1960,22 +1960,57 @@ mounted() {
 
         $('#add-rep').click(function () {
 
-
-            $.get(_URL + "/ajs/get/unidades/rep", function (data, textStatus, jqXHR) {
-                let option = '';
-                let resp = JSON.parse(data);
+            // Cargar unidades
+            $.get(_URL + "/ajs/get/unidades/rep", function (data) {
+                let resp = (typeof data === 'string') ? JSON.parse(data) : data;
+                let option = '<option value="" disabled>Seleccione una unidad</option>';
                 $.each(resp, function (i, v) {
-                    console.log(v.id);
                     option += `<option value="${v.id}">${v.nombre}</option>`;
                 });
-
-                $('#unidades').html(option);
-
+                $('#select_unidades_rep').html(option);
             }).fail(function (jqXHR, textStatus, errorThrown) {
                 console.error("Error al cargar las unidades: " + textStatus, errorThrown);
-                alert("No se pudo cargar las unidades. Por favor, intenta nuevamente.");
             });
+
+            // Cargar categorías
+            $.get(_URL + "/ajs/get/categorias/rep", function (data) {
+                let resp = (typeof data === 'string') ? JSON.parse(data) : data;
+                let option = '<option value="" disabled>Seleccione una categoría</option>';
+                $.each(resp, function (i, v) {
+                    option += `<option value="${v.id}">${v.nombre}</option>`;
+                });
+                $('#select_categorias_rep').html(option);
+                // Guardar en cache para filtrar subcategorías en cliente
+                window.__catRep = resp;
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("Error al cargar las categorías: " + textStatus, errorThrown);
+            });
+
+            // Cargar TODAS las subcategorías
+            $.get(_URL + "/ajs/get/subcategorias/rep", function (data) {
+                let resp = (typeof data === 'string') ? JSON.parse(data) : data;
+                window.__subcatRep = resp;
+                let option = '<option value="" disabled>Seleccione una subcategoría</option>';
+                $.each(resp, function (i, v) {
+                    option += `<option value="${v.id}">${v.nombre}</option>`;
+                });
+                $('#select_subcategorias_rep').html(option);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("Error al cargar las subcategorías: " + textStatus, errorThrown);
+            });
+
             $('#modal-add-rep').modal('show');
+        });
+
+        // Filtrar subcategorías en cliente cuando cambia la categoría
+        $(document).on('change', '#select_categorias_rep', function () {
+            const catId = $(this).val();
+            const subcats = (window.__subcatRep || []).filter(s => String(s.categoria_id) === String(catId) || String(s.categoria) === String(catId));
+            let option = '<option value="" disabled>Seleccione una subcategoría</option>';
+            subcats.forEach(function (s) {
+                option += `<option value="${s.id}">${s.nombre}</option>`;
+            });
+            $('#select_subcategorias_rep').html(option);
         });
 
 

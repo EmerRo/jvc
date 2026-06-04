@@ -322,7 +322,6 @@ class GenerarReporte extends Controller
             if ($fila['id_tido'] != '1' && $fila['id_tido'] != '2') {
                 continue;
             }
-            $totalOpgravado = number_format($totalOpgravado, 2, '.', ',');
             $igv = $fila['total'] / ($fila['igv'] + 1) * $fila['igv'];
             $totalOpgravado = $fila['total'] - $igv;
             $total = number_format((float) $fila['total'], 2, '.', '');

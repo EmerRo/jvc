@@ -167,7 +167,7 @@ Route::get("/r/dashboard/reporte", "ReporteDashboardController@generateReport");
 Route::get("/r/dashboard/reporte-excel", "ReporteExcelDashboardController@generateExcelReport");
 
 Route::postBase("/agregar/imagenes","FragmentController@fotosTaller");
-Route::postBase("/taller/coti/view","FragmentController@vistacotiTaller");
+Route::postBase("/tallers/coti/view","FragmentController@vistacotiTaller");
 Route::postBase("/edt/coti/taller","FragmentController@edtTaller");
 
 // guia duplicada 

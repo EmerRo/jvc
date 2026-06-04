@@ -561,7 +561,7 @@ if ($datoVenta['aplicar_igv'] == 1) {
     // Configurar el header
     $headerHTML = "
      <div style='width: 100%; margin: 0; padding: 0;'>
-     <img style='width: auto; height: auto; display: block; margin-left: auto;' src='" . ImageStorage::url('empresas', $datoEmpresa['logo']) . "'>
+     <img src='public/assets/img/encabezado.svg' style='width: 100%; margin: 0; padding: 0; display: block;'>
      </div>";
 
     // Establecer el header y configurarlo para todas las páginas
@@ -581,7 +581,7 @@ if ($datoVenta['aplicar_igv'] == 1) {
     // Establecer el pie de página para todas las páginas
     $footerHTML = '
        <div style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 0; height: 145px;">
-           <img src="public/assets/img/pie de pagina.jpg" style="width: 100%; display: block; margin: 0; padding: 0;">
+           <img src="public/assets/img/pie_de_pagina.svg" style="width: 100%; display: block; margin: 0; padding: 0;">
        </div>';
     $this->mpdf->SetHTMLFooter($footerHTML);
 

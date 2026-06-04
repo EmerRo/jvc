@@ -130,7 +130,7 @@ class TableData
 
 		return $output;
 	}
-	public function get($table, $index_column, $columns, $isExtra = false, $condicional = "", $where = false)
+	public function get($table, $index_column, $columns, $isExtra = false, $condicional = "", $where = false, $orderBy = "")
 	{
 
 
@@ -142,7 +142,10 @@ class TableData
 
 		// Ordering
 		$sOrder = "";
-		if (isset($_GET['iSortCol_0'])) {
+		if (!empty($orderBy)) {
+			// Si se proporciona un orderBy personalizado, úsalo
+			$sOrder = $orderBy;
+		} else if (isset($_GET['iSortCol_0'])) {
 			$sOrder = "ORDER BY  ";
 			for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
 				if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == "true") {

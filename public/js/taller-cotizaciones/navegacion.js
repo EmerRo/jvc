@@ -15,7 +15,7 @@ window.addEventListener('popstate', function(event) {
           window.app.cargarDatosCotizacion(cotizacionId);
         }
       }
-    } else if (currentUrl.includes('/taller/coti/view')) {
+    } else if (currentUrl.includes('/tallers/coti/view')) {
       // Si volvemos a la vista de lista, recargar la tabla
       if (window.tabla) {
         window.tabla.ajax.reload();

@@ -1252,7 +1252,7 @@ $(document).ready(() => {
   });
 
   window.verCotizacion = () => {
-    window.location.href = `/taller/coti/view/`;
+    window.location.href = `/tallers/coti/view/`;
   };
 
   function mostrarDetalles(id) {

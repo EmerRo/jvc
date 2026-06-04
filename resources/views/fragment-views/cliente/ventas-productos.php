@@ -29,13 +29,19 @@ $igv_empresa = $datoEmpresa['igv'];
 </div>
 <input type="hidden" id="fecha-app" value="<?= date("Y-m-d") ?>">
 
-<?php if (isset($coti) && $coti !== null) {
+<?php
+$servicio = isset($_GET["servicio"]) ? (int)$_GET["servicio"] : 0;
+if (isset($coti) && $coti !== null) {
     echo "<input type='hidden' id='cotizacion' value='{$coti}'>";
     echo "<input type='hidden' id='tipo_cotizacion' value='normal'>";
 } elseif (isset($coti_taller) && $coti_taller !== null) {
     echo "<input type='hidden' id='cotizacion' value='{$coti_taller}'>";
     echo "<input type='hidden' id='tipo_cotizacion' value='taller'>";
-} ?>
+}
+if ($servicio) {
+    echo "<input type='hidden' id='es_servicio' value='1'>";
+}
+?>
 
 <!-- Debug: Mostrar qué parámetros llegaron -->
 <script>
@@ -63,7 +69,8 @@ if (isset($_GET["guia"]) || isset($guia)) {
             <div class="card ">
                 <div class="card-body">
 
-                    <h4 class="card-title">Venta de Productos</h4>
+                    <h4 class="card-title" v-if="esServicio">Venta de Servicio <small class="text-muted">(cotización de taller)</small></h4>
+                    <h4 class="card-title" v-else>Venta de Productos</h4>
 
                     <div class="card-title-desc">
 
@@ -73,54 +80,70 @@ if (isset($_GET["guia"]) || isset($guia)) {
                         <div class="col-md-12">
                             <form v-on:submit.prevent="addProduct" class="form-horizontal">
 
-                                <div class="form-group row mb-3">
-                                    <label class="col-lg-2 control-label">Almacén</label>
-                                    <div class="col-lg-3">
-                                        <almacen-select class="form-control idAlmacen" v-model="producto.almacen" @input="onChangeAlmacen"></almacen-select>
+                                <!-- MODO PRODUCTO: Almacén + Buscar con autocomplete -->
+                                <div v-if="!esServicio">
+                                    <div class="form-group row mb-3">
+                                        <label class="col-lg-2 control-label">Almacén</label>
+                                        <div class="col-lg-3">
+                                            <almacen-select class="form-control idAlmacen" v-model="producto.almacen" @input="onChangeAlmacen"></almacen-select>
+                                        </div>
                                     </div>
-                                </div>
-                                <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
-                                    style="width: 300px; padding: 10px;"></canvas>
+                                    <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
+                                        style="width: 300px; padding: 10px;"></canvas>
 
 
-                                <div class="form-group row mb-3">
-                                    <label class="col-lg-2 control-label">Buscar</label>
+                                    <div class="form-group row mb-3">
+                                        <label class="col-lg-2 control-label">Buscar</label>
 
 
-                                    <div class="col-lg-10">
+                                        <div class="col-lg-10">
 
-                                        <div class="input-group">
-                                            <input @input="chambioInputSearchProd" type="text"
-                                                placeholder="Consultar Productos"
-                                                class="form-control ui-autocomplete-input" id="input_buscar_productos"
-                                                autocomplete="off">
-                                            <div class="input-group-btn p-1">
-                                                <!-- <button id="btn-scan-qr" @click="toggleCamara" class="btn btn-primary">
-                                                                        Escanear QR
-                                                                        </button> -->
-                                                <!-- Canvas para mostrar la vista de la cámara -->
-
-                                                <label class=""> <input id="btn-scan-qr" v-model="usar_scaner"
-                                                        @click="toggleCamara" type="checkbox"> Usar
-                                                    Scanner</label><br />
-                                                <label @click="abrirMultipleBusaque"
-                                                    style="color: blue;cursor: pointer">Busqueda Multiple</label>
+                                            <div class="input-group">
+                                                <input @input="chambioInputSearchProd" type="text"
+                                                    placeholder="Consultar Productos"
+                                                    class="form-control ui-autocomplete-input" id="input_buscar_productos"
+                                                    autocomplete="off">
+                                                <div class="input-group-btn p-1">
+                                                    <label class=""> <input id="btn-scan-qr" v-model="usar_scaner"
+                                                            @click="toggleCamara" type="checkbox"> Usar
+                                                        Scanner</label><br />
+                                                    <label @click="abrirMultipleBusaque"
+                                                        style="color: blue;cursor: pointer">Busqueda Multiple</label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Descripción (producto: readonly / servicio: editable) -->
                                 <div class="form-group row mb-3">
-                                    <label class="col-lg-2 control-label">Descripción</label>
+                                    <label class="col-lg-2 control-label">Descripción del {{ esServicio ? 'Servicio' : 'Producto' }}</label>
                                     <div class="col-lg-10">
                                         <input required v-model="producto.descripcion" type="text"
-                                            placeholder="Descripción" class="form-control" readonly="true">
+                                            :placeholder="esServicio ? 'Ej: Servicio de mantenimiento de ASPIRADORA CRIS-TAURO ASJ12' : 'Descripción'"
+                                            class="form-control" :readonly="!esServicio">
+                                    </div>
+                                </div>
+
+                                <!-- MODO SERVICIO: campos extra (código SUNAT, unidad ZZ) -->
+                                <div v-if="esServicio" class="form-group row mb-3">
+                                    <div class="col-lg-2"></div>
+                                    <div class="col-lg-3">
+                                        <label class="col-form-label">Código <small class="text-muted">(SUNAT)</small></label>
+                                        <input v-model="producto.codigo" type="text" class="form-control text-center"
+                                            placeholder="SRV001" maxlength="20">
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label class="col-form-label">Unidad <small class="text-muted">(cat.03)</small></label>
+                                        <input v-model="producto.unidad" type="text" class="form-control text-center"
+                                            placeholder="ZZ" maxlength="3">
                                     </div>
                                 </div>
 
                                 <div class="form-group">
                                     <div class="row">
-                                        <!-- Campo Stock Actual -->
-                                        <div class="col-lg-3">
+                                        <!-- Campo Stock Actual (solo producto) -->
+                                        <div class="col-lg-3" v-if="!esServicio">
                                             <label for="example-text-input" class="col-form-label">Stock Actual</label>
                                             <input disabled v-model="producto.stock" class="form-control text-center"
                                                 type="text" placeholder="0">
@@ -907,6 +930,7 @@ if (isset($_GET["guia"]) || isset($guia)) {
                 usar_scaner: false,
                 apli_igv_is: true,
                 vieneDetallerCotizacion: false,
+                esServicio: false,
                 equiposData: [],
                 equipoActivo: null,
                 mensajeProductoVisible: false,
@@ -1178,7 +1202,11 @@ if (isset($_GET["guia"]) || isset($guia)) {
                 },
 
                 mounted() {
-                    // No se usa para guías - la lógica está en created()
+                    // Detectar modo servicio (viene de coti-taller con tipo_origen='ORD SERVICIO')
+                    if (document.getElementById('es_servicio')) {
+                        this.esServicio = true;
+                        this.venta.tipoventa = 2;
+                    }
                 },
 
                 toggleCamara() {
@@ -2067,7 +2095,8 @@ if (isset($_GET["guia"]) || isset($guia)) {
                         nom_prod: "",
                         cantidad: "",
                         stock: "",
-                        codigo: "",
+                        codigo: this.esServicio ? "SRV" + Date.now().toString().slice(-6) : "",
+                        unidad: this.esServicio ? "ZZ" : "NIU",
                         costo: "",
                         codsunat: "",
                         precio: '',
@@ -2122,6 +2151,14 @@ if (isset($_GET["guia"]) || isset($guia)) {
                 addProduct() {
                     //if (this.producto.stock)
                     if (this.producto.descripcion.length > 0) {
+                        // Si es servicio, asegurar unidad=ZZ y código autogenerado si está vacío
+                        if (this.esServicio) {
+                            if (!this.producto.unidad) this.producto.unidad = 'ZZ';
+                            if (!this.producto.codigo) this.producto.codigo = 'SRV' + Date.now().toString().slice(-6);
+                            if (!this.producto.cantidad) this.producto.cantidad = 1;
+                            this.producto.productoid = null;
+                            this.producto.esServicio = true;
+                        }
                         const prod = {
                             ...this.producto
                         }
@@ -2129,12 +2166,16 @@ if (isset($_GET["guia"]) || isset($guia)) {
                         this.limpiasDatos();
                         this.usar_precio = 5
                     } else {
-                        alertAdvertencia("Busque un producto primero")
-                            .then(function () {
-                                setTimeout(function () {
-                                    $("#input_buscar_productos").focus();
-                                }, 500)
-                            })
+                        if (this.esServicio) {
+                            alertAdvertencia("Ingrese una descripción del servicio");
+                        } else {
+                            alertAdvertencia("Busque un producto primero")
+                                .then(function () {
+                                    setTimeout(function () {
+                                        $("#input_buscar_productos").focus();
+                                    }, 500)
+                                })
+                        }
                     }
 
                 },
@@ -2276,6 +2317,13 @@ if (isset($_GET["guia"]) || isset($guia)) {
                 }
 
 
+            },
+            mounted() {
+                // Detectar modo servicio (viene de coti-taller con tipo_origen='ORD SERVICIO')
+                if (document.getElementById('es_servicio')) {
+                    this.esServicio = true;
+                    this.venta.tipoventa = 2;
+                }
             },
             created() {
                 // Generar ID único para esta instancia

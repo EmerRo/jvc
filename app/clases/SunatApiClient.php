@@ -90,7 +90,7 @@ class SunatApiClient
             'usuario'      => $emp['usuario_sol'] ?? $emp['user_sol'] ?? '',
             'clave'        => $emp['clave_sol'],
             'razon_social' => $emp['razon_social'] ?? '',
-            'direccion'    => $emp['direccion'] ?? '',
+            'direccion'    => str_replace(['–', '—'], '-', $emp['direccion'] ?? ''),
             'ubigeo'       => $emp['ubigeo'] ?? '',
             'distrito'     => $emp['distrito'] ?? '',
             'provincia'    => $emp['provincia'] ?? '',
@@ -138,11 +138,17 @@ class SunatApiClient
         return $detalles;
     }
 
-    private function guardarXML(string $ruc, string $nombre, string $contenido): void
+    private function guardarXML(string $ruc, string $nombre, ?string $contenido): void
     {
         $dir = "files/facturacion/xml/{$ruc}";
         if (!file_exists($dir)) mkdir($dir, 0777, true);
-        file_put_contents("{$dir}/{$nombre}.xml", $contenido);
+        if (empty($contenido)) {
+            error_log("GRE_DEBUG_GUARDARXML_VACIO: ruc={$ruc} nombre={$nombre}");
+            return;
+        }
+        $path = "{$dir}/{$nombre}.xml";
+        $ok = file_put_contents($path, $contenido);
+        error_log("GRE_DEBUG_GUARDARXML_OK: path={$path} bytes={$ok}");
     }
 
     private function guardarCDR(string $ruc, string $nombre, string $cdrBase64): void
@@ -299,6 +305,35 @@ class SunatApiClient
             $serieRelacionado = $dataE['venta']['serie'] . '-' . $dataE['venta']['numero'];
         }
 
+        $detalles = $this->mapearDetalles($dataE['productos'], false);
+
+        // Si vienen equipos (GRE de taller), concatenar la info del equipo al descripcion
+        // formato "EQUIPO: marca equipo - Modelo: modelo - Serie: serie | descripcion"
+        if (!empty($dataE['equipos']) && is_array($dataE['equipos'])) {
+            $equiposById = [];
+            foreach ($dataE['equipos'] as $eq) {
+                $idCotiEq = $eq['id_cotizacion_equipo'] ?? null;
+                if ($idCotiEq !== null) {
+                    $equiposById[$idCotiEq] = $eq;
+                }
+            }
+            foreach ($detalles as &$det) {
+                $idCotiEqDet = $det['id_cotizacion_equipo'] ?? null;
+                if ($idCotiEqDet !== null && isset($equiposById[$idCotiEqDet])) {
+                    $eq = $equiposById[$idCotiEqDet];
+                    $equipoInfo = sprintf(
+                        'EQUIPO: %s %s - Modelo: %s - Serie: %s',
+                        trim((string)($eq['marca'] ?? '')),
+                        trim((string)($eq['equipo'] ?? '')),
+                        trim((string)($eq['modelo'] ?? '')),
+                        trim((string)($eq['numero_serie'] ?? ''))
+                    );
+                    $det['descripcion'] = $equipoInfo . ' | ' . $det['descripcion'];
+                }
+            }
+            unset($det);
+        }
+
         $body = [
             'endpoint'                 => $dataE['endpoints'],
             'documento'                => 'remitente',
@@ -318,25 +353,40 @@ class SunatApiClient
                 'fecha_traslado'    => $dataE['fecha'],
                 'peso_total'        => (float)($dataE['peso'] ?? 1),
                 'unidad_medida'     => 'KGM',
-                'ubigeo_salida'     => $dataE['empresa']['ubigeo'] ?? '',
-                'direccion_salida'  => $dataE['empresa']['direccion'] ?? '',
+                'direccion_salida'  => str_replace(['–', '—'], '-', $dataE['empresa']['direccion'] ?? ''),
                 'ubigeo_llegada'    => $dataE['ubigeo'] ?? '',
-                'direccion_llegada' => $dataE['direccion'] ?? '',
+                'direccion_llegada' => str_replace(['–', '—'], '-', !empty($dataE['direccion']) ? $dataE['direccion'] : '-'),
             ],
             'transportista'            => [
-                'num_doc'    => $dataE['transporte']['ruc'],
-                'rzn_social' => $dataE['transporte']['razon_social'],
+                'num_doc'    => !empty($dataE['transporte']['ruc']) ? $dataE['transporte']['ruc'] : ($dataE['empresa']['ruc'] ?? ''),
+                'rzn_social' => !empty($dataE['transporte']['razon_social']) ? $dataE['transporte']['razon_social'] : ($dataE['empresa']['razon_social'] ?? 'EMPRESA PROPIA'),
                 'nro_mtc'    => '0001',
             ],
-            'detalles'                 => $this->mapearDetalles($dataE['productos'], false),
+            'detalles'                 => $detalles,
         ];
 
         $res = $this->post('generar/guia/remision', $body);
 
         if (!empty($res['estado'])) {
             $this->guardarXML($dataE['empresa']['ruc'], $res['data']['nombre_archivo'], $res['data']['contenido_xml']);
+
+            // API externa de GRE no retorna qr_info; construirlo localmente con el formato SUNAT.
+            $qrInfo = $res['data']['qr_info'] ?? '';
+            if (empty($qrInfo)) {
+                $tipoDocCli = strlen((string)($dataE['cliente']['doc_num'] ?? '')) == 11 ? '6' : '1';
+                $qrInfo = sprintf(
+                    '%s|09|%s-%s|0.00|0.00|%s|%s|%s',
+                    $dataE['empresa']['ruc'],
+                    $dataE['serie'],
+                    $dataE['numero'],
+                    $dataE['fecha'] ?? date('Y-m-d'),
+                    $tipoDocCli,
+                    $dataE['cliente']['doc_num'] ?? ''
+                );
+            }
+
             return ['res' => true, 'data' => [
-                'qr'             => $res['data']['qr_info'] ?? '',
+                'qr'             => $qrInfo,
                 'hash'           => $res['data']['hash'] ?? '',
                 'nombre_archivo' => $res['data']['nombre_archivo'],
             ]];

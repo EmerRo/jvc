@@ -26,7 +26,7 @@
                             <div class="col-md-4">
                                 <div class="mb-2">
                                     <label><i class="fa fa-folder me-1"></i>Categoría</label>
-                                    <select v-model="reg.categoria" class="form-control" @change="cargarSubcategorias"
+                                    <select id="select_categorias_rep" v-model="reg.categoria" class="form-control" @change="cargarSubcategorias"
                                         required>
                                         <option value="" disabled>Seleccione una categoría</option>
                                         <option v-for="cat in categorias" :value="cat.id">{{ cat.nombre }}</option>
@@ -34,7 +34,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <label><i class="fa fa-folder-open me-1"></i>Subcategoría</label>
-                                    <select v-model="reg.subcategoria" class="form-control" :disabled="!reg.categoria">
+                                    <select id="select_subcategorias_rep" v-model="reg.subcategoria" class="form-control" :disabled="!reg.categoria">
                                         <option value="" disabled>Seleccione una subcategoría</option>
                                         <option v-for="subcat in subcategorias" :value="subcat.id">{{ subcat.nombre }}
                                         </option>
@@ -70,7 +70,7 @@
                             <!-- Cuarta fila - Unidades, Almacén y Cod. Sunat -->
                             <div class="col-md-4 mb-2">
                                 <label><i class="fa fa-ruler me-1"></i>Unidades</label>
-                                <select v-model="reg.unidad" class="form-control" required>
+                                <select id="select_unidades_rep" v-model="reg.unidad" class="form-control" required>
                                     <option value="" disabled>Seleccione una unidad</option>
                                     <option v-for="unidad in unidades" :value="unidad.id">{{ unidad.nombre }}</option>
                                 </select>

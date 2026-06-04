@@ -123,7 +123,7 @@
                             <tr>
                                 <!-- <th></th> -->
                                 <th>Documento</th>
-                                <th>Fecha V.</th>
+                                <th>F. Emisión</th>
                                 <th>Cliente</th>
                                 <th>Sub. Total</th>
                                 <th>IGV</th>
@@ -462,8 +462,13 @@
                     }
                 },
                 {
-                    targets: 1, // Fecha
-                    width: "100px"
+                    targets: 1, // Fecha de emisión (created_at)
+                    width: "140px",
+                    render: function (data, type, row) {
+                        if (!data) return '';
+                        // data viene como "YYYY-MM-DD HH:MM:SS"
+                        return data.substring(0, 16);
+                    }
                 },
                 {
                     targets: 2, // Cliente

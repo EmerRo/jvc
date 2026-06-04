@@ -1325,7 +1325,15 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
       $detalle = nl2br($prod['descripcion']);
 
       // Construir información del producto y equipo
-      $productoInfo = "<strong>{$prod['nombre']}</strong>";
+      // Si el LEFT JOIN con productos no encontró match (caso repuestos del taller),
+      // usar la descripción como nombre del item.
+      $nombreItem = !empty($prod['nombre']) ? $prod['nombre'] : (!empty($prod['descripcion']) ? $prod['descripcion'] : 'Item');
+      $productoInfo = "<strong>{$nombreItem}</strong>";
+
+      // Si hay detalle separado del nombre, mostrarlo debajo
+      if (!empty($prod['descripcion']) && !empty($prod['nombre']) && $prod['descripcion'] !== $prod['nombre']) {
+        $productoInfo .= '<br><span style="font-size: 9px;">' . $detalle . '</span>';
+      }
 
       // Agregar información del equipo si está disponible
       if (!empty($prod['marca']) || !empty($prod['equipo']) || !empty($prod['modelo']) || !empty($prod['numero_serie'])) {

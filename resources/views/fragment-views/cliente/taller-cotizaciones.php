@@ -172,12 +172,12 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                 <canvas hidden="" id="qr-canvas" v-show="usar_scaner"
                                                     style="width: 300px; padding: 10px;"></canvas>
                                                 <div class="form-group row mb-3">
-                                                    <label class="col-lg-2 control-label">Buscar</label>
+                                                    <label class="col-lg-2 control-label">Almacén</label>
                                                     <div class="col-lg-10">
                                                         <div class="input-group">
-                                                            <input type="text" placeholder="Consultar Productos"
-                                                                class="form-control ui-autocomplete-input"
-                                                                id="input_buscar_productos" autocomplete="off">
+                                                            <select id="selector_almacen_taller" class="form-select">
+                                                                <option value="">Cargando almacenes...</option>
+                                                            </select>
                                                             <div class="input-group-btn p-1">
                                                                 <label class=""> <input id="btn-scan-qr"
                                                                         v-model="usar_scaner" @click="toggleCamara"
@@ -185,6 +185,21 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                                                 <label @click="abrirMultipleBusaque"
                                                                     style="color: blue;cursor: pointer">Busqueda
                                                                     Multiple</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group row mb-3">
+                                                    <label class="col-lg-2 control-label">Buscar</label>
+                                                    <div class="col-lg-10">
+                                                        <div class="input-group">
+                                                            <input type="text" placeholder="Consultar Productos del almacén"
+                                                                class="form-control ui-autocomplete-input"
+                                                                id="input_buscar_productos" autocomplete="off"
+                                                                disabled>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text" id="almacen-help-text"><i class="fa fa-info-circle text-muted"></i> Selecciona un almacén</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -594,7 +609,7 @@ $mostrarBotonesYDescuento = !$esRolOrdenTrabajo && !$origenEsOrdenTrabajo;
                                     </div>
                                 </div>
                                 <div class="modal-footer justify-content-between border-top pt-3">
-                                    <a href="/taller/coti/view" class="btn border-rojo">
+                                    <a href="/tallers/coti/view" class="btn border-rojo">
                                         <i class="fas fa-list me-2"></i> LISTA DE
                                         <?php echo $esRolOrdenTrabajo || $origenEsOrdenTrabajo ? 'ÓRDENES DE TRABAJO' : 'COTIZACIONES'; ?>
                                     </a>
