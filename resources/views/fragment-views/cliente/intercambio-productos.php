@@ -182,29 +182,38 @@ $getAll = $c_venta->ingresosEgresosRender();
                             </div>
                             <form v-on:submit.prevent="addSalida" class="form-horizontal">
                                 <div class="modal-body">
-                                    <div class="row">
+                                    <div class="row g-3">
                                         <canvas hidden="" id="qr-canvas" v-show="toggleCamara"
                                             style="width: 300px; padding: 10px;"></canvas>
-                                        <div class="mb-3 col-md-12">
+
+                                        <!-- Scanner -->
+                                        <div class="col-md-12">
                                             <label>
                                                 <input id="btn-scan-qr" v-model="usar_scaner" @click="toggleCamara"
                                                     type="checkbox">
                                                 Usar Scanner
                                             </label>
                                         </div>
-                                        <div class="mb-3 col-md-12">
-                                            <label class="control-label">Producto</label>
-                                            <input type="text" placeholder="Consultar Productos"
+
+                                        <!-- Búsqueda de producto -->
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">Producto</label>
+                                            <input type="text" placeholder="Buscar por código o nombre..."
                                                 class="form-control ui-autocomplete-input"
                                                 id="input_buscar_productos_salida" autocomplete="off">
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="control-label">Nombre</label>
-                                            <input required v-model="producto.nombre" type="text" placeholder="Nombre"
-                                                class="form-control" readonly="true">
+
+                                        <!-- Nombre (readonly) -->
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">Nombre</label>
+                                            <input required v-model="producto.nombre" type="text"
+                                                placeholder="Se completa al buscar el producto"
+                                                class="form-control bg-light" readonly>
                                         </div>
-                                        <div class="mb-3 col-md-5">
-                                            <label class="control-label">Del Almacén</label>
+
+                                        <!-- Del Almacén | Stock -->
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-semibold">Del Almacén <small class="text-muted">(origen)</small></label>
                                             <select name="delAlmacen" id="delAlmacen" v-model="producto.almacen"
                                                 class="form-control" @change="onChangeAlmacen($event)">
                                                 <option value="" disabled selected>Seleccionar</option>
@@ -213,8 +222,15 @@ $getAll = $c_venta->ingresosEgresosRender();
                                                 </option>
                                             </select>
                                         </div>
-                                        <div class="mb-3 col-md-5">
-                                            <label class="control-label">Al Almacén</label>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">Stock Actual</label>
+                                            <input v-model="producto.stock" type="text"
+                                                class="form-control bg-light text-center fw-bold" readonly>
+                                        </div>
+
+                                        <!-- Al Almacén -->
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">Al Almacén <small class="text-muted">(destino)</small></label>
                                             <select v-model="producto.alAlmacen" class="form-control">
                                                 <option value="" disabled selected>Seleccionar</option>
                                                 <option v-for="alm in almacenes.filter(a => parseInt(a.id_almacen) !== producto.almacen)"
@@ -223,19 +239,18 @@ $getAll = $c_venta->ingresosEgresosRender();
                                                 </option>
                                             </select>
                                         </div>
-                                        <div class="mb-3 col-md-2">
-                                            <label class="control-label">Stock Act.</label>
-                                            <input v-model="producto.stock" type="text" class="form-control"
-                                                readonly="true">
+
+                                        <!-- Cantidad -->
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold">Cantidad</label>
+                                            <input required v-model="producto.cantidad" type="text"
+                                                class="form-control" placeholder="0" @keypress="onlyNumber">
                                         </div>
-                                        <div class="mb-3 col-md-6">
-                                            <label class="control-label">Cantidad</label>
-                                            <input required v-model="producto.cantidad" type="text" class="form-control"
-                                                @keypress="onlyNumber">
-                                        </div>
-                                        <div class="mb-3 col-md-6">
-                                            <label class="control-label">Observaciones</label>
-                                            <textarea v-model="producto.observaciones" class="form-control" rows="3"
+
+                                        <!-- Observaciones -->
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">Observaciones</label>
+                                            <textarea v-model="producto.observaciones" class="form-control" rows="2"
                                                 placeholder="Ingrese observaciones (opcional)"></textarea>
                                         </div>
                                     </div>

@@ -2,6 +2,17 @@
 <?php
 require_once "app/models/Ubigeo.php";
 $c_ubigeo = new Ubigeo();
+
+$tituloPagina = 'Guía Remisión';
+if (isset($_GET['coti']) && is_numeric($_GET['coti'])) {
+    $con = (new Conexion())->getConexion();
+    $rowCoti = $con->query("SELECT numero FROM cotizaciones WHERE cotizacion_id = " . (int)$_GET['coti'])->fetch_assoc();
+    if ($rowCoti) {
+        $tituloPagina = 'Guía Remisión - Cotización N° ' . $rowCoti['numero'];
+    }
+} elseif (isset($_GET['coti-taller']) && is_numeric($_GET['coti-taller'])) {
+    $tituloPagina = 'Guía Remisión - Cotización Taller N° ' . (int)$_GET['coti-taller'];
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,7 +29,7 @@ $c_ubigeo = new Ubigeo();
     <div class="page-title-box">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h6 class="page-title">Guía Remisión</h6>
+                <h6 class="page-title"><?= $tituloPagina ?></h6>
                 <ol class="breadcrumb m-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
                     <li class="breadcrumb-item"><a href="/ventas" class="button-link">Guía Remisión</a></li>

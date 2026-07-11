@@ -986,10 +986,10 @@ class RepuestosController extends Controller
         $almacenModel = new Almacen();
         $almacenModel->setIdEmpresa($_SESSION['id_empresa']);
 
+        $almacenModel->actualizar($id, trim($nombre));
+
         if ($principal) {
             $almacenModel->marcarPrincipal($id);
-        } else {
-            $almacenModel->actualizar($id, trim($nombre));
         }
 
         echo json_encode(['estado' => true, 'mensaje' => 'Almacén actualizado']);

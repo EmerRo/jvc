@@ -577,42 +577,70 @@ WHERE id_venta='{$_POST['idVenta']}'";
 
     public function buscarDocInfo()
     {
-        //var_dump($_POST);
-        if (strlen($_POST['doc']) == 8) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'http://magustechnologies.com:9091/consulta/dni2/' . $_POST['doc']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
-            $data = curl_exec($ch);
-            curl_close($ch);
-            $data = json_decode($data, true);
-            $data["data"]["nombre"] = $data["data"]["nombres"] . " " . $data["data"]["apellido_paterno"] . " " . $data["data"]["apellido_materno"];
-            echo json_encode($data);
+        $doc = htmlspecialchars(trim($_POST['doc']), ENT_QUOTES, 'UTF-8');
+        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
+
+        if (strlen($doc) == 8) {
+            $url = 'https://dniruc.apisperu.com/api/v1/dni/' . $doc . '?token=' . $token;
         } else {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'https://magustechnologies.com/api/consulta/ruc/' . $_POST['doc']);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
-            $data = curl_exec($ch);
-            curl_close($ch);
-            echo $data;
+            $url = 'https://dniruc.apisperu.com/api/v1/ruc/' . $doc . '?token=' . $token;
         }
 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+        $resultado = ['res' => false, 'data' => []];
+
+        if (strlen($doc) == 8) {
+            if (isset($data['success']) && $data['success']) {
+                $resultado['res'] = true;
+                $resultado['data'] = [
+                    'nombre' => ($data['nombres'] ?? '') . ' ' . ($data['apellidoPaterno'] ?? '') . ' ' . ($data['apellidoMaterno'] ?? ''),
+                    'razon_social' => '',
+                    'direccion' => '',
+                ];
+            }
+        } else {
+            if (isset($data['ruc'])) {
+                $resultado['res'] = true;
+                $resultado['data'] = [
+                    'nombre' => '',
+                    'razon_social' => $data['razonSocial'] ?? '',
+                    'direccion' => $data['direccion'] ?? '',
+                    'departamento' => $data['departamento'] ?? '',
+                    'provincia' => $data['provincia'] ?? '',
+                    'distrito' => $data['distrito'] ?? '',
+                ];
+            }
+        }
+
+        echo json_encode($resultado);
     }
 
     public function consultaRuc()
     {
-        $ruc = $_POST['ruc'];
+        $ruc = htmlspecialchars(trim($_POST['ruc']), ENT_QUOTES, 'UTF-8');
+        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
+        $url = 'https://dniruc.apisperu.com/api/v1/ruc/' . $ruc . '?token=' . $token;
+
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://magustechnologies.com/api/consulta/ruc/" . $ruc);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'token: VK2BvcODHQtezAU3jZXkYLEifNVKpH8KDlbRn3VGzWqvP0YWfJtMQftu9QFKqcKPDB58WFMFNJT7NdN0UrB5NKTZU84TYKmsWHO1x0h4qZCQwlG53WS4lLrAnSn7I3NBPSfShjNXDfG8jFyY8fCU2kxj7jy4F31xrTboGAVZoWSskUphhKIA1oj8XsmetS7s5EkFo328'
-        ));
-        $datos = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
         curl_close($ch);
-        var_dump($datos);
-        return '1111';
+
+        $data = json_decode($response, true);
+        if (isset($data['ruc'])) {
+            echo json_encode(['res' => true, 'data' => $data]);
+        } else {
+            echo json_encode(['res' => false, 'msg' => 'RUC no encontrado']);
+        }
     }
 
     public function consultvfb()

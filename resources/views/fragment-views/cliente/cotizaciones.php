@@ -249,9 +249,7 @@
                 url: "ServerSide/Spanish.json",
             },
             drawCallback: function() {
-                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-                    bootstrap.Tooltip.getOrCreateInstance(el);
-                });
+                $('[data-toggle="tooltip"]').tooltip();
             },
             columnDefs: [
                 {
@@ -317,7 +315,7 @@
                         if (row[7] == '1') {
                             const label = row[13] ? `Venta N° ${row[13]}` : 'Ya vendida';
                             return `<button class="btn btn-secondary btn-sm" disabled
-                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                        data-toggle="tooltip" data-placement="top"
                                         title="${label}">
                                         <i class="fa fa-align-justify"></i>
                                     </button>`;

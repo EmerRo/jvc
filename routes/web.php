@@ -69,6 +69,7 @@ Route::postBase("/almacen/intercambio/productos","FragmentController@almacenInte
 
 Route::postBase("/calendario","FragmentController@calendarioCliente");
 Route::postBase("/clientes","FragmentController@clientesLista");
+Route::postBase("/proveedores","FragmentController@proveedores");
 Route::postBase("/ventas","FragmentController@ventas");
 Route::postBase("/guias/remision","FragmentController@guiaRemision");
 Route::postBase("/ventas/productos","FragmentController@ventasProductos");

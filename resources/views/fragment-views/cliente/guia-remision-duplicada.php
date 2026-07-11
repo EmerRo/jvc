@@ -325,15 +325,19 @@ $c_ubigeo = new Ubigeo();
             <label class="col-lg-3 col-form-label">
                 <i class="fas fa-truck me-2"></i>Vehículo
             </label>
-            <div class="col-lg-5">
-                <select class="form-select" v-model="transporte.veiculo" id="select_vehiculo">
-                    <option value="">Seleccione un vehículo</option>
-                </select>
-            </div>
-            <div class="col-lg-5">
-                <select class="form-select" v-model="transporte.chofer_dni" id="select_licencia">
-                    <option value="">Seleccione una licencia</option>
-                </select>
+            <div class="col-lg-9">
+                <div class="row g-2">
+                    <div class="col-lg-6">
+                        <select class="form-select" v-model="transporte.veiculo" id="select_vehiculo">
+                            <option value="">Seleccione un vehículo</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6">
+                        <select class="form-select" v-model="transporte.chofer_dni" id="select_licencia">
+                            <option value="">Seleccione una licencia</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

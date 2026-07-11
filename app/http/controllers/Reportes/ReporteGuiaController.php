@@ -61,15 +61,30 @@ class ReporteGuiaController extends Controller
       // Obtener datos del cliente según el tipo de guía
       if ($datosGuia['id_venta']) {
         // Para guías normales (asociadas a venta)
-        $sql = "SELECT v.*, c.* 
-                      FROM ventas v 
-                      JOIN clientes c ON v.id_cliente = c.id_cliente 
+        $sql = "SELECT v.*, c.*
+                      FROM ventas v
+                      JOIN clientes c ON v.id_cliente = c.id_cliente
                       WHERE v.id_venta = " . $datosGuia['id_venta'];
         $datoVenta = $this->conexion->query($sql)->fetch_assoc();
 
         if ($datoVenta) {
           $nombreCliente = $datoVenta['datos'];
           $numDoc = strlen($datoVenta["documento"]) > 7 ? $datoVenta["documento"] : '';
+        }
+      } elseif ($datosGuia['id_cotizacion']) {
+        // Para guías asociadas a cotización
+        $sql = "SELECT cot.*, c.*
+                      FROM cotizaciones cot
+                      JOIN clientes c ON cot.id_cliente = c.id_cliente
+                      WHERE cot.cotizacion_id = " . $datosGuia['id_cotizacion'];
+        $datoCotizacion = $this->conexion->query($sql)->fetch_assoc();
+
+        if ($datoCotizacion) {
+          $nombreCliente = $datoCotizacion['datos'];
+          $numDoc = strlen($datoCotizacion["documento"]) > 7 ? $datoCotizacion["documento"] : '';
+        } else {
+          $nombreCliente = $datosGuia['destinatario_nombre'] ?: 'N/A';
+          $numDoc = $datosGuia['destinatario_documento'] ?: '';
         }
       } elseif ($datosGuia['id_cotizacion_taller']) {
         // ✅ NUEVO: Para guías de cotización taller
@@ -107,7 +122,7 @@ class ReporteGuiaController extends Controller
           $qrCode->setSize(250);
           $image = $qrCode->writeString();
           $imageData = base64_encode($image);
-          $qrImage = '<img style="width: 90px; height: 90px;" src="data:image/png;base64,' . $imageData . '">';
+          $qrImage = '<img style="width: 140px; height: 140px;" src="data:image/png;base64,' . $imageData . '">';
         } catch (Exception $e) {
           $qrImage = ''; // Si hay error, no mostrar QR
         }
@@ -121,7 +136,7 @@ class ReporteGuiaController extends Controller
           $qrCode->setSize(250);
           $image = $qrCode->writeString();
           $imageData = base64_encode($image);
-          $qrImage = '<img style="width: 60px; height: 60px;" src="data:image/png;base64,' . $imageData . '">';
+          $qrImage = '<img style="width: 140px; height: 140px;" src="data:image/png;base64,' . $imageData . '">';
         } catch (Exception $e) {
           $qrImage = '';
         }
@@ -506,7 +521,7 @@ class ReporteGuiaController extends Controller
               </div>
                                          <!-- Sección Observaciones -->
            <div style='width: 100%; margin-top: 20px; overflow: hidden;'>
-                  <div style='float: left; width: 100px; text-align: center; vertical-align: top; padding: 0;'>
+                  <div style='float: left; width: 150px; text-align: center; vertical-align: top; padding: 0;'>
                       {$qrImage}
                   </div>
                   <div style='float: left; margin-left: 5px; vertical-align: top; padding: 0;'>
@@ -536,9 +551,10 @@ class ReporteGuiaController extends Controller
 
 
       /*$this->mpdf->WriteHTML($htmlDOM,\Mpdf\HTMLParserMode::HTML_BODY);*/
-      $dist = 'I'; // Initialize $dist variable
+      $dist = 'I';
+      $pdfFilename = $S_N . '-' . $datoEmpresa['razon_social'] . '.pdf';
       if ($dist == 'I') {
-        $this->mpdf->Output((is_string($nombreXML) ? $nombreXML : '') . ".pdf", $dist);
+        $this->mpdf->Output($pdfFilename, $dist);
       } elseif ($dist == 'F') {
         $this->mpdf->Output(base64_decode((is_string($nombreXML) ? $nombreXML : '')), $dist);
       }

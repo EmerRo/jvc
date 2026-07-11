@@ -242,6 +242,14 @@
       "submodulos": []
     },
     {
+      "id": "proveedores",
+      "nombre": "PROVEEDORES",
+      "descripcion": "Gestión de proveedores",
+      "icono": "ri-truck-line",
+      "ruta": "/proveedores",
+      "submodulos": []
+    },
+    {
       "id": "usuarios",
       "nombre": "USUARIOS",
       "descripcion": "Gestión de usuarios",

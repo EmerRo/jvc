@@ -140,7 +140,7 @@
         gridProducts.forEach(product => {
             const stockClass = getStockClass(product.cantidad);
             const imageUrl = product.imagen ?
-                `${_URL}/img/productos/${product.imagen}` :
+                `${_URL}/img/productos/${encodeURIComponent(product.imagen)}` :
                 null;
 
             const isChecked = arrayIdsOkUsar.some(item => item.id === product.id_producto);
@@ -356,6 +356,9 @@
                 historialStock: [],
                 almacenes: [],
                 nuevoAlmacen: '',
+                nuevoAlmacenNuevo: '',
+                almacenEditando: null,
+                marcarPrincipal: false,
             },
             mounted() {
                 this.cargarAlmacenes();
@@ -383,6 +386,13 @@
                 }
             },
             methods: {
+                abrirModalAgregarAlmacen() {
+                    this.almacenEditando = null;
+                    this.nuevoAlmacen = '';
+                    this.nuevoAlmacenNuevo = '';
+                    this.marcarPrincipal = false;
+                    $('#modal-agregar-almacen').modal('show');
+                },
                 cargarAlmacenes() {
                     var self = this;
                     _get('/ajs/almacenes/listar', function(res) {
@@ -402,6 +412,84 @@
                             alertExito(res.mensaje);
                             self.nuevoAlmacen = '';
                             $('#modal-agregar-almacen').modal('hide');
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                // Selecciona un almac├®n de la lista y carga sus datos en el formulario de edici├│n
+                seleccionarAlmacen(alm) {
+                    this.almacenEditando = alm;
+                    this.nuevoAlmacen = alm.nombre;
+                    this.marcarPrincipal = alm.principal == 1;
+                },
+                // Guarda los cambios del almac├®n en edici├│n (nombre y/o marcar como principal)
+                guardarAlmacenEdicion() {
+                    if (!this.nuevoAlmacen.trim()) {
+                        alertAdvertencia('Ingrese el nombre del almac├®n');
+                        return;
+                    }
+                    var self = this;
+                    var datos = {
+                        id: this.almacenEditando.id_almacen,
+                        nombre: this.nuevoAlmacen.trim()
+                    };
+                    // El backend usa isset(), solo enviar 'principal' cuando est├í marcado
+                    if (this.marcarPrincipal) {
+                        datos.principal = 1;
+                    }
+                    _post('/ajs/almacenes/editar', datos, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.almacenEditando = null;
+                            self.nuevoAlmacen = '';
+                            self.marcarPrincipal = false;
+                            self.cargarAlmacenes();
+                        } else {
+                            alertAdvertencia(res.mensaje);
+                        }
+                    });
+                },
+                // Elimina el almac├®n actualmente en edici├│n
+                eliminarAlmacen() {
+                    if (!this.almacenEditando) return;
+                    var self = this;
+                    Swal.fire({
+                        title: '┬┐Eliminar almac├®n?',
+                        text: this.almacenEditando.nombre,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#CA3438',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'S├¡, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then(function(result) {
+                        if (!result.isConfirmed) return;
+                        _post('/ajs/almacenes/eliminar', { id: self.almacenEditando.id_almacen }, function(res) {
+                            if (res.estado) {
+                                alertExito(res.mensaje);
+                                self.almacenEditando = null;
+                                self.nuevoAlmacen = '';
+                                self.marcarPrincipal = false;
+                                self.cargarAlmacenes();
+                            } else {
+                                alertAdvertencia(res.mensaje);
+                            }
+                        });
+                    });
+                },
+                // Agrega un almac├®n nuevo desde el campo independiente del modal
+                agregarNuevoAlmacen() {
+                    if (!this.nuevoAlmacenNuevo.trim()) {
+                        alertAdvertencia('Ingrese el nombre del nuevo almac├®n');
+                        return;
+                    }
+                    var self = this;
+                    _post('/ajs/almacenes/agregar', { nombre: this.nuevoAlmacenNuevo.trim() }, function(res) {
+                        if (res.estado) {
+                            alertExito(res.mensaje);
+                            self.nuevoAlmacenNuevo = '';
                             self.cargarAlmacenes();
                         } else {
                             alertAdvertencia(res.mensaje);
@@ -816,6 +904,17 @@
                     }
 
 
+                    // Mostrar loader mientras se procesa la actualizaci├│n
+                    Swal.fire({
+                        title: 'Actualizando producto...',
+                        html: 'Por favor espere',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
                     // Hacer la solicitud AJAX
                     $.ajax({
                         url: _URL + '/ajs/data/producto/edt',
@@ -1026,7 +1125,7 @@
 
                         // Manejo de la imagen
                         if (data.imagen) {
-                            $('#img-preview').attr('src', _URL + '/img/productos/' + data.imagen);
+                            $('#img-preview').attr('src', _URL + '/img/productos/' + encodeURIComponent(data.imagen));
                             $('.image-container').show();
                             $('#no-image-message').hide();
                         } else {

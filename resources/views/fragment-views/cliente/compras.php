@@ -1,5 +1,14 @@
 <!-- resources\views\fragment-views\cliente\compras.php -->
 <link rel="stylesheet" href="<?= URL::to('/public/css/styles-globals.css') ?>?v=<?= time() ?>">
+<style>
+    #datatable td:nth-child(5) {
+        max-width: 180px;
+        white-space: normal !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+</style>
 
 <div class="page-title-box">
     <div class="row align-items-center">
@@ -47,10 +56,10 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="text-align: center;">Documento</th>
-                                <th style="text-align: center;">Doc. Proveedor</th>
+                                <th style="text-align: center;">Comprobante</th>
                                 <th style="text-align: center;">F. Emision</th>
                                 <th style="text-align: center;">F. Vencimiento</th>
-                                <th style="text-align: center;" width="50%">Razon Social</th>
+                                <th style="text-align: center;">Proveedor</th>
                                 <th style="text-align: center;">Usuario</th>
                                 <th style="text-align: center;">Detalles</th>
                                 <th style="text-align: center;">Reporte</th>
@@ -181,8 +190,11 @@
                 class: "text-center",
             },
             {
-                data: "razon_social",
+                data: null,
                 class: "text-center",
+                render: function (data, type, row) {
+                    return (row.ruc ? row.ruc + ' - ' : '') + (row.razon_social || '');
+                },
             },
             {
                 data: null,
@@ -284,43 +296,62 @@
             $("#modalDetalle").modal("show");
             $("#modalDetalle").find(".modal-title").text("Detalle compra " + documento);
 
+            // Limpiar contenido previo
+            if ($.fn.DataTable.isDataTable("#datatablePagosDetalle")) {
+                $("#datatablePagosDetalle").DataTable().destroy();
+            }
+            $("#datatableProductoDetalle").html('');
+            $("#datatablePagosDetalle").html('<thead><tr><th style="text-align: center;">Fecha</th><th style="text-align: center;">Monto</th><th style="text-align: center;">Estado</th></tr></thead>');
+            $("#tipoPagoText").text('');
+
             // Cargar productos
             $.ajax({
                 type: 'POST',
                 url: _URL + '/ajas/compra/detalle',
                 data: { id: id },
                 success: function (resp) {
-                    let data = JSON.parse(resp);
-                    // Agregar información del usuario en el modal
-                    let usuarioInfo = '';
-                    if (data.length > 0 && data[0].nombres && data[0].apellidos) {
-                        usuarioInfo = `<div class="alert alert-info mb-3">
-                    <strong>Registrado por:</strong> ${data[0].nombres} ${data[0].apellidos}
-                </div>`;
-                        $("#infoPagos").prepend(usuarioInfo);
-                    }
-                    datatableProductoDetalle = $("#datatableProductoDetalle").DataTable({
-                        paging: true,
-                        bFilter: true,
-                        ordering: true,
-                        searching: true,
-                        destroy: true,
-                        language: { url: "ServerSide/Spanish.json" },
-                        data: data,
-                        columns: [
-                            { data: "codigo", class: "text-center" },
-                            { data: "nombre", class: "text-center" },
-                            { data: "cantidad", class: "text-center" },
-                            { 
-                                data: "precio", 
-                                class: "text-center",
-                                render: function(data, type, row) {
-                                    // Formatear precio a 2 decimales
-                                    return parseFloat(data).toFixed(2);
-                                }
+                    try {
+                        var res = JSON.parse(resp);
+                        if (!res.res) {
+                            $("#loader-menor").hide();
+                            if (res.msg) {
+                                $("#datatableProductoDetalle").html('<tr><td colspan="4" class="text-center text-danger">' + res.msg + '</td></tr>');
                             }
-                        ]
-                    });
+                            return;
+                        }
+                        var data = res.data;
+                        // Agregar información del usuario en el modal
+                        var usuarioInfo = '';
+                        if (data.length > 0 && data[0].nombres && data[0].apellidos) {
+                            usuarioInfo = '<div class="alert alert-info mb-3"><strong>Registrado por:</strong> ' + data[0].nombres + ' ' + data[0].apellidos + '</div>';
+                            $("#infoPagos").prepend(usuarioInfo);
+                        }
+                        datatableProductoDetalle = $("#datatableProductoDetalle").DataTable({
+                            paging: true,
+                            bFilter: true,
+                            ordering: true,
+                            searching: true,
+                            destroy: true,
+                            language: { url: "ServerSide/Spanish.json" },
+                            data: data,
+                            columns: [
+                                { data: "codigo", class: "text-center" },
+                                { data: "nombre", class: "text-center" },
+                                { data: "cantidad", class: "text-center" },
+                                { 
+                                    data: "precio", 
+                                    class: "text-center",
+                                    render: function(data, type, row) {
+                                        return parseFloat(data).toFixed(2);
+                                    }
+                                }
+                            ]
+                        });
+                    } catch (e) {
+                        $("#loader-menor").hide();
+                        $("#datatableProductoDetalle").html('<tr><td colspan="4" class="text-center text-danger">Error al procesar respuesta del servidor</td></tr>');
+                        return;
+                    }
 
                     // Verificar si hay pagos a crédito
                     $.ajax({
@@ -329,43 +360,57 @@
                         data: { id: id },
                         success: function (respPagos) {
                             $("#loader-menor").hide();
-                            let dataPagos = JSON.parse(respPagos);
+                            try {
+                                let dataPagos = JSON.parse(respPagos);
 
-                            if (dataPagos.tipo_pago == 2) {
-                                // Es una compra a crédito
-                                $("#tipoPagoText").text("Crédito");
+                                if (dataPagos.tipo_pago == 2) {
+                                    $("#tipoPagoText").text("Crédito");
 
-                                datatablePagosDetalle = $("#datatablePagosDetalle").DataTable({
-                                    paging: true,
-                                    bFilter: true,
-                                    ordering: true,
-                                    searching: true,
-                                    destroy: true,
-                                    language: { url: "ServerSide/Spanish.json" },
-                                    data: dataPagos.pagos,
-                                    columns: [
-                                        { data: "fecha", class: "text-center" },
-                                        { data: "monto", class: "text-center" },
-                                        {
-                                            data: "estado",
-                                            class: "text-center",
-                                            render: function (data) {
-                                                if (data == 0) {
-                                                    return '<span class="badge bg-warning">Pendiente</span>';
-                                                } else {
-                                                    return '<span class="badge bg-success">Pagado</span>';
+                                    datatablePagosDetalle = $("#datatablePagosDetalle").DataTable({
+                                        paging: true,
+                                        bFilter: true,
+                                        ordering: true,
+                                        searching: true,
+                                        destroy: true,
+                                        language: { url: "ServerSide/Spanish.json" },
+                                        data: dataPagos.pagos,
+                                        columns: [
+                                            { data: "fecha", class: "text-center" },
+                                            { data: "monto", class: "text-center" },
+                                            {
+                                                data: "estado",
+                                                class: "text-center",
+                                                render: function (data) {
+                                                    if (data == 0) {
+                                                        return '<span class="badge bg-warning">Pendiente</span>';
+                                                    } else {
+                                                        return '<span class="badge bg-success">Pagado</span>';
+                                                    }
                                                 }
                                             }
-                                        }
-                                    ]
-                                });
-                            } else {
-                                // Es una compra al contado
-                                $("#tipoPagoText").text("Contado");
-                                $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center">Esta compra fue pagada al contado</td></tr>');
+                                        ]
+                                    });
+                                } else {
+                                    $("#tipoPagoText").text("Contado");
+                                    $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center">Esta compra fue pagada al contado</td></tr>');
+                                }
+                            } catch (e) {
+                                $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center text-danger">Error al cargar pagos</td></tr>');
                             }
+                        },
+                        error: function () {
+                            $("#loader-menor").hide();
+                            $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center text-danger">Error de conexión al cargar pagos</td></tr>');
                         }
                     });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#loader-menor").hide();
+                    var msg = 'Error de conexión al cargar detalle';
+                    if (jqXHR.responseText) {
+                        msg += ': ' + jqXHR.responseText.substring(0, 200);
+                    }
+                    $("#datatableProductoDetalle").html('<tr><td colspan="4" class="text-center text-danger">' + msg + '</td></tr>');
                 }
             });
         });

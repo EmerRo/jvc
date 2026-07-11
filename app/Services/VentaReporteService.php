@@ -68,7 +68,7 @@ class VentaReporteService
 
     public function obtenerProductosVentaSimple($idVenta)
     {
-        $sql = "SELECT productos_ventas.*, COALESCE(p.descripcion, '') as descripcion, COALESCE(p.codigo, '') as codigo,
+        $sql = "SELECT productos_ventas.*, COALESCE(p.nombre, p.descripcion, '') as descripcion, COALESCE(p.codigo, '') as codigo,
                 ve.marca, ve.equipo, ve.modelo, ve.numero_serie
             FROM productos_ventas
             LEFT JOIN productos p ON p.id_producto = productos_ventas.id_producto

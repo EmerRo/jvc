@@ -1812,7 +1812,7 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
       $cantidadss = number_format($ser['cantidad'], 0, "", "");
       $rowsHTML .= "<tr>
             <td style='font-size: 8px'>$cantidadss</td>
-            <td style='font-size: 8px'>{$ser['codigo']} | {$ser['descripcion']}</td>
+            <td style='font-size: 8px'>{$ser['descripcion']}</td>
             <td style='font-size: 8px'>$motoFor</td>
             <td style='font-size: 8px'>$totalM</td>
             </tr>";
@@ -1981,12 +1981,12 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
     </div>
     <br>
      <div style='width: 100%;text-align: center'>
-        <span style='font-size: 8px'>Representación impresa de la $tipo_documeto_venta <br>Este documento puede ser validado en $dominio</span>
+        <span style='font-size: 8px; word-break: break-all;'>Representación impresa de la $tipo_documeto_venta <br>Este documento puede ser validado en $dominio</span>
     </div>
     <div style='width: 100%;text-align: center'>
         <span style='font-size: 8px'>Gracias por su preferencia....</span>
     </div>
-    <div style='width: 100%; '>
+    <div style='width: 100%; text-align: center;'>
         $qrImage
     </div>
     
@@ -1994,7 +1994,7 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
 </div>
 ";
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-    $this->mpdf->Output();
+    $this->mpdf->Output("Ticket-{$doc_S_N}.pdf", 'I');
   }
   public function imprimirvoucher8cm($id)
   {
@@ -2112,7 +2112,7 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
       $cantidadss = number_format($ser['cantidad'], 0, "", "");
       $rowsHTML .= "<tr>
             <td style='font-size: 10px'>$cantidadss</td>
-            <td style='font-size: 10px'>{$ser['codigo']} | {$ser['descripcion']}</td>
+            <td style='font-size: 10px'>{$ser['descripcion']}</td>
             <td style='font-size: 10px'>$motoFor</td>
             <td style='font-size: 10px'>$totalM</td>
             </tr>";
@@ -2282,12 +2282,12 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
     </div>
     <br>
      <div style='width: 100%;text-align: center'>
-        <span style='font-size: 12px'>Representación impresa de la $tipo_documeto_venta <br>Este documento puede ser validado en $dominio</span>
+        <span style='font-size: 12px; word-break: break-all;'>Representación impresa de la $tipo_documeto_venta <br>Este documento puede ser validado en $dominio</span>
     </div>
     <div style='width: 100%;text-align: center'>
         <span style='font-size: 12px'>Gracias por su preferencia....</span>
     </div>
-    <div style='width: 100%; '>
+    <div style='width: 100%; text-align: center;'>
         $qrImage
     </div>
     
@@ -2295,7 +2295,7 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
 </div>
 ";
     $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-    $this->mpdf->Output();
+    $this->mpdf->Output("Ticket-{$doc_S_N}.pdf", 'I');
   }
 
 }

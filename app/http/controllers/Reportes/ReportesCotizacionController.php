@@ -105,7 +105,8 @@ class ReportesCotizacionController extends Controller
         $contadorCuota++;
         $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
-        $tempMonto = Tools::money($cuotTemp['monto']);
+        $montoCuota = $datoVenta['moneda'] == 2 ? $cuotTemp['monto'] / $datoVenta['cm_tc'] : $cuotTemp['monto'];
+        $tempMonto = Tools::money($montoCuota);
 
         // Si es cuota inicial, mostrarla como "INICIAL" en lugar de número
         $etiquetaCuota = (isset($cuotTemp['tipo']) && $cuotTemp['tipo'] == 'inicial') ? 'INICIAL' : "Cuota $tempNum";
@@ -211,7 +212,13 @@ class ReportesCotizacionController extends Controller
       }
 
       $precio = $prod['precio'];
-      $precioEspecial = !empty($prod['precioEspecial']) && $prod['precioEspecial'] > 0 ? $prod['precioEspecial'] : $precio;
+      if (!empty($prod['precioEspecial']) && $prod['precioEspecial'] > 0) {
+        $precioEspecial = $datoVenta['moneda'] == 2
+          ? $prod['precioEspecial'] / $datoVenta['cm_tc']
+          : $prod['precioEspecial'];
+      } else {
+        $precioEspecial = $precio;
+      }
 
       // Calcular precio con descuento general (si aplica)
       $precioConDescuentoGeneral = $precioEspecial;
@@ -343,10 +350,10 @@ class ReportesCotizacionController extends Controller
           $aplicarFondo = false;
 
           if ($hasSpecialPrices && $precioEspecial < $precio) {
-            $precioDescuento = "S/ $precioEspecialFormateado";
+            $precioDescuento = "$simbolfff22 $precioEspecialFormateado";
             $aplicarFondo = true;
           } elseif ($hasGeneralDiscount) {
-            $precioDescuento = "S/ $precioConDescuentoGeneralFormateado";
+            $precioDescuento = "$simbolfff22 $precioConDescuentoGeneralFormateado";
             $aplicarFondo = true;
           }
 
@@ -538,10 +545,10 @@ if ($datoVenta['aplicar_igv'] == 1) {
 
     $totalLetras = $formatter->toInvoice(number_format($totalConDescuento, 2, '.', ''), 2, $datoVenta['moneda'] == 1 ? 'SOLES' : 'DOLARES');
 
-    // Modificado: Título de cotización con número en formato centrado
+    $tituloDocumento = $datoVenta['id_tido'] == 6 ? 'NOTA DE VENTA' : 'COTIZACIÓN';
     $htmlCuadroHead = "<div style='width: auto; text-align: center; margin-bottom: 10px; margin-top:30px'>
            <div style='padding: 5px; width: 70%; margin: 0 auto; border: 2px solid #1e1e1e; margin: left 65px;'>
-             <span class='table-header' style='font-size: 14px; font-weight: bold;'>COTIZACIÓN DE J.V.C. S.A.C. – N° " . str_pad($datoVenta['numero'], 3, "0", STR_PAD_LEFT) . "/" . date('Y') . "</span>
+             <span class='table-header' style='font-size: 14px; font-weight: bold;'>$tituloDocumento DE J.V.C. S.A.C. – N° " . str_pad($datoVenta['numero'], 3, "0", STR_PAD_LEFT) . "/" . date('Y') . "</span>
            </div>
        </div>";
 
@@ -585,16 +592,22 @@ if ($datoVenta['aplicar_igv'] == 1) {
        </div>';
     $this->mpdf->SetHTMLFooter($footerHTML);
 
-    // Condiciones formateadas
-    $condicion = nl2br($condicion_texto);
+    // Condiciones formateadas — soporta HTML (nuevo) y texto plano con • (legacy)
     $monedaVisual = $datoVenta['moneda'] == 1 ? 'SOLES' : 'DOLARES';
+    if (strpos(trim($condicion_texto), '<') === 0) {
+      $condicionHtml = $condicion_texto;
+    } else {
+      $lineas = array_filter(explode("\n", $condicion_texto), fn($l) => trim($l) !== '');
+      $items = implode('', array_map(fn($l) => '<li>' . ltrim(trim($l), '• ') . '</li>', $lineas));
+      $condicionHtml = "<ul>$items</ul>";
+    }
 
     $condicionesFormateadas = "
        <div style='margin: 0; padding: 0;'>
        <p style='font-size: 11px; font-weight: bold; margin: 0; padding: 0;'>Condiciones:</p>
-       <ul style='list-style-type: disc; font-size: 11px; margin: 0; padding-left: 20px; line-height: 1.2;'>
-        $condicion
-       </ul>
+       <div style='font-size: 11px; margin: 0; padding-left: 5px; line-height: 1.4;'>
+        $condicionHtml
+       </div>
        </div>
        <div style='margin-top: 10px; padding: 0;'>
        <p style='font-size: 12px; margin: 0; padding: 0;'>Esperando vernos favorecidos con su preferencia, nos despedimos.</p>
@@ -881,7 +894,8 @@ if ($datoVenta['aplicar_igv'] == 1) {
         $contadorCuota++;
         $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
-        $tempMonto = Tools::money($cuotTemp['monto']);
+        $montoCuota = $datoVenta['moneda'] == 2 ? $cuotTemp['monto'] / $datoVenta['cm_tc'] : $cuotTemp['monto'];
+        $tempMonto = Tools::money($montoCuota);
         $rowTempCuo .= "
                 <tr>
                     <td style='font-size: 10px;'>Cuota $tempNum</td>
@@ -1146,7 +1160,8 @@ if ($datoVenta['aplicar_igv'] == 1) {
         $contadorCuota++;
         $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
-        $tempMonto = Tools::money($cuotTemp['monto']);
+        $montoCuota = $datoVenta['moneda'] == 2 ? $cuotTemp['monto'] / $datoVenta['cm_tc'] : $cuotTemp['monto'];
+        $tempMonto = Tools::money($montoCuota);
         $rowTempCuo .= "
                 <tr>
                     <td style='font-size: 8px;'>Cuota $tempNum</td>
@@ -1365,7 +1380,8 @@ if ($datoVenta['aplicar_igv'] == 1) {
         $contadorCuota++;
         $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
-        $tempMonto = Tools::money($cuotTemp['monto']);
+        $montoCuota = $datoVenta['moneda'] == 2 ? $cuotTemp['monto'] / $datoVenta['cm_tc'] : $cuotTemp['monto'];
+        $tempMonto = Tools::money($montoCuota);
         $rowTempCuo .= "
                 <tr>
                     <td style='font-size: 7px;'>Cuota $tempNum</td>

@@ -65,9 +65,8 @@
                                     <div class="form-group col-md-4 mb-3">
                                         <label><i class="fa fa-warehouse me-1"></i>Almacén</label>
                                         <select v-model="reg.almacen" class="form-control" required>
-                                            <option value="1">Almacén 1</option>
-                                            <option value="2">Almacén 2</option>
-                                            <option value="3">Almacén 3</option>
+                                            <option value="">Seleccione...</option>
+                                            <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">{{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}</option>
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 mb-3">

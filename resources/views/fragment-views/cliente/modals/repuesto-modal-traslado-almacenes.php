@@ -87,9 +87,7 @@
                                                 <label><i class="fa fa-warehouse me-1"></i>Almacén Destino: *</label>
                                                 <select v-model="trasladoDataRepuesto.almacen_destino" class="form-control" required>
                                                     <option value="">Seleccione...</option>
-                                                    <option value="1" :disabled="trasladoDataRepuesto.almacen_origen == '1'">Almacén 1</option>
-                                                    <option value="2" :disabled="trasladoDataRepuesto.almacen_origen == '2'">Almacén 2</option>
-                                                    <option value="3" :disabled="trasladoDataRepuesto.almacen_origen == '3'">Almacén 3</option>
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen" :disabled="trasladoDataRepuesto.almacen_origen == alm.id_almacen">{{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}</option>
                                                 </select>
                                             </div>
                                         </div>

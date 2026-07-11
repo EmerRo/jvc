@@ -97,7 +97,8 @@ class ComprasController extends Controller
             if (!empty($empresaExistente)) {
                 $idProveedor = $empresaExistente[0]['proveedor_id'];
             } else {
-                $insert = $c_tido->insertarProveedor($_POST['num_doc'], $_POST['nom_cli']);
+                $dirProveedor = $_POST['dir_cli'] ?? '';
+                $insert = $c_tido->insertarProveedor($_POST['num_doc'], $_POST['nom_cli'], $dirProveedor);
                 $idProveedor = $insert;
             }
         }
@@ -252,7 +253,7 @@ class ComprasController extends Controller
             $where = ($rol == 1) ? "" : "AND c.sucursal = " . intval($sucursal) . " ";
             
             $sql = "SELECT c.id_compra, c.fecha_emision, c.fecha_vencimiento, c.serie, c.numero,
-            c.estado, c.serie_proveedor, c.numero_proveedor, c.devolucion_observaciones, p.razon_social, u.nombres, u.apellidos, u.usuario_id
+            c.estado, c.serie_proveedor, c.numero_proveedor, c.devolucion_observaciones, p.razon_social, p.ruc, u.nombres, u.apellidos, u.usuario_id
             FROM compras AS c
             LEFT JOIN proveedores AS p ON c.id_proveedor = p.proveedor_id
             LEFT JOIN usuarios AS u ON c.id_usuario = u.usuario_id
@@ -289,26 +290,39 @@ class ComprasController extends Controller
         }
     }
 
-  public function getDetalle()
+public function getDetalle()
 {
-    // Consultar productos
-    $sqlProductos = "SELECT pc.id_producto_venta, p.nombre, p.codigo, p.descripcion, pc.cantidad, pc.precio, 'producto' as tipo
-                     FROM productos_compras AS pc 
-                     LEFT JOIN productos AS p ON pc.id_producto = p.id_producto 
-                     LEFT JOIN compras AS c ON pc.id_compra = c.id_compra 
-                     WHERE c.id_compra = '{$_POST['id']}'";
-    
-    // Consultar repuestos
-    $sqlRepuestos = "SELECT rc.id_repuesto_compra as id_producto_venta, r.nombre, r.codigo, r.detalle as descripcion, rc.cantidad, rc.precio, 'repuesto' as tipo
-                     FROM repuestos_compras AS rc 
-                     LEFT JOIN repuestos AS r ON rc.id_repuesto = r.id_repuesto 
-                     LEFT JOIN compras AS c ON rc.id_compra = c.id_compra 
-                     WHERE c.id_compra = '{$_POST['id']}'";
-    
-    // Combinar resultados
-    $sql = "($sqlProductos) UNION ALL ($sqlRepuestos) ORDER BY tipo, nombre";
-    
-    return json_encode($this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC));
+    try {
+        $id_compra = intval($_POST['id']);
+        if (!$id_compra) {
+            echo json_encode(['res' => false, 'msg' => 'ID de compra no válido']);
+            return;
+        }
+
+        $sqlProductos = "SELECT pc.id_producto_venta, p.nombre, p.codigo, p.descripcion COLLATE utf8mb3_spanish_ci as descripcion, pc.cantidad, pc.precio, 'producto' as tipo
+                         FROM productos_compras AS pc 
+                         LEFT JOIN productos AS p ON pc.id_producto = p.id_producto 
+                         LEFT JOIN compras AS c ON pc.id_compra = c.id_compra 
+                         WHERE c.id_compra = '$id_compra'";
+
+        $sqlRepuestos = "SELECT rc.id_repuesto_compra as id_producto_venta, r.nombre, r.codigo, r.detalle as descripcion, rc.cantidad, rc.precio, 'repuesto' as tipo
+                         FROM repuestos_compras AS rc 
+                         LEFT JOIN repuestos AS r ON rc.id_repuesto = r.id_repuesto 
+                         LEFT JOIN compras AS c ON rc.id_compra = c.id_compra 
+                         WHERE c.id_compra = '$id_compra'";
+
+        $sql = "($sqlProductos) UNION ALL ($sqlRepuestos) ORDER BY tipo, nombre";
+        $result = $this->conectar->query($sql);
+
+        if (!$result) {
+            echo json_encode(['res' => false, 'msg' => 'Error en la consulta: ' . $this->conectar->error]);
+            return;
+        }
+
+        echo json_encode(['res' => true, 'data' => $result->fetch_all(MYSQLI_ASSOC)]);
+    } catch (Exception $e) {
+        echo json_encode(['res' => false, 'msg' => 'Error interno: ' . $e->getMessage()]);
+    }
 }
     public function getPagos()
     {

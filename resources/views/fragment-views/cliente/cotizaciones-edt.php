@@ -136,7 +136,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
             <div class="float-end d-none d-md-block">
                 <button type="button" onclick="$('#btn_finalizar_pedido').click()"
                     class="btn bg-rojo text-white">
-                    <i class="fa fa-plus "></i> Guardar Cotización
+                    <i class="fa fa-save"></i> Editar Cotización
                 </button>
 
                 <a id="backbuttonvp" style="margin-left:25px;" href="/cotizaciones"
@@ -421,6 +421,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                                     v-model="venta.tipo_doc" class="form-control">
                                                                     <option value="1">BOLETA DE VENTA</option>
                                                                     <option value="2">FACTURA</option>
+                                                                    <option value="6">NOTA DE VENTA</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -604,7 +605,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="modal-cotizacion-success" tabindex="-1"
+                    <div class="modal fade" id="modal-cotizacion-success" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
                         aria-labelledby="modalCotizacionLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-xl">
                             <div class="modal-content">
@@ -614,7 +615,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                             <i class="fas fa-check-circle me-2"></i>¡Cotización Actualizada!
                                         </h4>
                                         <p class="text-muted mb-0">La Cotización N° <span id="cotizacion-numero"></span>
-                                            ha sido registrada correctamente.</p>
+                                            ha sido actualizada correctamente.</p>
                                     </div>
                                 </div>
                                 <div class="modal-body p-4">
@@ -1638,6 +1639,8 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
 
                                         $('#btn-guia').attr('href', `/guia/remision/registrar?coti=${resp.cotizacion.cotizacion_id}`);
 
+                                        // Ocultar loader antes de mostrar el modal
+                                        $("#loader-menor").hide();
                                         // Mostrar el modal de éxito
                                         $('#modal-cotizacion-success').modal('show');
 
@@ -1646,6 +1649,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                             $("#backbuttonvp").click();
                                         });
                                     } else {
+                                        $("#loader-menor").hide();
                                         alertAdvertencia("No se pudo Guardar la Cotizacion: " +
                                             (resp.error ? resp.error : "Error desconocido"));
                                     }

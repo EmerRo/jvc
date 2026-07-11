@@ -37,7 +37,7 @@ class ReporteOrdenCompraController extends Controller
 
         // Obtener productos Y repuestos de la compra
         $sqlProductos = "
-        (SELECT pc.id_producto_venta as id_item, pc.cantidad, pc.precio, p.nombre, p.descripcion, 'Producto' as tipo
+        (SELECT pc.id_producto_venta as id_item, pc.cantidad, pc.precio, p.nombre, p.descripcion COLLATE utf8mb3_spanish_ci as descripcion, 'Producto' as tipo
          FROM productos_compras pc
          LEFT JOIN productos p ON pc.id_producto = p.id_producto
          WHERE pc.id_compra = $id)

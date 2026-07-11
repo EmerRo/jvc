@@ -82,10 +82,9 @@ class ProductosController extends Controller
         $almacen->setIdEmpresa($_SESSION['id_empresa']);
 
         // Si se marca como principal, actualizar todos los demás
+        $almacen->actualizar($id, trim($nombre));
         if ($principal) {
             $almacen->marcarPrincipal($id);
-        } else {
-            $almacen->actualizar($id, trim($nombre));
         }
 
         echo json_encode(['estado' => true, 'mensaje' => 'Almacén actualizado']);

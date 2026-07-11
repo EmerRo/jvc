@@ -22,9 +22,7 @@
                                                 <select v-model="trasladoData.almacen_origen" class="form-control" required
                                                     @change="limpiarProductoTraslado">
                                                     <option value="">Seleccione...</option>
-                                                    <option value="1">Almacén 1</option>
-                                                    <option value="2">Almacén 2</option>
-                                                    <option value="3">Almacén 3</option>
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">{{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -87,9 +85,7 @@
                                                 <label><i class="fa fa-warehouse me-1"></i>Almacén Destino: *</label>
                                                 <select v-model="trasladoData.almacen_destino" class="form-control" required>
                                                     <option value="">Seleccione...</option>
-                                                    <option value="1" :disabled="trasladoData.almacen_origen == '1'">Almacén 1</option>
-                                                    <option value="2" :disabled="trasladoData.almacen_origen == '2'">Almacén 2</option>
-                                                    <option value="3" :disabled="trasladoData.almacen_origen == '3'">Almacén 3</option>
+                                                    <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen" :disabled="trasladoData.almacen_origen == alm.id_almacen">{{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}</option>
                                                 </select>
                                             </div>
                                         </div>

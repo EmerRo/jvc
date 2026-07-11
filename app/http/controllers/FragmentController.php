@@ -132,6 +132,10 @@ public function ventasProductos()
     {
         return $this->view("fragment-views/cliente/clientes");
     }
+    public function proveedores()
+    {
+        return $this->view("fragment-views/cliente/proveedores");
+    }
     public function productoAdd()
     {
         return $this->view("fragment-views/cliente/add-producto");

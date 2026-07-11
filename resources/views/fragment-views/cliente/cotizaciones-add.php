@@ -552,6 +552,7 @@
                                                                     v-model="venta.tipo_doc" class="form-control">
                                                                     <option value="1">BOLETA DE VENTA</option>
                                                                     <option value="2">FACTURA</option>
+                                                                    <option value="6">NOTA DE VENTA</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -2223,6 +2224,13 @@
                             if (this.venta.num_doc.length != 11) {
                                 continuar = false;
                             }
+                            if (this.venta.tipo_pago == 2) {
+                                if (this.venta.dias_lista.length == 0) {
+                                    continuar = false;
+                                    mensaje = 'Debe especificar los días de pagos para un cotizacion a crédito';
+                                }
+                            }
+                        } else if (this.venta.tipo_doc == '6') {
                             if (this.venta.tipo_pago == 2) {
                                 if (this.venta.dias_lista.length == 0) {
                                     continuar = false;

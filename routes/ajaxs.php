@@ -105,6 +105,13 @@ Route::post("/ajs/clientes/add/exel","ClientesController@importarExcel")->Middle
 Route::post("/ajs/cuentas/cobrar","ClientesController@cuentasCobrar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/cuentas/cobrar/estado","ClientesController@cuentasCobrarEstado")->Middleware([ValidarTokenMiddleware::class]);
 
+/* ============================ PROVEEDORES ======================================*/
+Route::post("/ajs/proveedores/render","ProveedoresController@render")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/proveedores/add","ProveedoresController@insertar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/proveedores/getOne","ProveedoresController@getOne")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/proveedores/editar","ProveedoresController@editar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/proveedores/borrar","ProveedoresController@borrar")->Middleware([ValidarTokenMiddleware::class]);
+
 // ================  GarantiaController ===================================
 
 Route::post("/ajs/garantia/add", "GarantiaController@insertar")->Middleware([ValidarTokenMiddleware::class]);

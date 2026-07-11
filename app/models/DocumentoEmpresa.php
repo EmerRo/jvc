@@ -153,18 +153,26 @@ class DocumentoEmpresa
     }
     public function consultarProveedor($doc)
     {
-        $sql = "SELECT  
-        proveedor_id FROM proveedores 
-        where ruc = '$doc'";
-        return $this->conectar->query($sql)->fetch_all(MYSQLI_ASSOC);
+        $sql = "SELECT proveedor_id FROM proveedores WHERE ruc = ?";
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) return [];
+        $stmt->bind_param('s', $doc);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
-    public function insertarProveedor($ruc, $razon_social)
+    public function insertarProveedor($ruc, $razon_social, $direccion = '', $id_empresa = null)
     {
-        $sql = "INSERT INTO proveedores (ruc,razon_social)values ('$ruc', '$razon_social') ";
-        $result = $this->conectar->query($sql);
-
-        if ($result) {
+        if ($id_empresa === null) {
+            $id_empresa = $_SESSION['id_empresa'] ?? 0;
+        }
+        $sql = "INSERT INTO proveedores (ruc, razon_social, direccion, id_empresa) VALUES (?, ?, ?, ?)";
+        $stmt = $this->conectar->prepare($sql);
+        if (!$stmt) return false;
+        $stmt->bind_param('sssi', $ruc, $razon_social, $direccion, $id_empresa);
+        if ($stmt->execute()) {
             return $this->conectar->insert_id;
         }
+        return false;
     }
 }
