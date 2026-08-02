@@ -621,19 +621,30 @@ function buscarDocumento({ inputId, targetId, errorId, btnId }) {
         url: _URL + '/ajs/consulta/doc/cliente',
         type: 'POST',
         data: { doc: ndoc },
+        timeout: 10000,
         success(response) {
             try {
                 const data = JSON.parse(response);
-                if (data.res && data.data && data.data.nombres) {
-                    $(`#${targetId}`).val(data.data.nombres);
+                if (data.res && data.data) {
+                    const nombre = data.data.nombre || data.data.razon_social || '';
+                    if (nombre) {
+                        $(`#${targetId}`).val(nombre);
+                    } else {
+                        Swal.fire({ title: "Advertencia", text: data.msg || "No se encontró información del documento", icon: "warning" });
+                    }
                 } else {
-                    Swal.fire({ title: "Advertencia", text: data.message || "No se encontró información del documento", icon: "warning" });
+                    Swal.fire({ title: "Advertencia", text: data.msg || "No se encontró información del documento", icon: "warning" });
                 }
             } catch(e) {
                 Swal.fire({ title: "Error", text: "Error al procesar la respuesta del servidor", icon: "error" });
             }
         },
-        error() { Swal.fire({ title: "Error", text: "Error al consultar el documento", icon: "error" }); },
+        error(jqXHR, textStatus) {
+            const msg = textStatus === 'timeout'
+                ? 'El servicio de consulta tardó demasiado. Intentá de nuevo.'
+                : 'Error al consultar el documento';
+            Swal.fire({ title: "Error", text: msg, icon: "error" });
+        },
         complete() { $btn.prop('disabled', false).html(btnOriginal); }
     });
 }

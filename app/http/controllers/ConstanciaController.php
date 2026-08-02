@@ -4,7 +4,7 @@
 require_once "app/models/Constancia.php";
 require_once "app/models/BasePlantilla.php";
 require_once "app/models/TipoConstancia.php";
-require_once "app/http/controllers/ConstanciaPDF.php";
+require_once "app/http/controllers/Reportes/ConstanciaPDF.php";
 require_once "app/http/controllers/BaseDocumentoController.php";
 
 // Plantilla específica para constancias

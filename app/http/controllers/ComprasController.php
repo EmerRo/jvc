@@ -19,8 +19,8 @@ class ComprasController extends Controller
             $id_empresa = $_SESSION['id_empresa'];
             $sucursal = $_SESSION['sucursal'];
             
-            // Para órdenes de compra, usamos un id_tido específico (puedes ajustar según tu sistema)
-            $id_tido_compra = 12; // Nota de compra según tu select en el frontend
+            // Tipo de documento (2=FACTURA, 12=NOTA DE COMPRA), default 12
+            $id_tido_compra = isset($_GET['tipo_doc']) && $_GET['tipo_doc'] !== '' ? intval($_GET['tipo_doc']) : 12;
             
             // Verificar si existe configuración para órdenes de compra
             $sql = "SELECT serie, numero 
@@ -37,7 +37,7 @@ class ComprasController extends Controller
                 $numero = $fila['numero'];
             } else {
                 // Si no existe configuración, crear una nueva con valores por defecto
-                $serie = "OC";
+                $serie = $id_tido_compra == 2 ? "F" : "OC";
                 $numero = 1;
                 
                 $sqlInsert = "INSERT INTO documentos_empresas (id_empresa, id_tido, sucursal, serie, numero) 
@@ -116,12 +116,13 @@ class ComprasController extends Controller
         $id_usuario = isset($_SESSION['usuario_fac']) ? $_SESSION['usuario_fac'] : 'NULL';
         $serie_proveedor = !empty($_POST['serie_proveedor']) ? $_POST['serie_proveedor'] : null;
         $numero_proveedor = !empty($_POST['numero_proveedor']) ? $_POST['numero_proveedor'] : null;
+        $tipo_cambio = !empty($_POST['tc']) ? $_POST['tc'] : null;
 
 
         if ($id_tido !== '' && $tipo_pago !== '' && $fecha !== '' && $fechaVen !== '' && $dir_cli !== '' && $serie !== '' && $numero !== '' && $total > 0 && $moneda !== '' && $idProveedor !== '') {
             $array_detalle = json_decode($_POST['listaPro'], true);
             $listaPagos = json_decode($_POST['dias_lista'], true);
-            $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario, $serie_proveedor, $numero_proveedor);
+            $insertarCompra = $c_compra->insertarCompra($id_tido, $tipo_pago, $idProveedor, $fecha, $fechaVen, $dir_cli, $serie, $numero, $total, $_SESSION['id_empresa'], $moneda, $id_usuario, $serie_proveedor, $numero_proveedor, $tipo_cambio);
 
             if (is_int($insertarCompra)) {
                 // Actualizar el número correlativo después de guardar exitosamente
@@ -767,13 +768,15 @@ public function getDetalle()
                        direccion = ?,
                        total = ?,
                        serie_proveedor = ?,
-                       numero_proveedor = ?
+                       numero_proveedor = ?,
+                       tipo_cambio = ?
                        WHERE id_compra = ?";
 
         $stmt_update = $this->conectar->prepare($sql_update);
         $serie_proveedor = !empty($_POST['serie_proveedor']) ? $_POST['serie_proveedor'] : null;
         $numero_proveedor = !empty($_POST['numero_proveedor']) ? $_POST['numero_proveedor'] : null;
-        $stmt_update->bind_param("isssssssi",
+        $tipo_cambio = !empty($_POST['tc']) ? $_POST['tc'] : null;
+        $stmt_update->bind_param("issssssssi",
             $_POST['id_proveedor'],
             $_POST['fecha_emision'],
             $_POST['fecha_vencimiento'],
@@ -782,6 +785,7 @@ public function getDetalle()
             $_POST['total'],
             $serie_proveedor,
             $numero_proveedor,
+            $tipo_cambio,
             $id_compra
         );
 

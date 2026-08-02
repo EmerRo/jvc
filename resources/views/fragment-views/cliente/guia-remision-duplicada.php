@@ -76,7 +76,8 @@ $c_ubigeo = new Ubigeo();
                                     <div class="form-group row mb-3">
                                         <label class="col-lg-4 col-form-label text-end">Fecha</label>
                                         <div class="col-lg-8">
-                                            <input type="date" v-model="guia.fecha_emision"
+                                            <input type="date" name="input_fecha" id="input_fecha"
+                                                v-model="guia.fecha_emision"
                                                 class="form-control text-center">
                                         </div>
                                     </div>
@@ -119,6 +120,17 @@ $c_ubigeo = new Ubigeo();
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="form-group row mb-3" v-show="mostrarDocReferencia">
+                                        <label class="col-md-4 col-form-label text-end" for="doc_referencia">
+                                            {{ guia.tipo_doc === '3' ? 'Nro. Orden Compra' : 'Doc. de Referencia' }}
+                                        </label>
+                                        <div class="col-md-8">
+                                            <input type="text" id="doc_referencia" class="form-control"
+                                                v-model="guia.doc_referencia"
+                                                :placeholder="guia.tipo_doc === '3' ? 'Ingrese número de orden de compra' : 'Ingrese documento de referencia'"
+                                                :required="mostrarDocReferencia">
+                                        </div>
+                                    </div>
                                     <div class="form-group row mb-3">
                                         <div class="col-lg-12 text-center">
                                             <button type="button" class="btn bg-white text-rojo border-rojo w-100"
@@ -130,19 +142,19 @@ $c_ubigeo = new Ubigeo();
                                     <div class="form-group row mb-3">
                                         <label class="col-lg-4 col-form-label text-end">Ser | Num</label>
                                         <div class="col-lg-4 pe-1">
-                                            <input v-model="guia.serie" type="text"
-                                                class="form-control text-center">
+                                            <input v-model="guia.serie" type="text" name="input_serie_venta"
+                                                id="input_serie_venta" class="form-control text-center">
                                         </div>
                                         <div class="col-lg-4 ps-1">
-                                            <input v-model="guia.numero" type="text"
-                                                class="form-control text-center">
+                                            <input v-model="guia.numero" type="text" name="input_numero_venta"
+                                                id="input_numero_venta" class="form-control text-center">
                                         </div>
                                     </div>
                                     <div class="form-group row mb-3">
                                         <label class="col-lg-4 col-form-label text-end">Total</label>
                                         <div class="col-lg-8">
-                                            <input type="text" class="form-control text-end"
-                                                v-model="guia.total" disabled>
+                                            <input type="text" class="form-control text-end" name="input_total_venta"
+                                                id="input_total_venta" v-model="guia.total" disabled>
                                         </div>
                                     </div>
                                     <hr>
@@ -747,6 +759,11 @@ $c_ubigeo = new Ubigeo();
                 // Inicialización de Vue
                 var appguia = new Vue({
                     el: "#container-vue",
+                    computed: {
+                        mostrarDocReferencia() {
+                            return String(this.guia.tipo_doc) === '3';
+                        }
+                    },
                     data: {
                         guia: {
                             fecha_emision: $("#fecha-now-app").val(),

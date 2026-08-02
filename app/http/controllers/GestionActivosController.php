@@ -263,21 +263,35 @@ class GestionActivosController extends Controller {
     public function eliminarActivo()
     {
         try {
-            // Verificar si se ha enviado el id del activo a eliminar
             if (isset($_POST['idDelete']) && !empty($_POST['idDelete'])) {
-                $id = $_POST['idDelete'];
-                
-                // Crear una instancia de GestionActivos
-                $gestion_activos = new GestionActivos();
-                
-                // Llamar al método eliminar, que debería manejar la eliminación del activo
-                $resultado = $gestion_activos->eliminar($id);
-    
-                // Verificar si la eliminación fue exitosa
-                if ($resultado) {
+                $id = (int)$_POST['idDelete'];
+
+                $this->conexion->begin_transaction();
+                try {
+                    // Obtener numero_serie antes de borrar para resetear la máquina
+                    $stmt0 = $this->conexion->prepare("SELECT numero_serie FROM gestion_activos WHERE id = ?");
+                    $stmt0->bind_param("i", $id);
+                    $stmt0->execute();
+                    $row = $stmt0->get_result()->fetch_assoc();
+
+                    // Eliminar el activo
+                    $stmt1 = $this->conexion->prepare("DELETE FROM gestion_activos WHERE id = ?");
+                    $stmt1->bind_param("i", $id);
+                    $stmt1->execute();
+
+                    // Devolver la máquina a DISPONIBLE si se encontró el número de serie
+                    if (!empty($row['numero_serie'])) {
+                        $ns = $row['numero_serie'];
+                        $stmt2 = $this->conexion->prepare("UPDATE maquina SET estado = 'DISPONIBLE' WHERE numero_serie = ?");
+                        $stmt2->bind_param("s", $ns);
+                        $stmt2->execute();
+                    }
+
+                    $this->conexion->commit();
                     echo json_encode(["res" => true, "msg" => "Activo eliminado correctamente"]);
-                } else {
-                    echo json_encode(["res" => false, "msg" => "Error al eliminar el activo"]);
+                } catch (Exception $e) {
+                    $this->conexion->rollback();
+                    throw $e;
                 }
             } else {
                 echo json_encode(["res" => false, "msg" => "ID no proporcionado"]);

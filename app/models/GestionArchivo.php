@@ -3,6 +3,7 @@
 class GestionArchivo
 {
     private $id_archivo;
+    private $numero;
     private $titulo;
     private $tipo;
     private $id_producto;
@@ -33,6 +34,16 @@ class GestionArchivo
     public function setIdArchivo($id_archivo)
     {
         $this->id_archivo = $id_archivo;
+    }
+
+    public function getNumero()
+    {
+        return $this->numero;
+    }
+
+    public function setNumero($numero)
+    {
+        $this->numero = $numero;
     }
 
     /**
@@ -134,8 +145,8 @@ class GestionArchivo
     public function insertar()
     {
         if ($this->id_producto) {
-            $sql = "INSERT INTO gestion_archivos (titulo, tipo, id_producto, version, id_empresa, sucursal, fecha_creacion) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO gestion_archivos (titulo, tipo, id_producto, version, id_empresa, sucursal, fecha_creacion, numero) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->conectar->prepare($sql);
             if (!$stmt) {
@@ -151,19 +162,19 @@ class GestionArchivo
             $sucursal = $this->sucursal ?: '1';
             $fecha_creacion = date('Y-m-d H:i:s');
             
-            // CORREGIDO: 7 tipos para 7 parámetros (sin estado)
-            $stmt->bind_param("ssissss", 
+            $stmt->bind_param("ssissssi", 
                 $titulo,
                 $tipo,
                 $id_producto,
                 $version,
                 $id_empresa,
                 $sucursal,
-                $fecha_creacion
+                $fecha_creacion,
+                $this->numero
             );
         } else {
-            $sql = "INSERT INTO gestion_archivos (titulo, tipo, version, id_empresa, sucursal, fecha_creacion) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO gestion_archivos (titulo, tipo, version, id_empresa, sucursal, fecha_creacion, numero) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->conectar->prepare($sql);
             if (!$stmt) {
@@ -178,13 +189,14 @@ class GestionArchivo
             $sucursal = $this->sucursal ?: '1';
             $fecha_creacion = date('Y-m-d H:i:s');
             
-            $stmt->bind_param("ssssss", 
+            $stmt->bind_param("ssssssi", 
                 $titulo,
                 $tipo,
                 $version,
                 $id_empresa,
                 $sucursal,
-                $fecha_creacion
+                $fecha_creacion,
+                $this->numero
             );
         }
         
@@ -308,6 +320,14 @@ class GestionArchivo
         }
         
         return false;
+    }
+
+    public function generarSiguienteNumero()
+    {
+        $sql = "SELECT COALESCE(MAX(numero), 0) + 1 FROM gestion_archivos";
+        $result = $this->conectar->query($sql);
+        $row = $result->fetch_row();
+        return (int)$row[0];
     }
 
     public function listarPorTipo($tipo)

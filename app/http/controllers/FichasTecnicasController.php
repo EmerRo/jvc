@@ -37,7 +37,7 @@ class FichasTecnicasController extends Controller
             $sucursal = isset($_SESSION['sucursal']) ? $_SESSION['sucursal'] : 1;
 
             // NUEVO: Consulta optimizada con JOIN en lugar de subconsultas
-            $sql = "SELECT a.id_archivo, a.titulo, a.id_producto, a.fecha_creacion, a.fecha_actualizacion,
+            $sql = "SELECT a.id_archivo, a.numero, a.titulo, a.id_producto, a.fecha_creacion, a.fecha_actualizacion,
                            p.nombre as nombre_producto,
                            ga.url_pdf, ga.url_editable, ga.url_imagen, ga.url_youtube,
                            ga.url_imagen_2, ga.url_imagen_3
@@ -121,6 +121,7 @@ class FichasTecnicasController extends Controller
 
                 $fichas[] = [
                     "id_archivo" => $id_archivo,
+                    "numero" => $fila['numero'],
                     "titulo" => $fila['titulo'],
                     "id_producto" => $fila['id_producto'],
                     "nombre_producto" => $fila['nombre_producto'],
@@ -176,6 +177,7 @@ class FichasTecnicasController extends Controller
             
             $archivo->setIdEmpresa($id_empresa);
             $archivo->setSucursal($sucursal);
+            $archivo->setNumero($archivo->generarSiguienteNumero());
 
             if (!$archivo->insertar()) {
                 // Obtener información detallada del error
@@ -199,6 +201,7 @@ class FichasTecnicasController extends Controller
             $respuesta = [
                 "res" => true,
                 "id_archivo" => $id_archivo,
+                "numero" => $archivo->getNumero(),
                 "mensaje" => "Ficha técnica guardada correctamente",
                 "adjuntos" => $adjuntos
             ];

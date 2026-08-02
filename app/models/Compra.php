@@ -447,14 +447,16 @@ class Compra
         order by concat(year(fecha), LPAD(month(fecha), 2, 0)) desc";
         return $this->conectar->get_Cursor($sql);
     }
-    public function insertarCompra($id_tido, $id_tipo_pago, $id_proveedor, $fecha_emision, $fecha_vencimiento, $direccion, $serie, $numero, $total, $id_empresa, $moneda, $id_usuario, $serie_proveedor = null, $numero_proveedor = null)
+    public function insertarCompra($id_tido, $id_tipo_pago, $id_proveedor, $fecha_emision, $fecha_vencimiento, $direccion, $serie, $numero, $total, $id_empresa, $moneda, $id_usuario, $serie_proveedor = null, $numero_proveedor = null, $tipo_cambio = null)
     {
         $sql = "INSERT INTO compras(id_tido,id_tipo_pago,id_proveedor,fecha_emision,fecha_vencimiento,direccion,serie,numero,total,id_empresa,moneda,sucursal, id_usuario";
         if ($serie_proveedor !== null) $sql .= ",serie_proveedor";
         if ($numero_proveedor !== null) $sql .= ",numero_proveedor";
+        if ($tipo_cambio !== null) $sql .= ",tipo_cambio";
         $sql .= ") VALUES ($id_tido,$id_tipo_pago,$id_proveedor,'$fecha_emision','$fecha_vencimiento','$direccion','$serie','$numero',$total,$id_empresa,'$moneda','{$_SESSION['sucursal']}', $id_usuario";
         if ($serie_proveedor !== null) $sql .= ",'$serie_proveedor'";
         if ($numero_proveedor !== null) $sql .= ",'$numero_proveedor'";
+        if ($tipo_cambio !== null) $sql .= ",'$tipo_cambio'";
         $sql .= ")";
         $result = $this->conectar->query($sql);
         if ($result) {

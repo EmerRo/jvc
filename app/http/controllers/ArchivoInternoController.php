@@ -2,7 +2,7 @@
 
 require_once "app/models/ArchivoInterno.php";
 require_once "app/models/ArchivoInternoPlantilla.php";
-require_once "app/http/controllers/ArchivoInternoPDF.php";
+require_once "app/http/controllers/Reportes/ArchivoInternoPDF.php";
 require_once "app/models/TipoArchivoInterno.php";
 require_once "app/http/controllers/BaseDocumentoController.php";
 

@@ -160,13 +160,15 @@ abstract class BaseDocumentoController extends Controller
                 $this->modelo->setIdCliente($id_cliente);
                 $this->modelo->setUsuarioId($usuario_id);
                 $this->modelo->setEstado('borrador');
+                $this->modelo->setNumero($this->modelo->generarSiguienteNumero());
                 
                 // Insertar el documento
                 if ($this->modelo->insertarDocumento()) {
                     echo json_encode([
                         'res' => true, 
                         'msg' => ucfirst($this->documentType) . ' creada correctamente',
-                        'id' => $this->modelo->getId()
+                        'id' => $this->modelo->getId(),
+                        'numero' => $this->modelo->getNumero()
                     ]);
                 } else {
                     throw new Exception("Error al guardar el " . $this->documentType . " en la base de datos: Operación fallida");

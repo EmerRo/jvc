@@ -11,7 +11,9 @@ $(document).ready(() => {
         cliente_Rsocial: "",
       },
       cantidadEquipos: 1,
-      equipos: [{ marca: "", modelo: "", equipo: "", serie: "" }],
+      equipos: [{ marca: "", modelo: "", equipo: "", serie: "", id_producto: null, producto_busqueda: "" }],
+      almacenesDisponibles: [],
+      idAlmacen: "",
       marcasDisponibles: [],
       modelosDisponibles: [],
       equiposDisponibles: [],
@@ -46,6 +48,82 @@ $(document).ready(() => {
     methods: {
       buscarDocumentSS() {
         buscarDocumentoCliente(this, { usarDireccion: true });
+      },
+
+      cargarAlmacenes() {
+        $.get(_URL + "/ajs/almacenes/listar", (resp) => {
+          try {
+            const data = typeof resp === "string" ? JSON.parse(resp) : resp;
+            if (data && data.estado && Array.isArray(data.almacenes)) {
+              this.almacenesDisponibles = data.almacenes;
+              if (!this.idAlmacen) {
+                const principal = data.almacenes.find(a => Number(a.principal) === 1);
+                if (principal) this.idAlmacen = Number(principal.id_almacen);
+              }
+              if (this.idAlmacen) {
+                this.$nextTick(() => this.onCambiarAlmacen());
+              }
+            }
+          } catch (e) {
+            console.warn("No se pudieron cargar almacenes:", e);
+          }
+        });
+      },
+
+      onCambiarAlmacen() {
+        this.$nextTick(() => this.wireProductosAutocomplete(".input-buscar-producto-ot", this.equipos));
+      },
+
+      wireProductosAutocomplete(selector, items) {
+        const vm = this;
+        const idAlmacen = this.idAlmacen;
+        if (!idAlmacen) return;
+        $(selector).each(function () {
+          if ($(this).hasClass("ui-autocomplete-input")) {
+            $(this).autocomplete("destroy");
+          }
+          $(this).autocomplete({
+            minLength: 1,
+            source: function (request, response) {
+              $.get(_URL + "/ajs/cargar/productos/" + idAlmacen, { term: request.term }, (data) => {
+                try {
+                  const arr = typeof data === "string" ? JSON.parse(data) : data;
+                  const mapped = $.map(arr, function (item) {
+                    return {
+                      label: item.value || (item.codigo_pp + " | " + item.nombre),
+                      value: item.codigo_pp + " | " + item.nombre,
+                      item: item,
+                    };
+                  });
+                  response(mapped);
+                } catch (e) { response([]); }
+              });
+            },
+            response: function (event, ui) {
+              if (ui.content.length === 0) {
+                ui.content.push({ label: "No se encontraron productos en este almacén", value: "", noResult: true });
+              }
+            },
+            select: function (event, ui) {
+              if (ui.item.noResult) {
+                event.preventDefault();
+                return false;
+              }
+              const $input = $(this);
+              const idx = parseInt($input.data("index"), 10);
+              const prod = ui.item.item;
+              if (!isNaN(idx) && items[idx]) {
+                Vue.set(items[idx], "id_producto", prod.codigo || null);
+                Vue.set(items[idx], "producto_busqueda", ui.item.value);
+              }
+              $input.siblings(".producto-seleccionado-info-ot").html(
+                '<i class="fa fa-check-circle text-success"></i> Producto vinculado al stock'
+              );
+              return false;
+            },
+            open: function () { $(this).autocomplete("widget").css("z-index", 10050); }
+          });
+        });
       },
 
       cargarDatosEdicion(id) {
@@ -446,9 +524,11 @@ $(document).ready(() => {
     nextWeek.setDate(nextWeek.getDate() + 7);
     $("#fecha_salida").val(nextWeek.toISOString().split("T")[0]);
 
+    app.cargarAlmacenes();
     setTimeout(function () {
       inicializarAutocompletadoNumeros(app);
       inicializarAutocompletadoCliente(app);
+      if (app.idAlmacen) app.onCambiarAlmacen();
     }, 100);
   });
 
@@ -504,11 +584,13 @@ $(document).ready(() => {
       fecha_ingreso: $("#fecha_ingreso").val(),
       fecha_salida: $("#fecha_salida").val(),
       observaciones: $("#observaciones").val(),
+      id_almacen: app.idAlmacen || "",
       equipos: app.equipos.map((equipo) => ({
         marca: equipo.marca,
         modelo: equipo.modelo,
         tipo: equipo.equipo,
         serie: equipo.serie,
+        id_producto: equipo.id_producto || null,
       })),
       origen: "Ord Trabajo",
     };
@@ -531,7 +613,7 @@ $(document).ready(() => {
             // Limpiar formulario
             app.prealerta.num_doc = "";
             app.prealerta.cliente_Rsocial = "";
-            app.equipos = [{ marca: "", modelo: "", equipo: "", serie: "" }];
+            app.equipos = [{ marca: "", modelo: "", equipo: "", serie: "", id_producto: null, producto_busqueda: "" }];
             app.cantidadEquipos = 1;
             $("#observaciones").val("");
             $("#atencion_Encargado").val("");
@@ -548,7 +630,7 @@ $(document).ready(() => {
             tabla_clientes.ajax.reload();
             app.prealerta.num_doc = "";
             app.prealerta.cliente_Rsocial = "";
-            app.equipos = [{ marca: "", modelo: "", equipo: "", serie: "" }];
+            app.equipos = [{ marca: "", modelo: "", equipo: "", serie: "", id_producto: null, producto_busqueda: "" }];
             app.cantidadEquipos = 1;
             $("#observaciones").val("");
             $("#atencion_Encargado").val("");

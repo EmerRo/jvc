@@ -172,8 +172,7 @@
             <input type="hidden" name="idUsaVenta" id="idPresu" value="">
             <input type="hidden" name="trid" id="trid" value="">
             <div class="modal-header bg-rojo text-white">
-                <h5 class="modal-title" id="myModalLabel">Detalle Productos en venta
-                </h5>
+                <h5 class="modal-title" id="myModalLabel">Detalle de venta</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="modal_detalle">
@@ -803,9 +802,13 @@
                     const cotiOrigen = resp.data.id_coti
                         ? `<br>Cotización origen: <strong>COT-${String(resp.data.id_coti).padStart(2, '0')}</strong>`
                         : '';
+                    const atencion = resp.data.atencion
+                        ? `<br>Atención: <strong>${resp.data.atencion}</strong>`
+                        : '';
                     let headerHTML = 'Fecha : ' + resp.data.fecha_emision +
                         '<br>Documento : ' + (resp.data.id_tido == '2' ? 'FT' : 'BT') + ' | ' + resp.data.serie + ' - ' + resp.data.numero +
                         '<br>Cliente : ' + resp.data.documento + ' | ' + resp.data.datos +
+                        atencion +
                         cotiOrigen +
                         '<br>Total : ' + resp.data.montoTotal + '<br><hr>';
 

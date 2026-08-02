@@ -3,7 +3,7 @@
 
 require_once "app/models/OtroArchivo.php";
 require_once "app/models/OtroArchivoPlantilla.php";
-require_once "app/http/controllers/OtroArchivoPDF.php";
+require_once "app/http/controllers/Reportes/OtroArchivoPDF.php";
 require_once "app/models/TipoOtrosArchivos.php";
 require_once "app/http/controllers/BaseDocumentoController.php";
 

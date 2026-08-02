@@ -113,11 +113,16 @@
                 <div class="p-3">
                     <!-- Contenedor con scroll para muchos equipos -->
                     <div style="max-height: 300px; overflow-y: auto;">
-                        <div v-for="(equipo, index) in garantia.equipos" :key="index" class="card mb-3">
-                            <div class="card-header bg-light">
+                        <div v-for="(equipo, index) in garantia.equipos" :key="index" class="card mb-3" :style="{ opacity: equipo.seleccionado ? 1 : 0.45 }">
+                            <div class="card-header bg-light d-flex align-items-center justify-content-between">
                                 <h5 class="card-title mb-0">
                                     <i class="fa fa-laptop me-2"></i>Equipo {{ index + 1 }}
+                                    <small v-if="equipo.numero_serie" class="text-muted ms-2 fw-normal">{{ equipo.numero_serie }}</small>
                                 </h5>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" v-model="equipo.seleccionado" :id="'sel_equipo_' + index">
+                                    <label class="form-check-label" :for="'sel_equipo_' + index">Incluir</label>
+                                </div>
                             </div>
                             <div class="card-body py-2">
                                 <div class="row">
@@ -206,7 +211,7 @@
                                         this.inicializarBusquedaCliente();
                                     }
 
-                                    this.garantia.equipos = data.data.equipos;
+                                    this.garantia.equipos = data.data.equipos.map(e => Object.assign({}, e, { seleccionado: true }));
 
                                     // Establecer fecha de inicio como la fecha actual
                                     const fechaActual = new Date();
@@ -312,9 +317,10 @@
                 return;
             }
 
-            // Verificar que haya equipos
-            if (!app.garantia.equipos || app.garantia.equipos.length === 0) {
-                Swal.fire("¡Error!", "No hay equipos asociados a esta garantía.", "error");
+            // Verificar que haya al menos un equipo seleccionado
+            const equiposSeleccionados = (app.garantia.equipos || []).filter(e => e.seleccionado);
+            if (equiposSeleccionados.length === 0) {
+                Swal.fire("¡Error!", "Debe seleccionar al menos un equipo para la garantía.", "error");
                 return;
             }
 
@@ -324,8 +330,8 @@
     fecha_inicio: app.garantia.fechaInicio,
     fecha_caducidad: app.garantia.fechaCaducidad,
     cliente_nombre: app.garantia.cliente_nombre,
-    cliente_documento: app.garantia.cliente_documento || '', // <CHANGE> Agregar cliente_documento
-    equipos: JSON.stringify(app.garantia.equipos)
+    cliente_documento: app.garantia.cliente_documento || '',
+    equipos: JSON.stringify(equiposSeleccionados)
 };
 
             // Depuración

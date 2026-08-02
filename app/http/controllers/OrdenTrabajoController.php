@@ -59,13 +59,19 @@ class OrdenTrabajoController extends Controller
                 $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];
                 error_log("Equipos recibidos: " . print_r($equipos, true));
 
+                $id_almacen = isset($_POST['id_almacen']) && $_POST['id_almacen'] !== ''
+                    ? intval($_POST['id_almacen']) : null;
+
                 $equiposCorregidos = [];
                 foreach ($equipos as $equipo) {
                     $equiposCorregidos[] = [
-                        'marca' => $equipo['marca'],
-                        'modelo' => $equipo['modelo'],
-                        'equipo' => isset($equipo['tipo']) ? $equipo['tipo'] : $equipo['equipo'],
-                        'numero_serie' => isset($equipo['serie']) ? $equipo['serie'] : $equipo['numero_serie']
+                        'marca'        => $equipo['marca'],
+                        'modelo'       => $equipo['modelo'],
+                        'equipo'       => isset($equipo['tipo']) ? $equipo['tipo'] : $equipo['equipo'],
+                        'numero_serie' => isset($equipo['serie']) ? $equipo['serie'] : $equipo['numero_serie'],
+                        'id_producto'  => isset($equipo['id_producto']) && $equipo['id_producto'] !== '' && $equipo['id_producto'] !== 'null'
+                            ? intval($equipo['id_producto']) : null,
+                        'id_almacen'   => $id_almacen,
                     ];
                 }
 

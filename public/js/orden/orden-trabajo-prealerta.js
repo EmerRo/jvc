@@ -65,11 +65,14 @@ function inicializarAutocompletadoNumeros(app) {
           modelo: modelos_nombres[i] || modelos_nombres[0] || "Sin modelo",
           equipo: equipos_nombres[i] || equipos_nombres[0] || "Sin equipo",
           serie: numeros_serie[i] || "",
+          id_producto: null,
+          producto_busqueda: "",
         });
       }
 
       Vue.set(app, "cantidadEquipos", numeros_serie.length);
       app.$forceUpdate();
+      app.$nextTick(() => { if (app.idAlmacen) app.onCambiarAlmacen(); });
       $(this).val("");
 
       Swal.fire({
@@ -294,8 +297,11 @@ function mostrarModalSeleccionSeriePreAlerta(clienteId, app) {
             modelo: serie.modelo,
             equipo: serie.tipo,
             serie: serie.numero_serie,
+            id_producto: null,
+            producto_busqueda: "",
           }));
           app.cantidadEquipos = seriesSeleccionadas.length;
+          app.$nextTick(() => { if (app.idAlmacen) app.onCambiarAlmacen(); });
 
           $("#modalSeleccionSeriePreAlerta").modal("hide");
         });

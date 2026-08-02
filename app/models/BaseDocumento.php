@@ -15,6 +15,7 @@ abstract class BaseDocumento
     protected $imagen2;
     protected $imagen3;
     protected $estado;
+    protected $numero;
     protected $fecha_creacion;
     protected $fecha_modificacion;
     protected $conectar;
@@ -123,6 +124,16 @@ abstract class BaseDocumento
     public function setFooterImage($footer_image)
     {
         $this->footer_image = $footer_image;
+    }
+    
+    public function getNumero()
+    {
+        return $this->numero;
+    }
+    
+    public function setNumero($numero)
+    {
+        $this->numero = $numero;
     }
     
     public function getImagen1()
@@ -315,18 +326,18 @@ abstract class BaseDocumento
     protected function buildInsertQuery()
     {
         if ($this->tableName === 'cartas') {
-            return "INSERT INTO {$this->tableName} ({$this->fkCliente}, id_usuario, tipo, titulo, contenido, header_image, footer_image, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} ({$this->fkCliente}, id_usuario, tipo, titulo, contenido, header_image, footer_image, estado, numero) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            return "INSERT INTO {$this->tableName} (titulo, tipo, {$this->fkCliente}, usuario_id, contenido, header_image, footer_image, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            return "INSERT INTO {$this->tableName} (titulo, tipo, {$this->fkCliente}, usuario_id, contenido, header_image, footer_image, estado, numero) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
     }
     
     protected function bindInsertParams($stmt)
     {
         if ($this->tableName === 'cartas') {
-            $stmt->bind_param("iissssss", 
+            $stmt->bind_param("iissssssi", 
                 $this->id_cliente, 
                 $this->usuario_id, 
                 $this->tipo, 
@@ -334,10 +345,11 @@ abstract class BaseDocumento
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->estado
+                $this->estado,
+                $this->numero
             );
         } else {
-            $stmt->bind_param("ssiissss", 
+            $stmt->bind_param("ssiissssi", 
                 $this->titulo, 
                 $this->tipo, 
                 $this->id_cliente,
@@ -345,7 +357,8 @@ abstract class BaseDocumento
                 $this->contenido, 
                 $this->header_image, 
                 $this->footer_image,
-                $this->estado
+                $this->estado,
+                $this->numero
             );
         }
     }
@@ -492,6 +505,14 @@ abstract class BaseDocumento
         }
         
         return $tipos;
+    }
+    
+    public function generarSiguienteNumero()
+    {
+        $sql = "SELECT COALESCE(MAX(numero), 0) + 1 FROM {$this->tableName}";
+        $result = $this->conectar->query($sql);
+        $row = $result->fetch_row();
+        return (int)$row[0];
     }
     
     public function generarNumeroCorrelativo($tipo)

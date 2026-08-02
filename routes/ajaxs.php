@@ -82,6 +82,7 @@ Route::post("/ajs/guia/remision/coti/cliente/:id", "GuiaRemisionController@consu
 Route::post("/ajs/guia/remision/coti/taller/:id", "GuiaRemisionController@consultarGuiaXCotiTaller")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/guia/remision/coti/taller/cliente/:id", "GuiaRemisionController@consultarGuiaXCotiTallerCliente")->Middleware([ValidarTokenMiddleware::class]);
 
+Route::post("/ajs/cliente/ubigeo", "GuiaRemisionController@actualizarUbigeoCliente")->Middleware([ValidarTokenMiddleware::class]);
 /* ============================ FIN GUIA controller rutas ======================================*/
 
 

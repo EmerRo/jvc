@@ -199,7 +199,7 @@ function renderizarFichas(fichas) {
             <div class="col">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">${ficha.titulo || 'Sin título'}</h5>
+                        <h5 class="card-title mb-0">${ficha.numero ? `<span class="badge bg-light text-dark me-2">#${ficha.numero}</span>` : ''}${ficha.titulo || 'Sin título'}</h5>
                         <div class="mt-1">
                            <!-- <span class="badge bg-primary">v${ficha.version || '1.0'}</span> -->
                          ${ficha.id_producto ? `<span class="badge bg-secondary ms-1" style="color: #CA3438" title="${escapeHtml(ficha.nombre_producto || 'Producto asociado')}">${ficha.nombre_producto || 'Producto asociado'}</span>` : ''}

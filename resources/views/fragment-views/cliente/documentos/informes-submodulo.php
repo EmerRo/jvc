@@ -1,12 +1,12 @@
 <!-- resources\views\fragment-views\cliente\documentos\modulo-documentos.php -->
 <!-- Sistema de Gestión de Archivos Técnicos -->
  <!-- Añade esto en el head de tu layout principal (por ejemplo, en header.php o layout.php) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="<?= URL::to('public/lib/pdfjs/pdf.min.js') ?>"></script>
 <script>
     // Configurar el worker de PDF.js
     window.pdfjsLib = window.pdfjsLib || {};
     window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
 </script>
 <div class="container-fluid py-4">
    

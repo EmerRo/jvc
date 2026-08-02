@@ -590,8 +590,17 @@ WHERE id_venta='{$_POST['idVenta']}'";
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         $response = curl_exec($ch);
+        $curl_error = curl_error($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($response === false || $http_code !== 200) {
+            echo json_encode(['res' => false, 'msg' => 'Servicio de consulta no disponible']);
+            return;
+        }
 
         $data = json_decode($response, true);
         $resultado = ['res' => false, 'data' => []];
@@ -632,8 +641,16 @@ WHERE id_venta='{$_POST['idVenta']}'";
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($response === false || $http_code !== 200) {
+            echo json_encode(['res' => false, 'msg' => 'Servicio de consulta no disponible']);
+            return;
+        }
 
         $data = json_decode($response, true);
         if (isset($data['ruc'])) {

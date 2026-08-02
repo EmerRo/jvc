@@ -1,5 +1,10 @@
 //   public\js\series\crud-registro.js
 
+// Quitar is-invalid en cuanto el usuario corrija el campo
+$(document).on("input change", ".is-invalid", function () {
+  if ($(this).val()) $(this).removeClass("is-invalid");
+});
+
 // Validar al enviar el formulario
 $("#submitRegistro").click(function () {
   // Verificar si hay series repetidas
@@ -45,13 +50,26 @@ $("#submitRegistro").click(function () {
     const modelo = $("#modelo_comun").val();
     const equipo = $("#equipo_comun").val();
 
-    // Validar que se hayan seleccionado todos los campos
-    if (!marca || !modelo || !equipo) {
-      Swal.fire({
-        title: "Error",
-        text: "Por favor, seleccione marca, modelo y equipo",
-        icon: "error",
-      });
+    // Validar campos del modo máquinas idénticas — resaltar sin alerta
+    let primerInvalidoIdenticas = null;
+
+    if (!$("#fecha_creacion").val()) {
+      $("#fecha_creacion").addClass("is-invalid");
+      if (!primerInvalidoIdenticas) primerInvalidoIdenticas = $("#fecha_creacion");
+    } else {
+      $("#fecha_creacion").removeClass("is-invalid");
+    }
+
+    if (!equipo) {
+      $("#equipo_comun").addClass("is-invalid");
+      if (!primerInvalidoIdenticas) primerInvalidoIdenticas = $("#equipo_comun");
+    } else {
+      $("#equipo_comun").removeClass("is-invalid");
+    }
+
+    if (primerInvalidoIdenticas) {
+      primerInvalidoIdenticas[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      primerInvalidoIdenticas.focus();
       return false;
     }
 
@@ -163,26 +181,54 @@ $("#submitRegistro").click(function () {
       return false;
     }
 
-    // Verificar que todos los campos estén seleccionados
-    let camposIncompletos = false;
-    $("#equipos_container .equipo-item").each(function () {
-      const marca = $(this).find('select[name$="[marca]"]').val();
-      const modelo = $(this).find('select[name$="[modelo]"]').val();
-      const equipo = $(this).find('select[name$="[equipo]"]').val();
-      const numeroSerie = $(this).find('input[name$="[numero_serie]"]').val();
+    // Validar campos — resaltar en rojo y scroll al primero inválido
+    let primerInvalido = null;
 
-      if (!marca || !modelo || !equipo || !numeroSerie) {
-        camposIncompletos = true;
-        return false;
+    const marcarInvalido = function ($el) {
+      $el.addClass("is-invalid");
+      if (!primerInvalido) primerInvalido = $el;
+    };
+
+    if (!$("#fecha_creacion").val()) {
+      marcarInvalido($("#fecha_creacion"));
+    } else {
+      $("#fecha_creacion").removeClass("is-invalid");
+    }
+
+    if ($("#tiene_cliente").is(":checked")) {
+      if (!$("#cliente_documento").val()) {
+        marcarInvalido($("#input_datos_cliente"));
+      } else {
+        $("#input_datos_cliente").removeClass("is-invalid");
+      }
+      if (!$("#cliente_ruc_dni").val()) {
+        marcarInvalido($("#cliente_ruc_dni"));
+      } else {
+        $("#cliente_ruc_dni").removeClass("is-invalid");
+      }
+    }
+
+    $("#equipos_container .equipo-item").each(function () {
+      const $item = $(this);
+      const $selectEquipo = $item.find(".select-equipo");
+      const $inputSerie  = $item.find('input[name$="[numero_serie]"]');
+
+      if (!$selectEquipo.val()) {
+        marcarInvalido($selectEquipo);
+      } else {
+        $selectEquipo.removeClass("is-invalid");
+      }
+
+      if (!$inputSerie.val().trim()) {
+        marcarInvalido($inputSerie);
+      } else {
+        $inputSerie.removeClass("is-invalid");
       }
     });
 
-    if (camposIncompletos) {
-      Swal.fire({
-        title: "Error",
-        text: "Por favor, complete todos los campos de los equipos",
-        icon: "error",
-      });
+    if (primerInvalido) {
+      primerInvalido[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      primerInvalido.focus();
       return false;
     }
 
@@ -190,9 +236,9 @@ $("#submitRegistro").click(function () {
     var equiposData = [];
     $("#equipos_container .equipo-item").each(function (index) {
       equiposData.push({
-        modelo: $(this).find('select[name^="equipos"][name$="[modelo]"]').val(),
-        marca: $(this).find('select[name^="equipos"][name$="[marca]"]').val(),
-        equipo: $(this).find('select[name^="equipos"][name$="[equipo]"]').val(),
+        modelo: $(this).find('.hidden-modelo').val() || $(this).find('input[name$="[modelo]"]').val(),
+        marca:  $(this).find('.hidden-marca').val()  || $(this).find('input[name$="[marca]"]').val(),
+        equipo: $(this).find('.select-equipo').val() || $(this).find('select[name$="[equipo]"]').val(),
         // NUEVO: id_producto del almacén (opcional)
         id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this)
@@ -243,28 +289,28 @@ $("#submitRegistro").click(function () {
             $("#tabla_clientes").DataTable().ajax.reload();
             cargarUltimoNumeroSerie();
           } else {
-            Swal.fire({
-              title: "Error",
-              text: data.error || "No se pudo agregar el registro",
-              icon: "error",
+            // Marcar campos inválidos sin alerta
+            let primeroCampo = null;
+            $("#equipos_container .equipo-item").each(function () {
+              const $sel = $(this).find(".select-equipo");
+              const $ns  = $(this).find('input[name$="[numero_serie]"]');
+              if (!$sel.val()) { $sel.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $sel; }
+              if (!$ns.val().trim()) { $ns.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $ns; }
             });
+            if (!$("#fecha_creacion").val()) {
+              $("#fecha_creacion").addClass("is-invalid");
+              if (!primeroCampo) primeroCampo = $("#fecha_creacion");
+            }
+            if (primeroCampo) {
+              primeroCampo[0].scrollIntoView({ behavior: "smooth", block: "center" });
+              primeroCampo.focus();
+            }
           }
         } catch (e) {
           console.error("Error al procesar la respuesta:", e);
-          Swal.fire({
-            title: "Error",
-            text: "Error al procesar la respuesta del servidor",
-            icon: "error",
-          });
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
-        Swal.fire({
-          title: "Error",
-          text: "No se pudo agregar el registro: " + errorThrown,
-          icon: "error",
-        });
-      },
+      error: function () {},
     });
   }
 });

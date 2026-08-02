@@ -5,13 +5,21 @@ $conexion = (new Conexion())->getConexion();
 $datoEmpresa = $conexion->query("select * from empresas where id_empresa='{$_SESSION['id_empresa']}'")->fetch_assoc();
 
 $igv_empresa = $datoEmpresa['igv'];
+
+$tituloPagina = 'FACTURAR PRODUCTOS';
+if (isset($coti) && is_numeric($coti)) {
+    $rowCoti = $conexion->query("SELECT numero FROM cotizaciones WHERE cotizacion_id = " . (int)$coti)->fetch_assoc();
+    if ($rowCoti) {
+        $tituloPagina = 'FACTURAR PRODUCTOS - Cotización N° ' . $rowCoti['numero'];
+    }
+}
 ?>
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
 <script src="<?= URL::to('public/js/components/almacen-select.js') ?>"></script>
 
 <div class="page-title-box">
     <div class="row align-items-center">
-        <h6 class="page-title text-center">FACTURAR PRODUCTOS</h6>
+        <h6 class="page-title text-center"><?= $tituloPagina ?></h6>
         <div class="col-md-8">
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="javascript: void(0);">Facturación</a></li>
@@ -590,7 +598,7 @@ if (isset($_GET["guia"]) || isset($guia)) {
                                     <div class="form-group  mb-3">
                                         <div class="col-lg-12">
                                             <div class="input-group">
-                                                <input v-model="venta.dir2_cli" type="text" placeholder="Asunto"
+                                                <input v-model="venta.dir2_cli" type="text" placeholder="Atención"
                                                     class="form-control ui-autocomplete-input" autocomplete="off">
                                                 <!-- <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon1">
@@ -1567,7 +1575,7 @@ if (isset($_GET["guia"]) || isset($guia)) {
                             vue.venta.num_doc = resp.cliente_doc
                             vue.venta.nom_cli = resp.cliente_nom
                             vue.venta.dir_cli = resp.cliente_dir1
-                            vue.venta.dir2_cli = resp.cliente_dir2
+                            vue.venta.dir2_cli = resp.asunto || resp.cliente_dir2 || ''
                             vue.usar_precio = resp.usar_precio
 
                             // Actualizar serie y número después de determinar el tipo de documento

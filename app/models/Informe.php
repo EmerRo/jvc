@@ -10,6 +10,7 @@ class Informe
     private $imagen2;
     private $cliente_id;
     private $usuario_id;
+    private $numero;
     private $fecha_creacion;
     private $fecha_modificacion;
     private $conectar;
@@ -163,14 +164,23 @@ public function setPersonaEntregar($persona_entregar)
     $this->persona_entregar = $persona_entregar;
 }
 
+public function getNumero()
+{
+    return $this->numero;
+}
+
+public function setNumero($numero)
+{
+    $this->numero = $numero;
+}
+
    public function insertar()
 {
-    $sql = "INSERT INTO informes (tipo, titulo, contenido, imagen1, imagen2, cliente_id, usuario_id, persona_entregar) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO informes (tipo, titulo, contenido, imagen1, imagen2, cliente_id, usuario_id, persona_entregar, numero) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $this->conectar->prepare($sql);
     
-    // CORREGIR ESTA LÍNEA - Agregar 's' y $this->persona_entregar
-    $stmt->bind_param("sssssiis", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->usuario_id, $this->persona_entregar);
+    $stmt->bind_param("sssssiisi", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->usuario_id, $this->persona_entregar, $this->numero);
     
     $result = $stmt->execute();
 
@@ -223,6 +233,7 @@ public function editar()
         $result = $stmt->get_result();
 
         if ($fila = $result->fetch_assoc()) {
+            $this->numero = $fila['numero'];
             $this->tipo = $fila['tipo'];
             $this->titulo = $fila['titulo'];
             $this->contenido = $fila['contenido'];
@@ -541,6 +552,14 @@ public function editar()
         
         // Si es una ruta de archivo, crear URL
         return '/' . $this->imagen2;
+    }
+
+    public function generarSiguienteNumero()
+    {
+        $sql = "SELECT COALESCE(MAX(numero), 0) + 1 FROM informes";
+        $result = $this->conectar->query($sql);
+        $row = $result->fetch_row();
+        return (int)$row[0];
     }
 
 }

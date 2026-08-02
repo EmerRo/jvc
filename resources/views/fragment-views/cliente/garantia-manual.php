@@ -117,7 +117,11 @@
                                 <span class="input-group-text bg-light"><i class="fa fa-barcode"></i></span>
                                 <input v-model="garantia.num_serie" type="text" placeholder="Número de serie"
                                     class="form-control" name="numero_serie" id="numero_serie" required>
+                                <button type="button" id="btn_buscar_por_numero_serie" class="btn btn-outline-secondary" title="Buscar datos por número de serie">
+                                    <i class="fa fa-search"></i>
+                                </button>
                             </div>
+                            <small class="text-muted"><i class="fa fa-info-circle me-1"></i>Escribí el número de serie y presioná buscar para autocompletar Marca/Modelo/Equipo</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="guia_remision" class="form-label">Guía De Remisión</label>
@@ -251,7 +255,8 @@
                         app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
 
                         // Decodificar arrays y prellenar el primer equipo como referencia
-                        const numeros_serie = JSON.parse(ui.item.numero_serie || '[]');
+                        const _parsedNS1 = JSON.parse(ui.item.numero_serie || '[]');
+                        const numeros_serie = Array.isArray(_parsedNS1) ? _parsedNS1 : [String(_parsedNS1)];
                         const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                         const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                         const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
@@ -345,7 +350,8 @@
                         event.preventDefault();
                         try {
                             app.garantia.cliente_nombre = ui.item.cliente_ruc_dni || '';
-                            const numeros_serie = ui.item.numero_serie ? JSON.parse(ui.item.numero_serie) : [];
+                            const _parsedNS2 = JSON.parse(ui.item.numero_serie || '[]');
+                            const numeros_serie = Array.isArray(_parsedNS2) ? _parsedNS2 : [String(_parsedNS2)];
                             const marcas_nombres = (ui.item.marca_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                             const modelos_nombres = (ui.item.modelo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
                             const equipos_nombres = (ui.item.equipo_nombre || '').split(',').map(s=>s.trim()).filter(Boolean);
@@ -371,6 +377,49 @@
         }
         // Ejecutar tras crear Vue
         setTimeout(initAutocompleteNumeroRegistro, 0);
+
+        // Buscar datos por número de serie individual
+        $("#btn_buscar_por_numero_serie").on("click", function () {
+            const numSerie = (app.garantia.num_serie || '').trim();
+            if (!numSerie) {
+                Swal.fire("Aviso", "Ingresá un número de serie para buscar.", "warning");
+                return;
+            }
+            $.ajax({
+                url: _URL + "/ajs/buscar/serie/datos",
+                type: "GET",
+                data: { term: numSerie },
+                success: function (data) {
+                    try {
+                        const resultados = JSON.parse(data);
+                        const exacto = resultados.find(r => r.value === numSerie || r.label === numSerie);
+                        if (exacto) {
+                            app.garantia.marc = exacto.marca_nombre || '';
+                            app.garantia.model = exacto.modelo_nombre || '';
+                            app.garantia.equipo = exacto.equipo_nombre || '';
+                            if (exacto.cliente_ruc_dni && exacto.cliente_ruc_dni !== 'Sin Cliente') {
+                                app.garantia.cliente_nombre = exacto.cliente_ruc_dni;
+                            }
+                        } else {
+                            Swal.fire("No encontrado", "El número de serie no existe en el sistema. Podés completar los datos manualmente.", "info");
+                        }
+                    } catch (e) {
+                        Swal.fire("Error", "No se pudo procesar la respuesta del servidor.", "error");
+                    }
+                },
+                error: function () {
+                    Swal.fire("Error", "No se pudo conectar al servidor.", "error");
+                }
+            });
+        });
+
+        // Buscar también al presionar Enter en el campo numero_serie
+        $("#numero_serie").on("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                $("#btn_buscar_por_numero_serie").trigger("click");
+            }
+        });
 
         // Configuración del autocompletado
         $("#input_buscar_Dataseries")

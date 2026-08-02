@@ -3,7 +3,7 @@
 require_once "app/models/Informe.php";
 require_once "app/models/InformeTemplate.php";
 require_once "app/models/TipoInforme.php";
-require_once "app/http/controllers/InformePDF.php";
+require_once "app/http/controllers/Reportes/InformePDF.php";
 require_once 'app/helpers/ImageStorage.php';
 
 class InformeController extends Controller
@@ -127,14 +127,16 @@ public function render()
                 $this->informe->setImagen2($imagen2);
                 $this->informe->setClienteId($cliente_id);
                 $this->informe->setPersonaEntregar($persona_entregar);
-                $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1); // Asumiendo que hay una sesión de usuario
+                $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1);
+                $this->informe->setNumero($this->informe->generarSiguienteNumero());
                 
                 // Insertar el informe
                 if ($this->informe->insertar()) {
                     echo json_encode([
                         'res' => true, 
                         'msg' => 'Informe creado correctamente',
-                        'id_informe' => $this->informe->getIdInforme()
+                        'id_informe' => $this->informe->getIdInforme(),
+                        'numero' => $this->informe->getNumero()
                     ]);
                 } else {
                     throw new Exception("Error al guardar el informe en la base de datos");

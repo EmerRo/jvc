@@ -1253,16 +1253,17 @@ class GuiaRemisionController extends Controller
         }
 
         // Consulta SQL modificada para manejar ubigeo nulo
-        $sql = "SELECT 
-                    c.datos, 
-                    c.direccion, 
-                    c.documento, 
+        $sql = "SELECT
+                    c.id_cliente,
+                    c.datos,
+                    c.direccion,
+                    c.documento,
                     COALESCE(SUBSTRING(c.ubigeo, 1, 2), '') as departamento,
                     COALESCE(SUBSTRING(c.ubigeo, 3, 2), '') as provincia,
                     COALESCE(SUBSTRING(c.ubigeo, 5, 2), '') as distrito,
-                    COALESCE(c.ubigeo, '') as ubigeo 
-                FROM cotizaciones co 
-                JOIN clientes c ON co.id_cliente = c.id_cliente 
+                    COALESCE(c.ubigeo, '') as ubigeo
+                FROM cotizaciones co
+                JOIN clientes c ON co.id_cliente = c.id_cliente
                 WHERE co.cotizacion_id = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -1644,6 +1645,28 @@ class GuiaRemisionController extends Controller
             error_log("Error duplicando equipos: " . $e->getMessage());
             return [];
         }
+    }
+
+    public function actualizarUbigeoCliente()
+    {
+        $id_cliente = isset($_POST['id_cliente']) ? (int)$_POST['id_cliente'] : 0;
+        $ubigeo     = isset($_POST['ubigeo'])     ? trim($_POST['ubigeo'])     : '';
+        $depto      = isset($_POST['departamento']) ? trim($_POST['departamento']) : '';
+        $prov       = isset($_POST['provincia'])    ? trim($_POST['provincia'])    : '';
+        $dist       = isset($_POST['distrito'])     ? trim($_POST['distrito'])     : '';
+
+        if (!$id_cliente || strlen($ubigeo) !== 6) {
+            echo json_encode(['res' => false, 'msg' => 'Datos inválidos']);
+            return;
+        }
+
+        $stmt = $this->conexion->prepare(
+            "UPDATE clientes SET ubigeo=?, departamento=?, provincia=?, distrito=? WHERE id_cliente=?"
+        );
+        $stmt->bind_param('ssssi', $ubigeo, $depto, $prov, $dist, $id_cliente);
+        $stmt->execute();
+
+        echo json_encode(['res' => $stmt->affected_rows >= 0]);
     }
 
 }

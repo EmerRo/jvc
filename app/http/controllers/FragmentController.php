@@ -83,9 +83,9 @@ public function ventasProductos()
     // error_log("  - _POST: " . json_encode($_POST));
     
     return $this->view("fragment-views/cliente/ventas-productos", [
-        'coti' => $coti,
+        'coti'       => $coti,
         'coti_taller' => $coti_taller,
-        'guia' => $guia
+        'guia'       => $guia,
     ]);
 }
 

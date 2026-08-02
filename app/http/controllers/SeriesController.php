@@ -170,8 +170,9 @@ class SeriesController extends Controller
 
             // Insertar equipos
             foreach ($equipos as $equipo) {
-                if (!$this->validarDatosEquipo($equipo)) {
-                    throw new Exception("Datos de equipo incompletos");
+                $errorEquipo = $this->validarDatosEquipo($equipo);
+                if ($errorEquipo) {
+                    throw new Exception($errorEquipo);
                 }
 
                 $this->detalleSerieModel->setNumeroSerieId($serie_id);
@@ -275,8 +276,9 @@ class SeriesController extends Controller
 
             // Insertar nuevos equipos
             foreach ($equipos as $equipo) {
-                if (!$this->validarDatosEquipo($equipo)) {
-                    throw new Exception("Datos de equipo incompletos");
+                $errorEquipo = $this->validarDatosEquipo($equipo);
+                if ($errorEquipo) {
+                    throw new Exception($errorEquipo);
                 }
 
                 $this->detalleSerieModel->setNumeroSerieId($serie_id);
@@ -536,13 +538,13 @@ class SeriesController extends Controller
     /**
      * Validar que un equipo tenga todos los datos requeridos
      */
-    private function validarDatosEquipo($equipo)
+    private function validarDatosEquipo($equipo): string
     {
-        return isset($equipo['modelo']) &&
-               isset($equipo['marca']) &&
-               isset($equipo['equipo']) &&
-               isset($equipo['numero_serie']) &&
-               !empty($equipo['numero_serie']);
+        if (empty($equipo['marca']))        return 'Falta la marca del equipo';
+        if (empty($equipo['modelo']))       return 'Falta el modelo del equipo';
+        if (empty($equipo['equipo']))       return 'Falta el tipo de equipo';
+        if (empty($equipo['numero_serie'])) return 'Falta el número de serie';
+        return '';
     }
 
     // ================================================================

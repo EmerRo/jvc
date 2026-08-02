@@ -1,114 +1,67 @@
 <!-- resources/views/fragment-views/cliente/documentos/componentes/constancias.php -->
-<style>
-    /* Estilos generales */
-    .image-preview {
-        max-width: 100%;
-        max-height: 150px;
-        display: none;
-    }
+<link rel="stylesheet" href="<?= URL::to('/public/css/informes.css') ?>?v=<?= time() ?>">
 
-    .image-placeholder {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        text-align: center;
-        background-color: #f9f9f9;
-        color: #999;
-    }
-
-    .editor-container {
-        height: 300px;
-        margin-bottom: 20px;
-        border: 1px solid #dee2e6;
-    }
-
-    .vista {
-        display: none;
-    }
-
-    .vista.active {
-        display: block;
-    }
-
-    .constancia-card {
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-
-    .constancia-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-header {
-        background-color: #dc3545;
-        color: white;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-    }
-
-    .document-preview {
-        height: 250px;
-        overflow: hidden;
-        display: block;
-        background-color: white;
-        padding: 0;
-        margin: 0;
-    }
-
-    .pdf-preview-canvas {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 100%;
-        object-fit: contain;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .btn-outline-secondary {
-        position: relative;
-        z-index: 1000;
-        pointer-events: auto;
-    }
-</style>
-
-<!-- Añadir PDF.js para la vista previa de documentos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script>
-    // Configurar el worker de PDF.js
-    window.pdfjsLib = window.pdfjsLib || {};
-    window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-</script>
-
-<!-- Botones de acción -->
-<div class="mb-4">
-    <button class="btn btn-rojo" id="btn-lista-constancias">
-        <i class="fas fa-list me-1"></i> Lista de Constancias
+<!-- Versión Desktop: Botones horizontales -->
+<div class="d-none d-lg-flex mb-4 gap-2 flex-wrap">
+    <button class="btn border-rojo" id="btn-lista-constancias">
+        <i class="fas fa-list me-2"></i>Lista de Constancias
     </button>
-    <button class="btn btn-outline-danger" id="btn-nueva-constancia">
-        <i class="fas fa-plus me-1"></i> Nueva Constancia
+    <button class="btn bg-rojo text-white" id="btn-nueva-constancia">
+        <i class="fas fa-plus me-2"></i>Nueva Constancia
     </button>
-    <button class="btn btn-outline-danger" id="btn-editar-plantilla">
-        <i class="fas fa-file-alt me-1"></i> Editar Plantilla
+    <button class="btn border-rojo" id="btn-editar-plantilla">
+        <i class="fas fa-edit me-2"></i>Editar Plantilla
     </button>
-    <button class="btn bg-rojo text-white" id="btn-gestionar-membretes">
-        <i class="fas fa-image me-1"></i> Gestionar Membretes
+    <button class="btn border-rojo" id="btn-gestionar-membretes">
+        <i class="fas fa-image me-2"></i>Gestionar Membretes
     </button>
     <button class="btn bg-rojo hover:bg-white" onclick="window.constanciaModuleInstance.reiniciar()">
-        <i class="fas fa-sync me-1"></i> Reiniciar Módulo
+        <i class="fas fa-sync me-2"></i>Reiniciar Módulo
     </button>
+</div>
+
+<!-- Versión Mobile: Dropdown -->
+<div class="d-lg-none mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="text-negro font-medium mb-0">Constancias</h3>
+        <div class="dropdown">
+            <button class="btn btn-sm border-rojo" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.mostrarVistaListaConstancias();"><i class="fas fa-list me-2 text-rojo"></i>Lista de Constancias</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.mostrarFormularioNuevoConstancia();"><i class="fas fa-plus me-2 text-rojo"></i>Nueva Constancia</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.editarPlantillaConstancia();"><i class="fas fa-edit me-2 text-rojo"></i>Editar Plantilla</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.gestionarMembretes();"><i class="fas fa-image me-2 text-rojo"></i>Gestionar Membretes</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.constanciaModuleInstance.reiniciar();"><i class="fas fa-sync me-2 text-rojo"></i>Reiniciar Módulo</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <!-- Vista de lista de constancias -->
 <div id="vista-lista-constancias" class="vista active">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Constancias</h3>
-        <div class="input-group" style="max-width: 300px;">
-            <input type="text" class="form-control border-rojo" id="buscar-constancia" placeholder="Buscar constancias...">
-            <button class="btn bg-rojo text-white" type="button">
-                <i class="fas fa-search"></i>
-            </button>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-negro font-medium mb-0 d-none d-lg-block">Constancias</h3>
+            <div class="d-flex justify-content-end gap-2 w-100">
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text bg-rojo text-white"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control border-rojo" id="buscar-constancia" placeholder="Buscar constancias...">
+                </div>
+                <button class="btn border-rojo dropdown-toggle" type="button" id="dropdownFiltroConstancias"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter"></i><span class="d-none d-sm-inline ms-2">Filtrar</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="filtro-tipos-constancias" aria-labelledby="dropdownFiltroConstancias">
+                    <li><h6 class="dropdown-header">Tipo de Constancia</h6></li>
+                    <li><a class="dropdown-item active" href="#" data-tipo="todos">Todos</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -118,16 +71,15 @@
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-2 text-muted">Cargando constancias...</p>
+            <p class="mt-2 text-gris">Cargando constancias...</p>
         </div>
     </div>
 </div>
 
 <!-- Vista de formulario de nueva/editar constancia -->
 <div id="vista-editar-constancia" class="vista">
-    <div class="form-header">
-        <h3 id="titulo-pagina-constancia" class="m-0">Nueva Constancia</h3>
-        <p class="m-0">Complete la información de la constancia</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 id="titulo-pagina-constancia" class="text-negro font-medium mb-0">Nueva Constancia</h3>
     </div>
 
     <form id="formConstancia" enctype="multipart/form-data">
@@ -650,8 +602,39 @@
         // Solo inicializar si estamos en la página correcta
         if (window.location.pathname.includes('constancias') || $('#vista-lista-constancias').length > 0) {
             inicializarModuloConstancias();
+            setTimeout(cargarFiltrosConstancias, 400);
         }
     });
+
+    // Cargar filtros de tipo
+    function cargarFiltrosConstancias() {
+        if (!window.constanciasUtils) { setTimeout(cargarFiltrosConstancias, 300); return; }
+        $.ajax({
+            url: _URL + "/ajs/constancia/obtener-tipos-constancias",
+            method: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.success && data.tipos) {
+                    let html = '<li><h6 class="dropdown-header">Tipo de Constancia</h6></li>';
+                    html += '<li><a class="dropdown-item active" href="#" data-tipo="todos">Todos</a></li>';
+                    data.tipos.forEach(function (tipo) {
+                        html += '<li><a class="dropdown-item" href="#" data-tipo="' + tipo.nombre + '">' + tipo.nombre + '</a></li>';
+                    });
+                    $("#filtro-tipos-constancias").html(html);
+                    $("#filtro-tipos-constancias .dropdown-item").on("click", function (e) {
+                        e.preventDefault();
+                        $("#filtro-tipos-constancias .dropdown-item").removeClass("active");
+                        $(this).addClass("active");
+                        const tipo = $(this).data("tipo");
+                        if (window.constanciasUtils) {
+                            window.constanciasUtils.filtroTipo = tipo;
+                            window.constanciasUtils.cargarDocumentos();
+                        }
+                    });
+                }
+            }
+        });
+    }
 
     // Funciones específicas para tipos de constancias
     function abrirModalTiposConstancias() {

@@ -912,6 +912,8 @@
                                             </div>
                                         </div>
 
+                                    </div>
+                                    <div class="row g-2 align-items-end">
                                         <!-- Precio con dropdown -->
                                         <div class="col-md-4">
                                             <div class="mb-2">
@@ -981,9 +983,9 @@
                                                         </li>
                                                     </ul>
 
-                                                    <button class="btn bg-rojo text-white dropdown-toggle" type="button"
+                                                    <button class="btn btn-sm bg-rojo text-white dropdown-toggle" type="button"
                                                         data-bs-toggle="dropdown" aria-expanded="false"
-                                                        data-bs-auto-close="outside" style="height: 38px;">
+                                                        data-bs-auto-close="outside">
                                                         <i class="fa fa-chevron-down"></i>
                                                     </button>
                                                     <!-- En el dropdown para precios adicionales (desde el botón) -->
@@ -1032,7 +1034,7 @@
                                                             for="flexSwitchCheckDefault">Activar</label>
                                                     </div>
                                                 </div>
-                                                <div class="input-group input-group-sm mt-1">
+                                                <div class="input-group input-group-sm">
                                                     <span class="input-group-text">{{simboloMonedaEdicion}}</span>
                                                     <input type="number" class="form-control"
                                                         v-model="productoEdit.precioEspecial"
@@ -1113,7 +1115,7 @@
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="monedaSibol+' '+venta.total" disabled type="text"
+                                                <input :value="'S/ '+venta.total" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -1132,7 +1134,7 @@
                                                 </label>
                                         </div>
                                         <div v-if="venta.tiene_inicial" class="input-group">
-                                            <span class="input-group-text">{{monedaSibol}}</span>
+                                            <span class="input-group-text">S/</span>
                                             <input type="number" class="form-control" v-model="venta.monto_inicial"
                                                 placeholder="Monto inicial" @input="calcularCuotasRestantes">
                                             <span class="input-group-text">o</span>
@@ -1171,7 +1173,7 @@
                                                             <td>0</td>
                                                             <td>Inicial</td>
                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
-                                                            <td>{{monedaSibol}} {{formatoDecimal(venta.monto_inicial)}}</td>
+                                                            <td>S/ {{formatoDecimal(venta.monto_inicial)}}</td>
                                                         </tr>
                                                         <!-- Mostrar cuotas con fechas seleccionables -->
                                                         <tr v-for="(cuota, index) in cuotas" :key="index">
@@ -1183,7 +1185,7 @@
                                                             </td>
                                                             <td>
                                                                 <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text">{{monedaSibol}}</span>
+                                                                    <span class="input-group-text">S/</span>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         v-model="cuota.monto"
@@ -2091,7 +2093,8 @@
                     });
                 },
                 formatoDecimal(num, desc = 2) {
-                    return parseFloat(num + "").toFixed(desc);
+                    const n = parseFloat(num);
+                    return (isNaN(n) ? 0 : n).toFixed(desc);
                 },
                 visualFechaSee(fecha) {
                     return formatFechaVisual(fecha);
@@ -2502,13 +2505,17 @@
                 },
 
                 calcularCuotasRestantes() {
-                    if (this.venta.tiene_inicial && this.venta.monto_inicial) {
-                        const montoRestante = this.venta.total - this.venta.monto_inicial;
-                        // Recalcular las cuotas con el monto restante
-                        this.recalcularCuotas(montoRestante);
-                    } else {
-                        // Calcular cuotas con el monto total
-                        this.recalcularCuotas(this.venta.total);
+                    const montoInicial = parseFloat(this.venta.monto_inicial) || 0;
+                    const montoRestante = parseFloat(this.venta.total) - montoInicial;
+                    if (this.cuotas.length > 0) {
+                        const numCuotas = this.cuotas.length;
+                        const montoPorCuota = parseFloat((montoRestante / numCuotas).toFixed(2));
+                        this.cuotas.forEach((cuota, i) => {
+                            cuota.monto = i === numCuotas - 1
+                                ? (montoRestante - montoPorCuota * (numCuotas - 1)).toFixed(2)
+                                : montoPorCuota.toFixed(2);
+                        });
+                        this.actualizarDiasPago();
                     }
                 },
 
@@ -2587,21 +2594,6 @@
                     return 'S/';
                 },
 
-                totalValorCuotas() {
-                    let total = 0;
-
-                    // Agregar monto inicial si existe
-                    if (this.venta.tiene_inicial) {
-                        total += parseFloat(this.venta.monto_inicial || 0);
-                    }
-
-                    // Sumar montos de las cuotas
-                    this.cuotas.forEach(cuota => {
-                        total += parseFloat(cuota.monto || 0);
-                    });
-
-                    return this.monedaSibol + " " + total.toFixed(2);
-                },
                 isDirreccionCont() {
                     return this.venta.dir2_cli.length > 0;
                 },
@@ -2651,7 +2643,7 @@
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return this.monedaSibol + " " + total.toFixed(2);
+                    return "S/ " + total.toFixed(2);
                 },
                 async actualizarTasaCambio() {
                     this.cargandoTasa = true;

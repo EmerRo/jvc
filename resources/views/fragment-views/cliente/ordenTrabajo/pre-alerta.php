@@ -151,7 +151,7 @@
                 <!-- Modal Agregar orden de trabajo -->
                 <div class="modal fade" id="modalAgregar" tabindex="-1" aria-labelledby="exampleModalLabel"
                     aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header bg-rojo text-white">
                                 <h5 class="modal-title" id="exampleModalLabel">
@@ -285,6 +285,24 @@
                                         </div>
                                     </div>
 
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">
+                                                <i class="fa fa-warehouse me-1"></i> Almacén
+                                                <small class="text-muted">(para vincular productos del stock)</small>
+                                            </label>
+                                            <select id="select_almacen_ot" class="form-select"
+                                                v-model="idAlmacen"
+                                                @change="onCambiarAlmacen">
+                                                <option value="">— Sin almacén —</option>
+                                                <option v-for="alm in almacenesDisponibles" :key="alm.id_almacen"
+                                                    :value="alm.id_almacen">
+                                                    {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <!-- Lista de equipos -->
                                     <div v-if="cantidadEquipos > 0 && !maquinasIdenticas" class="equipos-lista">
                                         <div class="bg-gris text-white p-3 mb-3" style="border-radius: 8px;">
@@ -300,6 +318,26 @@
                                                     <i class="fa fa-laptop me-1"></i> Equipo {{index + 1}}
                                                 </h6>
                                                 <div class="row g-3">
+                                                    <div class="col-md-12 mb-2">
+                                                        <label class="form-label">
+                                                            <i class="fa fa-box me-1"></i> Producto del stock
+                                                            <small class="text-muted" v-if="idAlmacen">(opcional)</small>
+                                                            <small class="text-danger" v-else>(elegí un almacén arriba para activar)</small>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                            <input type="text"
+                                                                class="form-control input-buscar-producto-ot"
+                                                                :data-index="index"
+                                                                v-model="equipo.producto_busqueda"
+                                                                :disabled="!idAlmacen"
+                                                                :placeholder="idAlmacen ? 'Buscar por código o nombre...' : 'Elegí un almacén primero'"
+                                                                autocomplete="off">
+                                                            <input type="hidden" class="input-id-producto-ot"
+                                                                v-model="equipo.id_producto">
+                                                        </div>
+                                                        <small class="text-muted producto-seleccionado-info-ot"></small>
+                                                    </div>
                                                     <div class="col-md-3">
                                                         <label class="form-label">
                                                             <i class="fa fa-tag me-1"></i> Marca
@@ -352,7 +390,7 @@
                 <!-- Modal Editar orden de trabajo -->
                 <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel"
                     aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header text-white bg-rojo">
                                 <h5 class="modal-title" id="modalEditarLabel">

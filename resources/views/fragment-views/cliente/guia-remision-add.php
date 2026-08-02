@@ -1267,51 +1267,129 @@ if (isset($_GET['coti']) && is_numeric($_GET['coti'])) {
                                 this.guia.nom_cli = resp.datos;
                                 this.guia.dir_cli = resp.direccion;
                                 this.guia.doc_cli = resp.documento;
+                                this.guia.id_cliente = resp.id_cliente || null;
 
                                 if (resp.ubigeo) {
-                                    // Primero seleccionamos el departamento
-                                    $("#select_departamento").val(resp.departamento.padStart(2, '0'));
+                                    // Ubigeo guardado → cascada directa con códigos
+                                    const cargarUbigeoConCodigos = (deptCode, provinciaCode, ubigeoCompleto) => {
+                                        $("#select_departamento").val(deptCode);
+                                        $.ajax({
+                                            data: { "departamento": deptCode },
+                                            url: _URL + '/ajs/consulta/lista/provincias',
+                                            type: 'post',
+                                            success: (response) => {
+                                                const provincias = JSON.parse(response);
+                                                const select_provincia = $("#select_provincia");
+                                                select_provincia.empty();
+                                                provincias.forEach(v => {
+                                                    select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
+                                                });
+                                                select_provincia.val(provinciaCode);
+                                                $.ajax({
+                                                    data: { "departamento": deptCode, "provincia": provinciaCode },
+                                                    url: _URL + '/ajs/consulta/lista/distrito',
+                                                    type: 'post',
+                                                    success: (response) => {
+                                                        const distritos = JSON.parse(response);
+                                                        const select_distrito = $("#select_distrito");
+                                                        select_distrito.empty();
+                                                        distritos.forEach(v => {
+                                                            select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
+                                                        });
+                                                        select_distrito.val(ubigeoCompleto);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    };
+                                    cargarUbigeoConCodigos(
+                                        resp.departamento.padStart(2, '0'),
+                                        resp.ubigeo.substring(2, 4),
+                                        resp.ubigeo
+                                    );
+                                } else if (resp.documento && resp.documento.length === 11) {
+                                    // Sin ubigeo pero tiene RUC → consultar SUNAT para obtener ubicación
+                                    const $msgUbigeo = $('<small id="msg-ubigeo-sunat" style="display:block;margin-top:4px;color:#6c757d;"><i class="fas fa-spinner fa-spin me-1"></i>Consultando ubicación en SUNAT...</small>');
+                                    $("#select_departamento").closest(".row").after($msgUbigeo);
 
-                                    // Luego cargamos las provincias
-                                    $.ajax({
-                                        data: { "departamento": resp.departamento.padStart(2, '0') },
-                                        url: _URL + '/ajs/consulta/lista/provincias',
-                                        type: 'post',
-                                        success: (response) => {
-                                            const provincias = JSON.parse(response);
-                                            const select_provincia = $("#select_provincia");
-                                            select_provincia.empty();
-
-                                            provincias.forEach(v => {
-                                                select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
-                                            });
-
-                                            // Seleccionamos la provincia
-                                            const provinciaCode = resp.ubigeo.substring(2, 4);
-                                            select_provincia.val(provinciaCode);
-
-                                            // Finalmente cargamos los distritos
-                                            $.ajax({
-                                                data: {
-                                                    "departamento": resp.departamento.padStart(2, '0'),
-                                                    "provincia": provinciaCode
-                                                },
-                                                url: _URL + '/ajs/consulta/lista/distrito',
-                                                type: 'post',
-                                                success: (response) => {
-                                                    const distritos = JSON.parse(response);
-                                                    const select_distrito = $("#select_distrito");
-                                                    select_distrito.empty();
-
-                                                    distritos.forEach(v => {
-                                                        select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
-                                                    });
-
-                                                    // Seleccionamos el distrito usando el ubigeo completo
-                                                    select_distrito.val(resp.ubigeo);
-                                                }
-                                            });
+                                    _ajax("/ajs/consulta/ruc", "POST", { ruc: resp.documento }, (sunatResp) => {
+                                        $("#msg-ubigeo-sunat").remove();
+                                        if (!sunatResp.res || !sunatResp.data || !sunatResp.data.departamento) {
+                                            $("#msg-ubigeo-sunat").remove();
+                                            return;
                                         }
+
+                                        const norm = s => s ? s.toUpperCase().trim() : '';
+                                        const deptName = norm(sunatResp.data.departamento);
+                                        const provName = norm(sunatResp.data.provincia);
+                                        const distName = norm(sunatResp.data.distrito);
+
+                                        // Buscar departamento por nombre en el select
+                                        const deptOption = $("#select_departamento option").filter(function() {
+                                            return norm($(this).text()) === deptName;
+                                        });
+                                        if (!deptOption.length) {
+                                            $("#msg-ubigeo-sunat").remove();
+                                            return;
+                                        }
+
+                                        const deptCode = deptOption.val();
+                                        $("#select_departamento").val(deptCode);
+
+                                        $.ajax({
+                                            data: { "departamento": deptCode },
+                                            url: _URL + '/ajs/consulta/lista/provincias',
+                                            type: 'post',
+                                            success: (response) => {
+                                                const provincias = JSON.parse(response);
+                                                const select_provincia = $("#select_provincia");
+                                                select_provincia.empty();
+                                                provincias.forEach(v => {
+                                                    select_provincia.append(`<option value="${v.provincia}">${v.nombre}</option>`);
+                                                });
+
+                                                const provOption = select_provincia.find("option").filter(function() {
+                                                    return norm($(this).text()) === provName;
+                                                });
+                                                if (!provOption.length) return;
+
+                                                const provCode = provOption.val();
+                                                select_provincia.val(provCode);
+
+                                                $.ajax({
+                                                    data: { "departamento": deptCode, "provincia": provCode },
+                                                    url: _URL + '/ajs/consulta/lista/distrito',
+                                                    type: 'post',
+                                                    success: (response) => {
+                                                        const distritos = JSON.parse(response);
+                                                        const select_distrito = $("#select_distrito");
+                                                        select_distrito.empty();
+                                                        distritos.forEach(v => {
+                                                            select_distrito.append(`<option value="${v.ubigeo}">${v.nombre}</option>`);
+                                                        });
+
+                                                        const distOption = select_distrito.find("option").filter(function() {
+                                                            return norm($(this).text()) === distName;
+                                                        });
+                                                        if (distOption.length) {
+                                                            const ubigeoCode = distOption.val();
+                                                            select_distrito.val(ubigeoCode);
+
+                                                            // Guardar ubigeo en el cliente para no volver a consultar SUNAT
+                                                            if (this.guia && this.guia.id_cliente) {
+                                                                _ajax("/ajs/cliente/ubigeo", "POST", {
+                                                                    id_cliente:  this.guia.id_cliente,
+                                                                    ubigeo:      ubigeoCode,
+                                                                    departamento: sunatResp.data.departamento,
+                                                                    provincia:    sunatResp.data.provincia,
+                                                                    distrito:     sunatResp.data.distrito
+                                                                }, () => {});
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        });
                                     });
                                 }
                             }

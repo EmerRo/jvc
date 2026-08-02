@@ -19,6 +19,7 @@ class DocumentosUtils {
         this.documentos = [];
         this.filtroActual = '';
         this.tipoFiltroActual = 'todos';
+        this.filtroTipo = 'todos';
         this.editor = null;
         this.templateEditor = null;
         this.procesandoAccion = false;
@@ -236,6 +237,8 @@ class DocumentosUtils {
         let url = this.config.urls.render;
         if (this.filtroActual) {
             url += `?filtro=${encodeURIComponent(this.filtroActual)}&tipo_busqueda=${this.tipoFiltroActual}`;
+        } else if (this.filtroTipo && this.filtroTipo !== 'todos') {
+            url += `?filtro=${encodeURIComponent(this.filtroTipo)}&tipo_busqueda=tipo`;
         }
 
         $.ajax({
@@ -400,9 +403,8 @@ class DocumentosUtils {
         const busqueda = $(this.config.elementos.inputBuscar).val().trim().toLowerCase();
 
         if (busqueda === "") {
-            // CORRECCIÓN: Siempre limpiar filtros cuando la búsqueda está vacía
             this.filtroActual = "";
-            this.tipoFiltroActual = "todos";
+            this.tipoFiltroActual = "titulo";
         } else {
             this.filtroActual = busqueda;
             this.tipoFiltroActual = "titulo";

@@ -3,7 +3,7 @@
 
 require_once "app/models/Carta.php";
 require_once "app/models/CartaTemplate.php";
-require_once "app/http/controllers/CartaPDF.php";
+require_once "app/http/controllers/Reportes/CartaPDF.php";
 require_once "app/models/TipoCarta.php";
 require_once "app/http/controllers/BaseDocumentoController.php";
 

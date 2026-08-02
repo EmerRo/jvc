@@ -1,210 +1,8 @@
 <!-- resources/views/fragment-views/cliente/documentos/componentes/otros-archivos.php -->
-<style>
-    /* Estilos generales */
-    .image-preview {
-        max-width: 100%;
-        max-height: 150px;
-        display: none;
-    }
+<link rel="stylesheet" href="<?= URL::to('/public/css/informes.css') ?>?v=<?= time() ?>">
 
-    .image-placeholder {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        text-align: center;
-        background-color: #f9f9f9;
-        color: #999;
-    }
-
-    .editor-container {
-        height: 300px;
-        margin-bottom: 20px;
-        border: 1px solid #dee2e6;
-    }
-
-    .vista {
-        display: none;
-    }
-
-    .vista.active {
-        display: block;
-    }
-
-    .archivo-card {
-        transition: all 0.3s ease;
-        height: 100%;
-    }
-
-    .archivo-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-header {
-        background-color: #dc3545;
-        color: white;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-    }
-
-    .document-preview {
-        height: 250px;
-        overflow: hidden;
-        display: block;
-        background-color: white;
-        padding: 0;
-        margin: 0;
-    }
-
-    .pdf-preview-canvas {
-        width: 100% !important;
-    }
-
-    .image-preview-container {
-        border: 2px dashed #e0e0e0;
-        border-radius: 8px;
-        padding: 10px;
-        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
-        min-height: 160px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .image-preview-container:hover {
-        border-color: #CA3438;
-        background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
-        transform: translateY(-2px);
-    }
-
-    .preview-image {
-        max-height: 120px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-    .preview-image:hover {
-        transform: scale(1.05);
-    }
-
-    .image-actions {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 8px;
-    }
-
-    .btn-image-action {
-        padding: 4px 12px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-image-action.btn-view {
-        background-color: #17a2b8;
-        color: white;
-    }
-
-    .btn-image-action.btn-view:hover {
-        background-color: #138496;
-    }
-
-    .btn-image-action.btn-remove {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .btn-image-action.btn-remove:hover {
-        background-color: #c82333;
-    }
-
-    .upload-placeholder {
-        color: #999;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    .upload-icon {
-        font-size: 36px;
-        color: #CA3438;
-        opacity: 0.7;
-        margin-bottom: 8px;
-        display: block;
-        text-align: center;
-    }
-
-    .image-info {
-        background: rgba(255,255,255,0.8);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        color: #666;
-        margin-top: 4px;
-    }
-
-    .image-modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.9);
-        animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .image-modal-close {
-        position: absolute;
-        top: 20px;
-        right: 40px;
-        color: #fff;
-        font-size: 40px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .image-modal-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-
-    .image-modal-content img {
-        max-width: 90%;
-        max-height: 90%;
-    }
-
-    .btn-outline-secondary {
-        position: relative;
-        z-index: 1000;
-        pointer-events: auto;
-    }
-</style>
-
-<!-- Añadir PDF.js para la vista previa de documentos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script>
-    // Configurar el worker de PDF.js
-    window.pdfjsLib = window.pdfjsLib || {};
-    window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-</script>
-
-<!-- Botones de acción -->
-<div class="mb-4">
+<!-- Versión Desktop: Botones horizontales -->
+<div class="d-none d-lg-flex mb-4 gap-2 flex-wrap">
     <button class="btn border-rojo" id="btn-lista-otros-archivos">
         <i class="fas fa-list me-2"></i>Lista de Otros Archivos
     </button>
@@ -222,15 +20,48 @@
     </button>
 </div>
 
+<!-- Versión Mobile: Dropdown -->
+<div class="d-lg-none mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <h3 class="text-negro font-medium mb-0">Otros Archivos</h3>
+        <div class="dropdown">
+            <button class="btn btn-sm border-rojo" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.mostrarVistaListaOtrosArchivos();"><i class="fas fa-list me-2 text-rojo"></i>Lista de Otros Archivos</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.mostrarFormularioNuevoOtroArchivo();"><i class="fas fa-plus me-2 text-rojo"></i>Nuevo Otro Archivo</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.editarPlantillaOtroArchivo();"><i class="fas fa-edit me-2 text-rojo"></i>Editar Plantilla</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.gestionarMembretes();"><i class="fas fa-image me-2 text-rojo"></i>Gestionar Membretes</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); window.otroArchivoModuleInstance.reiniciar();"><i class="fas fa-sync me-2 text-rojo"></i>Reiniciar Módulo</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <!-- Vista de lista de otros archivos -->
 <div id="vista-lista-otros-archivos" class="vista active">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Otros Archivos</h3>
-        <div class="input-group" style="max-width: 300px;">
-            <input type="text" class="form-control border-rojo" id="buscar-otro-archivo" placeholder="Buscar otros archivos...">
-            <button class="btn bg-rojo text-white" type="button">
-                <i class="fas fa-search"></i>
-            </button>
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-negro font-medium mb-0 d-none d-lg-block">Otros Archivos</h3>
+            <div class="d-flex justify-content-end gap-2 w-100">
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text bg-rojo text-white"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control border-rojo" id="buscar-otro-archivo" placeholder="Buscar otros archivos...">
+                </div>
+                <button class="btn border-rojo dropdown-toggle" type="button" id="dropdownFiltroOtrosArchivos"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter"></i><span class="d-none d-sm-inline ms-2">Filtrar</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="filtro-tipos-otros-archivos" aria-labelledby="dropdownFiltroOtrosArchivos">
+                    <li><h6 class="dropdown-header">Tipo de Otro Archivo</h6></li>
+                    <li><a class="dropdown-item active" href="#" data-tipo="todos">Todos</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -240,16 +71,15 @@
             <div class="spinner-border text-rojo" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
-            <p class="mt-2 text-muted">Cargando otros archivos...</p>
+            <p class="mt-2 text-gris">Cargando otros archivos...</p>
         </div>
     </div>
 </div>
 
 <!-- Vista de formulario de nuevo/editar otro archivo -->
 <div id="vista-editar-otro-archivo" class="vista">
-    <div class="form-header">
-        <h3 id="titulo-pagina-otro-archivo" class="m-0">Nuevo Otro Archivo</h3>
-        <p class="m-0">Complete la información del otro archivo</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 id="titulo-pagina-otro-archivo" class="text-negro font-medium mb-0">Nuevo Otro Archivo</h3>
     </div>
 
     <form id="formOtroArchivo" enctype="multipart/form-data">
@@ -762,6 +592,7 @@
 
     $(document).ready(function() {
         otrosArchivosUtils = new DocumentosUtils(otrosArchivosConfig);
+        window.otroArchivoModuleInstance = otrosArchivosUtils;
         
         // Exponer funciones globales para compatibilidad
         window.recargarOtrosArchivos = () => otrosArchivosUtils.cargarDocumentos();
@@ -773,7 +604,39 @@
         window.mostrarVistaPreviewPlantilla = () => otrosArchivosUtils.mostrarVistaPreviewPlantilla();
         window.mostrarVistaPreviewMembretes = () => otrosArchivosUtils.mostrarVistaPreviewMembretes();
         window.gestionarMembretes = () => otrosArchivosUtils.gestionarMembretes();
+        
+        setTimeout(cargarFiltrosOtrosArchivos, 400);
     });
+
+    // Cargar filtros de tipo
+    function cargarFiltrosOtrosArchivos() {
+        if (!window.otroArchivoModuleInstance) { setTimeout(cargarFiltrosOtrosArchivos, 300); return; }
+        $.ajax({
+            url: _URL + "/ajs/otroArchivo/obtener-tipos-otroArchivos",
+            method: "GET",
+            dataType: 'json',
+            success: function (data) {
+                if (data.success && data.tipos) {
+                    let html = '<li><h6 class="dropdown-header">Tipo de Otro Archivo</h6></li>';
+                    html += '<li><a class="dropdown-item active" href="#" data-tipo="todos">Todos</a></li>';
+                    data.tipos.forEach(function (tipo) {
+                        html += '<li><a class="dropdown-item" href="#" data-tipo="' + tipo.nombre + '">' + tipo.nombre + '</a></li>';
+                    });
+                    $("#filtro-tipos-otros-archivos").html(html);
+                    $("#filtro-tipos-otros-archivos .dropdown-item").on("click", function (e) {
+                        e.preventDefault();
+                        $("#filtro-tipos-otros-archivos .dropdown-item").removeClass("active");
+                        $(this).addClass("active");
+                        const tipo = $(this).data("tipo");
+                        if (window.otroArchivoModuleInstance) {
+                            window.otroArchivoModuleInstance.filtroTipo = tipo;
+                            window.otroArchivoModuleInstance.cargarDocumentos();
+                        }
+                    });
+                }
+            }
+        });
+    }
 
     // Funciones específicas para tipos de otros archivos
     function abrirModalTiposOtrosArchivos() {

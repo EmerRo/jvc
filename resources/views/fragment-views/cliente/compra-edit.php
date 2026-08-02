@@ -4,6 +4,7 @@
 $idCompra = isset($id) ? $id : null;
 ?>
 <script src="<?= URL::to('public/js/qrCode.min.js') ?>"></script>
+<script src="<?= URL::to('public/js/components/almacen-select.js') ?>"></script>
 
 <!-- Campo hidden con el ID de la compra -->
 <input type="hidden" id="compra_id_edit" value="<?= $idCompra ?>">
@@ -106,13 +107,7 @@ $idCompra = isset($id) ? $id : null;
 
                                                                             <!-- Selector de almacén -->
                                                                             <div class="col-lg-4">
-                                                                                <select class="form-select"
-                                                                                    v-model="producto.almacen"
-                                                                                    @change="actualizarAutocomplete">
-                                                                                    <option value="1">Alm 1</option>
-                                                                                    <option value="2">Alm 2</option>
-                                                                                    <option value="3">Alm 3</option>
-                                                                                </select>
+                                                                                <almacen-select class="form-select" v-model="producto.almacen" @input="actualizarAutocomplete"></almacen-select>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -376,6 +371,24 @@ $idCompra = isset($id) ? $id : null;
                                                                                 </select>
                                                                             </div>
                                                                             <div class="col-md-6"></div>
+                                                                        </div>
+                                                                        <div v-if="venta.moneda == '2'" class="form-group mb-3 mt-2">
+                                                                            <label class="control-label">Tasa de cambio</label>
+                                                                            <div class="col-lg-12">
+                                                                                <div class="input-group">
+                                                                                    <input v-model="venta.tc" type="text"
+                                                                                        class="form-control text-center"
+                                                                                        placeholder="Ingresa la tasa de cambio">
+                                                                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                                                            @click="actualizarTasaCambio"
+                                                                                            :disabled="cargandoTasa"
+                                                                                            title="Actualizar tasa de cambio desde SUNAT">
+                                                                                        <i v-if="cargandoTasa" class="fa fa-spinner fa-spin"></i>
+                                                                                        <i v-else class="fas fa-sync-alt"></i>
+                                                                                    </button>
+                                                                                </div>
+                                                                                <small class="text-muted" v-if="fechaTasa">Tasa SUNAT del {{ fechaTasa }}</small>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="form-group">
@@ -745,6 +758,7 @@ $idCompra = isset($id) ? $id : null;
                     tipoventa: 1,
                     total: 0,
                     moneda: "1",
+                    tc: '',
                     serie_proveedor: '',
                     numero_proveedor: '',
                     dias_lista: [],
@@ -753,6 +767,8 @@ $idCompra = isset($id) ? $id : null;
                 },
                 numeroCuotas: 1,
                 cuotas: [],
+                cargandoTasa: false,
+                fechaTasa: null,
             },
             created() {
                 // Establecer la fecha actual y la fecha de vencimiento al cargar el componente
@@ -820,6 +836,8 @@ $idCompra = isset($id) ? $id : null;
                                 vue.venta.nom_cli = compra.razon_social;
                                 vue.venta.serie_proveedor = compra.serie_proveedor || '';
                                 vue.venta.numero_proveedor = compra.numero_proveedor || '';
+                                vue.venta.moneda = String(compra.moneda);
+                                vue.venta.tc = compra.tipo_cambio || '';
                                 // IMPORTANTE: Guardar el ID del proveedor para actualización
                                 vue.venta.id_proveedor = compra.id_proveedor;
 
@@ -857,6 +875,17 @@ $idCompra = isset($id) ? $id : null;
                                         fecha: p.fecha,
                                         monto: p.monto
                                     }));
+                                    vue.cuotas = vue.venta.dias_lista.slice();
+                                    vue.numeroCuotas = vue.cuotas.length;
+                                    vue.venta.dias_pago = vue.cuotas.map(c => c.fecha).join(',');
+
+                                    // Inferir pago inicial: si la suma de cuotas no cubre el total
+                                    const sumaCuotas = vue.cuotas.reduce((acc, c) => acc + parseFloat(c.monto || 0), 0);
+                                    const totalCompra = parseFloat(compra.total || 0);
+                                    if (totalCompra - sumaCuotas > 0.01) {
+                                        vue.venta.tiene_inicial = true;
+                                        vue.venta.monto_inicial = (totalCompra - sumaCuotas).toFixed(2);
+                                    }
                                 }
 
                                 // Cambiar el botón a "Actualizar"
@@ -1413,7 +1442,34 @@ $idCompra = isset($id) ? $id : null;
                 chageMoneda(event) {
                     console.log(event.target.value)
                     this.venta.moneda = event.target.value;
+                    if (event.target.value == '2' && !this.venta.tc) {
+                        this.actualizarTasaCambio();
+                    }
+                },
+                async actualizarTasaCambio() {
+                    this.cargandoTasa = true;
+                    this.fechaTasa = null;
 
+                    try {
+                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
+                        const result = await response.json();
+
+                        if (result.success && result.data && result.data.venta) {
+                            this.venta.tc = result.data.venta.toString();
+                            this.fechaTasa = result.data.fecha;
+                        } else {
+                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
+                        }
+                    } catch (error) {
+                        console.error('Error al obtener tasa de cambio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
+                        });
+                    } finally {
+                        this.cargandoTasa = false;
+                    }
                 },
                 onlyNumber($event) {
                     //console.log($event.keyCode); //keyCodes value
@@ -1500,6 +1556,7 @@ $idCompra = isset($id) ? $id : null;
                                 total: this.venta.total,
                                 serie_proveedor: this.venta.serie_proveedor || '',
                                 numero_proveedor: this.venta.numero_proveedor || '',
+                                tc: this.venta.tc || '',
                                 listaPro: JSON.stringify(this.productos),
                                 dias_lista: JSON.stringify(this.venta.dias_lista),
                                 tipo_pago: this.venta.tipo_pago // Para la validación de crédito

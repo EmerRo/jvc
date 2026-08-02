@@ -2,12 +2,12 @@
 <link rel="stylesheet" href="<?= URL::to('/public/css/informes.css') ?>?v=<?= time() ?>">
 
 <!-- Añadir PDF.js para la vista previa de documentos -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="<?= URL::to('public/lib/pdfjs/pdf.min.js') ?>"></script>
 <script>
     // Configurar PDF.js worker solo una vez
     (function () {
         if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
         }
     })();
 </script>
@@ -647,7 +647,7 @@ function cleanup() {
 
             // Configurar PDF.js worker globalmente
             if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
             }
 
             // Inicializar módulo directamente
@@ -657,7 +657,7 @@ function cleanup() {
 
             // Configurar PDF.js worker globalmente
             if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
             }
 
             // Inicializar módulo directamente
@@ -716,7 +716,7 @@ function cleanup() {
 
             // Configurar PDF.js worker si no está configurado
             if (typeof pdfjsLib !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
             }
 
             moduloInformesInicializado = true;
@@ -3815,7 +3815,7 @@ function validarContenido() {
 
             // Verificar que el worker esté configurado
             if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
             }
 
             const canvas = document.getElementById(canvasId);

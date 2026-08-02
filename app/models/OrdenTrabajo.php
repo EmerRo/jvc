@@ -175,19 +175,25 @@ class OrdenTrabajo
                                     marca,
                                     equipo,
                                     modelo,
-                                    numero_serie
-                                ) VALUES (?, ?, ?, ?, ?)";
+                                    numero_serie,
+                                    id_almacen,
+                                    id_producto
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
                 $stmt_detalle = $this->conectar->prepare($sql_detalle);
 
                 foreach ($this->detalles as $detalle) {
+                    $id_almacen_det = isset($detalle['id_almacen']) ? $detalle['id_almacen'] : null;
+                    $id_producto_det = isset($detalle['id_producto']) ? $detalle['id_producto'] : null;
                     $stmt_detalle->bind_param(
-                        "issss",
+                        "issssii",
                         $id_orden_trabajo,
                         $detalle['marca'],
                         $detalle['equipo'],
                         $detalle['modelo'],
-                        $detalle['numero_serie']
+                        $detalle['numero_serie'],
+                        $id_almacen_det,
+                        $id_producto_det
                     );
 
                     if (!$stmt_detalle->execute()) {

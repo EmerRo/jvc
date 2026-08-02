@@ -505,7 +505,7 @@ if (isset($_GET["guia"])) {
                                     <div class="form-group  mb-3">
                                         <div class="col-lg-12">
                                             <div class="input-group">
-                                                <input v-model="venta.dir2_cli" type="text" placeholder="Asunto"
+                                                <input v-model="venta.dir2_cli" type="text" placeholder="Atención"
                                                     class="form-control ui-autocomplete-input" autocomplete="off">
                                             </div>
                                         </div>

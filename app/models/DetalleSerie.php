@@ -361,12 +361,13 @@ class DetalleSerie
      */
     public function getUltimoNumeroSerie()
     {
-        $sql = "SELECT numero_serie 
-                FROM detalle_serie 
-                WHERE numero_serie IS NOT NULL 
-                  AND numero_serie != '' 
+        $sql = "SELECT numero_serie
+                FROM detalle_serie
+                WHERE numero_serie IS NOT NULL
+                  AND numero_serie != ''
                   AND numero_serie NOT LIKE '[%'
-                ORDER BY CAST(numero_serie AS UNSIGNED) DESC 
+                  AND numero_serie REGEXP '^[0-9]+$'
+                ORDER BY CAST(numero_serie AS UNSIGNED) DESC
                 LIMIT 1";
 
         $resultado = $this->conectar->query($sql);

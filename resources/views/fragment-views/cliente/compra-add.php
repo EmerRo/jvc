@@ -25,7 +25,8 @@
         </div>
         <div class="col-md-4">
             <div class="float-end d-none d-md-block">
-
+                <a id="backbuttonvp" style="margin-left:25px;" href="/compras"
+                    class="btn border-rojo text-rojo button-link"><i class="fa fa-arrow-left"></i> Regresar</a>
             </div>
         </div>
     </div>
@@ -255,7 +256,7 @@
                                                                         <th>Item</th>
                                                                         <th>Producto</th>
                                                                         <th>Cantidad</th>
-                                                                        <th>P. Unit.</th>
+                                                                        <th>Costo</th>
                                                                         <th>Parcial</th>
                                                                         <th></th>
                                                                     </tr>
@@ -365,6 +366,24 @@
                                                                                 </select>
                                                                             </div>
                                                                             <div class="col-md-6"></div>
+                                                                        </div>
+                                                                        <div v-if="venta.moneda == '2'" class="form-group mb-3 mt-2">
+                                                                            <label class="control-label">Tasa de cambio</label>
+                                                                            <div class="col-lg-12">
+                                                                                <div class="input-group">
+                                                                                    <input v-model="venta.tc" type="text"
+                                                                                        class="form-control text-center"
+                                                                                        placeholder="Ingresa la tasa de cambio">
+                                                                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                                                            @click="actualizarTasaCambio"
+                                                                                            :disabled="cargandoTasa"
+                                                                                            title="Actualizar tasa de cambio desde SUNAT">
+                                                                                        <i v-if="cargandoTasa" class="fa fa-spinner fa-spin"></i>
+                                                                                        <i v-else class="fas fa-sync-alt"></i>
+                                                                                    </button>
+                                                                                </div>
+                                                                                <small class="text-muted" v-if="fechaTasa">Tasa SUNAT del {{ fechaTasa }}</small>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <div class="form-group">
@@ -718,7 +737,7 @@
                 productoInfo: [],
                 venta: {
                     dir_pos: 1,
-                    tipo_doc: '12', // Cambiar por defecto a NOTA DE COMPRA
+                    tipo_doc: '2', // FACTURA por defecto
                     serie: '',
                     numero: '',
                     tipo_pago: '1',
@@ -734,6 +753,7 @@
                     tipoventa: 1,
                     total: 0,
                     moneda: "1",
+                    tc: '',
                     serie_proveedor: '',
                     numero_proveedor: '',
                     dias_lista: [],
@@ -741,6 +761,8 @@
                 },
                 numeroCuotas: 1,
                 cuotas: [],
+                cargandoTasa: false,
+                fechaTasa: null,
             },
             created() {
                 // Establecer la fecha actual y la fecha de vencimiento al cargar el componente
@@ -754,7 +776,7 @@
                 cargarSerieNumero() {
                     $.ajax({
                         type: 'GET',
-                        url: _URL + '/ajs/compra/serie-numero',
+                        url: _URL + '/ajs/compra/serie-numero?tipo_doc=' + this.venta.tipo_doc,
                         success: (response) => {
                             const data = JSON.parse(response);
                             if (data.success) {
@@ -1318,7 +1340,34 @@
                 chageMoneda(event) {
                     console.log(event.target.value)
                     this.venta.moneda = event.target.value;
+                    if (event.target.value == '2' && !this.venta.tc) {
+                        this.actualizarTasaCambio();
+                    }
+                },
+                async actualizarTasaCambio() {
+                    this.cargandoTasa = true;
+                    this.fechaTasa = null;
 
+                    try {
+                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
+                        const result = await response.json();
+
+                        if (result.success && result.data && result.data.venta) {
+                            this.venta.tc = result.data.venta.toString();
+                            this.fechaTasa = result.data.fecha;
+                        } else {
+                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
+                        }
+                    } catch (error) {
+                        console.error('Error al obtener tasa de cambio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
+                        });
+                    } finally {
+                        this.cargandoTasa = false;
+                    }
                 },
                 onlyNumber($event) {
                     //console.log($event.keyCode); //keyCodes value

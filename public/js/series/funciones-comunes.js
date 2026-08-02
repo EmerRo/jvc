@@ -81,13 +81,16 @@ function cargarUltimoNumeroSerie() {
           const ultimoNumero = response.numero_serie;
           $("#ultimo_numero_serie, #ultimo_numero_serie_u").val(ultimoNumero);
           
-          // Calcular el siguiente número y asignarlo al primer equipo
-          const siguienteNumero = parseInt(ultimoNumero) + 1;
-          
-          // Asignar al primer equipo en el formulario de agregar
-          $('input[name="equipos[0][numero_serie]"]').val(siguienteNumero);
-          $('input[name="equipos[0][numero_serie]"]').addClass('is-valid');
-          $('input[name="equipos[0][numero_serie]"]').siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
+          // Calcular el siguiente número y asignarlo al primer equipo (solo si es numérico)
+          const parsedNumero = parseInt(ultimoNumero);
+          if (!isNaN(parsedNumero)) {
+            const siguienteNumero = parsedNumero + 1;
+            $('input[name="equipos[0][numero_serie]"]').val(siguienteNumero);
+            $('input[name="equipos[0][numero_serie]"]').addClass('is-valid');
+            $('input[name="equipos[0][numero_serie]"]').siblings('.feedback-container').html('<div class="valid-feedback d-block">Número de serie disponible.</div>');
+          } else {
+            $('input[name="equipos[0][numero_serie]"]').val('');
+          }
           
           // Preparar para máquinas idénticas
           generarSeriesMasivas(ultimoNumero);
@@ -110,14 +113,16 @@ function generarSeriesMasivas(ultimoNumero) {
     
     // Convertir a número entero para asegurar operaciones numéricas correctas
     const numeroBase = parseInt(ultimoNumero);
-    
-    // Generar series correlativas
-    for (let i = 1; i <= cantidad; i++) {
-      series.push(numeroBase + i);
+
+    // Solo generar series automáticas si el último número es numérico
+    if (!isNaN(numeroBase)) {
+      for (let i = 1; i <= cantidad; i++) {
+        series.push(numeroBase + i);
+      }
+      $("#series_masivas").val(series.join(","));
     }
-    
-    // Actualizar el textarea con las series generadas
-    $("#series_masivas").val(series.join(","));
+
+    // Actualizar el textarea con las series generadas (vacío si no es numérico)
     $("#contador_series").text(series.length);
     
     // Validar cantidad de series

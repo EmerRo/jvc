@@ -1702,7 +1702,9 @@ $listaProd1 = $this->service->obtenerProductosVentaSimple($venta);
     </div>
     ');
     if ($dist == 'I') {
-      $this->mpdf->Output((is_string($nombreXML) ? $nombreXML : '') . ".pdf", $dist);
+      $nombreCliente = preg_replace('/[\/\\\\:*?"<>|]/', '', $resultC['datos'] ?? '');
+      $pdfFilename = $datoVenta['serie'] . '-' . $datoVenta['numero'] . ' - ' . $nombreCliente . '.pdf';
+      $this->mpdf->Output($pdfFilename, $dist);
     } elseif ($dist == 'F') {
       $this->mpdf->Output(base64_decode((is_string($nombreXML) ? $nombreXML : '')), $dist);
     }

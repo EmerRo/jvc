@@ -1,6 +1,29 @@
- /* 
+ /*
  public\css\numero-series.css
  Estilos para validación de números de serie */
+
+/* Fix: modal-dialog-scrollable cuando el form envuelve body+footer */
+.modal-dialog-scrollable .modal-content {
+    max-height: calc(100vh - 3.5rem);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.modal-dialog-scrollable .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+.modal-dialog-scrollable .modal-body {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+.modal-dialog-scrollable .modal-footer {
+    flex-shrink: 0;
+}
  .is-valid {
     border-color: #28a745 !important;
     padding-right: calc(1.5em + 0.75rem) !important;

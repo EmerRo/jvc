@@ -590,9 +590,11 @@ public function setDocReferencia($doc_referencia): void
 
         $row = DB::selectOne(
             $this->conectar,
-            "SELECT ventas.*, c.documento, c.datos
+            "SELECT ventas.*, c.documento, c.datos, COALESCE(ac.nombre, '') as atencion
              FROM ventas
              JOIN clientes c ON c.id_cliente = ventas.id_cliente
+             LEFT JOIN cotizaciones cot ON cot.cotizacion_id = ventas.id_coti
+             LEFT JOIN asuntos_coti ac ON ac.id_asunto = cot.id_asunto
              WHERE id_venta = ?",
             'i',
             [$idVenta]
