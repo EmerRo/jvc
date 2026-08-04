@@ -97,9 +97,9 @@
                                     <div class="tab-pane fade show active" id="productos" role="tabpanel"
                                         aria-labelledby="productos-tab">
                                         <table id="datatableProductoDetalle"
-                                            class="table table-bordered dt-responsive text-center table-sm"
+                                            class="table table-bordered dt-responsive nowrap text-center table-sm"
                                             style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                            <thead>
+                                            <thead class="table-light">
                                                 <tr>
                                                     <th style="text-align: center;">Código</th>
                                                     <th style="text-align: center;">Producto</th>
@@ -111,13 +111,17 @@
                                     </div>
                                     <div class="tab-pane fade" id="pagos" role="tabpanel" aria-labelledby="pagos-tab">
                                         <div id="infoPagos">
-                                            <div class="alert alert-info mb-3">
-                                                <strong>Tipo de pago:</strong> <span id="tipoPagoText"></span>
+                                            <div class="alert alert-info mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                <div><strong>Tipo de pago:</strong> <span id="tipoPagoText"></span></div>
+                                                <a href="/pagos" id="linkPagarCuotas" class="btn btn-sm btn-primary"
+                                                    style="display: none;">
+                                                    <i class="fa fa-money"></i> Pagar cuotas aquí
+                                                </a>
                                             </div>
                                             <table id="datatablePagosDetalle"
-                                                class="table table-bordered dt-responsive text-center table-sm"
+                                                class="table table-bordered dt-responsive nowrap text-center table-sm"
                                                 style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-                                                <thead>
+                                                <thead class="table-light">
                                                     <tr>
                                                         <th style="text-align: center;">Fecha</th>
                                                         <th style="text-align: center;">Monto</th>
@@ -300,9 +304,10 @@
             if ($.fn.DataTable.isDataTable("#datatablePagosDetalle")) {
                 $("#datatablePagosDetalle").DataTable().destroy();
             }
-            $("#datatableProductoDetalle").html('');
-            $("#datatablePagosDetalle").html('<thead><tr><th style="text-align: center;">Fecha</th><th style="text-align: center;">Monto</th><th style="text-align: center;">Estado</th></tr></thead>');
+            $("#datatableProductoDetalle tbody").html('');
+            $("#datatablePagosDetalle").html('<thead class="table-light"><tr><th style="text-align: center;">Fecha</th><th style="text-align: center;">Monto</th><th style="text-align: center;">Estado</th></tr></thead>');
             $("#tipoPagoText").text('');
+            $("#linkPagarCuotas").hide();
 
             // Cargar productos
             $.ajax({
@@ -365,6 +370,7 @@
 
                                 if (dataPagos.tipo_pago == 2) {
                                     $("#tipoPagoText").text("Crédito");
+                                    $("#linkPagarCuotas").show();
 
                                     datatablePagosDetalle = $("#datatablePagosDetalle").DataTable({
                                         paging: true,
@@ -376,7 +382,13 @@
                                         data: dataPagos.pagos,
                                         columns: [
                                             { data: "fecha", class: "text-center" },
-                                            { data: "monto", class: "text-center" },
+                                            {
+                                                data: "monto",
+                                                class: "text-center",
+                                                render: function(data, type, row) {
+                                                    return parseFloat(data).toFixed(2);
+                                                }
+                                            },
                                             {
                                                 data: "estado",
                                                 class: "text-center",
@@ -392,15 +404,15 @@
                                     });
                                 } else {
                                     $("#tipoPagoText").text("Contado");
-                                    $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center">Esta compra fue pagada al contado</td></tr>');
+                                    $("#datatablePagosDetalle").html('<thead class="table-light"><tr><th class="text-center">Fecha</th><th class="text-center">Monto</th><th class="text-center">Estado</th></tr></thead><tbody><tr><td colspan="3" class="text-center">Esta compra fue pagada al contado</td></tr></tbody>');
                                 }
                             } catch (e) {
-                                $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center text-danger">Error al cargar pagos</td></tr>');
+                                $("#datatablePagosDetalle").html('<thead class="table-light"><tr><th class="text-center">Fecha</th><th class="text-center">Monto</th><th class="text-center">Estado</th></tr></thead><tbody><tr><td colspan="3" class="text-center text-danger">Error al cargar pagos</td></tr></tbody>');
                             }
                         },
                         error: function () {
                             $("#loader-menor").hide();
-                            $("#datatablePagosDetalle").html('<tr><td colspan="3" class="text-center text-danger">Error de conexión al cargar pagos</td></tr>');
+                            $("#datatablePagosDetalle").html('<thead class="table-light"><tr><th class="text-center">Fecha</th><th class="text-center">Monto</th><th class="text-center">Estado</th></tr></thead><tbody><tr><td colspan="3" class="text-center text-danger">Error de conexión al cargar pagos</td></tr></tbody>');
                         }
                     });
                 },
@@ -440,7 +452,6 @@
                         
                         let html = '';
                         if (data.detalle.productos.length > 0) {
-                            html += '<tr class="table-secondary"><td colspan="4"><strong>Productos</strong></td></tr>';
                             data.detalle.productos.forEach(function(p) {
                                 let disponible = parseFloat(p.cantidad) - parseFloat(p.cantidad_devuelta || '0');
                                 if (disponible <= 0) return;
@@ -609,10 +620,10 @@
             <div class="modal-body">
                 <input type="hidden" id="devolucionCompraId">
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
-                        <thead>
+                    <table class="table table-bordered nowrap text-center table-sm">
+                        <thead class="table-light">
                             <tr>
-                                <th>Item</th>
+                                <th>Productos</th>
                                 <th class="text-center">Cant. Comprada</th>
                                 <th class="text-center">Ya Devuelto</th>
                                 <th class="text-center">Devolver ahora</th>

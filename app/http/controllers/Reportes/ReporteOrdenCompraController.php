@@ -194,10 +194,10 @@ class ReporteOrdenCompraController extends Controller
         $numeroOrden = $compra['numero'] . "/" . $compra['anio_actual'];
         $this->mpdf->SetTitle("OC° {$numeroOrden}");
 
-        // Configurar el header con el logo de la empresa
+        // Configurar el header con el encabezado de la empresa (igual que cotización)
         $headerHTML = "
        <div style='width: 100%; margin: 0; padding: 0;'>
-       <img style='width: auto; height: auto; display: block; margin-left: 10px;' src='" . ImageStorage::url('empresas', $empresa['logo']) . "'>
+       <img src='public/assets/img/encabezado.svg' style='width: 100%; margin: 0; padding: 0; display: block;'>
        </div>";
 
         $this->mpdf->SetHTMLHeader($headerHTML);
@@ -212,10 +212,10 @@ class ReporteOrdenCompraController extends Controller
         $this->mpdf->shrink_tables_to_fit = 1;
         $this->mpdf->keep_table_proportions = true;
 
-        // Establecer el pie de página
+        // Establecer el pie de página (igual que cotización)
         $footerHTML = '
          <div style="position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 0; height: 145px;">
-             <img src="public/assets/img/pie de pagina.jpg" style="width: 100%; display: block; margin: 0; padding: 0;">
+             <img src="public/assets/img/pie_de_pagina.svg" style="width: 100%; display: block; margin: 0; padding: 0;">
          </div>';
         $this->mpdf->SetHTMLFooter($footerHTML);
 

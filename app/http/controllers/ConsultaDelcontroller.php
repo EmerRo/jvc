@@ -35,7 +35,8 @@ class ConsultaDelcontroller extends Controller
             "cotizacion_id",
             "aplicar_igv",
             "moneda",
-            "venta_numero"  // [13] número de venta si ya fue vendida
+            "venta_numero",  // [13] número de venta si ya fue vendida
+            "cm_tc"          // [14] tipo de cambio para conversión de moneda
         ], $user_id);
     }
    public function generarBarCode2() {

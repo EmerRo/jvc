@@ -507,9 +507,9 @@
                                                         <td><span v-if="!item.editable">{{item.cantidad}}</span><input
                                                                 v-if="item.editable" v-model="item.cantidad"></td>
                                                         <td style="white-space: nowrap;"><span
-                                                                v-if="!item.editable">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + item.precioVenta}}</span><input
+                                                                v-if="!item.editable">{{formatearMoneda(item.precioVenta)}}</span><input
                                                                 v-if="item.editable" v-model="item.precioVenta"></td>
-                                                        <td style="white-space: nowrap;">{{(item.moneda === 'USD' ? '$' : 'S/') + ' ' + (item.precioVenta*item.cantidad).toFixed(2)}}</td>
+                                                        <td style="white-space: nowrap;">{{formatearMoneda(item.precioVenta*item.cantidad)}}</td>
                                                         <td>{{item.precioEspecial}}</td>
                                                         <td>
                                                             <div class="d-flex gap-2 justify-content-center">
@@ -770,7 +770,7 @@
                                             <div class="bg-rojo pv-15 text-center p-3"
                                                 style="height: 90px; color: white">
                                                 <h1 class="mv-0 font-400" id="lbl_suma_pedido">
-                                                    {{monedaSibol}} {{(totalProdustos/(venta.tc||1)).toFixed(2)}}
+                                                    {{formatearMoneda(totalProdustos)}}
                                                 </h1>
                                                 <div class="text-uppercase">Suma Pedido</div>
                                             </div>
@@ -1115,7 +1115,7 @@
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="'S/ '+venta.total" disabled type="text"
+                                                <input :value="formatearMoneda(venta.total)" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -1173,7 +1173,7 @@
                                                             <td>0</td>
                                                             <td>Inicial</td>
                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
-                                                            <td>S/ {{formatoDecimal(venta.monto_inicial)}}</td>
+                                                            <td>{{formatearMoneda(venta.monto_inicial)}}</td>
                                                         </tr>
                                                         <!-- Mostrar cuotas con fechas seleccionables -->
                                                         <tr v-for="(cuota, index) in cuotas" :key="index">
@@ -1185,7 +1185,7 @@
                                                             </td>
                                                             <td>
                                                                 <div class="input-group input-group-sm">
-                                                                    <span class="input-group-text">S/</span>
+                                                                    <span class="input-group-text">{{monedaSibol}}</span>
                                                                     <input type="number"
                                                                         class="form-control form-control-sm"
                                                                         v-model="cuota.monto"
@@ -1197,7 +1197,7 @@
                                                     <tfoot>
                                                         <tr>
                                                             <th colspan="3">Total</th>
-                                                            <th>{{totalValorCuotas}}</th>
+                                                            <th>{{formatearMoneda(totalValorCuotas)}}</th>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
@@ -1462,6 +1462,36 @@
                 }
             },
             methods: {
+                async actualizarTasaCambio() {
+                    this.cargandoTasa = true;
+                    this.fechaTasa = null;
+
+                    try {
+                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
+                        const result = await response.json();
+
+                        if (result.success && result.data && result.data.venta) {
+                            this.venta.tc = result.data.venta.toString();
+                            this.fechaTasa = result.data.fecha;
+                        } else {
+                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
+                        }
+                    } catch (error) {
+                        console.error('Error al obtener tasa de cambio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
+                        });
+                    } finally {
+                        this.cargandoTasa = false;
+                    }
+                },
+                formatearMoneda(monto) {
+                    const tc = parseFloat(this.venta.tc) || 1;
+                    const valor = this.venta.moneda == '2' ? parseFloat(monto || 0) / tc : parseFloat(monto || 0);
+                    return this.monedaSibol + ' ' + valor.toFixed(2);
+                },
                 calcularProximoNumero() {
                     _ajax("/ajs/cotizaciones/ultimo-numero", "GET", {}, (resp) => {
                         const ultimoNumero = resp.ultimo_numero || 0;
@@ -2643,32 +2673,7 @@
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return "S/ " + total.toFixed(2);
-                },
-                async actualizarTasaCambio() {
-                    this.cargandoTasa = true;
-                    this.fechaTasa = null;
-
-                    try {
-                        const response = await fetch(_URL + '/ajs/cotizaciones/tasa-cambio');
-                        const result = await response.json();
-
-                        if (result.success && result.data && result.data.venta) {
-                            this.venta.tc = result.data.venta.toString();
-                            this.fechaTasa = result.data.fecha;
-                        } else {
-                            throw new Error(result.error || 'Datos de tasa de cambio no válidos');
-                        }
-                    } catch (error) {
-                        console.error('Error al obtener tasa de cambio:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'No se pudo obtener la tasa de cambio de SUNAT. Inténtelo nuevamente.',
-                        });
-                    } finally {
-                        this.cargandoTasa = false;
-                    }
+                    return total;
                 }
             }
         });

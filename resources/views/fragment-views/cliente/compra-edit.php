@@ -261,7 +261,7 @@ $idCompra = isset($id) ? $id : null;
                                                                         <th>Item</th>
                                                                         <th>Producto</th>
                                                                         <th>Cantidad</th>
-                                                                        <th>P. Unit.</th>
+                                                                        <th>Costo</th>
                                                                         <th>Parcial</th>
                                                                         <th></th>
                                                                     </tr>

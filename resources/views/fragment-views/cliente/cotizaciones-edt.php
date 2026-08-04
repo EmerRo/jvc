@@ -373,9 +373,9 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                                 v-if="!item.editable">{{formatNumber(item.cantidad)}}</span>
                                                         </td>
                                                         <td style="white-space: nowrap;"><span
-                                                                v-if="!item.editable">{{simboloMonedaCotizacion + ' ' + item.precioVenta}}</span><input
+                                                                v-if="!item.editable">{{formatearMoneda(item.precioVenta)}}</span><input
                                                                 v-if="item.editable" v-model="item.precioVenta"></td>
-                                                        <td style="white-space: nowrap;">{{simboloMonedaCotizacion + ' ' + (item.precioVenta*item.cantidad).toFixed(2)}}</td>
+                                                        <td style="white-space: nowrap;">{{formatearMoneda(item.precioVenta*item.cantidad)}}</td>
                                                         <td>{{item.precioEspecial ?
                                                             parseFloat(item.precioEspecial).toFixed(2) : '-'}}</td>
                                                         <td>
@@ -595,7 +595,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
 
                                             <div class="bg-rojo pv-15 text-center  p-3"
                                                 style="height: 90px; color: white">
-                                                <h1 class="mv-0 font-400" id="lbl_suma_pedido">{{simboloMonedaCotizacion}} {{totalProdustos}}
+                                                <h1 class="mv-0 font-400" id="lbl_suma_pedido">{{formatearMoneda(totalProdustos)}}
                                                 </h1>
                                                 <div class="text-uppercase">Suma Pedido</div>
                                             </div>
@@ -603,8 +603,6 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
                     <div class="modal fade" id="modal-cotizacion-success" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
                         aria-labelledby="modalCotizacionLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -715,7 +713,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="simboloMonedaCotizacion + ' ' + venta.total" disabled type="text"
+                                                <input :value="formatearMoneda(venta.total)" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -740,13 +738,13 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                     <tr v-for="(item,index) in venta.dias_lista">
                                                         <td></td>
                                                         <td>{{visualFechaSee(item.fecha)}}</td>
-                                                        <td>{{simboloMonedaCotizacion}} {{formatoDecimal(item.monto)}}</td>
+                                                        <td>{{formatearMoneda(item.monto)}}</td>
                                                     </tr>
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
                                                         <th colspan="2">Total</th>
-                                                        <th>{{totalValorListaDias}}</th>
+                                                        <th>{{formatearMoneda(totalValorListaDias)}}</th>
                                                     </tr>
                                                 </tfoot>
                                             </table>
@@ -781,7 +779,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="simboloMonedaCotizacion + ' ' + venta.total" disabled type="text"
+                                                <input :value="formatearMoneda(venta.total)" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -812,7 +810,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                         <div class="input-group">
                                             <input type="number" class="form-control" v-model="numeroCuotas" min="1"
                                                 max="36" @change="generarCuotas">
-                                            <button class="btn btn-primary" type="button"
+                                            <button class="btn bg-rojo text-white" type="button"
                                                 @click="generarCuotas">Generar</button>
                                         </div>
                                     </div>
@@ -836,7 +834,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                             <td>0</td>
                                                             <td>Inicial</td>
                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
-                                                            <td>{{simboloMonedaCotizacion}} {{formatoDecimal(venta.monto_inicial)}}</td>
+                                                            <td>{{formatearMoneda(venta.monto_inicial)}}</td>
                                                         </tr>
                                                         <!-- Mostrar cuotas con fechas seleccionables -->
                                                         <tr v-for="(cuota, index) in cuotas" :key="index">
@@ -860,7 +858,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                                     <tfoot>
                                                         <tr>
                                                             <th colspan="3">Total</th>
-                                                            <th>{{totalValorCuotas}}</th>
+                                                            <th>{{formatearMoneda(totalValorCuotas)}}</th>
                                                         </tr>
                                                     </tfoot>
                                                 </table>
@@ -1014,6 +1012,7 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
 
             </div>
@@ -1063,6 +1062,12 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                     detalle: '',
                     cantidad: '',
                     precio: '',
+                    precio_mostrado: '',
+                    precioVenta: '',
+                    costo: '',
+                    precio_mayor: '',
+                    precio_menor: '',
+                    tipo_precio: 'PV',
                     precioEspecial: ''
                 },
                 productos: [],
@@ -1273,26 +1278,23 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
 
                 editarProducto(index) {
                     const producto = this.productos[index];
-                    this.productoEdit = {
-                        index: index,
-                        codigo_pp: producto.codigo_pp,
-                        nombre: producto.nombre || producto.nom_prod,
-                        nom_prod: producto.nombre || producto.nom_prod,
-                        detalle: producto.detalle || '',
-                        cantidad: producto.cantidad,
-                        precio: producto.precioVenta || producto.precio || '0.00',
-                        precio_mostrado: producto.precioVenta || producto.precio || '0.00',
-                        precioVenta: producto.precioVenta || producto.precio || '0.00',
-                        costo: producto.costo || '0.00',
-                        precio_mayor: producto.precio_mayor || producto.precio2 || '0.00',
-                        precio_menor: producto.precio_menor || producto.precio_unidad || '0.00',
-                        tipo_precio: producto.tipo_precio || 'PV',
-                        precioEspecial: producto.precioEspecial || ''
-                    };
+                    const precioBase = producto.precioVenta || producto.precio || '0.00';
 
-                    // Cargar precios adicionales para el producto
+                    this.productoEdit.index        = index;
+                    this.productoEdit.codigo_pp    = producto.codigo_pp || '';
+                    this.productoEdit.nom_prod     = producto.nombre || producto.nom_prod || '';
+                    this.productoEdit.detalle      = producto.detalle || '';
+                    this.productoEdit.cantidad     = producto.cantidad;
+                    this.productoEdit.precio       = precioBase;
+                    this.productoEdit.precio_mostrado = precioBase;
+                    this.productoEdit.precioVenta  = precioBase;
+                    this.productoEdit.costo        = producto.costo || '0.00';
+                    this.productoEdit.precio_mayor = producto.precio_mayor || producto.precio2 || '0.00';
+                    this.productoEdit.precio_menor = producto.precio_menor || producto.precio_unidad || '0.00';
+                    this.productoEdit.tipo_precio  = producto.tipo_precio || 'PV';
+                    this.productoEdit.precioEspecial = producto.precioEspecial || '';
+
                     this.cargarPreciosAdicionalesParaEdicion(producto.productoid, producto.tipo || 'producto');
-
                     new bootstrap.Modal(document.getElementById('modalEditarProducto')).show();
                 },
                 actualizarProducto() {
@@ -1411,7 +1413,13 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                     )
                 },
                 formatoDecimal(valor, decimales = 2) {
-                    return parseFloat(valor).toFixed(decimales);
+                    const n = parseFloat(valor);
+                    return (isNaN(n) ? 0 : n).toFixed(decimales);
+                },
+                formatearMoneda(monto) {
+                    const tc = parseFloat(this.venta.tc) || 1;
+                    const valor = this.venta.moneda == '2' ? parseFloat(monto || 0) / tc : parseFloat(monto || 0);
+                    return this.simboloMonedaCotizacion + ' ' + valor.toFixed(2);
                 },
                 visualFechaSee(fecha) {
                     return formatFechaVisual(fecha);
@@ -1752,18 +1760,22 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                 calcularMontoInicial() {
                     if (this.venta.porcentaje_inicial) {
                         this.venta.monto_inicial = (this.venta.total * this.venta.porcentaje_inicial / 100).toFixed(2);
-                        this.recalcularCuotas();
+                        this.calcularCuotasRestantes();
                     }
                 },
 
                 calcularCuotasRestantes() {
-                    if (this.venta.tiene_inicial && this.venta.monto_inicial) {
-                        const montoRestante = this.venta.total - this.venta.monto_inicial;
-                        // Recalcular las cuotas con el monto restante
-                        this.recalcularCuotas(montoRestante);
-                    } else {
-                        // Calcular cuotas con el monto total
-                        this.recalcularCuotas(this.venta.total);
+                    const montoInicial = parseFloat(this.venta.monto_inicial) || 0;
+                    const montoRestante = parseFloat(this.venta.total) - montoInicial;
+                    if (this.cuotas.length > 0) {
+                        const numCuotas = this.cuotas.length;
+                        const montoPorCuota = parseFloat((montoRestante / numCuotas).toFixed(2));
+                        this.cuotas.forEach((cuota, i) => {
+                            cuota.monto = i === numCuotas - 1
+                                ? (montoRestante - montoPorCuota * (numCuotas - 1)).toFixed(2)
+                                : montoPorCuota.toFixed(2);
+                        });
+                        this.actualizarDiasPago();
                     }
                 },
 
@@ -1944,14 +1956,14 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                         total += parseFloat(cuota.monto || 0);
                     });
 
-                    return this.simboloMonedaCotizacion + " " + total.toFixed(2);
+                    return total;
                 },
                 totalValorListaDias() {
                     var total_ = 0;
                     this.venta.dias_lista.forEach((el) => {
                         total_ += parseFloat(el.monto + "")
                     })
-                    return this.simboloMonedaCotizacion + " " + total_.toFixed(2);
+                    return total_;
                 },
                 isDirreccionCont() {
                     return this.venta.dir2_cli.length > 0;

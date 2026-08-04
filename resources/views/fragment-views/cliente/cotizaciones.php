@@ -365,8 +365,10 @@
                     render: function (data, type, row) {
                         let aplicarIgv = row[11]; // aplicar_igv está en el índice 11
                         let moneda = row[12]; // moneda está en el índice 12
+                        let cm_tc = parseFloat(row[14]) || 1; // tipo de cambio en el índice 14
                         let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
-                        let subtotal = aplicarIgv == '1' ? parseFloat(data) / 1.18 : parseFloat(data);
+                        let valor = (moneda == '2') ? parseFloat(data) / cm_tc : parseFloat(data);
+                        let subtotal = aplicarIgv == '1' ? valor / 1.18 : valor;
                         return simbolo + subtotal.toFixed(2);
                     }
                 },
@@ -375,9 +377,11 @@
                     render: function (data, type, row) {
                         let aplicarIgv = row[11]; // aplicar_igv está en el índice 11
                         let moneda = row[12]; // moneda está en el índice 12
+                        let cm_tc = parseFloat(row[14]) || 1; // tipo de cambio en el índice 14
                         let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
                         if (aplicarIgv == '1') {
-                            let subtotal = parseFloat(data) / 1.18;
+                            let valor = (moneda == '2') ? parseFloat(data) / cm_tc : parseFloat(data);
+                            let subtotal = valor / 1.18;
                             let igv = subtotal * 0.18;
                             return simbolo + igv.toFixed(2);
                         } else {
@@ -389,8 +393,10 @@
                     targets: 5,
                     render: function (data, type, row) {
                         let moneda = row[12]; // moneda está en el índice 12
+                        let cm_tc = parseFloat(row[14]) || 1; // tipo de cambio en el índice 14
                         let simbolo = (moneda == '2') ? '$ ' : 'S/ ';
-                        return simbolo + parseFloat(data).toFixed(2);
+                        let valor = (moneda == '2') ? parseFloat(data) / cm_tc : parseFloat(data);
+                        return simbolo + valor.toFixed(2);
                     }
                 }
             ]

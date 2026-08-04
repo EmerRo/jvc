@@ -1403,6 +1403,7 @@
                     }
                 },
                 guardarCompra() {
+                    const self = this;
                     if (this.productos.length > 0) {
                         let data = JSON.stringify(this.productos);
                         let datos =
@@ -1464,7 +1465,11 @@
                                                     text: 'Registro Exitoso',
                                                 }).then(function () {
                                                     console.log(resp);
-                                                    window.location = _URL + '/compras';
+                                                    if (self.venta.tipo_pago == 2) {
+                                                        window.location = _URL + '/pagos';
+                                                    } else {
+                                                        window.location = _URL + '/compras';
+                                                    }
                                                 });
                                             } else {
                                                 alertAdvertencia('Alerta', 'No se pudo insertar el registro')

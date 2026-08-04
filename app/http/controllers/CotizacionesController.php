@@ -545,7 +545,12 @@ class CotizacionesController extends Controller
                         // Determinar si es producto o repuesto
                         $tipo = isset($prod['tipo']) ? $prod['tipo'] : 'producto';
                         $id_campo = ($tipo === 'repuesto') ? 'id_repuesto' : 'id_producto';
-                        $id_valor = isset($prod[$id_campo]) ? $prod[$id_campo] : $prod['productoid'];
+                        $id_valor = isset($prod[$id_campo]) ? $prod[$id_campo] : (isset($prod['productoid']) ? $prod['productoid'] : null);
+
+                        if ($id_valor === null || $id_valor === '') {
+                            $nombreProd = isset($prod['nom_prod']) ? $prod['nom_prod'] : (isset($prod['nombre']) ? $prod['nombre'] : (isset($prod['descripcion']) ? $prod['descripcion'] : 'sin nombre'));
+                            throw new Exception("El producto '$nombreProd' no tiene un ID válido. Elimínelo y vuelva a agregarlo.");
+                        }
 
                         // Preparar la consulta SQL con placeholders
                         $sql = "INSERT INTO productos_cotis
