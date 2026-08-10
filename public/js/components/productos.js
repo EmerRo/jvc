@@ -605,6 +605,20 @@
                         loadGridProducts(1, searchTerm);
                     }
                 },
+                regGenerarCodeBarra() {
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            const el = document.getElementById("barcodeAddProd");
+                            if (el) {
+                                try {
+                                    JsBarcode("#barcodeAddProd", this.reg.codigo);
+                                } catch (error) {
+                                    console.error("Error al generar código de barras:", error);
+                                }
+                            }
+                        }, 100);
+                    });
+                },
                 edtGenerarCodeBarra() {
                     // Usar $nextTick para asegurar que el DOM se ha actualizado
                     this.$nextTick(() => {
@@ -804,7 +818,7 @@
                             }
                         ],
                         language: {
-                            url: "ServerSide/Spanish.json"
+                            url: _URL + "/ServerSide/Spanish.json"
                         },
                         order: [[5, 'desc']], // Ordenar por fecha descendente
                         pageLength: 15,
@@ -1008,6 +1022,7 @@
                     formData.append('almacen', this.reg.almacen);
                     formData.append('unidad', this.reg.unidad);
                     formData.append('moneda', this.reg.moneda);
+                    formData.append('usar_barra', this.reg.usar_barra);
                     formData.append('usar_multiprecio', this.reg.usar_multiprecio ? '1' : '0');
                     formData.append('precios', JSON.stringify(this.preciosNuevos));
 

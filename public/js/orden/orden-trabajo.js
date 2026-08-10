@@ -297,7 +297,7 @@ $(document).ready(() => {
       dataSrc: "",
     },
     language: {
-      url: "ServerSide/Spanish.json",
+      url: _URL + "/ServerSide/Spanish.json",
     },
     columns: [
       { data: "numero", class: "text-center" },

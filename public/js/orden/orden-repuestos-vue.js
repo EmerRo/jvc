@@ -609,7 +609,7 @@ $(document).ready(function () {
                     order: [[5, "desc"]],
                     pageLength: 15,
                     responsive: true,
-                    language: { url: "ServerSide/Spanish.json" },
+                    language: { url: _URL + "/ServerSide/Spanish.json" },
                     dom: "Bfrtip",
                     buttons: [
                         { extend: "excelHtml5", text: '<i class="fa fa-file-excel"></i> Excel', className: 'btn btn-success btn-sm' },

@@ -146,9 +146,24 @@
                                         <input v-model="reg.precio4" @keypress="onlyNumber" value="0" type="text"
                                             class="form-control">
                                     </div>
-                                    <!-- Campo oculto para usar_barra -->
-                                    <div class="form-group" hidden>
-                                        <input v-model="reg.usar_barra" type="hidden" value="0">
+                                    <!-- Usar código de barras -->
+                                    <div class="form-group col-md-4 mb-3">
+                                        <label><i class="fa fa-barcode me-1"></i>Usar Código de Barra</label>
+                                        <div class="input-group">
+                                            <select v-model="reg.usar_barra" class="form-control">
+                                                <option value="0">No</option>
+                                                <option value="1">Si</option>
+                                            </select>
+                                            <button v-if="reg.usar_barra=='1'" @click="regGenerarCodeBarra" type="button"
+                                                class="btn bg-rojo text-white">Generar</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview código de barras -->
+                                    <div class="col-md-12 mb-3 text-center" v-if="reg.usar_barra=='1'">
+                                        <div class="p-2 border rounded bg-light">
+                                            <img id="barcodeAddProd" class="img-fluid" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

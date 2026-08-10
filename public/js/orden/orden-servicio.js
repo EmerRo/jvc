@@ -421,7 +421,7 @@ $(document).ready(() => {
       method: "POST",
       dataSrc: "",
     },
-    language: { url: "../ServerSide/Spanish.json" },
+    language: { url: _URL + "/ServerSide/Spanish.json" },
     columns: [
       { data: "numero", class: "text-center" },
       { data: "cliente_razon_social", class: "text-center" },
