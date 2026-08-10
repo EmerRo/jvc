@@ -1210,9 +1210,14 @@ exit;
         $tipo_origen = isset($_GET['tipo_origen']) ? $_GET['tipo_origen'] : null;
 
         // Construir consulta con filtros
-        $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
-                FROM historial_stock h 
-                INNER JOIN productos p ON h.id_producto = p.id_producto 
+        $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo,
+                    CASE
+                        WHEN h.usuario REGEXP '^[0-9]+$' THEN TRIM(CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,'')))
+                        ELSE h.usuario
+                    END AS usuario_nombre
+                FROM historial_stock h
+                INNER JOIN productos p ON h.id_producto = p.id_producto
+                LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                 WHERE p.id_empresa = '$id_empresa'";
 
         // Aplicar filtro por tipo de movimiento
@@ -1262,23 +1267,24 @@ exit;
             <tbody>';
 
         $totalRegistros = 0;
-        while ($row = $result->fetch_assoc()) {
+        if ($result) while ($row = $result->fetch_assoc()) {
             $costo = $row['costo_compra'] ? 'S/ ' . number_format($row['costo_compra'], 2) : '-';
             $fecha = date('d/m/Y H:i', strtotime($row['fecha_movimiento']));
             $observaciones = $row['observaciones'] ? $row['observaciones'] : '-';
             $tipoOrigen = $row['tipo_origen'] ? $row['tipo_origen'] : 'MANUAL';
             $colorMovimiento = $row['tipo_movimiento'] == 'INGRESO' ? '#28a745' : '#dc3545';
+            $usuarioNombre = !empty($row['usuario_nombre']) ? trim($row['usuario_nombre']) : ($row['usuario'] ?? 'Sistema');
 
             $tabla .= '<tr>
-                <td>' . $row['codigo'] . '</td>
-                <td>' . $row['producto_nombre'] . '</td>
+                <td>' . htmlspecialchars($row['codigo']) . '</td>
+                <td>' . htmlspecialchars($row['producto_nombre']) . '</td>
                 <td style="background-color: ' . $colorMovimiento . '; color: white; font-weight: bold;">' . $row['tipo_movimiento'] . '</td>
                 <td style="text-align: center;">' . $row['cantidad'] . '</td>
                 <td style="text-align: right;">' . $costo . '</td>
                 <td>' . $fecha . '</td>
-                <td>' . $row['usuario'] . '</td>
-                <td>' . $tipoOrigen . '</td>
-                <td>' . $observaciones . '</td>
+                <td>' . htmlspecialchars($usuarioNombre) . '</td>
+                <td>' . htmlspecialchars($tipoOrigen) . '</td>
+                <td>' . htmlspecialchars($observaciones) . '</td>
             </tr>';
             $totalRegistros++;
         }
@@ -1370,6 +1376,7 @@ exit;
         // Congelar las dos primeras filas (título y encabezado)
         $sheet->freezePane('A3');
 
+        ob_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
         header('Cache-Control: max-age=0');
@@ -1384,9 +1391,14 @@ exit;
         $id_empresa = $_SESSION['id_empresa'];
 
         // Consulta para obtener el historial de stock de repuestos
-        $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
-                FROM historial_stock h 
-                INNER JOIN repuestos r ON h.id_producto = r.id_repuesto 
+        $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo,
+                    CASE
+                        WHEN h.usuario REGEXP '^[0-9]+$' THEN TRIM(CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,'')))
+                        ELSE h.usuario
+                    END AS usuario_nombre
+                FROM historial_stock_repuestos h
+                INNER JOIN repuestos r ON h.id_repuesto = r.id_repuesto
+                LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                 WHERE r.id_empresa = '$id_empresa'
                 ORDER BY h.fecha_movimiento DESC";
 
@@ -1408,21 +1420,22 @@ exit;
             </thead>
             <tbody>';
 
-        while ($row = $result->fetch_assoc()) {
+        if ($result) while ($row = $result->fetch_assoc()) {
             $costo = $row['costo_compra'] ? 'S/ ' . number_format($row['costo_compra'], 2) : '-';
             $fecha = date('d/m/Y H:i', strtotime($row['fecha_movimiento']));
             $observaciones = $row['observaciones'] ? $row['observaciones'] : '-';
             $colorMovimiento = $row['tipo_movimiento'] == 'INGRESO' ? '#28a745' : '#dc3545';
+            $usuarioNombre = !empty($row['usuario_nombre']) ? trim($row['usuario_nombre']) : ($row['usuario'] ?? 'Sistema');
 
             $tabla .= '<tr>
-                <td>' . $row['codigo'] . '</td>
-                <td>' . $row['repuesto_nombre'] . '</td>
+                <td>' . htmlspecialchars($row['codigo']) . '</td>
+                <td>' . htmlspecialchars($row['repuesto_nombre']) . '</td>
                 <td style="background-color: ' . $colorMovimiento . '; color: white; font-weight: bold;">' . $row['tipo_movimiento'] . '</td>
                 <td style="text-align: center;">' . $row['cantidad'] . '</td>
                 <td style="text-align: right;">' . $costo . '</td>
                 <td>' . $fecha . '</td>
-                <td>' . $row['usuario'] . '</td>
-                <td>' . $observaciones . '</td>
+                <td>' . htmlspecialchars($usuarioNombre) . '</td>
+                <td>' . htmlspecialchars($observaciones) . '</td>
             </tr>';
         }
 
@@ -1489,6 +1502,7 @@ exit;
         // Congelar la primera fila (encabezado)
         $sheet->freezePane('A2');
 
+        ob_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
         header('Cache-Control: max-age=0');
