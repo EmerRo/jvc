@@ -1,6 +1,6 @@
   <div class="modal fade" id="modal-historial-stock" tabindex="-1" aria-labelledby="exampleModalLabel"
                 aria-hidden="true">
-                <div class="modal-dialog modal-xl">
+                <div class="modal-dialog modal-xl" style="max-width: 1500px; width: 95%;">
                     <div class="modal-content">
                         <div class="modal-header bg-rojo text-white">
                             <h5 class="modal-title">

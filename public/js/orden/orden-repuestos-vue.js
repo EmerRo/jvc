@@ -104,21 +104,25 @@ $(document).ready(function () {
             // ========== CARGA INICIAL ==========
             cargarUnidades() {
                 _get("/ajs/get/unidades/rep", function (resp) {
-                    app.unidades = JSON.parse(resp);
+                    app.unidades = resp;
                 });
             },
             cargarAlmacenes() {
                 _ajax("/ajs/data/repuesto/almacen/listar", "POST", {}, function (resp) {
-                    app.almacenes = resp;
+                    if (resp && resp.estado && Array.isArray(resp.almacenes)) {
+                        app.almacenes = resp.almacenes;
+                    } else {
+                        console.error("Error cargando almacenes:", resp);
+                    }
                 });
             },
             cargarCategorias() {
                 _get("/ajs/get/categorias/rep", function (resp) {
-                    app.categorias = JSON.parse(resp);
+                    app.categorias = resp;
                 });
             },
             cargarSubcategorias() {
-                var data = { categoria: this.reg.categoria };
+                var data = { categoria_id: this.reg.categoria };
                 _ajax("/ajs/get/subcategorias/rep/by-categoria", "POST", data, function (resp) {
                     app.subcategorias = resp;
                 });
@@ -229,7 +233,7 @@ $(document).ready(function () {
                         { data: "unidad" },
                         { data: "precio", render: function (data, type, row) { return (row.moneda === "USD" ? "$" : "S/") + " " + parseFloat(data).toFixed(2); } },
                         { data: "stock" },
-                        { data: null, render: function (data) { return '<button class="btn-edt btn btn-sm btn-info" data-id="' + data.id_repuesto + '" data-tipo="' + data.tipo_repuesto + '"><i class="fa fa-edit"></i></button>'; } },
+                        { data: null, render: function (data) { return '<button class="btn-edt btn btn-sm btn-info" data-id="' + data.id_repuesto + '"><i class="fa fa-edit"></i></button>'; } },
                         { data: null, render: function (data) { return '<input type="checkbox" class="btnCheckEliminar" value="' + data.id_repuesto + '">'; } }
                     ],
                     drawCallback: function () { $("#datatable_processing").hide(); },
@@ -267,7 +271,7 @@ $(document).ready(function () {
                         { data: "unidad" },
                         { data: "precio", render: function (data, type, row) { return (row.moneda === "USD" ? "$" : "S/") + " " + parseFloat(data).toFixed(2); } },
                         { data: "stock" },
-                        { data: null, render: function (data) { return '<button class="btn-edt btn btn-sm btn-info" data-id="' + data.id_repuesto + '" data-tipo="' + data.tipo_repuesto + '"><i class="fa fa-edit"></i></button>'; } },
+                        { data: null, render: function (data) { return '<button class="btn-edt btn btn-sm btn-info" data-id="' + data.id_repuesto + '"><i class="fa fa-edit"></i></button>'; } },
                         { data: null, render: function (data) { return '<input type="checkbox" class="btnCheckEliminar" value="' + data.id_repuesto + '">'; } }
                     ],
                     drawCallback: function () { $("#datatable_processing").hide(); },
@@ -339,7 +343,7 @@ $(document).ready(function () {
             },
             getInfoDoc2() {
                 _ajax("/ajs/consulta/doc/cliente", "POST", { doc: this.reg.ruc }, function (resp) {
-                    var r = JSON.parse(resp);
+                    var r = resp;
                     if (r.data.razon_social) {
                         app.reg.razon = r.data.razon_social;
                     } else if (r.data.nombre) {
@@ -349,7 +353,7 @@ $(document).ready(function () {
             },
             getInfoDoc3() {
                 _ajax("/ajs/consulta/doc/cliente", "POST", { doc: this.edt.ruc }, function (resp) {
-                    var r = JSON.parse(resp);
+                    var r = resp;
                     if (r.data.razon_social) {
                         app.edt.razon = r.data.razon_social;
                     } else if (r.data.nombre) {
@@ -449,7 +453,7 @@ $(document).ready(function () {
                     method: "POST", body: fd
                 }).then(function (r) { return r.json(); }).then(function (resp) {
                     if (resp.res) {
-                        $("#modal-add-repuesto").modal("hide");
+                        $("#modal-add-rep").modal("hide");
                         app.reg = {
                             nombre: '', precio: '0', costo: '0', cantidad: '0',
                             codSunat: '', afecto: '0', ruc: '', razon: '',
@@ -497,17 +501,13 @@ $(document).ready(function () {
                 this.cargarUnidades();
                 this.cargarCategorias();
 
-                _ajax("/ajs/get/subcategorias/rep/by-categoria", "POST", { categoria: data.categoria }, function (resp) {
+                _ajax("/ajs/get/subcategorias/rep/by-categoria", "POST", { categoria_id: data.categoria }, function (resp) {
                     app.subcategoriasEdit = resp;
                     app.$nextTick(function () { app.edt.subcategoria = data.subcategoria; });
                 });
 
-                _ajax("/ajs/data/repuesto/obtener/precios", "POST", { id: data.id_repuesto }, function (resp) {
-                    try {
-                        app.precios = JSON.parse(resp);
-                    } catch (e) {
-                        app.precios = resp || [];
-                    }
+                _ajax("/ajs/data/repuesto/obtener/precios", "POST", { id_repuesto: data.id_repuesto }, function (resp) {
+                    app.precios = (resp && resp.precios) ? resp.precios : (resp || []);
                 });
             },
 

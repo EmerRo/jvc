@@ -776,36 +776,16 @@ public function ultimoNumero()
 public function obtenerTasaCambio()
 {
     try {
-        $url = 'https://api.apis.net.pe/v1/tipo-cambio-sunat';
-
         // Verificar si cURL está disponible
         if (!function_exists('curl_init')) {
             throw new Exception('cURL no está disponible');
         }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+        require_once 'app/clases/ConsultaDocApi.php';
+        $api = new ConsultaDocApi();
+        $resultado = $api->tipoCambio();
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
-            throw new Exception('Error cURL: ' . $curlError);
-        }
-
-        if ($httpCode !== 200) {
-            throw new Exception('Error HTTP: ' . $httpCode);
-        }
-
-        $data = json_decode($response, true);
-
-        if (!$data || !isset($data['venta'])) {
+        if (!$resultado['success'] || !isset($resultado['data']['venta'])) {
             throw new Exception('Datos de API inválidos');
         }
 
@@ -813,7 +793,7 @@ public function obtenerTasaCambio()
         header('Content-Type: application/json');
         echo json_encode([
             'success' => true,
-            'data' => $data
+            'data' => $resultado['data']
         ]);
 
     } catch (Exception $e) {

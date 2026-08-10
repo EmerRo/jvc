@@ -578,54 +578,23 @@ WHERE id_venta='{$_POST['idVenta']}'";
     public function buscarDocInfo()
     {
         $doc = htmlspecialchars(trim($_POST['doc']), ENT_QUOTES, 'UTF-8');
-        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
 
-        if (strlen($doc) == 8) {
-            $url = 'https://dniruc.apisperu.com/api/v1/dni/' . $doc . '?token=' . $token;
-        } else {
-            $url = 'https://dniruc.apisperu.com/api/v1/ruc/' . $doc . '?token=' . $token;
-        }
+        require_once 'app/clases/ConsultaDocApi.php';
+        $api = new ConsultaDocApi();
+        $data = $api->buscar($doc);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-        $response = curl_exec($ch);
-        $curl_error = curl_error($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $http_code !== 200) {
-            echo json_encode(['res' => false, 'msg' => 'Servicio de consulta no disponible']);
-            return;
-        }
-
-        $data = json_decode($response, true);
         $resultado = ['res' => false, 'data' => []];
 
-        if (strlen($doc) == 8) {
-            if (isset($data['success']) && $data['success']) {
-                $resultado['res'] = true;
-                $resultado['data'] = [
-                    'nombre' => ($data['nombres'] ?? '') . ' ' . ($data['apellidoPaterno'] ?? '') . ' ' . ($data['apellidoMaterno'] ?? ''),
-                    'razon_social' => '',
-                    'direccion' => '',
-                ];
-            }
-        } else {
-            if (isset($data['ruc'])) {
-                $resultado['res'] = true;
-                $resultado['data'] = [
-                    'nombre' => '',
-                    'razon_social' => $data['razonSocial'] ?? '',
-                    'direccion' => $data['direccion'] ?? '',
-                    'departamento' => $data['departamento'] ?? '',
-                    'provincia' => $data['provincia'] ?? '',
-                    'distrito' => $data['distrito'] ?? '',
-                ];
-            }
+        if (isset($data['success']) && $data['success']) {
+            $resultado['res'] = true;
+            $resultado['data'] = [
+                'nombre' => $data['nombre'] ?? '',
+                'razon_social' => $data['razonSocial'] ?? '',
+                'direccion' => $data['direccion'] ?? '',
+                'departamento' => $data['departamento'] ?? '',
+                'provincia' => $data['provincia'] ?? '',
+                'distrito' => $data['distrito'] ?? '',
+            ];
         }
 
         echo json_encode($resultado);
@@ -634,26 +603,12 @@ WHERE id_venta='{$_POST['idVenta']}'";
     public function consultaRuc()
     {
         $ruc = htmlspecialchars(trim($_POST['ruc']), ENT_QUOTES, 'UTF-8');
-        $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
-        $url = 'https://dniruc.apisperu.com/api/v1/ruc/' . $ruc . '?token=' . $token;
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        require_once 'app/clases/ConsultaDocApi.php';
+        $api = new ConsultaDocApi();
+        $data = $api->buscar($ruc);
 
-        if ($response === false || $http_code !== 200) {
-            echo json_encode(['res' => false, 'msg' => 'Servicio de consulta no disponible']);
-            return;
-        }
-
-        $data = json_decode($response, true);
-        if (isset($data['ruc'])) {
+        if (isset($data['success']) && $data['success'] && $data['razonSocial']) {
             echo json_encode(['res' => true, 'data' => $data]);
         } else {
             echo json_encode(['res' => false, 'msg' => 'RUC no encontrado']);

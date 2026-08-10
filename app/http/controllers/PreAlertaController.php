@@ -7,7 +7,6 @@ class PreAlertaController extends Controller
 {
 
     private $conectar;
-    private $token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InN5c3RlbWNyYWZ0LnBlQGdtYWlsLmNvbSJ9.yuNS5hRaC0hCwymX_PjXRoSZJWLNNBeOdlLRSUGlHGA';
 
     public function __construct()
     {
@@ -20,37 +19,15 @@ class PreAlertaController extends Controller
         // Validar y sanitizar el documento
         $doc = htmlspecialchars(trim($_POST['doc']), ENT_QUOTES, 'UTF-8');
 
-        if (strlen($doc) == 8) {
-            $url = 'https://dniruc.apisperu.com/api/v1/dni/' . $doc . '?token=' . $this->token;
-        } else {
-            $url = 'https://dniruc.apisperu.com/api/v1/ruc/' . $doc . '?token=' . $this->token;
-        }
+        require_once 'app/clases/ConsultaDocApi.php';
+        $api = new ConsultaDocApi();
+        $data = $api->buscar($doc);
 
-        $data = $this->apiRequest($url);
-
-        if (isset($data['data'])) {
-            if (strlen($doc) == 8) {
-
-                if (strlen($doc) == 8) {
-                    $data["data"]["nombre"] = $data["data"]["nombres"] . " " . $data["data"]["apellidoPaterno"] . " " . $data["data"]["apellidoMaterno"];
-                } else {
-                    $data["data"]["nombre"] = $data["data"]["razonSocial"];
-                }
-            }
+        if (isset($data['success']) && $data['success']) {
+            $data['data']['nombre'] = $data['nombre'];
         }
 
         echo json_encode($data);
-    }
-
-    public function apiRequest($url)
-    {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return json_decode($result, true);
     }
 
 

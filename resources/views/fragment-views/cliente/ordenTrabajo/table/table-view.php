@@ -3,7 +3,7 @@
         <div class="form-group col-md-3">
             <label for="">Almacén</label>
             <div class="d-flex align-items-center gap-1">
-                <select name="almacenSelect" id="almacenSelect" class="form-control" v-model="almacen">
+                <select name="almacenSelect" id="almacenSelect" class="form-control" v-model="almacen" @change="changeAlmacen($event)">
                     <option value="" disabled>Seleccionar</option>
                     <option v-for="alm in almacenes" :key="alm.id_almacen" :value="alm.id_almacen">
                         {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}

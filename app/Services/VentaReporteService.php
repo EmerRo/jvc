@@ -203,13 +203,22 @@ class VentaReporteService
 
     public function obtenerVentasPorContacto($idCliente, $idTido)
     {
-        $sql = "SELECT v.id_venta, v.fecha_emision, v.serie, v.numero, v.total, v.estado,
-                ds.nombre, v.moneda, v.cod_sunat
-            FROM ventas v
-            JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
-            WHERE v.id_cliente = ?
-            ORDER BY v.fecha_emision DESC, v.numero DESC
-            LIMIT 20";
+        $sql = "SELECT
+                    CONCAT(v.serie, '-', LPAD(v.numero, 8, '0')) AS documento_completo,
+                    v.fecha_emision,
+                    v.total,
+                    v.dias_pagos,
+                    v.moneda,
+                    ds.nombre AS tipo_documento,
+                    tp.nombre AS tipo_pago,
+                    mp.nombre AS metodo_pago
+                FROM ventas v
+                JOIN documentos_sunat ds ON v.id_tido = ds.id_tido
+                LEFT JOIN tipo_pago tp ON v.id_tipo_pago = tp.tipo_pago_id
+                LEFT JOIN metodo_pago mp ON v.medoto_pago_id = mp.id_metodo_pago
+                WHERE v.id_cliente = ?
+                ORDER BY v.fecha_emision DESC, v.numero DESC
+                LIMIT 20";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param("i", $idCliente);
         $stmt->execute();

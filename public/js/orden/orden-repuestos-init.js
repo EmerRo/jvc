@@ -58,7 +58,7 @@ $(document).ready(function () {
         var id = $(this).data("id");
         _ajax("/ajs/cargar/repuestos/precios", "POST", { id: id }, function (resp) {
             try {
-                var data = JSON.parse(resp);
+                var data = resp;
                 var html = "<table class='table table-sm'><thead><tr><th>Precio</th><th>Unidad</th></tr></thead><tbody>";
                 data.forEach(function (p) {
                     html += "<tr><td>" + p.precio + "</td><td>" + p.unidad + "</td></tr>";
@@ -74,19 +74,26 @@ $(document).ready(function () {
     // Editar
     $(document).on("click", "#datatable .btn-edt", function () {
         var id = $(this).data("id");
-        var tipo = $(this).data("tipo");
-        _ajax("/ajs/data/repuesto/info", "POST", { id: id, tipo: tipo }, function (resp) {
-            app.setInfo(resp);
+        _ajax("/ajs/data/repuesto/info", "POST", { cod: id }, function (resp) {
+            if (resp && resp.res) {
+                app.setInfo(resp.data);
+            } else {
+                alertAdvertencia("Información no encontrada");
+            }
             $("#modal-edt-rep").modal("show");
         });
     });
 
     // Grid view edit buttons
     $(document).on("click", ".btn-edt-grid", function () {
-        var id = $(this).data("id");
-        $("#modal-edt-rep").modal("show");
-        _ajax("/ajs/data/repuesto/info", "POST", { id: id }, function (resp) {
-            app.setInfo(resp);
+        var cod = $(this).attr("data-item");
+        _ajax("/ajs/data/repuesto/info", "POST", { cod: cod }, function (resp) {
+            if (resp && resp.res) {
+                app.setInfo(resp.data);
+            } else {
+                alertAdvertencia("Información no encontrada");
+            }
+            $("#modal-edt-rep").modal("show");
         });
     });
 
@@ -149,9 +156,9 @@ $(document).ready(function () {
         app.cargarUnidades();
         app.cargarCategorias();
         _get("/ajs/get/subcategorias/rep", function (resp) {
-            app.subcategorias = JSON.parse(resp);
+            app.subcategorias = resp;
         });
-        $("#modal-add-repuesto").modal("show");
+        $("#modal-add-rep").modal("show");
     });
 
     // ===== SELECT CATEGORÍA EN AGREGAR =====

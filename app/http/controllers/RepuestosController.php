@@ -72,6 +72,18 @@ class RepuestosController extends Controller
             exit;
         }
 
+        // El frontend espera objetos, no arrays planos (formato legacy de DataTables 1.9)
+        $claves = ['codigo', 'nombre', 'unidad', 'precio', 'stock', 'id_repuesto', 'id_repuesto2', 'moneda'];
+        $objetos = [];
+        foreach ($result['aaData'] as $fila) {
+            $obj = [];
+            foreach ($fila as $i => $valor) {
+                $obj[$claves[$i]] = $valor;
+            }
+            $objetos[] = $obj;
+        }
+        $result['aaData'] = $objetos;
+
         echo json_encode($result);
         exit;
     }
@@ -824,9 +836,15 @@ class RepuestosController extends Controller
 
             if ($repuesto_id) {
                 // Historial de un repuesto específico
-                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
+                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo,
+                        CASE 
+                            WHEN h.usuario REGEXP '^[0-9]+$' THEN 
+                                CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,''))
+                            ELSE h.usuario 
+                        END AS usuario_nombre
                     FROM historial_stock_repuestos h 
                     INNER JOIN repuestos r ON h.id_repuesto = r.id_repuesto 
+                    LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                     WHERE h.id_repuesto = ? 
                     ORDER BY h.fecha_movimiento DESC";
 
@@ -835,9 +853,15 @@ class RepuestosController extends Controller
             } else {
                 // Historial general (todos los movimientos de la empresa)
                 $id_empresa = $_SESSION['id_empresa'];
-                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo
+                $sql = "SELECT h.*, r.nombre as repuesto_nombre, r.codigo,
+                        CASE 
+                            WHEN h.usuario REGEXP '^[0-9]+$' THEN 
+                                CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,''))
+                            ELSE h.usuario 
+                        END AS usuario_nombre
                     FROM historial_stock_repuestos h 
                     INNER JOIN repuestos r ON h.id_repuesto = r.id_repuesto 
+                    LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                     WHERE r.id_empresa = ?
                     ORDER BY h.fecha_movimiento DESC";
 
@@ -857,7 +881,7 @@ class RepuestosController extends Controller
                     "cantidad" => $row['cantidad'],
                     "costo_compra" => isset($row['costo_compra']) ? $row['costo_compra'] : null,
                     "fecha_movimiento" => $row['fecha_movimiento'],
-                    "usuario" => $row['usuario'],
+                    "usuario" => !empty($row['usuario_nombre']) ? trim($row['usuario_nombre']) : $row['usuario'],
                     "observaciones" => $row['observaciones']
                 ];
             }

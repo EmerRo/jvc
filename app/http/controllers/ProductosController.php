@@ -1315,9 +1315,15 @@ $stmt->bind_param($types, ...$params);
 
             if ($producto_id) {
                 // Historial de un producto específico
-                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo,
+                        CASE 
+                            WHEN h.usuario REGEXP '^[0-9]+$' THEN 
+                                CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,''))
+                            ELSE h.usuario 
+                        END AS usuario_nombre
                     FROM historial_stock h 
                     INNER JOIN productos p ON h.id_producto = p.id_producto 
+                    LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                     WHERE h.id_producto = ? 
                     ORDER BY h.fecha_movimiento DESC";
 
@@ -1325,9 +1331,15 @@ $stmt->bind_param($types, ...$params);
                 $stmt->bind_param('i', $producto_id);
             } else {
                 // Historial general (últimos 100 movimientos)
-                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo
+                $sql = "SELECT h.*, p.nombre as producto_nombre, p.codigo,
+                        CASE 
+                            WHEN h.usuario REGEXP '^[0-9]+$' THEN 
+                                CONCAT(COALESCE(u.nombres,''), ' ', COALESCE(u.apellidos,''))
+                            ELSE h.usuario 
+                        END AS usuario_nombre
                     FROM historial_stock h 
                     INNER JOIN productos p ON h.id_producto = p.id_producto 
+                    LEFT JOIN usuarios u ON u.usuario_id = h.usuario
                     ORDER BY h.fecha_movimiento DESC 
                     LIMIT 100";
 
@@ -1346,7 +1358,7 @@ $stmt->bind_param($types, ...$params);
                     "cantidad" => $row['cantidad'],
                     "costo_compra" => $row['costo_compra'],
                     "fecha_movimiento" => $row['fecha_movimiento'],
-                    "usuario" => $row['usuario'],
+                    "usuario" => !empty($row['usuario_nombre']) ? trim($row['usuario_nombre']) : $row['usuario'],
                     "observaciones" => $row['observaciones']
                 ];
             }

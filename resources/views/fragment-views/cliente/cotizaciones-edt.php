@@ -762,9 +762,9 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                         aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
-                                <div class="modal-header">
+                                <div class="modal-header bg-rojo text-white">
                                     <h3 class="modal-title" id="exampleModalLabel">Configuración de Pagos</h3>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
@@ -867,9 +867,9 @@ html body #input_buscar_productos + .ui-autocomplete .ui-menu-item.ui-state-focu
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary"
+                                    <button type="button" class="btn bg-white text-rojo border-rojo"
                                         data-bs-dismiss="modal">Cerrar</button>
-                                    <button type="button" class="btn btn-primary"
+                                    <button type="button" class="btn bg-rojo text-white"
                                         @click="confirmarPagos">Confirmar</button>
                                 </div>
                             </div>

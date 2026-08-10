@@ -1,12 +1,39 @@
 <style>
-    #tabla_proveedores tbody td:nth-child(3) {
-        max-width: 250px;
+    #tabla_proveedores {
+        table-layout: fixed;
+    }
+    /* Anchos fijos para columnas uniformes */
+    #tabla_proveedores th:nth-child(1),
+    #tabla_proveedores td:nth-child(1) { width: 105px; } /* RUC */
+    #tabla_proveedores th:nth-child(2),
+    #tabla_proveedores td:nth-child(2) { width: 28%; } /* Razón Social */
+    #tabla_proveedores th:nth-child(3),
+    #tabla_proveedores td:nth-child(3) { width: 26%; } /* Dirección */
+    #tabla_proveedores th:nth-child(4),
+    #tabla_proveedores td:nth-child(4) { width: 125px; } /* Teléfono */
+    #tabla_proveedores th:nth-child(5),
+    #tabla_proveedores td:nth-child(5) { width: 24%; } /* Email */
+    #tabla_proveedores th:nth-child(6),
+    #tabla_proveedores td:nth-child(6) { width: 115px; } /* Acciones */
+    /* Razón Social y Email: recortar con puntos suspensivos */
+    #tabla_proveedores tbody td:nth-child(2),
+    #tabla_proveedores tbody td:nth-child(5) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    [title] {
-        position: relative;
+    /* Email: enlace clicable que se recorta dentro de la celda */
+    #tabla_proveedores td:nth-child(5) a {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    /* Dirección: puede envolver en varias líneas */
+    #tabla_proveedores tbody td:nth-child(3) {
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
 <div class="page-title-box" style="padding: 12px 0;">
@@ -181,6 +208,7 @@
     var tabla_proveedores = $('#tabla_proveedores').DataTable({
         processing: true,
         serverSide: false,
+        autoWidth: false,
         ajax: {
             url: _URL + "/ajs/proveedores/render",
             type: "POST",
@@ -188,10 +216,21 @@
         },
         columns: [
             { data: 'ruc' },
-            { data: 'razon_social' },
+            {
+                data: 'razon_social',
+                render: function(data, type) {
+                    return (type === 'display' && data) ? '<span title="' + data + '">' + data + '</span>' : data;
+                }
+            },
             { data: 'direccion', defaultContent: '-' },
             { data: 'telefono', defaultContent: '-' },
-            { data: 'email', defaultContent: '-' },
+            {
+                data: 'email',
+                defaultContent: '-',
+                render: function(data, type) {
+                    return (type === 'display' && data) ? '<a href="mailto:' + data + '" title="' + data + '">' + data + '</a>' : data;
+                }
+            },
             {
                 data: null,
                 render: function(data) {
