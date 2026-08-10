@@ -384,7 +384,7 @@ else {
     private function registrarMovimientoStock($idProducto, $tipoMovimiento, $cantidad, $costo, $observaciones, $idOrdenTrabajo, $tipoOrigen)
     {
         try {
-            $usuario = isset($_SESSION['nombre']) ? $_SESSION['nombre'] : 'Sistema';
+            $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
             
             $sql = "INSERT INTO historial_stock 
                     (id_producto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones, id_orden_trabajo, tipo_origen) 

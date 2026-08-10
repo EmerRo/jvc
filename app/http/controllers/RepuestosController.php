@@ -301,6 +301,8 @@ class RepuestosController extends Controller
 
         // obtener la subcategoria del POST
         $subcategoria = isset($_POST['subcategoria']) ? $_POST['subcategoria'] : 'NULL';
+        $razonSocial  = isset($_POST['razon']) ? $_POST['razon'] : '';
+        $rucProveedor = isset($_POST['ruc'])   ? $_POST['ruc']   : '';
         try {
             $this->conexion->begin_transaction();
 
@@ -334,8 +336,8 @@ class RepuestosController extends Controller
                 precio3 = {$_POST['precio3']}, 
                 precio4 = {$_POST['precio4']}, 
                 precio_unidad = {$_POST['precio']}, 
-                razon_social = '{$_POST['razon']}', 
-                ruc = '{$_POST['ruc']}', 
+                razon_social = '{$razonSocial}',
+                ruc = '{$rucProveedor}',
                 detalle= '{$_POST['detalle']}',
                 categoria= '{$_POST['categoria']}',
                 subcategoria= '{$_POST['subcategoria']}',
@@ -664,7 +666,7 @@ class RepuestosController extends Controller
                                  VALUES (?, 'INGRESO', ?, ?, ?)";
 
                 $stmt_hist = $this->conexion->prepare($sql_historial);
-                $usuario = $_SESSION['usuario'] ?? 'Sistema';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $stmt_hist->bind_param('iiss', $repuesto_id, $cantidad, $fecha_actual, $usuario);
                 $stmt_hist->execute();
 
@@ -715,7 +717,7 @@ class RepuestosController extends Controller
                              VALUES (?, 'EGRESO', ?, ?, ?, ?)";
 
                 $stmt_hist = $this->conexion->prepare($sql_historial);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $stmt_hist->bind_param('iisss', $repuesto_id, $cantidad, $fecha_actual, $usuario, $observaciones);
                 $stmt_hist->execute();
 
@@ -777,7 +779,7 @@ class RepuestosController extends Controller
                              (id_repuesto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
                              VALUES (?, 'EGRESO', ?, ?, ?, ?)";
                 $stmt_hist_egreso = $this->conexion->prepare($sql_hist_egreso);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $obs_egreso = "Traslado de Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
                 $stmt_hist_egreso->bind_param('iisss', $repuesto_id, $cantidad, $fecha_actual, $usuario, $obs_egreso);
                 $stmt_hist_egreso->execute();

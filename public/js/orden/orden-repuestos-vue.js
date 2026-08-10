@@ -580,6 +580,24 @@ $(document).ready(function () {
                 if ($.fn.DataTable.isDataTable("#tabla-historial-stock-repuesto")) {
                     $("#tabla-historial-stock-repuesto").DataTable().destroy();
                 }
+                // Registrar filtro custom una sola vez
+                if (!window._historialRepFiltroRegistrado) {
+                    window._historialRepFiltroRegistrado = true;
+                    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                        if (settings.nTable.id !== 'tabla-historial-stock-repuesto') return true;
+                        var movimiento = $('#filtro-movimiento-rep').val();
+                        var desde      = $('#filtro-fecha-desde-rep').val();
+                        var hasta      = $('#filtro-fecha-hasta-rep').val();
+                        if (movimiento && rowData.tipo_movimiento !== movimiento) return false;
+                        if (desde || hasta) {
+                            var fechaRow = new Date(rowData.fecha_movimiento);
+                            if (desde && fechaRow < new Date(desde)) return false;
+                            if (hasta && fechaRow > new Date(hasta + 'T23:59:59')) return false;
+                        }
+                        return true;
+                    });
+                }
+
                 $("#tabla-historial-stock-repuesto").DataTable({
                     processing: true,
                     serverSide: false,
@@ -600,12 +618,25 @@ $(document).ready(function () {
                     columns: [
                         { data: "codigo" },
                         { data: "repuesto_nombre" },
-                        { data: "tipo_movimiento", render: function (data) { return data == "entrada" ? '<span class="badge bg-success">Entrada</span>' : '<span class="badge bg-danger">Salida</span>'; } },
+                        { data: "tipo_movimiento", render: function(data) {
+                            return data === 'INGRESO'
+                                ? '<span class="badge bg-success">INGRESO</span>'
+                                : '<span class="badge bg-danger">EGRESO</span>';
+                        }},
                         { data: "cantidad" },
-                        { data: "costo_compra", render: function (data) { return data ? "S/ " + parseFloat(data).toFixed(2) : "-"; } },
-                        { data: "fecha_movimiento", render: function (data) { return data ? data.replace(" ", " <br> ") : "-"; } },
+                        { data: "costo_compra", render: function(data) { return data ? "S/ " + parseFloat(data).toFixed(2) : "-"; } },
+                        { data: "fecha_movimiento", render: function(data, type) {
+                            if (type === 'sort' || type === 'type') return data;
+                            if (!data) return '-';
+                            var f = new Date(data);
+                            var d = String(f.getDate()).padStart(2,'0');
+                            var m = String(f.getMonth()+1).padStart(2,'0');
+                            var h = String(f.getHours()).padStart(2,'0');
+                            var mi = String(f.getMinutes()).padStart(2,'0');
+                            return d+'/'+m+'/'+f.getFullYear()+' '+h+':'+mi;
+                        }},
                         { data: "usuario" },
-                        { data: "observaciones", render: function (data) { return data && data.length > 50 ? '<span title="' + data + '">' + data.substring(0, 50) + '...</span>' : (data || '-'); } }
+                        { data: "observaciones", render: function(data) { return data && data.length > 50 ? '<span title="' + data + '">' + data.substring(0, 50) + '...</span>' : (data || '-'); } }
                     ]
                 });
             }

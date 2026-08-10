@@ -89,7 +89,7 @@ class VentaAnulada
             $this->conectar->query($sql);
 
             // ✅ Registrar en historial de stock con serie y número
-            $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+            $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
             $sqlHistorial = "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
                              VALUES ('{$item['id_producto']}', 'INGRESO', '{$item['cantidad']}', NOW(), '$usuario', '$observacionBase')";
             $this->conectar->query($sqlHistorial);

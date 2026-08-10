@@ -651,7 +651,7 @@ class SeriesController extends Controller
 
             // Marcar lote como completado
             $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre']
-                       : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema');
+                       : ($_SESSION['usuario_id'] ?? 'Sistema');
 
             $this->numeroSerieModel->setId($serie_id);
             if (!$this->numeroSerieModel->marcarComoCompletado($usuario)) {
@@ -759,7 +759,7 @@ class SeriesController extends Controller
     {
         try {
             $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre']
-                       : (isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema');
+                       : ($_SESSION['usuario_id'] ?? 'Sistema');
 
             // Obtener costo del producto si existe (para mantener consistencia con otros movimientos)
             $costo = 0;

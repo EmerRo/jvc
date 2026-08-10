@@ -153,6 +153,7 @@ $(document).ready(function () {
 
     // ===== ABRIR MODAL AGREGAR =====
     $(document).on("click", "#add-rep", function () {
+        app.reg.almacen = app.almacen;
         app.cargarUnidades();
         app.cargarCategorias();
         _get("/ajs/get/subcategorias/rep", function (resp) {
@@ -248,8 +249,26 @@ $(document).ready(function () {
         app.cargarHistorialStock();
     });
     $("#modal-historial-stock-repuesto").on("hidden.bs.modal", function () {
+        $('#filtro-movimiento-rep').val('');
+        $('#filtro-fecha-desde-rep').val('');
+        $('#filtro-fecha-hasta-rep').val('');
         if ($.fn.DataTable.isDataTable("#tabla-historial-stock-repuesto")) {
             $("#tabla-historial-stock-repuesto").DataTable().destroy();
+        }
+    });
+
+    $(document).on('change', '#filtro-movimiento-rep, #filtro-fecha-desde-rep, #filtro-fecha-hasta-rep', function() {
+        if ($.fn.DataTable.isDataTable('#tabla-historial-stock-repuesto')) {
+            $('#tabla-historial-stock-repuesto').DataTable().draw();
+        }
+    });
+
+    $(document).on('click', '#btn-limpiar-filtros-rep', function() {
+        $('#filtro-movimiento-rep').val('');
+        $('#filtro-fecha-desde-rep').val('');
+        $('#filtro-fecha-hasta-rep').val('');
+        if ($.fn.DataTable.isDataTable('#tabla-historial-stock-repuesto')) {
+            $('#tabla-historial-stock-repuesto').DataTable().draw();
         }
     });
 

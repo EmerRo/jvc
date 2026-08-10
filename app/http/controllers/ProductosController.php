@@ -779,7 +779,7 @@ $stmt->bind_param($types, ...$params);
             $diferencia = $cantidadNueva - $cantidadAnterior;
             
             if ($diferencia != 0) {
-                $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $tipoMovimiento = $diferencia > 0 ? 'INGRESO' : 'EGRESO';
                 $cantidadMovimiento = abs($diferencia);
                 $observacion = "Edición de producto (Stock anterior: {$cantidadAnterior}, Stock nuevo: {$cantidadNueva})";
@@ -1124,7 +1124,7 @@ $stmt->bind_param($types, ...$params);
                              VALUES (?, 'INGRESO', ?, ?, ?, ?, ?)";
 
                 $stmt_hist = $this->conexion->prepare($sql_historial);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $stmt_hist->bind_param('iidsss', $producto_id, $cantidad, $costo_compra, $fecha_actual, $usuario, $observaciones);
                 $stmt_hist->execute();
 
@@ -1176,7 +1176,7 @@ $stmt->bind_param($types, ...$params);
                              VALUES (?, 'EGRESO', ?, ?, ?, ?)";
 
                 $stmt_hist = $this->conexion->prepare($sql_historial);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $stmt_hist->bind_param('iisss', $producto_id, $cantidad, $fecha_actual, $usuario, $observaciones);
                 $stmt_hist->execute();
 
@@ -1241,7 +1241,7 @@ $stmt->bind_param($types, ...$params);
                              (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones) 
                              VALUES (?, 'EGRESO', ?, ?, ?, ?)";
                 $stmt_hist_egreso = $this->conexion->prepare($sql_hist_egreso);
-                $usuario = $_SESSION['usuario'] ?? 'Administrador';
+                $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
                 $obs_egreso = "Traslado de Almacén $almacen_origen a Almacén $almacen_destino. " . $nota;
                 $stmt_hist_egreso->bind_param('iisss', $producto_id, $cantidad, $fecha_actual, $usuario, $obs_egreso);
                 $stmt_hist_egreso->execute();

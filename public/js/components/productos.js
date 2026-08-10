@@ -21,19 +21,19 @@
             // Conectar a la impresora
             await printer.connect();
  
-            // Configurar el tama├▒o del ticket (50 mm x 25 mm)
+            // Configurar el tamaño del ticket (50 mm x 25 mm)
             await printer.setPageFormat(50, 25);
  
-            // Imprimir el t├¡tulo
+            // Imprimir el título
             await printer.printText('Barcode Title\n');
  
-            // Generar el c├│digo de barras utilizando JsBarcode
+            // Generar el código de barras utilizando JsBarcode
             const svgData = JsBarcode.generateSvg('123456789', {
                 format: 'CODE128',
                 displayValue: true,
             });
  
-            // Imprimir el c├│digo de barras
+            // Imprimir el código de barras
             await printer.printImage(svgData);
  
             // Cortar el ticket
@@ -59,18 +59,18 @@
         e = e.trim();
         console.log(e);
         nombreBarraTemps = n;
-        codeBarraTemps = e; // Usar el c├│digo del producto
+        codeBarraTemps = e; // Usar el código del producto
 
         // Primero mostrar el modal
         $('#modalCodigoBarras').modal('show');
 
-        // Esperar a que el modal est├® completamente visible antes de generar el c├│digo de barras
+        // Esperar a que el modal esté completamente visible antes de generar el código de barras
         $('#modalCodigoBarras').on('shown.bs.modal', function () {
             setTimeout(function () {
                 try {
-                    JsBarcode("#idCodigoBarras", e); // Usar el c├│digo del producto
+                    JsBarcode("#idCodigoBarras", e); // Usar el código del producto
                 } catch (error) {
-                    console.error("Error al generar c├│digo de barras:", error);
+                    console.error("Error al generar código de barras:", error);
                 }
             }, 100);
         });
@@ -89,7 +89,7 @@
         localStorage.removeItem('idChecks');
     }
 
-    // Funci├│n para cargar productos en vista grid
+    // Función para cargar productos en vista grid
     function loadGridProducts(page = 1, search = '') {
         $('#loading-grid').addClass('active');
         $('#products-container').empty();
@@ -120,7 +120,7 @@
         });
     }
 
-    // Funci├│n para renderizar productos en grid
+    // Función para renderizar productos en grid
     function renderGridProducts() {
         const container = $('#products-container');
         container.empty();
@@ -188,7 +188,7 @@
         });
     }
 
-    // Funci├│n para obtener la clase de color seg├║n el stock
+    // Función para obtener la clase de color según el stock
     function getStockClass(cantidad) {
         const stock = parseInt(cantidad);
         if (stock <= 5) return 'low-stock';
@@ -196,7 +196,7 @@
         return '';
     }
 
-    // Funci├│n para renderizar paginaci├│n
+    // Función para renderizar paginación
     function renderGridPagination() {
         const totalPages = Math.ceil(totalProducts / productsPerPage);
         const pagination = $('#grid-pagination');
@@ -204,7 +204,7 @@
 
         if (totalPages <= 1) return;
 
-        // Bot├│n anterior
+        // Botón anterior
         if (currentPage > 1) {
             pagination.append(`
                 <button class="btn border-rojo bg-white" onclick="loadGridProducts(${currentPage - 1}, '${searchTerm}')">
@@ -213,7 +213,7 @@
             `);
         }
 
-        // P├íginas
+        // Páginas
         const startPage = Math.max(1, currentPage - 2);
         const endPage = Math.min(totalPages, currentPage + 2);
 
@@ -238,7 +238,7 @@
             pagination.append(`<button class="btn border-rojo bg-white" onclick="loadGridProducts(${totalPages}, '${searchTerm}')">${totalPages}</button>`);
         }
 
-        // Bot├│n siguiente
+        // Botón siguiente
         if (currentPage < totalPages) {
             pagination.append(`
                 <button class="btn border-rojo bg-white" onclick="loadGridProducts(${currentPage + 1}, '${searchTerm}')">
@@ -269,9 +269,9 @@
                 almacen: window._almacenPrincipal || 1,
                 t: 0,
                 listaProd: [],
-                almacenImportacion: 1, // Almac├®n por defecto para importaci├│n
-                buscarProductoImport: '', // Buscador en modal de importaci├│n
-                modoEdicion: false, // Controla si la tabla est├í en modo edici├│n
+                almacenImportacion: 1, // Almacén por defecto para importación
+                buscarProductoImport: '', // Buscador en modal de importación
+                modoEdicion: false, // Controla si la tabla está en modo edición
                 restock: {
                     cod: '',
                     cantidad: '',
@@ -364,15 +364,15 @@
                 this.cargarAlmacenes();
             },
             computed: {
-                // S├¡mbolos de moneda para el formulario de agregar
+                // Símbolos de moneda para el formulario de agregar
                 simboloMonedaReg() {
                     return this.reg.moneda === 'USD' ? '$' : 'S/';
                 },
-                // S├¡mbolos de moneda para el formulario de editar
+                // Símbolos de moneda para el formulario de editar
                 simboloMonedaEdt() {
                     return this.edt.moneda === 'USD' ? '$' : 'S/';
                 },
-                // Filtrar productos para importaci├│n
+                // Filtrar productos para importación
                 productosFiltrados() {
                     if (!this.buscarProductoImport) {
                         return this.listaProd;
@@ -403,7 +403,7 @@
                 },
                 guardarAlmacen() {
                     if (!this.nuevoAlmacen.trim()) {
-                        alertAdvertencia('Ingrese el nombre del almac├®n');
+                        alertAdvertencia('Ingrese el nombre del almacén');
                         return;
                     }
                     var self = this;
@@ -418,16 +418,16 @@
                         }
                     });
                 },
-                // Selecciona un almac├®n de la lista y carga sus datos en el formulario de edici├│n
+                // Selecciona un almacén de la lista y carga sus datos en el formulario de edición
                 seleccionarAlmacen(alm) {
                     this.almacenEditando = alm;
                     this.nuevoAlmacen = alm.nombre;
                     this.marcarPrincipal = alm.principal == 1;
                 },
-                // Guarda los cambios del almac├®n en edici├│n (nombre y/o marcar como principal)
+                // Guarda los cambios del almacén en edición (nombre y/o marcar como principal)
                 guardarAlmacenEdicion() {
                     if (!this.nuevoAlmacen.trim()) {
-                        alertAdvertencia('Ingrese el nombre del almac├®n');
+                        alertAdvertencia('Ingrese el nombre del almacén');
                         return;
                     }
                     var self = this;
@@ -435,7 +435,7 @@
                         id: this.almacenEditando.id_almacen,
                         nombre: this.nuevoAlmacen.trim()
                     };
-                    // El backend usa isset(), solo enviar 'principal' cuando est├í marcado
+                    // El backend usa isset(), solo enviar 'principal' cuando está marcado
                     if (this.marcarPrincipal) {
                         datos.principal = 1;
                     }
@@ -451,18 +451,18 @@
                         }
                     });
                 },
-                // Elimina el almac├®n actualmente en edici├│n
+                // Elimina el almacén actualmente en edición
                 eliminarAlmacen() {
                     if (!this.almacenEditando) return;
                     var self = this;
                     Swal.fire({
-                        title: '┬┐Eliminar almac├®n?',
+                        title: '¿Eliminar almacén?',
                         text: this.almacenEditando.nombre,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#CA3438',
                         cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'S├¡, eliminar',
+                        confirmButtonText: 'Sí, eliminar',
                         cancelButtonText: 'Cancelar'
                     }).then(function(result) {
                         if (!result.isConfirmed) return;
@@ -479,10 +479,10 @@
                         });
                     });
                 },
-                // Agrega un almac├®n nuevo desde el campo independiente del modal
+                // Agrega un almacén nuevo desde el campo independiente del modal
                 agregarNuevoAlmacen() {
                     if (!this.nuevoAlmacenNuevo.trim()) {
-                        alertAdvertencia('Ingrese el nombre del nuevo almac├®n');
+                        alertAdvertencia('Ingrese el nombre del nuevo almacén');
                         return;
                     }
                     var self = this;
@@ -499,7 +499,7 @@
                 toggleModoEdicion() {
                     // Mostrar loader genial con color rojo
                     Swal.fire({
-                        title: this.modoEdicion ? 'Cambiando a modo vista...' : 'Activando modo edici├│n...',
+                        title: this.modoEdicion ? 'Cambiando a modo vista...' : 'Activando modo edición...',
                         html: `
                             <div style="display: flex; justify-content: center; align-items: center; padding: 20px;">
                                 <div style="
@@ -530,7 +530,7 @@
                     setTimeout(() => {
                         this.modoEdicion = !this.modoEdicion;
 
-                        // Cerrar el loader despu├®s de un breve momento
+                        // Cerrar el loader después de un breve momento
                         setTimeout(() => {
                             Swal.close();
                         }, 300);
@@ -547,7 +547,7 @@
                     this.precios.splice(index, 1);
                 },
 
-                // M├®todos para el modal de agregar
+                // Métodos para el modal de agregar
                 agregarPrecioNuevo() {
                     this.preciosNuevos.push({
                         nombre: '',
@@ -589,7 +589,7 @@
                     clearSelection();
                     $('.filter-option').prop('checked', false);
 
-                    // Actualizar el almac├®n seleccionado
+                    // Actualizar el almacén seleccionado
                     almacenCod = event.target.value;
 
                     if (currentView === 'table') {
@@ -598,7 +598,7 @@
                             datatable.destroy();
                         }
 
-                        // Reinicializar DataTable con la nueva configuraci├│n
+                        // Reinicializar DataTable con la nueva configuración
                         initializeDataTable();
                     } else {
                         // Recargar vista grid
@@ -611,10 +611,10 @@
                         setTimeout(() => {
                             if (document.getElementById("barcode")) {
                                 try {
-                                    // CAMBIO AQU├ì: Usar el c├│digo del producto
+                                    // CAMBIO AQUÍ: Usar el código del producto
                                     JsBarcode("#barcode", this.edt.codigo);
                                 } catch (error) {
-                                    console.error("Error al generar c├│digo de barras:", error);
+                                    console.error("Error al generar código de barras:", error);
                                 }
                             } else {
                                 console.warn("Elemento #barcode no encontrado en el DOM");
@@ -647,7 +647,7 @@
                                 }
                             })
                     } else {
-                        alertAdvertencia("La lista est├í vac├¡a");
+                        alertAdvertencia("La lista está vacía");
                     }
                 },
                 ChangeconsultarDocRUC() {
@@ -663,7 +663,7 @@
                     } else if (this.edt.ruc.length == 11) {
                         this.getInfoDoc3();
                     } else {
-                        alertAdvertencia("El RUC es de 11 d├¡gitos")
+                        alertAdvertencia("El RUC es de 11 dígitos")
                     }
                 },
                 getInfoDoc2() {
@@ -740,7 +740,7 @@
                     $('#tabla-historial-stock').html(`
                         <thead class="table-light">
                             <tr>
-                                <th>C├│digo</th>
+                                <th>Código</th>
                                 <th>Producto</th>
                                 <th>Movimiento</th>
                                 <th>Cantidad</th>
@@ -777,9 +777,11 @@
                                     return data ? 'S/ ' + parseFloat(data).toFixed(2) : '<span class="text-muted">-</span>';
                                 }
                             },
-                            { 
+                            {
                                 data: "fecha_movimiento",
-                                render: function(data) {
+                                render: function(data, type) {
+                                    if (type === 'sort' || type === 'type') return data;
+                                    if (!data) return '-';
                                     const fecha = new Date(data);
                                     const dia = String(fecha.getDate()).padStart(2, '0');
                                     const mes = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -832,7 +834,7 @@
                             }
                         ],
                         initComplete: function() {
-                            // Ajustar columnas despu├®s de cargar los datos
+                            // Ajustar columnas después de cargar los datos
                             table.columns.adjust().draw();
                         },
                         drawCallback: function() {
@@ -855,7 +857,7 @@
                 actualizarProd() {
                     // Validar campos requeridos
                     if (!this.edt.categoria || this.edt.categoria === '') {
-                        alertAdvertencia("Debe seleccionar una categor├¡a");
+                        alertAdvertencia("Debe seleccionar una categoría");
                         return;
                     }
 
@@ -866,7 +868,7 @@
 
                     let formData = new FormData();
 
-                    // A├▒adir los datos al formData
+                    // Añadir los datos al formData
                     formData.append('id_producto', this.edt.cod);
                     formData.append('cod', this.edt.cod);
                     formData.append('nombre', this.edt.nombre);
@@ -890,7 +892,7 @@
                     formData.append('moneda', this.edt.moneda);
                     formData.append('usar_multiprecio', this.edt.usar_multiprecio ? '1' : '0');
 
-                    // Agregar la imagen solo si fue seleccionada Y el input no est├í vac├¡o
+                    // Agregar la imagen solo si fue seleccionada Y el input no está vacío
                     let inputImagen = document.querySelector('#upload-input');
                     let imagen = inputImagen && inputImagen.files && inputImagen.files[0];
                     if (imagen && inputImagen.value) {
@@ -904,7 +906,7 @@
                     }
 
 
-                    // Mostrar loader mientras se procesa la actualizaci├│n
+                    // Mostrar loader mientras se procesa la actualización
                     Swal.fire({
                         title: 'Actualizando producto...',
                         html: 'Por favor espere',
@@ -977,7 +979,7 @@
                 agregarProd() {
                     // Validar campos requeridos
                     if (!this.reg.categoria || this.reg.categoria === '') {
-                        alertAdvertencia("Debe seleccionar una categor├¡a");
+                        alertAdvertencia("Debe seleccionar una categoría");
                         return;
                     }
 
@@ -1034,7 +1036,7 @@
                             alertAdvertencia("Error en la solicitud");
                         });
                 },
-                // Funci├│n setInfo corregida
+                // Función setInfo corregida
                 setInfo(data) {
                     $("#modal-edt-prod").modal("show");
 
@@ -1050,7 +1052,7 @@
 
                     console.log("Valor convertido para Vue:", this.edt.usar_multiprecio);
 
-                    // Primero cargar las categor├¡as y unidades
+                    // Primero cargar las categorías y unidades
                     Promise.all([
                         $.get(_URL + "/ajs/get/categorias"),
                         $.get(_URL + "/ajs/get/unidades")
@@ -1058,8 +1060,8 @@
                         const cats = JSON.parse(categorias);
                         const units = JSON.parse(unidades);
 
-                        // Poblar los selectores con opci├│n por defecto
-                        let catOptions = '<option value="">Seleccione categor├¡a</option>';
+                        // Poblar los selectores con opción por defecto
+                        let catOptions = '<option value="">Seleccione categoría</option>';
                         cats.forEach(cat => {
                             catOptions += `<option value="${cat.id}">${cat.nombre}</option>`;
                         });
@@ -1097,19 +1099,19 @@
                             ruc: data.ruc,
                             moneda: data.moneda || 'PEN'
                         };
-                        // Si hay c├│digo de barras y usar_barra es '1', generar el c├│digo de barras
+                        // Si hay código de barras y usar_barra es '1', generar el código de barras
                         if (this.edt.usar_barra === '1') {
                             $("#barcode").show();
-                            // Esperar a que el modal est├® completamente visible
+                            // Esperar a que el modal esté completamente visible
                             this.$nextTick(() => {
                                 setTimeout(() => {
                                     try {
                                         if (document.getElementById("barcode")) {
-                                            // Usar el c├│digo del producto para el c├│digo de barras
+                                            // Usar el código del producto para el código de barras
                                             JsBarcode("#barcode", this.edt.codigo);
                                         }
                                     } catch (error) {
-                                        console.error("Error al generar c├│digo de barras:", error);
+                                        console.error("Error al generar código de barras:", error);
                                     }
                                 }, 300);
                             });
@@ -1136,13 +1138,13 @@
                         // Limpiar flag de eliminar imagen al abrir modal
                         $('#eliminar-imagen-flag').remove();
 
-                        // CR├ìTICO: Limpiar el input file para evitar que se env├¡e imagen de otro producto
+                        // CRÍTICO: Limpiar el input file para evitar que se envíe imagen de otro producto
                         $('#upload-input').val('');
 
 
                     }).catch(error => {
                         console.error('Error cargando datos:', error);
-                        alert('Error al cargar las categor├¡as y unidades');
+                        alert('Error al cargar las categorías y unidades');
                     });
 
                     // Cargar los precios si usa multiprecio
@@ -1174,7 +1176,7 @@
                     }
 
                     if (!this.stockData.cantidad_ingresar || this.stockData.cantidad_ingresar <= 0) {
-                        alertAdvertencia("Debe ingresar una cantidad v├ílida");
+                        alertAdvertencia("Debe ingresar una cantidad válida");
                         return;
                     }
 
@@ -1224,7 +1226,7 @@
                     }
 
                     if (!this.disminuirData.cantidad_disminuir || this.disminuirData.cantidad_disminuir <= 0) {
-                        alertAdvertencia("Debe ingresar una cantidad v├ílida");
+                        alertAdvertencia("Debe ingresar una cantidad válida");
                         return;
                     }
 
@@ -1273,17 +1275,17 @@
                 },
                 realizarTraslado() {
                     if (!this.trasladoData.almacen_origen) {
-                        alertAdvertencia("Debe seleccionar el almac├®n de origen");
+                        alertAdvertencia("Debe seleccionar el almacén de origen");
                         return;
                     }
 
                     if (!this.trasladoData.almacen_destino) {
-                        alertAdvertencia("Debe seleccionar el almac├®n de destino");
+                        alertAdvertencia("Debe seleccionar el almacén de destino");
                         return;
                     }
 
                     if (this.trasladoData.almacen_origen === this.trasladoData.almacen_destino) {
-                        alertAdvertencia("El almac├®n de origen y destino no pueden ser el mismo");
+                        alertAdvertencia("El almacén de origen y destino no pueden ser el mismo");
                         return;
                     }
 
@@ -1327,7 +1329,7 @@
 
         });
 
-        // Funci├│n para inicializar DataTable
+        // Función para inicializar DataTable
         function initializeDataTable() {
             datatable = $("#datatable").DataTable({
                 order: [[0, 'ASC']],
@@ -1338,7 +1340,7 @@
                     "sProcessing": "Procesando...",
                     "sLengthMenu": "Mostrar _MENU_ registros",
                     "sZeroRecords": "No se encontraron resultados",
-                    "sEmptyTable": "Ning├║n dato disponible en esta tabla",
+                    "sEmptyTable": "Ningún dato disponible en esta tabla",
                     "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                     "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
                     "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
@@ -1349,7 +1351,7 @@
                     "sLoadingRecords": "Cargando...",
                     "oPaginate": {
                         "sFirst": "Primero",
-                        "sLast": "├Ültimo",
+                        "sLast": "Último",
                         "sNext": "Siguiente",
                         "sPrevious": "Anterior"
                     },
@@ -1372,7 +1374,7 @@
                     );
                 },
                 "drawCallback": function (settings) {
-                    // Callback despu├®s de que la tabla se ha redibujado
+                    // Callback después de que la tabla se ha redibujado
                     $("#datatable_processing").hide();
 
                     // Esperar un momento antes de restaurar estados
@@ -1403,7 +1405,7 @@
                         "targets": [3],
                         "className": "text-center",
                         "render": function (data, type, row, meta) {
-                            // La moneda est├í en row[7] (├¡ndice 7 del array de columnas)
+                            // La moneda está en row[7] (índice 7 del array de columnas)
                             const moneda = row[7] || 'PEN';
                             const simbolo = moneda === 'USD' ? '$' : 'S/';
                             return `${simbolo}${parseFloat(data || 0).toFixed(2)}`;
@@ -1435,7 +1437,7 @@
             const isDesktop = window.innerWidth >= 1200;
 
             if (isTablet) {
-                // En tablet/m├│vil: mostrar dropdown, ocultar botones individuales
+                // En tablet/móvil: mostrar dropdown, ocultar botones individuales
                 $('.grid-view-buttons').addClass('d-none');
                 $('.table-view-dropdown').removeClass('d-none');
             } else if (isDesktop) {
@@ -1449,7 +1451,7 @@
             }
         }
 
-        // Funci├│n 'debounce' para optimizar el evento de resize.
+        // Función 'debounce' para optimizar el evento de resize.
         const debounce = (func, delay) => {
             let timeoutId;
             return (...args) => {
@@ -1461,7 +1463,7 @@
         // Asignamos el evento de resize usando el debounce.
         $(window).on('resize', debounce(toggleViewButtons, 200));
 
-        // Event listeners para cambio de vista (c├│digo original del usuario)
+        // Event listeners para cambio de vista (código original del usuario)
         $('#btn-table-view').click(function () {
             if (currentView !== 'table') {
                 currentView = 'table';
@@ -1498,7 +1500,7 @@
             $('#btn-grid-view').click(); // Reutilizar funcionalidad existente
         });
 
-        // Sincronizar estados entre versiones m├│vil y desktop
+        // Sincronizar estados entre versiones móvil y desktop
         $(document).on('click', '#btn-table-view, #btn-table-view-desktop', function () {
             $('#btn-table-view, #btn-table-view-desktop').addClass('active');
             $('#btn-grid-view, #btn-grid-view-desktop').removeClass('active');
@@ -1522,9 +1524,9 @@
             $('.btnBorrar').click(); // Reutilizar la funcionalidad existente
         });
 
-        // Inicializar la vista correcta al cargar la p├ígina
+        // Inicializar la vista correcta al cargar la página
         currentView = 'table';
-        toggleViewButtons(); // Usar la funci├│n para inicializar correctamente
+        toggleViewButtons(); // Usar la función para inicializar correctamente
 
         // Search en vista grid
         let searchTimeout;
@@ -1576,7 +1578,7 @@
             }
         });
 
-        // Reemplazar el autocomplete existente con esta versi├│n mejorada
+        // Reemplazar el autocomplete existente con esta versión mejorada
         $("#buscar-producto-stock").autocomplete({
             source: function (request, response) {
                 $.ajax({
@@ -1599,7 +1601,7 @@
                 app._data.stockData.producto_nombre = ui.item.nombre;
                 $('#producto-seleccionado-id').val(ui.item.codigo);
 
-                // Cerrar el autocomplete inmediatamente despu├®s de la selecci├│n
+                // Cerrar el autocomplete inmediatamente después de la selección
                 $(this).autocomplete("close");
 
                 return false; // Prevenir comportamiento por defecto
@@ -1701,10 +1703,10 @@
             minLength: 2,
             appendTo: "#modal-traslado-almacenes .modal-body",
             select: function (event, ui) {
-                // Verificar si el producto ya est├í en la lista
+                // Verificar si el producto ya está en la lista
                 const existe = app._data.trasladoData.productos.find(p => p.id_producto === ui.item.codigo);
                 if (existe) {
-                    alertAdvertencia("Este producto ya est├í en la lista");
+                    alertAdvertencia("Este producto ya está en la lista");
                     $(this).val('');
                     return false;
                 }
@@ -1747,7 +1749,7 @@
             };
         });
 
-        // Agregar despu├®s de la configuraci├│n del autocomplete
+        // Agregar después de la configuración del autocomplete
         $('#modal-aumentar-stock').on('hidden.bs.modal', function () {
             // Limpiar el autocomplete cuando se cierre el modal
             $('#buscar-producto-stock').val('');
@@ -1766,8 +1768,38 @@
         });
 
         // Evento para cargar historial cuando se abre el modal
+        // Filtro custom para historial de productos
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+            if (settings.nTable.id !== 'tabla-historial-stock') return true;
+            var movimiento = $('#filtro-movimiento-prod').val();
+            var desde     = $('#filtro-fecha-desde-prod').val();
+            var hasta     = $('#filtro-fecha-hasta-prod').val();
+            if (movimiento && rowData.tipo_movimiento !== movimiento) return false;
+            if (desde || hasta) {
+                var fechaRow = new Date(rowData.fecha_movimiento);
+                if (desde && fechaRow < new Date(desde)) return false;
+                if (hasta && fechaRow > new Date(hasta + 'T23:59:59')) return false;
+            }
+            return true;
+        });
+
+        $(document).on('change', '#filtro-movimiento-prod, #filtro-fecha-desde-prod, #filtro-fecha-hasta-prod', function() {
+            if ($.fn.DataTable.isDataTable('#tabla-historial-stock')) {
+                $('#tabla-historial-stock').DataTable().draw();
+            }
+        });
+
+        $(document).on('click', '#btn-limpiar-filtros-prod', function() {
+            $('#filtro-movimiento-prod').val('');
+            $('#filtro-fecha-desde-prod').val('');
+            $('#filtro-fecha-hasta-prod').val('');
+            if ($.fn.DataTable.isDataTable('#tabla-historial-stock')) {
+                $('#tabla-historial-stock').DataTable().draw();
+            }
+        });
+
         $('#modal-historial-stock').on('shown.bs.modal', function () {
-            // Peque├▒o delay para asegurar que el modal est├® completamente visible
+            // Pequeño delay para asegurar que el modal esté completamente visible
             setTimeout(function() {
                 app.cargarHistorialStock();
             }, 100);
@@ -1775,6 +1807,9 @@
 
         // Evento para limpiar cuando se cierra el modal
         $('#modal-historial-stock').on('hidden.bs.modal', function () {
+            $('#filtro-movimiento-prod').val('');
+            $('#filtro-fecha-desde-prod').val('');
+            $('#filtro-fecha-hasta-prod').val('');
             // Destruir DataTable completamente
             if ($.fn.DataTable.isDataTable('#tabla-historial-stock')) {
                 $('#tabla-historial-stock').DataTable().clear().destroy();
@@ -1807,7 +1842,7 @@
                 var validExtensions = ['xlsx', 'xls', 'csv'];
                 var fileExt = file.name.split('.').pop().toLowerCase();
                 if (!validExtensions.includes(fileExt)) {
-                    alertAdvertencia("Formato de archivo no v├ílido. Use Excel (.xlsx, .xls) o CSV");
+                    alertAdvertencia("Formato de archivo no válido. Use Excel (.xlsx, .xls) o CSV");
                     $("#file-import-exel").val("");
                     return;
                 }
@@ -1836,7 +1871,7 @@
                             resp = JSON.parse(resp);
                             if (resp.res) {
                                 if (!resp.data || resp.data.length <= 1) {
-                                    alertAdvertencia("El archivo est├í vac├¡o o no contiene datos v├ílidos");
+                                    alertAdvertencia("El archivo está vacío o no contiene datos válidos");
                                     return;
                                 }
 
@@ -1848,7 +1883,7 @@
                                     var el = resp.data[i];
                                     if (!el[0]) { // Validar producto
                                         hasErrors = true;
-                                        console.error("Fila " + (i + 1) + ": Nombre de producto vac├¡o");
+                                        console.error("Fila " + (i + 1) + ": Nombre de producto vacío");
                                         continue;
                                     }
 
@@ -1871,7 +1906,7 @@
                                 }
 
                                 if (hasErrors) {
-                                    alertAdvertencia("Algunos productos no se pudieron procesar. Revise la consola para m├ís detalles.");
+                                    alertAdvertencia("Algunos productos no se pudieron procesar. Revise la consola para más detalles.");
                                 }
 
                                 if (listaTemp.length > 0) {
@@ -1879,7 +1914,7 @@
                                     $("#importarModal").modal("hide");
                                     $("#modal-lista-productos").modal("show");
                                 } else {
-                                    alertAdvertencia("No se encontraron productos v├ílidos para importar");
+                                    alertAdvertencia("No se encontraron productos válidos para importar");
                                 }
                             } else {
                                 alertAdvertencia(resp.error || "No se pudo procesar el archivo");
@@ -1962,12 +1997,12 @@
                     if (resp.res) {
                         app.setInfo(resp.data)
                     } else {
-                        alertAdvertencia("Informaci├│n no encontrada")
+                        alertAdvertencia("Información no encontrada")
                     }
                 }
             )
         });
-        // Funci├│n para restaurar estados de checkboxes
+        // Función para restaurar estados de checkboxes
         function restoreCheckboxStates() {
             const savedIds = JSON.parse(localStorage.getItem('idChecks') || '[]');
 
@@ -1979,7 +2014,7 @@
             arrayIdsOkUsar = savedIds;
         }
 
-        // Manejador para los checkboxes individuales con delegaci├│n de eventos
+        // Manejador para los checkboxes individuales con delegación de eventos
         $(document).on("click", ".btnCheckEliminar", function (e) {
             e.stopPropagation();
 
@@ -1998,7 +2033,7 @@
                     .addClass('border-rojo bg-white');
             }
 
-            // Verificar si todos los checkboxes visibles est├ín marcados
+            // Verificar si todos los checkboxes visibles están marcados
             if (currentView === 'table') {
                 const allChecked = $(".btnCheckEliminar:visible").length === $(".btnCheckEliminar:visible:checked").length;
                 if (allChecked && $(".btnCheckEliminar:visible").length > 0) {
@@ -2022,7 +2057,7 @@
             }
         });
 
-        // Manejador para el checkbox "Seleccionar Todos" con prevenci├│n de propagaci├│n
+        // Manejador para el checkbox "Seleccionar Todos" con prevención de propagación
         $(".btnSeleccionarTodos").on("click", function (e) {
             e.stopPropagation();
 
@@ -2086,14 +2121,14 @@
                                             // Actualizar vista actual
                                             if (currentView === 'table') {
                                                 datatable.ajax.reload(function () {
-                                                    console.log("Tabla actualizada despu├®s de borrar");
+                                                    console.log("Tabla actualizada después de borrar");
                                                 }, false);
                                             } else {
                                                 loadGridProducts(currentPage, searchTerm);
                                             }
                                         });
                                 } else {
-                                    alertAdvertencia("Ocurri├│ un error")
+                                    alertAdvertencia("Ocurrió un error")
                                 }
                             })
                     } else {
@@ -2106,8 +2141,10 @@
 
     $(document).ready(function () {
         $('#add-prod').click(function () {
+            var vueApp = document.getElementById('conte-vue-modals').__vue__;
+            if (vueApp) vueApp.reg.almacen = vueApp.almacen;
             $.get(_URL + "/ajs/get/categorias", function (data, textStatus, jqXHR) {
-                let option = '<option value="">Seleccione una categor├¡a</option>';
+                let option = '<option value="">Seleccione una categoría</option>';
                 let resp = JSON.parse(data);
                 $.each(resp, function (i, v) {
                     option += `<option value="${v.id}">${v.nombre}</option>`;
@@ -2115,8 +2152,8 @@
 
                 $('#categoria').html(option);
             }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.error("Error al cargar las categor├¡as: " + textStatus, errorThrown);
-                alertError("No se pudo cargar las categor├¡as. Por favor, intenta nuevamente.");
+                console.error("Error al cargar las categorías: " + textStatus, errorThrown);
+                alertError("No se pudo cargar las categorías. Por favor, intenta nuevamente.");
             });
 
             $.get(_URL + "/ajs/get/unidades", function (data, textStatus, jqXHR) {
@@ -2162,11 +2199,11 @@
                     $('.image-container').show();
                     $('#no-image-message').hide();
 
-                    // Ocultar el men├║ desplegable
+                    // Ocultar el menú desplegable
                     $('#image-menu').hide();
                     imageMenuOpen = false;
 
-                    // IMPORTANTE: Si se sube una nueva imagen, se anula la eliminaci├│n
+                    // IMPORTANTE: Si se sube una nueva imagen, se anula la eliminación
                     $('#eliminar-imagen-flag').remove();
                 }
                 reader.readAsDataURL(input.files[0]);
@@ -2193,11 +2230,11 @@
             $('.image-container').hide();
             $('#no-image-message').show();
 
-            // Ocultar el men├║ desplegable
+            // Ocultar el menú desplegable
             $('#image-menu').hide();
             imageMenuOpen = false;
 
-            // A├▒adir un campo oculto para indicar al backend que se debe eliminar la imagen
+            // Añadir un campo oculto para indicar al backend que se debe eliminar la imagen
             $('#eliminar-imagen-flag').remove(); // Limpiar flag anterior
             $('<input>').attr({
                 type: 'hidden',
@@ -2207,7 +2244,7 @@
             }).appendTo('#modal-edt-prod form');
         };
 
-        // Cerrar el men├║ desplegable si se hace clic fuera de ├®l
+        // Cerrar el menú desplegable si se hace clic fuera de él
         $(document).click(function (e) {
             if (!$(e.target).closest('#image-edit-button').length) {
                 if ($('#image-menu').is(':visible')) {

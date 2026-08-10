@@ -9,6 +9,29 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="row mb-2 g-2 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label mb-1 small fw-semibold">Movimiento</label>
+                        <select id="filtro-movimiento-rep" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <option value="INGRESO">INGRESO</option>
+                            <option value="EGRESO">EGRESO</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label mb-1 small fw-semibold">Desde</label>
+                        <input type="date" id="filtro-fecha-desde-rep" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label mb-1 small fw-semibold">Hasta</label>
+                        <input type="date" id="filtro-fecha-hasta-rep" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-auto">
+                        <button id="btn-limpiar-filtros-rep" class="btn btn-outline-secondary btn-sm">
+                            <i class="fa fa-times me-1"></i>Limpiar
+                        </button>
+                    </div>
+                </div>
                 <table id="tabla-historial-stock-repuesto" class="table table-striped table-hover table-sm" style="width:100%">
                     <thead class="table-light">
                         <tr>

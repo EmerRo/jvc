@@ -193,7 +193,7 @@ class ProductoVenta
         // ✅ Registrar en historial de stock con serie y número
         // Si id_producto no existe en la tabla productos (ej: repuestos, servicios),
         // la FK constraint falla. Hacemos try-catch para no matar el flujo.
-        $usuario = isset($_SESSION['usuario']) ? $_SESSION['usuario'] : 'Sistema';
+        $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
 
         // Obtener serie y número de la venta
         $sqlVenta = "SELECT serie, numero FROM ventas WHERE id_venta = '$this->id_venta'";
