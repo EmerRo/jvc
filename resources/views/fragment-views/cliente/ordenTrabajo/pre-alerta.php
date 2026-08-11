@@ -433,7 +433,7 @@
                                     </div>
 
                                     <!-- Sección para equipos individuales en modo edición -->
-                                    <div class="equipos-lista mt-4" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="equipos-lista mt-4" style="max-height: 480px; overflow-y: auto;">
                                         <div v-for="(equipo, index) in editando.equipos" :key="index"
                                             class="equipo-item mb-3 p-3 border rounded bg-light">
                                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -446,8 +446,29 @@
                                                     <i class="fa fa-trash me-1"></i> Eliminar
                                                 </button>
                                             </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
+                                            <div class="row g-3 mb-2">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">
+                                                        <i class="fa fa-box me-1"></i> Producto del stock
+                                                        <small class="text-muted" v-if="idAlmacen">(opcional)</small>
+                                                        <small class="text-danger" v-else>(elegí un almacén en el formulario de agregar para activar)</small>
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                        <input type="text"
+                                                            class="form-control input-buscar-producto-ot-edit"
+                                                            :data-index="index"
+                                                            v-model="equipo.producto_busqueda"
+                                                            :disabled="!idAlmacen"
+                                                            :placeholder="idAlmacen ? 'Buscar por código o nombre...' : 'Sin almacén seleccionado'"
+                                                            autocomplete="off">
+                                                        <input type="hidden" v-model="equipo.id_producto">
+                                                    </div>
+                                                    <small class="text-muted producto-seleccionado-info-ot-edit"></small>
+                                                </div>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-3">
                                                     <label class="form-label">
                                                         <i class="fa fa-tag me-1"></i> Marca
                                                     </label>
@@ -458,7 +479,7 @@
                                                         {{ validationErrors['equipo_'+index+'_marca'] }}
                                                     </p>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
+                                                <div class="col-md-3">
                                                     <label class="form-label">
                                                         <i class="fa fa-cube me-1"></i> Modelo
                                                     </label>
@@ -469,9 +490,7 @@
                                                         {{ validationErrors['equipo_'+index+'_modelo'] }}
                                                     </p>
                                                 </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
+                                                <div class="col-md-3">
                                                     <label class="form-label">
                                                         <i class="fa fa-laptop me-1"></i> Equipo
                                                     </label>
@@ -482,9 +501,9 @@
                                                         {{ validationErrors['equipo_'+index+'_equipo'] }}
                                                     </p>
                                                 </div>
-                                                <div class="col-md-6 mb-3">
+                                                <div class="col-md-3">
                                                     <label class="form-label">
-                                                        <i class="fa fa-barcode me-1"></i> Número de Serie
+                                                        <i class="fa fa-barcode me-1"></i> N° de Serie
                                                     </label>
                                                     <input type="text" class="form-control"
                                                         v-model="equipo.numero_serie"

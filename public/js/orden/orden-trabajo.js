@@ -74,6 +74,10 @@ $(document).ready(() => {
         this.$nextTick(() => this.wireProductosAutocomplete(".input-buscar-producto-ot", this.equipos));
       },
 
+      onCambiarAlmacenEdit() {
+        this.$nextTick(() => this.wireProductosAutocomplete(".input-buscar-producto-ot-edit", this.editando.equipos));
+      },
+
       wireProductosAutocomplete(selector, items) {
         const vm = this;
         const idAlmacen = this.idAlmacen;
@@ -116,8 +120,8 @@ $(document).ready(() => {
                 Vue.set(items[idx], "id_producto", prod.codigo || null);
                 Vue.set(items[idx], "producto_busqueda", ui.item.value);
               }
-              $input.siblings(".producto-seleccionado-info-ot").html(
-                '<i class="fa fa-check-circle text-success"></i> Producto vinculado al stock'
+              $input.closest(".input-group").siblings(".producto-seleccionado-info-ot, .producto-seleccionado-info-ot-edit").html(
+                '<i class="fa fa-link text-success"></i> Referencia vinculada — no modifica stock'
               );
               return false;
             },
@@ -162,7 +166,11 @@ $(document).ready(() => {
               this.editando.fecha_ingreso = datos.fecha_ingreso;
               this.editando.fecha_salida = datos.fecha_salida;
               this.editando.observaciones = datos.observaciones || "";
-              this.editando.equipos = datos.equipos || [];
+              this.editando.equipos = (datos.equipos || []).map(eq => ({
+                ...eq,
+                id_producto: eq.id_producto || null,
+                producto_busqueda: "",
+              }));
 
               $("#edit_id_orden_trabajo").val(datos.id_orden_trabajo);
               $("#edit_cliente_Rsocial").val(datos.cliente_razon_social);
@@ -173,6 +181,9 @@ $(document).ready(() => {
               $("#edit_observaciones").val(datos.observaciones || "");
 
               $("#modalEditar").modal("show");
+              if (this.idAlmacen) {
+                this.$nextTick(() => this.onCambiarAlmacenEdit());
+              }
             } catch (error) {
               Swal.fire({
                 icon: "error",
@@ -208,6 +219,10 @@ $(document).ready(() => {
       agregarEquipoEdicion() {
         this.editando.equipos.push({
           id: null, marca: "", equipo: "", modelo: "", numero_serie: "",
+          id_producto: null, producto_busqueda: "",
+        });
+        this.$nextTick(() => {
+          this.wireProductosAutocomplete(".input-buscar-producto-ot-edit", this.editando.equipos);
         });
       },
 
@@ -674,6 +689,17 @@ $(document).ready(() => {
         });
       }
     });
+  });
+
+  // ===== MODAL EDICIÓN: AUTOCOMPLETADO AL ABRIR =====
+  $("#modalEditar").on("shown.bs.modal", function () {
+    if (!app.idAlmacen) {
+      app.cargarAlmacenes();
+    } else {
+      app.$nextTick(() => {
+        app.wireProductosAutocomplete(".input-buscar-producto-ot-edit", app.editando.equipos);
+      });
+    }
   });
 
   // ===== LIMPIAR MODAL EDICIÓN =====
