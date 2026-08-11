@@ -232,6 +232,7 @@ Route::post("/ajs/orden-servicio/detalles", "OrdenServicioController@detalles")-
 
 // Rutas para el controlador unificado de taller
 Route::post("/ajs/taller/render-unificado", "TallerController@renderUnificado")->middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/taller/pendientes-cotizacion/contar", "TallerController@contarPendientesCotizacion")->middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/taller/detalles-unificado", "TallerController@detallesUnificado")->middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/taller/culminar-unificado", "TallerController@culminarTrabajoUnificado")->middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/taller/delete-unificado", "TallerController@borrarUnificado")->middleware([ValidarTokenMiddleware::class]);

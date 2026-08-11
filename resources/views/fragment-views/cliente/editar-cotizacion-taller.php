@@ -14,6 +14,28 @@ if (!isset($_SESSION)) {
 <!-- Incluir Quill JS -->
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <style>
+    .taller-cotizacion-view .taller-productos-table,
+    .taller-cotizacion-view .taller-pagos-modal,
+    .taller-autocomplete-menu,
+    #modal-terminos .ql-container,
+    #modal-terminos .ql-editor,
+    #modal-terminos .ql-toolbar,
+    #modal-terminos .ql-tooltip,
+    #modal-diagnostico .ql-container,
+    #modal-diagnostico .ql-editor,
+    #modal-diagnostico .ql-toolbar,
+    #modal-diagnostico .ql-tooltip,
+    #modal-terminos-opciones .ql-container,
+    #modal-terminos-opciones .ql-editor,
+    #modal-terminos-opciones .ql-toolbar,
+    #modal-terminos-opciones .ql-tooltip,
+    #modal-diagnostico-opciones .ql-container,
+    #modal-diagnostico-opciones .ql-editor,
+    #modal-diagnostico-opciones .ql-toolbar,
+    #modal-diagnostico-opciones .ql-tooltip {
+        font-family: 'Sarabun', sans-serif !important;
+    }
+
     .nav-equipos {
         margin-bottom: 20px;
         border-bottom: 1px solid #dee2e6;
@@ -87,7 +109,7 @@ if (!isset($_SESSION)) {
                     </div>
                 </div>
 
-                <div class="row" id="container-vue" v-cloak>
+                <div class="row taller-cotizacion-view" id="container-vue" v-cloak>
                     <div class="col-12 row">
                         <!-- Columna izquierda -->
                         <div class="col-md-8">
@@ -231,7 +253,7 @@ if (!isset($_SESSION)) {
                                                     <h4>Producto</h4>
                                                 </div>
                                             </div>
-                                            <table class="table" style="width: 100%;">
+                                            <table class="table taller-productos-table" style="width: 100%;">
                                                 <thead>
                                                     <tr>
                                                         <th>Item</th>
@@ -530,7 +552,7 @@ if (!isset($_SESSION)) {
                     </div>
 
                     <!-- Modal de días de pago -->
-                    <div class="modal fade" id="modal-dias-pagos" tabindex="-1">
+                    <div class="modal fade taller-pagos-modal" id="modal-dias-pagos" tabindex="-1">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -770,6 +792,10 @@ if (!isset($_SESSION)) {
     // Asegurar que la instancia de Vue sea accesible globalmente
     let vueApp = null;
 
+    $(document).on("autocompletecreate.tallerCotizaciones", "#input_datos_cliente, #input_buscar_productos", function () {
+        $(this).autocomplete("widget").addClass("taller-autocomplete-menu");
+    });
+
     // Esperar a que el documento esté listo
     $(document).ready(function () {
         // Destruir instancia anterior si existe
@@ -965,6 +991,9 @@ if (!isset($_SESSION)) {
                     $("#input_buscar_productos").autocomplete({
                         source: _URL + `/ajs/cargar/repuestos/${self.producto.almacen}`,
                         minLength: 1,
+                        classes: {
+                            "ui-autocomplete": "taller-autocomplete-menu"
+                        },
                         select: function (event, ui) {
                             event.preventDefault();
                             console.log(ui.item);
@@ -1052,7 +1081,10 @@ if (!isset($_SESSION)) {
                                 console.log(resp);
                                 if (resp.res) {
                                     app._data.venta.nom_cli = (resp.data.nombre ? resp.data.nombre : '') + (resp.data.razon_social ? resp.data.razon_social : '')
-                                    app._data.venta.dir_cli = resp.data.direccion
+                                    const direccion = typeof resp.data.direccion === 'string' ? resp.data.direccion.trim() : '';
+                                    if (direccion) {
+                                        app._data.venta.dir_cli = direccion;
+                                    }
                                 } else {
                                     alertAdvertencia("Documento no encontrado")
                                 }
@@ -1580,13 +1612,19 @@ if (!isset($_SESSION)) {
         $("#input_datos_cliente").autocomplete({
             source: _URL + "/ajs/buscar/cliente/datos",
             minLength: 2,
+            classes: {
+                "ui-autocomplete": "taller-autocomplete-menu"
+            },
             select: function (event, ui) {
                 event.preventDefault();
                 console.log(ui.item);
                 app._data.venta.dir_pos = 1
                 app._data.venta.nom_cli = ui.item.datos
                 app._data.venta.num_doc = ui.item.documento
-                app._data.venta.dir_cli = ui.item.direccion
+                const direccion = typeof ui.item.direccion === 'string' ? ui.item.direccion.trim() : '';
+                if (direccion) {
+                    app._data.venta.dir_cli = direccion;
+                }
             }
         });
 

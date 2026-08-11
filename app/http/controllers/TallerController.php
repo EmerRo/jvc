@@ -16,6 +16,38 @@ class TallerController extends Controller
         $this->conectar = (new Conexion())->getConexion();
     }
 
+    public function contarPendientesCotizacion()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['usuario_fac'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Sesión no válida']);
+            exit;
+        }
+
+        try {
+            $sql = "SELECT COUNT(*) AS total
+                    FROM vista_ordenes_unificada
+                    WHERE tiene_cotizacion = 0
+                      AND origen IN ('ORD TRABAJO', 'ORD SERVICIO')";
+            $resultado = $this->conectar->query($sql);
+
+            if (!$resultado) {
+                throw new Exception($this->conectar->error);
+            }
+
+            $fila = $resultado->fetch_assoc();
+            echo json_encode(['count' => (int) $fila['total']]);
+        } catch (Exception $e) {
+            error_log('Error al contar pendientes de cotización de Taller: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['error' => 'No se pudo obtener el contador de Taller']);
+        }
+
+        exit;
+    }
+
     /**
      * Renderizar vista unificada de órdenes de trabajo y servicio
      */

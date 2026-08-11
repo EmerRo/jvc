@@ -508,15 +508,21 @@ public function getOne($id)
         if ($rowCl = $result->fetch_assoc()) {
             // Cliente existe, actualizar datos
             $idCli = $rowCl['id_cliente'];
+            $direccion = isset($data['dir_cli']) ? trim($data['dir_cli']) : '';
+            $direccion2 = isset($data['dir2_cli']) ? trim($data['dir2_cli']) : '';
+            $direccion = $direccion !== '' ? $direccion : $rowCl['direccion'];
+            $direccion2 = $direccion2 !== '' ? $direccion2 : $rowCl['direccion2'];
             $sqlUpdate = "UPDATE clientes SET datos = ?, direccion = ?, direccion2 = ? WHERE id_cliente = ?";
             $stmtUpdate = $this->conectar->prepare($sqlUpdate);
-            $stmtUpdate->bind_param("sssi", $data['nom_cli'], $data['dir_cli'], $data['dir2_cli'], $idCli);
+            $stmtUpdate->bind_param("sssi", $data['nom_cli'], $direccion, $direccion2, $idCli);
             $stmtUpdate->execute();
         } else {
             // Cliente no existe, crear nuevo
+            $direccion = isset($data['dir_cli']) ? trim($data['dir_cli']) : '';
+            $direccion2 = isset($data['dir2_cli']) ? trim($data['dir2_cli']) : '';
             $sqlInsert = "INSERT INTO clientes (documento, datos, direccion, direccion2, id_empresa) VALUES (?, ?, ?, ?, ?)";
             $stmtInsert = $this->conectar->prepare($sqlInsert);
-            $stmtInsert->bind_param("ssssi", $data['num_doc'], $data['nom_cli'], $data['dir_cli'], $data['dir2_cli'], $_SESSION['id_empresa']);
+            $stmtInsert->bind_param("ssssi", $data['num_doc'], $data['nom_cli'], $direccion, $direccion2, $_SESSION['id_empresa']);
             $stmtInsert->execute();
             $idCli = $this->conectar->insert_id;
         }

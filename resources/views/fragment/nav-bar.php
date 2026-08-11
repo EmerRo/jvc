@@ -71,12 +71,19 @@ try {
 
         <?php foreach ($modulos as $modulo): ?>
             <?php if ($modulo['id'] !== 'dashboard'): ?>
+                <?php $esModuloTaller = $modulo['id'] === 'taller'; ?>
                 <li class="jvc-sidebar-item">
                     <?php if (!empty($modulo['submodulos'])): ?>
                         <!-- Módulo con submenús -->
                         <a href="#" class="jvc-sidebar-link jvc-sidebar-dropdown-toggle">
                             <i class="<?= htmlspecialchars($modulo['icono']) ?>"></i>
                             <span><?= htmlspecialchars($modulo['nombre']) ?></span>
+                            <?php if ($esModuloTaller): ?>
+                                <span class="notification-container">
+                                    <i class="ri-notification-3-line notification-icon"></i>
+                                    <span class="notification-badge" id="tallerNotificaciones" hidden style="display: none;">0</span>
+                                </span>
+                            <?php endif; ?>
                         </a>
                         <ul class="jvc-sidebar-dropdown" data-title="<?= htmlspecialchars($modulo['nombre']) ?>">
                             <?php foreach ($modulo['submodulos'] as $submodulo): ?>
@@ -93,11 +100,11 @@ try {
                         <a href="<?= htmlspecialchars($modulo['ruta']) ?>" class="jvc-sidebar-link">
                             <i class="<?= htmlspecialchars($modulo['icono']) ?>"></i>
                             <span><?= htmlspecialchars($modulo['nombre']) ?></span>
-                            <?php if ($modulo['id'] == 'taller'): ?>
-                                <div class="notification-container">
+                            <?php if ($esModuloTaller): ?>
+                                <span class="notification-container">
                                     <i class="ri-notification-3-line notification-icon"></i>
-                                    <span class="notification-badge" id="tallerNotificaciones">0</span>
-                                </div>
+                                    <span class="notification-badge" id="tallerNotificaciones" hidden style="display: none;">0</span>
+                                </span>
                             <?php endif; ?>
                         </a>
                     <?php endif; ?>
@@ -106,5 +113,70 @@ try {
         <?php endforeach; ?>
     </ul>
 </aside>
+
+<script>
+(function () {
+    const badge = document.getElementById('tallerNotificaciones');
+
+    if (!badge) {
+        return;
+    }
+
+    badge.hidden = true;
+
+    if (window.tallerNotificationBadgePoller) {
+        window.tallerNotificationBadgePoller.refresh();
+        return;
+    }
+
+    let consultando = false;
+
+    async function actualizarContadorTaller() {
+        if (consultando) {
+            return;
+        }
+
+        consultando = true;
+
+        try {
+            const respuesta = await fetch(_URL + '/ajs/taller/pendientes-cotizacion/contar', {
+                method: 'POST',
+                headers: {
+                    'token-app': localStorage.getItem('_token') || ''
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!respuesta.ok) {
+                throw new Error('request_failed');
+            }
+
+            const datos = await respuesta.json();
+            if (!Number.isInteger(datos.count) || datos.count < 0) {
+                throw new Error('invalid_response');
+            }
+
+            badge.textContent = datos.count > 99 ? '99+' : String(datos.count);
+            badge.hidden = datos.count === 0;
+            badge.style.display = datos.count > 0 ? 'flex' : 'none';
+            badge.closest('.notification-container').classList.toggle('has-notifications', datos.count > 0);
+        } catch (error) {
+            badge.hidden = true;
+            badge.style.display = 'none';
+            badge.closest('.notification-container').classList.remove('has-notifications');
+            console.error('No se pudo actualizar el contador de Taller.');
+        } finally {
+            consultando = false;
+        }
+    }
+
+    window.tallerNotificationBadgePoller = {
+        refresh: actualizarContadorTaller,
+        intervalId: setInterval(actualizarContadorTaller, 30000)
+    };
+
+    actualizarContadorTaller();
+})();
+</script>
 
 <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">

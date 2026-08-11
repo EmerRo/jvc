@@ -4,12 +4,18 @@ $(document).ready(function() {
     $("#input_datos_cliente").autocomplete({
         source: _URL + "/ajs/buscar/cliente/datos",
         minLength: 2,
+        classes: {
+            "ui-autocomplete": "taller-autocomplete-menu"
+        },
         select: function (event, ui) {
             event.preventDefault();
             app._data.venta.dir_pos = 1;
             app._data.venta.nom_cli = ui.item.datos;
             app._data.venta.num_doc = ui.item.documento;
-            app._data.venta.dir_cli = ui.item.direccion;
+            const direccion = typeof ui.item.direccion === 'string' ? ui.item.direccion.trim() : '';
+            if (direccion) {
+                app._data.venta.dir_cli = direccion;
+            }
         }
     });
 
