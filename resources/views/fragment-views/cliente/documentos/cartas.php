@@ -488,18 +488,90 @@
     </div>
 </div>
 
-<!-- Cargar utilidades compartidas -->
-<script src="<?= URL::to('public/js/modulo-documentos/utils.js') ?>?v=<?= time() ?>"></script>
+<!-- Cargar PDF.js y las utilidades una sola vez, incluso al reinsertar este fragmento. -->
+<script>
+    (function prepararDependenciasCartas() {
+        const pdfJsUrl = '<?= URL::to('public/lib/pdfjs/pdf.min.js') ?>';
+        const pdfWorkerUrl = '<?= URL::to('public/lib/pdfjs/pdf.worker.min.js') ?>';
+        const documentosUtilsUrl = '<?= URL::to('public/js/modulo-documentos/utils.js') ?>';
+
+        function cargarScriptUnaVez(id, src, estaDisponible) {
+            if (estaDisponible()) {
+                return Promise.resolve();
+            }
+
+            return new Promise((resolve, reject) => {
+                let script = document.getElementById(id)
+                    || Array.from(document.scripts).find(item => item.src && item.src.split('?')[0] === src.split('?')[0]);
+
+                const resolver = () => estaDisponible()
+                    ? resolve()
+                    : reject(new Error(`El script ${src} terminó sin exponer su API`));
+
+                if (!script) {
+                    script = document.createElement('script');
+                    script.id = id;
+                    script.src = src;
+                    document.head.appendChild(script);
+                }
+
+                script.addEventListener('load', resolver, { once: true });
+                script.addEventListener('error', () => reject(new Error(`No se pudo cargar ${src}`)), { once: true });
+            });
+        }
+
+        if (!window.pdfJsReady) {
+            window.pdfJsReady = cargarScriptUnaVez(
+                'pdfjs-local-script',
+                pdfJsUrl,
+                () => Boolean(window.pdfjsLib && typeof window.pdfjsLib.getDocument === 'function')
+            ).then(() => {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+                return window.pdfjsLib;
+            });
+        }
+
+        if (!window.documentosUtilsReady) {
+            window.documentosUtilsReady = cargarScriptUnaVez(
+                'documentos-utils-script',
+                documentosUtilsUrl,
+                () => typeof window.DocumentosUtils === 'function'
+            ).then(() => window.DocumentosUtils);
+        }
+
+        // El módulo puede listar cartas aunque falle PDF.js; cada tarjeta mostrará su enlace alternativo.
+        window.cartasAssetsReady = window.documentosUtilsReady;
+    })();
+</script>
 
 <script>
     // Función para inicializar el módulo de cartas - SIMPLIFICADA
-    function inicializarModuloCartas() {
+    async function inicializarModuloCartas() {
         console.log('Inicializando módulo de cartas...');
-        
+
+        const rootElement = document.getElementById('vista-lista-cartas');
+        if (!rootElement) {
+            return null;
+        }
+
+        if (window.cartaModuleInstance
+            && !window.cartaModuleInstance.destroyed
+            && window.cartaModuleInstance.rootElement === rootElement) {
+            return window.cartaModuleInstance;
+        }
+
+        if (window.cartasInitializationPromise && window.cartasInitializationRoot === rootElement) {
+            return window.cartasInitializationPromise;
+        }
+
+        window.cartasInitializationRoot = rootElement;
+        window.cartasInitializationPromise = (async () => {
+            await window.cartasAssetsReady;
+
         // Limpiar instancia anterior si existe
         if (window.cartaModuleInstance) {
             console.log('Limpiando instancia anterior de cartas...');
-            if (typeof window.cartaModuleInstance.cleanup === 'function') {
+            if (!window.cartaModuleInstance.destroyed && typeof window.cartaModuleInstance.cleanup === 'function') {
                 window.cartaModuleInstance.cleanup();
             }
             window.cartaModuleInstance = null;
@@ -508,8 +580,7 @@
         // Verificar que DocumentosUtils esté disponible
         if (typeof window.DocumentosUtils !== 'function') {
             console.error('DocumentosUtils no está disponible');
-            setTimeout(inicializarModuloCartas, 500); // Reintentar después de 500ms
-            return;
+            throw new Error('DocumentosUtils no está disponible');
         }
 
         try {
@@ -517,6 +588,7 @@
             const cartasConfig = {
                 tipo: 'carta',
                 documentType: 'carta',
+                reinicializar: () => window.inicializarModuloCartas(),
                 urls: {
                     render: _URL + "/ajs/carta/render",
                     insertar: _URL + "/ajs/carta/insertar",
@@ -590,6 +662,16 @@
             };
 
             // Crear nueva instancia
+            cartasConfig.rootElement = rootElement;
+            cartasConfig.modalesPropios = [
+                '#gestionarTiposCartaModal',
+                '#editarTipoCartaModal',
+                '#previewCartaModal',
+                '#confirmarEliminarCartaModal',
+                '#gestionarMembretesModal',
+                '#editarPlantillaCartaModal',
+                '#compartirWhatsAppCartaModal'
+            ];
             window.cartaModuleInstance = new DocumentosUtils(cartasConfig);
             
             // Exponer funciones globales para compatibilidad
@@ -648,30 +730,35 @@
             };
             
             console.log('Módulo de cartas inicializado correctamente');
-            
+            cargarFiltrosCartas();
+            return window.cartaModuleInstance;
         } catch (error) {
             console.error('Error al inicializar módulo de cartas:', error);
+            throw error;
+        }
+        })();
+
+        try {
+            return await window.cartasInitializationPromise;
+        } catch (error) {
+            window.cartasInitializationPromise = null;
+            window.cartasInitializationRoot = null;
+            $('#lista-cartas-container').html(`
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No se pudo iniciar el visor de cartas. Recargue la página para intentarlo nuevamente.
+                </div>
+            `);
+            throw error;
         }
     }
 
     // Exponer la función de inicialización globalmente
     window.inicializarModuloCartas = inicializarModuloCartas;
 
-    // Inicializar cuando el DOM esté listo
-    $(document).ready(function() {
-        // Solo inicializar si estamos en la página correcta
-        if (window.location.pathname.includes('cartas') || $('#vista-lista-cartas').length > 0) {
-            // Esperar un poco para asegurar que utils.js esté cargado
-            setTimeout(function() {
-                inicializarModuloCartas();
-                setTimeout(cargarFiltrosCartas, 300);
-            }, 100);
-        }
-    });
-
     // Cargar filtros de tipo
     function cargarFiltrosCartas() {
-        if (!window.cartaModuleInstance) { setTimeout(cargarFiltrosCartas, 300); return; }
+        if (!window.cartaModuleInstance) return;
         $.ajax({
             url: _URL + "/ajs/carta/obtener-tipos-cartas",
             method: "GET",
@@ -684,7 +771,9 @@
                         html += '<li><a class="dropdown-item" href="#" data-tipo="' + tipo.nombre + '">' + tipo.nombre + '</a></li>';
                     });
                     $("#filtro-tipos-cartas").html(html);
-                    $("#filtro-tipos-cartas .dropdown-item").on("click", function (e) {
+                    $("#filtro-tipos-cartas .dropdown-item")
+                        .off("click.cartas")
+                        .on("click.cartas", function (e) {
                         e.preventDefault();
                         $("#filtro-tipos-cartas .dropdown-item").removeClass("active");
                         $(this).addClass("active");
@@ -693,7 +782,7 @@
                             window.cartaModuleInstance.filtroTipo = tipo;
                             window.cartaModuleInstance.cargarDocumentos();
                         }
-                    });
+                        });
                 }
             }
         });

@@ -8,6 +8,8 @@ require_once "app/models/Producto.php";
 class FichasTecnicasController extends Controller
 {
     private $conexion;
+    private $archivosNuevosActualizacion = [];
+    private $archivosAntiguosPendientes = [];
 
     public function __construct()
     {
@@ -158,7 +160,22 @@ class FichasTecnicasController extends Controller
         $respuesta = ["res" => false];
 
         try {
+            $this->validarLimiteSolicitud();
+            $this->validarArchivoGestion($_FILES['pdf'] ?? null, 'pdf', true);
+            $this->validarArchivoGestion($_FILES['editable'] ?? null, 'editable', false);
             $this->conexion->begin_transaction();
+
+            $eliminarPdf = $this->obtenerBanderaEliminacion('eliminar_pdf');
+            $eliminarEditable = $this->obtenerBanderaEliminacion('eliminar_editable');
+            $hayPdf = isset($_FILES['pdf']) && $_FILES['pdf']['error'] === UPLOAD_ERR_OK;
+
+            if ($eliminarPdf || $eliminarEditable) {
+                throw new Exception("No se pueden eliminar adjuntos al crear una ficha técnica");
+            }
+
+            if (!$hayPdf) {
+                throw new Exception("El archivo PDF es obligatorio");
+            }
 
             // Datos de la ficha técnica
             $titulo = $_POST['titulo'];
@@ -224,7 +241,13 @@ class FichasTecnicasController extends Controller
         
         $respuesta = ["res" => false];
 
+        $this->archivosNuevosActualizacion = [];
+        $this->archivosAntiguosPendientes = [];
+
         try {
+            $this->validarLimiteSolicitud();
+            $this->validarArchivoGestion($_FILES['pdf'] ?? null, 'pdf', false);
+            $this->validarArchivoGestion($_FILES['editable'] ?? null, 'editable', false);
             $this->conexion->begin_transaction();
 
             // Obtener el ID de la ficha a actualizar
@@ -272,7 +295,11 @@ class FichasTecnicasController extends Controller
             // Procesar adjuntos si se enviaron nuevos archivos
             $adjuntosActualizados = $this->actualizarAdjuntos($id_ficha);
 
-            $this->conexion->commit();
+            if (!$this->conexion->commit()) {
+                throw new Exception("Error al confirmar la actualización de la ficha técnica");
+            }
+
+            $this->limpiarArchivosAntiguosActualizacion();
 
             $respuesta = [
                 "res" => true,
@@ -283,6 +310,7 @@ class FichasTecnicasController extends Controller
 
         } catch (Exception $e) {
             $this->conexion->rollback();
+            $this->limpiarArchivosNuevosActualizacion();
             $respuesta["error"] = $e->getMessage();
         }
 
@@ -694,19 +722,10 @@ class FichasTecnicasController extends Controller
         // Procesar PDF
         if (isset($_FILES['pdf']) && $_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
             $archivo = $_FILES['pdf'];
-            
-            // Validar que sea un PDF
-            if ($archivo['type'] !== 'application/pdf') {
-                throw new Exception("El archivo debe ser un PDF");
-            }
-
-            // Validar tamaño (máximo 4MB)
-            if ($archivo['size'] > 4 * 1024 * 1024) {
-                throw new Exception("El PDF no puede exceder 4MB");
-            }
+            $datosArchivo = $this->validarArchivoGestion($archivo, 'pdf', true);
 
             // Generar nombre único
-            $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+            $extension = $datosArchivo['extension'];
             $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
             $rutaDestino = 'files/gestion_archivos/pdf/' . $nombreUnico;
 
@@ -727,28 +746,10 @@ class FichasTecnicasController extends Controller
         // Procesar archivo editable
         if (isset($_FILES['editable']) && $_FILES['editable']['error'] === UPLOAD_ERR_OK) {
             $archivo = $_FILES['editable'];
-            
-            // Validar tipos permitidos
-            $tiposPermitidos = [
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-                'application/msword', // .doc
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-                'application/vnd.ms-excel', // .xls
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
-                'application/vnd.ms-powerpoint' // .ppt
-            ];
-            
-            if (!in_array($archivo['type'], $tiposPermitidos)) {
-                throw new Exception("Tipo de archivo editable no permitido");
-            }
-
-            // Validar tamaño (máximo 4MB)
-            if ($archivo['size'] > 4 * 1024 * 1024) {
-                throw new Exception("El archivo editable no puede exceder 4MB");
-            }
+            $datosArchivo = $this->validarArchivoGestion($archivo, 'editable', true);
 
             // Generar nombre único
-            $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+            $extension = $datosArchivo['extension'];
             $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
             $rutaDestino = 'files/gestion_archivos/editable/' . $nombreUnico;
 
@@ -875,6 +876,18 @@ class FichasTecnicasController extends Controller
     private function actualizarAdjuntos($id_archivo)
     {
         $adjuntosActualizados = [];
+        $eliminarPdf = $this->obtenerBanderaEliminacion('eliminar_pdf');
+        $eliminarEditable = $this->obtenerBanderaEliminacion('eliminar_editable');
+        $hayPdfNuevo = isset($_FILES['pdf']) && $_FILES['pdf']['error'] === UPLOAD_ERR_OK;
+        $hayEditableNuevo = isset($_FILES['editable']) && $_FILES['editable']['error'] === UPLOAD_ERR_OK;
+
+        if ($eliminarPdf && $hayPdfNuevo) {
+            throw new Exception("No se puede eliminar y reemplazar el PDF en la misma solicitud");
+        }
+
+        if ($eliminarEditable && $hayEditableNuevo) {
+            throw new Exception("No se puede eliminar y reemplazar el archivo editable en la misma solicitud");
+        }
 
         // Verificar si ya existe un registro de adjuntos
         $sqlVerificar = "SELECT id_adjunto FROM gestion_adjuntos WHERE id_archivo = ?";
@@ -902,65 +915,27 @@ class FichasTecnicasController extends Controller
         $url_imagen_3 = $adjuntosActuales['url_imagen_3'] ?? null;
         $url_youtube = $adjuntosActuales['url_youtube'] ?? null;
 
-        // Procesar PDF si se envió uno nuevo
-        if (isset($_FILES['pdf']) && $_FILES['pdf']['error'] === UPLOAD_ERR_OK) {
-            $archivo = $_FILES['pdf'];
-            
-            if ($archivo['type'] === 'application/pdf' && $archivo['size'] <= 4 * 1024 * 1024) {
-                // Eliminar PDF anterior si existe
-                if ($url_pdf && file_exists($url_pdf)) {
-                    @unlink($url_pdf);
-                }
-
-                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
-                $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
-                $rutaDestino = 'files/gestion_archivos/pdf/' . $nombreUnico;
-
-                $directorio = dirname($rutaDestino);
-                if (!is_dir($directorio)) {
-                    mkdir($directorio, 0755, true);
-                }
-
-                if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
-                    $url_pdf = $rutaDestino;
-                    $adjuntosActualizados[] = 'pdf';
-                }
-            }
+        // Mover primero los reemplazos; los archivos anteriores se conservan hasta confirmar la BD.
+        $nuevoPdf = $this->moverArchivoGestionActualizacion('pdf', 'pdf');
+        if ($nuevoPdf !== null) {
+            $this->programarLimpiezaArchivoAnterior($url_pdf, 'pdf');
+            $url_pdf = $nuevoPdf;
+            $adjuntosActualizados[] = 'pdf';
+        } else if ($eliminarPdf) {
+            $this->programarLimpiezaArchivoAnterior($url_pdf, 'pdf');
+            $url_pdf = null;
+            $adjuntosActualizados[] = 'pdf_eliminado';
         }
 
-        // Procesar archivo editable si se envió uno nuevo
-        if (isset($_FILES['editable']) && $_FILES['editable']['error'] === UPLOAD_ERR_OK) {
-            $archivo = $_FILES['editable'];
-            
-            $tiposPermitidos = [
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                'application/vnd.ms-powerpoint'
-            ];
-            
-            if (in_array($archivo['type'], $tiposPermitidos) && $archivo['size'] <= 4 * 1024 * 1024) {
-                // Eliminar archivo anterior si existe
-                if ($url_editable && file_exists($url_editable)) {
-                    @unlink($url_editable);
-                }
-
-                $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
-                $nombreUnico = uniqid() . '_' . time() . '.' . $extension;
-                $rutaDestino = 'files/gestion_archivos/editable/' . $nombreUnico;
-
-                $directorio = dirname($rutaDestino);
-                if (!is_dir($directorio)) {
-                    mkdir($directorio, 0755, true);
-                }
-
-                if (move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
-                    $url_editable = $rutaDestino;
-                    $adjuntosActualizados[] = 'editable';
-                }
-            }
+        $nuevoEditable = $this->moverArchivoGestionActualizacion('editable', 'editable');
+        if ($nuevoEditable !== null) {
+            $this->programarLimpiezaArchivoAnterior($url_editable, 'editable');
+            $url_editable = $nuevoEditable;
+            $adjuntosActualizados[] = 'editable';
+        } else if ($eliminarEditable) {
+            $this->programarLimpiezaArchivoAnterior($url_editable, 'editable');
+            $url_editable = null;
+            $adjuntosActualizados[] = 'editable_eliminado';
         }
 
         // Procesar imágenes si se enviaron nuevas
@@ -1076,6 +1051,246 @@ class FichasTecnicasController extends Controller
         $stmt->close();
 
         return $adjuntosActualizados;
+    }
+
+    private function obtenerBanderaEliminacion($nombre)
+    {
+        $valor = isset($_POST[$nombre]) ? $_POST[$nombre] : '0';
+
+        if ($valor !== '0' && $valor !== '1') {
+            throw new Exception("Valor inválido para $nombre");
+        }
+
+        return $valor === '1';
+    }
+
+    private function moverArchivoGestionActualizacion($campo, $tipo)
+    {
+        if (!isset($_FILES[$campo]) || $_FILES[$campo]['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $archivo = $_FILES[$campo];
+        $datosArchivo = $this->validarArchivoGestion($archivo, $tipo, true);
+        $extension = $datosArchivo['extension'];
+
+        $baseRelativa = "files/gestion_archivos/$tipo/";
+        $baseAbsoluta = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $baseRelativa);
+        if (!is_dir($baseAbsoluta) && !mkdir($baseAbsoluta, 0755, true)) {
+            throw new Exception("No se pudo crear el directorio para el archivo $campo");
+        }
+
+        $nombreUnico = uniqid('', true) . '_' . time() . '.' . $extension;
+        $rutaRelativa = $baseRelativa . $nombreUnico;
+        $rutaAbsoluta = $baseAbsoluta . $nombreUnico;
+
+        if (!move_uploaded_file($archivo['tmp_name'], $rutaAbsoluta)) {
+            throw new Exception($tipo === 'pdf' ? "Error al subir el PDF" : "Error al subir el archivo editable");
+        }
+
+        $this->archivosNuevosActualizacion[] = ['ruta' => $rutaRelativa, 'tipo' => $tipo];
+        return $rutaRelativa;
+    }
+
+    private function validarArchivoGestion($archivo, $tipo, $obligatorio)
+    {
+        $nombreCampo = $tipo === 'pdf' ? 'PDF' : 'archivo editable';
+
+        if (!is_array($archivo) || !isset($archivo['error']) || $archivo['error'] === UPLOAD_ERR_NO_FILE) {
+            if ($obligatorio) {
+                throw new Exception("El archivo PDF es obligatorio");
+            }
+            return null;
+        }
+
+        $this->validarErrorSubida($archivo['error'], $nombreCampo);
+
+        if (!isset($archivo['name'], $archivo['tmp_name']) || !is_file($archivo['tmp_name'])) {
+            throw new Exception("No se pudo validar el $nombreCampo recibido");
+        }
+
+        $politicas = $this->obtenerPoliticasArchivos();
+        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+        if (!isset($politicas[$extension]) || ($tipo === 'pdf') !== ($extension === 'pdf')) {
+            throw new Exception($tipo === 'pdf'
+                ? "Solo se permite un archivo PDF"
+                : "Formato editable no permitido. Use CDR, PSD, AI, DOC, DOCX, XLS, XLSX, PPT o PPTX");
+        }
+
+        $tamano = filesize($archivo['tmp_name']);
+        if ($tamano === false || $tamano <= 0) {
+            throw new Exception("El $nombreCampo está vacío o no se pudo leer");
+        }
+
+        $politica = $politicas[$extension];
+        if ($tamano > $politica['maximo']) {
+            throw new Exception("El archivo .$extension no puede exceder {$politica['limite_mb']} MB");
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            throw new Exception("No se pudo inicializar la validación MIME del archivo");
+        }
+
+        $mime = finfo_file($finfo, $archivo['tmp_name']);
+        finfo_close($finfo);
+        $mime = is_string($mime) ? strtolower(trim($mime)) : '';
+
+        if (!in_array($mime, $politica['mimes'], true)) {
+            throw new Exception("El contenido del archivo .$extension no coincide con su formato");
+        }
+
+        return ['extension' => $extension, 'mime' => $mime, 'tamano' => $tamano];
+    }
+
+    private function obtenerPoliticasArchivos()
+    {
+        $mb = 1024 * 1024;
+
+        return [
+            'pdf' => ['maximo' => 25 * $mb, 'limite_mb' => 25, 'mimes' => ['application/pdf']],
+            'psd' => ['maximo' => 200 * $mb, 'limite_mb' => 200, 'mimes' => [
+                'image/vnd.adobe.photoshop', 'image/x-photoshop', 'application/octet-stream'
+            ]],
+            'cdr' => ['maximo' => 100 * $mb, 'limite_mb' => 100, 'mimes' => [
+                'application/cdr', 'application/coreldraw', 'application/x-cdr', 'application/x-coreldraw',
+                'application/vnd.corel-draw', 'image/cdr', 'image/x-cdr', 'image/vnd.corel-draw',
+                'application/octet-stream'
+            ]],
+            'ai' => ['maximo' => 100 * $mb, 'limite_mb' => 100, 'mimes' => [
+                'application/illustrator', 'application/vnd.adobe.illustrator', 'application/postscript',
+                'application/pdf', 'application/octet-stream'
+            ]],
+            'doc' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => ['application/msword']],
+            'docx' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => [
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'
+            ]],
+            'xls' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => ['application/vnd.ms-excel']],
+            'xlsx' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'
+            ]],
+            'ppt' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => ['application/vnd.ms-powerpoint']],
+            'pptx' => ['maximo' => 50 * $mb, 'limite_mb' => 50, 'mimes' => [
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'
+            ]]
+        ];
+    }
+
+    private function validarErrorSubida($codigo, $nombreCampo)
+    {
+        if ($codigo === UPLOAD_ERR_OK) {
+            return;
+        }
+
+        $mensajes = [
+            UPLOAD_ERR_INI_SIZE => "El $nombreCampo supera el límite de carga configurado en PHP",
+            UPLOAD_ERR_FORM_SIZE => "El $nombreCampo supera el límite permitido por el formulario",
+            UPLOAD_ERR_PARTIAL => "La carga del $nombreCampo quedó incompleta; vuelva a intentarlo",
+            UPLOAD_ERR_NO_TMP_DIR => "El servidor no tiene un directorio temporal disponible para la carga",
+            UPLOAD_ERR_CANT_WRITE => "El servidor no pudo escribir el $nombreCampo en disco",
+            UPLOAD_ERR_EXTENSION => "Una extensión de PHP detuvo la carga del $nombreCampo"
+        ];
+
+        throw new Exception($mensajes[$codigo] ?? "No se pudo recibir el $nombreCampo (código de carga $codigo)");
+    }
+
+    private function validarLimiteSolicitud()
+    {
+        if (!isset($_SERVER['CONTENT_LENGTH'])) {
+            return;
+        }
+
+        $limitePost = $this->convertirLimiteIniABytes(ini_get('post_max_size'));
+        if ($limitePost > 0 && (int) $_SERVER['CONTENT_LENGTH'] > $limitePost) {
+            throw new Exception("La solicitud supera el límite total permitido por PHP (post_max_size)");
+        }
+    }
+
+    private function convertirLimiteIniABytes($valor)
+    {
+        $valor = trim((string) $valor);
+        if ($valor === '') {
+            return 0;
+        }
+
+        $numero = (float) $valor;
+        $unidad = strtolower(substr($valor, -1));
+        if ($unidad === 'g') return (int) ($numero * 1024 * 1024 * 1024);
+        if ($unidad === 'm') return (int) ($numero * 1024 * 1024);
+        if ($unidad === 'k') return (int) ($numero * 1024);
+        return (int) $numero;
+    }
+
+    private function programarLimpiezaArchivoAnterior($ruta, $tipo)
+    {
+        if (!empty($ruta)) {
+            $this->archivosAntiguosPendientes[] = ['ruta' => $ruta, 'tipo' => $tipo];
+        }
+    }
+
+    private function limpiarArchivosAntiguosActualizacion()
+    {
+        foreach ($this->archivosAntiguosPendientes as $archivo) {
+            $this->eliminarArchivoGestionSeguro($archivo['ruta'], $archivo['tipo'], 'archivo anterior leído de la BD');
+        }
+
+        $this->archivosAntiguosPendientes = [];
+        $this->archivosNuevosActualizacion = [];
+    }
+
+    private function limpiarArchivosNuevosActualizacion()
+    {
+        foreach ($this->archivosNuevosActualizacion as $archivo) {
+            $this->eliminarArchivoGestionSeguro($archivo['ruta'], $archivo['tipo'], 'archivo nuevo generado por la actualización');
+        }
+
+        $this->archivosNuevosActualizacion = [];
+        $this->archivosAntiguosPendientes = [];
+    }
+
+    private function eliminarArchivoGestionSeguro($ruta, $tipo, $contexto)
+    {
+        $basesPermitidas = [
+            'pdf' => 'files/gestion_archivos/pdf/',
+            'editable' => 'files/gestion_archivos/editable/'
+        ];
+        $extensionesPermitidas = [
+            'pdf' => ['pdf'],
+            'editable' => ['xlsx', 'xls', 'doc', 'docx', 'cdr', 'psd', 'ai', 'ppt', 'pptx']
+        ];
+
+        if (!isset($basesPermitidas[$tipo]) || !is_string($ruta)) {
+            error_log("Ficha técnica: ruta inválida para limpiar $contexto");
+            return false;
+        }
+
+        $rutaNormalizada = str_replace('\\', '/', ltrim($ruta, '/'));
+        $baseRelativa = $basesPermitidas[$tipo];
+        $nombreArchivo = basename($rutaNormalizada);
+        $extension = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
+
+        if ($rutaNormalizada !== $baseRelativa . $nombreArchivo ||
+            !in_array($extension, $extensionesPermitidas[$tipo], true)) {
+            error_log("Ficha técnica: se rechazó una ruta fuera de la base permitida para $contexto: $ruta");
+            return false;
+        }
+
+        $raizProyecto = dirname(__DIR__, 3);
+        $baseReal = realpath($raizProyecto . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $baseRelativa));
+        $archivoReal = realpath($raizProyecto . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rutaNormalizada));
+
+        if ($baseReal === false || $archivoReal === false || !is_file($archivoReal) ||
+            strcasecmp(dirname($archivoReal), $baseReal) !== 0) {
+            error_log("Ficha técnica: no se pudo verificar el archivo para limpiar $contexto: $ruta");
+            return false;
+        }
+
+        if (!@unlink($archivoReal)) {
+            error_log("Ficha técnica: no se pudo eliminar $contexto: $ruta");
+            return false;
+        }
+
+        return true;
     }
 
     // Función para comprimir imágenes

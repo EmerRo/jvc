@@ -111,12 +111,11 @@ function inicializarModuloSegunURL(url) {
             delete window.cartasModuleConfig;
         }
 
-        // Esperar a que el DOM esté completamente cargado
-        setTimeout(() => {
-            if (typeof window.inicializarModuloCartas === 'function') {
-                window.inicializarModuloCartas();
-            }
-        }, 300);
+        if (typeof window.inicializarModuloCartas === 'function') {
+            window.inicializarModuloCartas().catch((error) => {
+                console.error('No se pudo inicializar el módulo de cartas:', error);
+            });
+        }
     }
 
     // Detectar si es el módulo de constancias
@@ -136,13 +135,19 @@ function inicializarModuloSegunURL(url) {
     }
 }
 
+$(function () {
+    if (window.location.pathname.includes('/documentos/cartas')) {
+        inicializarModuloSegunURL(window.location.pathname);
+    }
+});
+
 // FUNCIÓN PARA LIMPIAR MÓDULOS DE DOCUMENTOS
 function limpiarModulosDocumentos() {
     // console.log('Limpiando módulos de documentos...');
 
     // Limpiar módulo de cartas
     if (window.cartaModuleInstance) {
-        if (typeof window.cartaModuleInstance.cleanup === 'function') {
+        if (!window.cartaModuleInstance.destroyed && typeof window.cartaModuleInstance.cleanup === 'function') {
             window.cartaModuleInstance.cleanup();
         }
         window.cartaModuleInstance = null;

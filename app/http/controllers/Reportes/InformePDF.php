@@ -1,5 +1,3 @@
-
-
 <?php
 
 require_once 'utils/lib/mpdf/vendor/autoload.php';
@@ -44,8 +42,8 @@ public function generarInformePDF($id_informe)
         $informe->setIdInforme($id_informe);
         $informe->obtenerInforme();
 
-    // Generar número correlativo
-    $numeroCorrelativo = $informe->generarNumeroCorrelativo($informe->getTipo());
+    $numeroCorrelativo = $this->formatearNumeroInforme($informe->getNumero(), $informe->getFechaCreacion());
+    $fechaInforme = $this->formatearFechaEspanol($informe->getFechaCreacion());
     
     $this->mpdf->SetTitle($informe->getTitulo() . " " . $numeroCorrelativo);
     
@@ -61,11 +59,11 @@ public function generarInformePDF($id_informe)
 
     // Definir el HTML del encabezado y pie de página
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $headerImageUrl . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($headerImageUrl) . "' style='width: 100%; margin: 0;'>
     </div>";
     
     $footerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $footerImageUrl . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($footerImageUrl) . "' style='width: 100%; margin: 0;'>
     </div>";
 
     // Configurar el encabezado y pie de página
@@ -97,7 +95,9 @@ public function generarInformePDF($id_informe)
     }
     
     // VERIFICAR SI HAY IMÁGENES DEL INFORME
-    $tieneImagenes = ($informe->getImagen1Base64() || $informe->getImagen2Base64());
+    $imagen1Path = $informe->getImagen1RutaPDF();
+    $imagen2Path = $informe->getImagen2RutaPDF();
+    $tieneImagenes = (bool)($imagen1Path || $imagen2Path);
     
     // PÁGINA 1: Contenido del informe
     $this->mpdf->AddPage();
@@ -108,7 +108,7 @@ public function generarInformePDF($id_informe)
     
     <!-- Información del informe -->
     <div style='text-align: center; margin-bottom: 30px;'>
-        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px;'>" . strtoupper($informe->getTitulo()) . " " . $numeroCorrelativo . "</h1>
+        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px;'>" . $numeroCorrelativo . "</h1>
     </div>
     
     <!-- Información de la empresa y cliente -->
@@ -147,7 +147,7 @@ public function generarInformePDF($id_informe)
             </tr>
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
-               <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y', strtotime($informe->getFechaCreacion())) . "</td>
+               <td style='padding: 5px 0;'>" . $fechaInforme . "</td>
             </tr>
         </table>
     </div>
@@ -203,65 +203,7 @@ public function generarInformePDF($id_informe)
         // MOSTRAR IMÁGENES LADO A LADO - OPTIMIZADO PARA VELOCIDAD
         $htmlImagenes .= "<div style='margin: 0 15mm;'>";
         
-        // Obtener rutas de imágenes DIRECTAS para mejor rendimiento
-        $imagen1Path = $informe->getImagen1();
-        $imagen2Path = $informe->getImagen2();
-        
-        // Verificar si las imágenes existen como archivos (no base64)
-        $imagen1Existe = $imagen1Path && strpos($imagen1Path, 'data:image/') !== 0 && file_exists($imagen1Path);
-        $imagen2Existe = $imagen2Path && strpos($imagen2Path, 'data:image/') !== 0 && file_exists($imagen2Path);
-        
-        if ($imagen1Existe && $imagen2Existe) {
-            // Ambas imágenes - lado a lado
-            $htmlImagenes .= "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
-                        <img src='" . $imagen1Path . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
-                        <img src='" . $imagen2Path . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                </tr>
-            </table>";
-        } else if ($imagen1Existe) {
-            // Solo primera imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen1Path . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        } else if ($imagen2Existe) {
-            // Solo segunda imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen2Path . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        } else {
-            // Fallback: Si no hay archivos, intentar base64 para compatibilidad con datos antiguos
-            if ($informe->getImagen1Base64() && $informe->getImagen2Base64()) {
-                $htmlImagenes .= "
-                <table style='width: 100%; border-collapse: collapse;'>
-                    <tr>
-                        <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
-                            <img src='" . $informe->getImagen1Base64() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                        </td>
-                        <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
-                            <img src='" . $informe->getImagen2Base64() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                        </td>
-                    </tr>
-                </table>";
-            } else if ($informe->getImagen1Base64()) {
-                $htmlImagenes .= "
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <img src='" . $informe->getImagen1Base64() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-                </div>";
-            } else if ($informe->getImagen2Base64()) {
-                $htmlImagenes .= "
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <img src='" . $informe->getImagen2Base64() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-                </div>";
-            }
-        }
+        $htmlImagenes .= $this->generarHtmlImagenes($imagen1Path, $imagen2Path);
         
         // ✅ INFORMACIÓN DE CONTACTO EN LA 2DA PÁGINA (CON IMÁGENES)
         $htmlImagenes .= "
@@ -318,8 +260,8 @@ public function generarInformePDFBase64($id_informe)
     $informe->setIdInforme($id_informe);
     $informe->obtenerInforme();
 
-    // Generar número correlativo
-    $numeroCorrelativo = $informe->generarNumeroCorrelativo($informe->getTipo());
+    $numeroCorrelativo = $this->formatearNumeroInforme($informe->getNumero(), $informe->getFechaCreacion());
+    $fechaInforme = $this->formatearFechaEspanol($informe->getFechaCreacion());
     
     $this->mpdf->SetTitle($informe->getTitulo() . " " . $numeroCorrelativo);
     
@@ -335,11 +277,11 @@ public function generarInformePDFBase64($id_informe)
 
     // Definir el HTML del encabezado y pie de página
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $headerImageUrl . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($headerImageUrl) . "' style='width: 100%; margin: 0;'>
     </div>";
     
     $footerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $footerImageUrl . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($footerImageUrl) . "' style='width: 100%; margin: 0;'>
     </div>";
 
     // Configurar el encabezado y pie de página
@@ -354,7 +296,9 @@ public function generarInformePDFBase64($id_informe)
     $this->mpdf->SetAutoPageBreak(true, $footerHeight);
     
     // VERIFICAR SI HAY IMÁGENES DEL INFORME
-    $tieneImagenes = ($informe->getImagen1Base64() || $informe->getImagen2Base64());
+    $imagen1Path = $informe->getImagen1RutaPDF();
+    $imagen2Path = $informe->getImagen2RutaPDF();
+    $tieneImagenes = (bool)($imagen1Path || $imagen2Path);
     
     // PÁGINA 1: Contenido del informe
     $this->mpdf->AddPage();
@@ -365,7 +309,7 @@ public function generarInformePDFBase64($id_informe)
     
     <!-- Información del informe -->
     <div style='text-align: center; margin-bottom: 30px;'>
-        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px;'>" . strtoupper($informe->getTitulo()) . " " . $numeroCorrelativo . "</h1>
+        <h1 style='color: #000; font-size: 14pt; margin-bottom: 10px;'>" . $numeroCorrelativo . "</h1>
     </div>
     
     <!-- Información de la empresa y cliente -->
@@ -404,7 +348,7 @@ public function generarInformePDFBase64($id_informe)
             </tr>
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
-               <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y', strtotime($informe->getFechaCreacion())) . "</td>
+               <td style='padding: 5px 0;'>" . $fechaInforme . "</td>
             </tr>
         </table>
     </div>
@@ -460,65 +404,7 @@ public function generarInformePDFBase64($id_informe)
         // MOSTRAR IMÁGENES LADO A LADO - OPTIMIZADO PARA VELOCIDAD
         $htmlImagenes .= "<div style='margin: 0 15mm;'>";
         
-        // Obtener rutas de imágenes DIRECTAS para mejor rendimiento
-        $imagen1Path = $informe->getImagen1();
-        $imagen2Path = $informe->getImagen2();
-        
-        // Verificar si las imágenes existen como archivos (no base64)
-        $imagen1Existe = $imagen1Path && strpos($imagen1Path, 'data:image/') !== 0 && file_exists($imagen1Path);
-        $imagen2Existe = $imagen2Path && strpos($imagen2Path, 'data:image/') !== 0 && file_exists($imagen2Path);
-        
-        if ($imagen1Existe && $imagen2Existe) {
-            // Ambas imágenes - lado a lado
-            $htmlImagenes .= "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
-                        <img src='" . $imagen1Path . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
-                        <img src='" . $imagen2Path . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                </tr>
-            </table>";
-        } else if ($imagen1Existe) {
-            // Solo primera imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen1Path . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        } else if ($imagen2Existe) {
-            // Solo segunda imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen2Path . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        } else {
-            // Fallback: Si no hay archivos, intentar base64 para compatibilidad con datos antiguos
-            if ($informe->getImagen1Base64() && $informe->getImagen2Base64()) {
-                $htmlImagenes .= "
-                <table style='width: 100%; border-collapse: collapse;'>
-                    <tr>
-                        <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
-                            <img src='" . $informe->getImagen1Base64() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                        </td>
-                        <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
-                            <img src='" . $informe->getImagen2Base64() . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                        </td>
-                    </tr>
-                </table>";
-            } else if ($informe->getImagen1Base64()) {
-                $htmlImagenes .= "
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <img src='" . $informe->getImagen1Base64() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-                </div>";
-            } else if ($informe->getImagen2Base64()) {
-                $htmlImagenes .= "
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <img src='" . $informe->getImagen2Base64() . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-                </div>";
-            }
-        }
+        $htmlImagenes .= $this->generarHtmlImagenes($imagen1Path, $imagen2Path);
         
         // ✅ INFORMACIÓN DE CONTACTO EN LA 2DA PÁGINA (CON IMÁGENES)
         $htmlImagenes .= "
@@ -559,7 +445,8 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
 {
     // Para vista previa, generar un número correlativo de ejemplo
     $anio = date('Y');
-    $numeroEjemplo = "NRO.XXX-$anio-JVC";
+    $numeroEjemplo = "INFORME NRO.XXX-$anio-JVC";
+    $fechaEjemplo = $this->formatearFechaEspanol(date('Y-m-d'));
     
     $this->mpdf->SetTitle($titulo . " " . $numeroEjemplo);
     
@@ -569,11 +456,11 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     
     // Definir el HTML del encabezado y pie de página (membretes)
     $headerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $header_image . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($header_image) . "' style='width: 100%; margin: 0;'>
     </div>";
     
     $footerHTML = "<div style='width: 100%; padding: 0; margin: 0;'>
-        <img src='" . $footer_image . "' style='width: 100%; margin: 0;'>
+        <img src='" . $this->escaparFuenteImagen($footer_image) . "' style='width: 100%; margin: 0;'>
     </div>";
 
     // Configurar el encabezado y pie de página
@@ -619,7 +506,7 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
             </tr>
             <tr>
                 <td style='font-weight: bold; padding: 5px 0;'>Fecha:</td>
-                <td style='padding: 5px 0;'>" . date('d \d\e F \d\e\l Y') . "</td>
+                 <td style='padding: 5px 0;'>" . $fechaEjemplo . "</td>
             </tr>
         </table>
     </div>
@@ -675,32 +562,7 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
         // MOSTRAR IMÁGENES LADO A LADO
         $htmlImagenes .= "<div style='margin: 0 15mm;'>";
         
-        if ($imagen1_informe && $imagen2_informe) {
-            // Ambas imágenes - lado a lado
-            $htmlImagenes .= "
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr>
-                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
-                        <img src='" . $imagen1_informe . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
-                        <img src='" . $imagen2_informe . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
-                    </td>
-                </tr>
-            </table>";
-        } else if ($imagen1_informe) {
-            // Solo primera imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen1_informe . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        } else if ($imagen2_informe) {
-            // Solo segunda imagen
-            $htmlImagenes .= "
-            <div style='text-align: center; margin-bottom: 30px;'>
-                <img src='" . $imagen2_informe . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
-            </div>";
-        }
+        $htmlImagenes .= $this->generarHtmlImagenes($imagen1_informe, $imagen2_informe);
         
         // ✅ INFORMACIÓN DE CONTACTO EN LA 2DA PÁGINA (CON IMÁGENES)
         $htmlImagenes .= "
@@ -736,6 +598,82 @@ public function generarVistaPreviaPDF($titulo, $contenido, $header_image, $foote
     // Devolver el PDF como base64 para la vista previa
     return base64_encode($this->mpdf->Output('', 'S'));
 }
+
+    private function formatearNumeroInforme($numero, $fechaCreacion)
+    {
+        $fecha = new DateTimeImmutable($fechaCreacion, new DateTimeZone('America/Lima'));
+        return sprintf('INFORME NRO.%03d-%04d-JVC', (int)$numero, (int)$fecha->format('Y'));
+    }
+
+    private function escaparFuenteImagen($fuente)
+    {
+        return htmlspecialchars((string)$fuente, ENT_QUOTES, 'UTF-8');
+    }
+
+    private function generarHtmlImagenes($imagen1, $imagen2)
+    {
+        $imagen1 = $imagen1 ? $this->escaparFuenteImagen($imagen1) : null;
+        $imagen2 = $imagen2 ? $this->escaparFuenteImagen($imagen2) : null;
+
+        if ($imagen1 && $imagen2) {
+            return "
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr>
+                    <td style='width: 50%; text-align: center; padding-right: 10px; vertical-align: top;'>
+                        <img src='" . $imagen1 . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                    <td style='width: 50%; text-align: center; padding-left: 10px; vertical-align: top;'>
+                        <img src='" . $imagen2 . "' style='max-width: 100%; max-height: 250px; margin: 0 auto;'>
+                    </td>
+                </tr>
+            </table>";
+        }
+
+        $imagen = $imagen1 ?: $imagen2;
+        if (!$imagen) {
+            return '';
+        }
+
+        return "
+            <div style='text-align: center; margin-bottom: 30px;'>
+                <img src='" . $imagen . "' style='max-width: 100%; max-height: 300px; margin: 0 auto;'>
+            </div>";
+    }
+
+    private function formatearFechaEspanol($fecha)
+    {
+        $zonaHoraria = new DateTimeZone('America/Lima');
+        $fechaDocumento = new DateTimeImmutable($fecha, $zonaHoraria);
+
+        if (class_exists('IntlDateFormatter')) {
+            $formateador = new IntlDateFormatter(
+                'es_PE',
+                IntlDateFormatter::NONE,
+                IntlDateFormatter::NONE,
+                'America/Lima',
+                IntlDateFormatter::GREGORIAN,
+                "dd 'de' MMMM 'del' yyyy"
+            );
+            $fechaFormateada = $formateador->format($fechaDocumento);
+            if ($fechaFormateada !== false) {
+                return function_exists('mb_strtolower')
+                    ? mb_strtolower($fechaFormateada, 'UTF-8')
+                    : strtolower($fechaFormateada);
+            }
+        }
+
+        $meses = [
+            1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+        ];
+
+        return sprintf(
+            '%02d de %s del %04d',
+            (int)$fechaDocumento->format('d'),
+            $meses[(int)$fechaDocumento->format('n')],
+            (int)$fechaDocumento->format('Y')
+        );
+    }
 
     /**
      * Escribe HTML en fragmentos más pequeños para evitar el error pcre.backtrack_limit

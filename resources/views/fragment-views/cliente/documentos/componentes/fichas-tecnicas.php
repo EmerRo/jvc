@@ -5,10 +5,10 @@
 <div class="tab-content" id="fichasTabsContent">
     <!-- Navegación entre Lista y Nueva Ficha -->
     <div class="d-flex mb-4 gap-2">
-        <button class="btn border-rojo" onclick="$('#lista-fichas').addClass('show active'); $('#nueva-ficha').removeClass('show active');">
+        <button class="btn border-rojo" onclick="limpiarFormularioCompleto(); $('#lista-fichas').addClass('show active'); $('#nueva-ficha').removeClass('show active');">
             <i class="fas fa-list me-2"></i>Lista de Fichas
         </button>
-        <button class="btn bg-rojo text-white" onclick="$('#nueva-ficha').addClass('show active'); $('#lista-fichas').removeClass('show active');">
+        <button class="btn bg-rojo text-white" onclick="mostrarFormularioNuevaFicha()">
             <i class="fas fa-plus me-2"></i>Subir Nueva
         </button>
         <button class="btn bg-rojo hover:bg-white" onclick="reiniciarModuloFichas()">
@@ -65,6 +65,11 @@
     
     // Marcar como inicializado
     window.ModuloFichasTecnicas.inicializado = true;
+
+    const estadoAdjuntosFicha = {
+        pdf: { url: null, eliminar: false },
+        editable: { url: null, eliminar: false }
+    };
     
     // Limpiar eventos duplicados antes de inicializar
     function limpiarEventosDuplicados() {
@@ -91,9 +96,7 @@ $(document).ready(function () {
     }, 300);
     // Botón Nueva Ficha
     $('#nueva-ficha-btn').off('click.fichasTecnicas').on('click.fichasTecnicas', function() {
-        // Cambiar a la pestaña de nueva ficha
-        $('#lista-fichas').removeClass('show active');
-        $('#nueva-ficha').addClass('show active');
+        mostrarFormularioNuevaFicha();
     });
     
     // Inicializar búsqueda
@@ -111,6 +114,20 @@ $(document).ready(function () {
     $('#nuevaFichaForm').on('submit', function(e) {
         e.preventDefault();
         guardarFicha(this);
+    });
+
+    $('#nuevaFichaForm').off('click.adjuntosFicha').on('click.adjuntosFicha', '[data-adjunto-accion]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const tipo = $(this).data('adjunto-tipo');
+        const accion = $(this).data('adjunto-accion');
+
+        if (accion === 'quitar') {
+            quitarArchivoFicha(tipo);
+        } else if (accion === 'cancelar-eliminacion') {
+            cancelarEliminacionArchivoFicha(tipo);
+        }
     });
 });
 
@@ -153,8 +170,7 @@ function cargarFichas() {
                     
                     // Agregar evento al botón de crear primera ficha
                     $('#crear-primera-ficha').on('click', function() {
-                        $('#lista-fichas').removeClass('show active');
-                        $('#nueva-ficha').addClass('show active');
+                        mostrarFormularioNuevaFicha();
                     });
                 }
             } else {
@@ -1106,48 +1122,10 @@ function enviarWhatsApp() {
 function mostrarArchivosExistentes(adjuntos) {
     // Limpiar previews anteriores
     $('.selected-files').hide().html('');
-    
-    // Mostrar PDF existente
-    if (adjuntos.pdf && adjuntos.pdf.url) {
-        const pdfPreview = $('#pdf_file').closest('.file-upload-container').find('.selected-files');
-        pdfPreview.html(`
-            <div class="alert alert-info mb-0 d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas fa-file-pdf text-danger me-2"></i>
-                    <strong>Archivo actual:</strong> ${adjuntos.pdf.url.split('/').pop()}
-                    <br>
-                    <small class="text-muted">Sube un nuevo PDF para reemplazarlo</small>
-                </div>
-                <a href="${_URL}/${adjuntos.pdf.url}" target="_blank" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> Ver
-                </a>
-            </div>
-        `).show();
-    }
-    
-    // Mostrar archivo editable existente
-    if (adjuntos.editable && adjuntos.editable.url) {
-        const editablePreview = $('#editable_file').closest('.file-upload-container').find('.selected-files');
-        const extension = adjuntos.editable.url.split('.').pop().toLowerCase();
-        let icon = 'fa-file';
-        if (['xlsx', 'xls'].includes(extension)) icon = 'fa-file-excel';
-        else if (['doc', 'docx'].includes(extension)) icon = 'fa-file-word';
-        else if (['psd'].includes(extension)) icon = 'fa-file-image';
-        
-        editablePreview.html(`
-            <div class="alert alert-info mb-0 d-flex align-items-center justify-content-between">
-                <div>
-                    <i class="fas ${icon} text-primary me-2"></i>
-                    <strong>Archivo actual:</strong> ${adjuntos.editable.url.split('/').pop()}
-                    <br>
-                    <small class="text-muted">Sube un nuevo archivo para reemplazarlo</small>
-                </div>
-                <a href="${_URL}/${adjuntos.editable.url}" target="_blank" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-download"></i> Descargar
-                </a>
-            </div>
-        `).show();
-    }
+
+    adjuntos = adjuntos || {};
+    establecerAdjuntoPersistido('pdf', adjuntos.pdf && adjuntos.pdf.url ? adjuntos.pdf.url : null);
+    establecerAdjuntoPersistido('editable', adjuntos.editable && adjuntos.editable.url ? adjuntos.editable.url : null);
     
     // Mostrar imágenes existentes
     if (adjuntos.imagenes && adjuntos.imagenes.length > 0) {
@@ -1196,6 +1174,8 @@ function editarFicha(id) {
             Swal.close();
             
             if (data.res && data.ficha) {
+                limpiarFormularioCompleto();
+
                 // Cambiar a la pestaña de nueva ficha
                 $('#lista-fichas').removeClass('show active');
                 $('#nueva-ficha').addClass('show active');
@@ -1455,16 +1435,129 @@ function mostrarArchivosSeleccionados(input, preview) {
         if (input.attr('name') === 'imagenes[]') {
             mostrarPreviewImagenes(input[0].files, preview);
         } else {
-            const fileNames = Array.from(input[0].files).map(file => file.name).join(', ');
+            const tipo = input.attr('name') === 'pdf' ? 'pdf' : 'editable';
+            const fileNames = Array.from(input[0].files).map(file => escapeHtml(file.name)).join(', ');
+            actualizarIntencionEliminacion(tipo, false);
             preview.html(`
-                <div class="alert alert-info mb-0">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Archivos seleccionados: ${fileNames}
+                <div class="alert alert-info mb-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="text-break">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Archivo seleccionado:</strong> ${fileNames}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                        data-adjunto-accion="quitar" data-adjunto-tipo="${tipo}"
+                        aria-label="Quitar archivo ${tipo === 'pdf' ? 'PDF' : 'editable'} seleccionado">
+                        <i class="fas fa-times me-1" aria-hidden="true"></i>Quitar archivo
+                    </button>
                 </div>
             `);
             preview.show();
         }
     }
+}
+
+function establecerAdjuntoPersistido(tipo, url) {
+    estadoAdjuntosFicha[tipo].url = url;
+    actualizarIntencionEliminacion(tipo, false);
+    $(`#${tipo === 'pdf' ? 'pdf_file' : 'editable_file'}`).val('');
+
+    if (url) {
+        mostrarAdjuntoPersistido(tipo);
+    }
+}
+
+function actualizarIntencionEliminacion(tipo, eliminar) {
+    estadoAdjuntosFicha[tipo].eliminar = eliminar;
+    $(`#eliminar-${tipo}`).val(eliminar ? '1' : '0');
+}
+
+function mostrarAdjuntoPersistido(tipo) {
+    const estado = estadoAdjuntosFicha[tipo];
+    const input = $(`#${tipo === 'pdf' ? 'pdf_file' : 'editable_file'}`);
+    const preview = input.closest('.file-upload-container').find('.selected-files');
+
+    if (!estado.url) {
+        preview.hide().html('');
+        return;
+    }
+
+    const nombre = escapeHtml(estado.url.split('/').pop());
+    const icono = tipo === 'pdf' ? 'fa-file-pdf text-danger' : 'fa-file text-primary';
+    const accionArchivo = tipo === 'pdf' ? 'Ver' : 'Descargar';
+
+    preview.html(`
+        <div class="alert alert-info mb-0 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="text-break">
+                <i class="fas ${icono} me-2" aria-hidden="true"></i>
+                <strong>Archivo actual:</strong> ${nombre}
+                <br><small class="text-muted">Sube un nuevo archivo para reemplazarlo</small>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="${_URL}/${estado.url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                    <i class="fas ${tipo === 'pdf' ? 'fa-eye' : 'fa-download'} me-1" aria-hidden="true"></i>${accionArchivo}
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                    data-adjunto-accion="quitar" data-adjunto-tipo="${tipo}"
+                    aria-label="Quitar archivo ${tipo === 'pdf' ? 'PDF' : 'editable'} actual">
+                    <i class="fas fa-times me-1" aria-hidden="true"></i>Quitar archivo
+                </button>
+            </div>
+        </div>
+    `).show();
+}
+
+function quitarArchivoFicha(tipo) {
+    if (!estadoAdjuntosFicha[tipo]) return;
+
+    const input = $(`#${tipo === 'pdf' ? 'pdf_file' : 'editable_file'}`);
+    const teniaArchivoSeleccionado = input[0].files.length > 0;
+    input.val('');
+
+    if (teniaArchivoSeleccionado) {
+        if (estadoAdjuntosFicha[tipo].url && !estadoAdjuntosFicha[tipo].eliminar) {
+            mostrarAdjuntoPersistido(tipo);
+        } else {
+            input.closest('.file-upload-container').find('.selected-files').hide().html('');
+        }
+        return;
+    }
+
+    if (estadoAdjuntosFicha[tipo].url) {
+        actualizarIntencionEliminacion(tipo, true);
+        input.closest('.file-upload-container').find('.selected-files').html(`
+            <div class="alert alert-warning mb-0 d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+                <span><i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Se eliminará al guardar</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                    data-adjunto-accion="cancelar-eliminacion" data-adjunto-tipo="${tipo}"
+                    aria-label="Cancelar eliminación del archivo ${tipo === 'pdf' ? 'PDF' : 'editable'}">
+                    Cancelar eliminación
+                </button>
+            </div>
+        `).show();
+    } else {
+        actualizarIntencionEliminacion(tipo, false);
+        input.closest('.file-upload-container').find('.selected-files').hide().html('');
+    }
+}
+
+function cancelarEliminacionArchivoFicha(tipo) {
+    if (!estadoAdjuntosFicha[tipo] || !estadoAdjuntosFicha[tipo].url) return;
+
+    actualizarIntencionEliminacion(tipo, false);
+    mostrarAdjuntoPersistido(tipo);
+}
+
+function reiniciarEstadoAdjuntosFicha() {
+    ['pdf', 'editable'].forEach(function(tipo) {
+        estadoAdjuntosFicha[tipo].url = null;
+        actualizarIntencionEliminacion(tipo, false);
+    });
+}
+
+function mostrarFormularioNuevaFicha() {
+    limpiarFormularioCompleto();
+    $('#lista-fichas').removeClass('show active');
+    $('#nueva-ficha').addClass('show active');
 }
 
 // NUEVA: Función para mostrar preview de imágenes seleccionadas
@@ -2048,6 +2141,9 @@ function limpiarFormularioCompleto() {
     
     // 6. Resetear el formulario HTML
     $('#nuevaFichaForm')[0].reset();
+    $('#id-ficha-editar').val('');
+    $('#nuevaFichaForm button[type="submit"]').html('<i class="fas fa-save me-2"></i>Guardar Ficha Técnica');
+    reiniciarEstadoAdjuntosFicha();
     
     // 7. Limpiar resultados de búsqueda de productos
     $('#resultados_productos').hide();
@@ -2069,6 +2165,7 @@ window.buscarProductos = buscarProductos;
 window.eliminarImagenSeleccionada = eliminarImagenSeleccionada;
 window.limpiarTodasLasImagenes = limpiarTodasLasImagenes;
 window.limpiarFormularioCompleto = limpiarFormularioCompleto;
+window.mostrarFormularioNuevaFicha = mostrarFormularioNuevaFicha;
 // NUEVO: Agregar funciones de ampliar imagen al scope global
 window.ampliarImagen = ampliarImagen;
 window.ampliarImagenAlternativa = ampliarImagenAlternativa;

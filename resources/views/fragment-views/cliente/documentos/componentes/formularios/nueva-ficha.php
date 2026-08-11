@@ -10,6 +10,8 @@
         <form id="nuevaFichaForm" enctype="multipart/form-data">
             <input type="hidden" name="tipo" value="ficha_tecnica">
             <input type="hidden" id="id-ficha-editar" name="id_ficha" value="">
+            <input type="hidden" id="eliminar-pdf" name="eliminar_pdf" value="0">
+            <input type="hidden" id="eliminar-editable" name="eliminar_editable" value="0">
 
             <!-- Sección de Información Básica -->
             <div class="mb-4 pb-2 border-bottom">
@@ -69,7 +71,7 @@
                             </div>
                             <div class="selected-files mt-3" style="display: none;"></div>
                         </div>
-                        <div class="form-text text-gris small">Tamaño máximo: 4MB | Formato: PDF</div>
+                        <div class="form-text text-gris small">PDF: máximo 25 MB.</div>
 
                     </div>
 
@@ -80,7 +82,7 @@
 
                         <div class="file-upload-container p-4 border border-2 border-dashed rounded bg-light text-center position-relative cursor-pointer mb-2"
                             style="transition: all 0.2s ease;">
-                            <input type="file" class="d-none" name="editable" accept=".xlsx,.xls,.doc,.docx,.cdr,.psd,.ai"
+                            <input type="file" class="d-none" name="editable" accept=".cdr,.psd,.ai,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                                 id="editable_file">
 
                             <div>
@@ -96,8 +98,10 @@
                             </div>
                             <div class="selected-files mt-3" style="display: none;"></div>
                         </div>
-                        <div class="form-text text-gris small">Tamaño máximo: 4MB | Formatos: .xlsx, .xls, .doc, .docx, .cdr, .psd,
-                            .ai</div>
+                        <div class="form-text text-gris small">
+                            PSD: 200 MB | CDR/AI: 100 MB | Office: 50 MB.<br>
+                            Formatos: .cdr, .psd, .ai, .doc, .docx, .xls, .xlsx, .ppt, .pptx
+                        </div>
 
                     </div>
                 </div>
@@ -154,9 +158,14 @@
                 </div>
             </div>
 
+            <div class="alert alert-info small" role="note">
+                No hay compresión automática para archivos PDF ni editables. Si un PDF excede el límite, optimícelo localmente.
+                No recomprima archivos editables CDR, PSD o AI: podría perder su capacidad de edición.
+            </div>
+
             <div class="d-flex justify-content-between mt-4">
                 <button type="button" class="btn border-rojo"
-                    onclick="$('#lista-fichas').addClass('show active'); $('#nueva-ficha').removeClass('show active');">
+                    onclick="limpiarFormularioCompleto(); $('#lista-fichas').addClass('show active'); $('#nueva-ficha').removeClass('show active');">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </button>
                 <div class="d-flex gap-2">
@@ -302,6 +311,8 @@
         $('#buscar_producto').val('');
         $('#id_producto').val('');
         $('#youtube').val('');
+        $('#id-ficha-editar').val('');
+        $('#eliminar-pdf, #eliminar-editable').val('0');
         
         // Limpiar archivos
         $('#pdf_file').val('');
@@ -318,6 +329,8 @@
         if (typeof imagenesAcumuladas !== 'undefined') {
             imagenesAcumuladas = [];
         }
+
+        $('#nuevaFichaForm button[type="submit"]').html('<i class="fas fa-save me-2"></i>Guardar Ficha Técnica');
         
         // Mostrar confirmación
         Swal.fire({
@@ -404,8 +417,13 @@
         // Si se está subiendo un PDF, validar su tamaño
         if (pdfInput.files.length > 0) {
             const pdfFile = pdfInput.files[0];
-            if (pdfFile.size > 4 * 1024 * 1024) {
-                Swal.fire('Error', 'El archivo PDF excede el tamaño máximo de 4MB', 'error');
+            const extensionPdf = pdfFile.name.split('.').pop().toLowerCase();
+            if (extensionPdf !== 'pdf') {
+                Swal.fire('Error', 'Solo se permite un archivo PDF', 'error');
+                return false;
+            }
+            if (pdfFile.size > 25 * 1024 * 1024) {
+                Swal.fire('Error', 'El archivo .pdf no puede exceder 25 MB', 'error');
                 return false;
             }
         }
@@ -447,16 +465,19 @@
         const editableInput = document.getElementById('editable_file');
         if (editableInput.files.length > 0) {
             const editableFile = editableInput.files[0];
-            if (editableFile.size > 4 * 1024 * 1024) {
-                Swal.fire('Error', 'El archivo editable excede el tamaño máximo de 4MB', 'error');
+            const extension = editableFile.name.split('.').pop().toLowerCase();
+            const limitesMb = {
+                cdr: 100, psd: 200, ai: 100,
+                doc: 50, docx: 50, xls: 50, xlsx: 50, ppt: 50, pptx: 50
+            };
+
+            if (!Object.prototype.hasOwnProperty.call(limitesMb, extension)) {
+                Swal.fire('Error', 'Formato editable no permitido. Use CDR, PSD, AI, DOC, DOCX, XLS, XLSX, PPT o PPTX', 'error');
                 return false;
             }
 
-            // Validar extensión
-            const extension = editableFile.name.split('.').pop().toLowerCase();
-            const extensionesPermitidas = ['xlsx', 'xls', 'doc', 'docx', 'cdr', 'psd', 'ai'];
-            if (!extensionesPermitidas.includes(extension)) {
-                Swal.fire('Error', 'Formato de archivo no permitido. Solo: Excel (.xlsx, .xls), Word (.doc, .docx), Corel (.cdr), Photoshop (.psd), Illustrator (.ai)', 'error');
+            if (editableFile.size > limitesMb[extension] * 1024 * 1024) {
+                Swal.fire('Error', `El archivo .${extension} no puede exceder ${limitesMb[extension]} MB`, 'error');
                 return false;
             }
         }

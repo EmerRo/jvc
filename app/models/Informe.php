@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../helpers/ImageStorage.php';
+
 class Informe
 {
     private $id_informe;
@@ -81,7 +83,7 @@ class Informe
 
     public function setImagen1($imagen1)
     {
-        $this->imagen1 = $imagen1;
+        $this->imagen1 = self::normalizarNombreImagen($imagen1);
     }
 
     public function getImagen2()
@@ -91,7 +93,7 @@ class Informe
 
     public function setImagen2($imagen2)
     {
-        $this->imagen2 = $imagen2;
+        $this->imagen2 = self::normalizarNombreImagen($imagen2);
     }
 
     public function getClienteId()
@@ -176,18 +178,46 @@ public function setNumero($numero)
 
    public function insertar()
 {
-    $sql = "INSERT INTO informes (tipo, titulo, contenido, imagen1, imagen2, cliente_id, usuario_id, persona_entregar, numero) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $this->conectar->prepare($sql);
-    
-    $stmt->bind_param("sssssiisi", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->usuario_id, $this->persona_entregar, $this->numero);
-    
-    $result = $stmt->execute();
+    $nombreLock = 'jvc_informes_numero';
+    $lockAdquirido = false;
 
-    if ($result) {
-        $this->id_informe = $this->conectar->insert_id;
+    try {
+        $stmtLock = $this->conectar->prepare("SELECT GET_LOCK(?, 10)");
+        $stmtLock->bind_param("s", $nombreLock);
+        $stmtLock->execute();
+        $stmtLock->bind_result($resultadoLock);
+        $stmtLock->fetch();
+        $stmtLock->close();
+
+        if ((int)$resultadoLock !== 1) {
+            throw new Exception("No se pudo asignar el numero del informe. Intente nuevamente.");
+        }
+        $lockAdquirido = true;
+
+        $this->numero = $this->generarSiguienteNumero();
+
+        $sql = "INSERT INTO informes (tipo, titulo, contenido, imagen1, imagen2, cliente_id, usuario_id, persona_entregar, numero)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("sssssiisi", $this->tipo, $this->titulo, $this->contenido, $this->imagen1, $this->imagen2, $this->cliente_id, $this->usuario_id, $this->persona_entregar, $this->numero);
+        $result = $stmt->execute();
+
+        if ($result) {
+            $this->id_informe = $this->conectar->insert_id;
+        }
+        $stmt->close();
+
+        return $result;
+    } finally {
+        if ($lockAdquirido) {
+            $stmtRelease = $this->conectar->prepare("SELECT RELEASE_LOCK(?)");
+            if ($stmtRelease) {
+                $stmtRelease->bind_param("s", $nombreLock);
+                $stmtRelease->execute();
+                $stmtRelease->close();
+            }
+        }
     }
-    return $result;
 }
 
 public function editar()
@@ -237,8 +267,8 @@ public function editar()
             $this->tipo = $fila['tipo'];
             $this->titulo = $fila['titulo'];
             $this->contenido = $fila['contenido'];
-            $this->imagen1 = $fila['imagen1'];
-            $this->imagen2 = $fila['imagen2'];
+            $this->imagen1 = self::normalizarNombreImagen($fila['imagen1']);
+            $this->imagen2 = self::normalizarNombreImagen($fila['imagen2']);
             $this->cliente_id = $fila['cliente_id'];
             $this->usuario_id = $fila['usuario_id'];
             $this->fecha_creacion = $fila['fecha_creacion'];
@@ -266,7 +296,7 @@ public function editar()
     {
         try {
             // Construir la consulta SQL base SIN las columnas de imágenes para mejorar rendimiento
-            $sql = "SELECT i.id_informe, i.tipo, i.titulo, i.contenido, i.cliente_id, i.persona_entregar, 
+            $sql = "SELECT i.id_informe, i.numero, i.tipo, i.titulo, i.contenido, i.cliente_id, i.persona_entregar,
                           i.usuario_id, i.fecha_creacion, i.fecha_modificacion,
                           c.datos as cliente_nombre, u.nombres as usuario_nombre 
                 FROM informes i
@@ -410,27 +440,6 @@ public function editar()
 
         return true;
     }
-    public function generarNumeroCorrelativo($tipo)
-    {
-        // Obtener el año actual
-        $anio = date('Y');
-
-        // Contar cuántos informes del mismo tipo existen en el año actual
-        $sql = "SELECT COUNT(*) as total FROM informes 
-            WHERE tipo = ? AND YEAR(fecha_creacion) = ?";
-        $stmt = $this->conectar->prepare($sql);
-        $stmt->bind_param("si", $tipo, $anio);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-
-        // El siguiente número será el total + 1
-        $numero = $row['total'] + 1;
-
-        // Formatear el número correlativo: NRO.015-2025-JVC
-        return sprintf("NRO.%03d-%d-JVC", $numero, $anio);
-    }
-
     // Método para validar que el cliente sea requerido
     public function validarClienteRequerido($cliente_id)
     {
@@ -445,12 +454,6 @@ public function editar()
      */
     public function getImagen1Base64()
     {
-        if (!$this->imagen1 || strpos($this->imagen1, 'data:image/') === 0) {
-            // Ya es base64 o está vacía
-            return $this->imagen1;
-        }
-        
-        // Es una ruta de archivo, convertir a base64
         return $this->convertirArchivoABase64($this->imagen1);
     }
 
@@ -459,22 +462,26 @@ public function editar()
      */
     public function getImagen2Base64()
     {
-        if (!$this->imagen2 || strpos($this->imagen2, 'data:image/') === 0) {
-            // Ya es base64 o está vacía
-            return $this->imagen2;
-        }
-        
-        // Es una ruta de archivo, convertir a base64
         return $this->convertirArchivoABase64($this->imagen2);
+    }
+
+    public function getImagen1RutaPDF()
+    {
+        return self::resolverRutaImagen($this->imagen1);
+    }
+
+    public function getImagen2RutaPDF()
+    {
+        return self::resolverRutaImagen($this->imagen2);
     }
 
     /**
      * Convierte un archivo de imagen a base64
      */
-    private function convertirArchivoABase64($rutaArchivo)
+    private function convertirArchivoABase64($nombreArchivo)
     {
-        if (!file_exists($rutaArchivo)) {
-            error_log("Archivo de imagen no encontrado: " . $rutaArchivo);
+        $rutaArchivo = self::resolverRutaImagen($nombreArchivo);
+        if (!$rutaArchivo) {
             return null;
         }
         
@@ -486,26 +493,8 @@ public function editar()
                 return null;
             }
             
-            // Detectar el tipo MIME
-            $mimeType = mime_content_type($rutaArchivo);
-            if (!$mimeType) {
-                // Fallback basado en extensión
-                $extension = strtolower(pathinfo($rutaArchivo, PATHINFO_EXTENSION));
-                switch ($extension) {
-                    case 'jpg':
-                    case 'jpeg':
-                        $mimeType = 'image/jpeg';
-                        break;
-                    case 'png':
-                        $mimeType = 'image/png';
-                        break;
-                    case 'gif':
-                        $mimeType = 'image/gif';
-                        break;
-                    default:
-                        $mimeType = 'image/jpeg';
-                }
-            }
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($rutaArchivo);
             
             // Convertir a base64
             $base64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
@@ -527,13 +516,7 @@ public function editar()
             return null;
         }
         
-        // Si ya es base64, devolverla tal como está
-        if (strpos($this->imagen1, 'data:image/') === 0) {
-            return $this->imagen1;
-        }
-        
-        // Si es una ruta de archivo, crear URL
-        return '/' . $this->imagen1;
+        return ImageStorage::url('informes', $this->imagen1);
     }
 
     /**
@@ -545,16 +528,80 @@ public function editar()
             return null;
         }
         
-        // Si ya es base64, devolverla tal como está
-        if (strpos($this->imagen2, 'data:image/') === 0) {
-            return $this->imagen2;
-        }
-        
-        // Si es una ruta de archivo, crear URL
-        return '/' . $this->imagen2;
+        return ImageStorage::url('informes', $this->imagen2);
     }
 
-    public function generarSiguienteNumero()
+    public static function normalizarNombreImagen($valor)
+    {
+        if (!is_string($valor) || trim($valor) === '') {
+            return null;
+        }
+
+        $ruta = trim(str_replace('\\', '/', rawurldecode($valor)));
+        if (strpos($ruta, "\0") !== false || preg_match('#(^|/)\.\.?(?:/|$)#', $ruta)) {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $ruta)) {
+            $rutaUrl = parse_url($ruta, PHP_URL_PATH);
+            if (!is_string($rutaUrl)) {
+                return null;
+            }
+            $ruta = rawurldecode($rutaUrl);
+        } else {
+            $ruta = preg_replace('/[?#].*$/', '', $ruta);
+        }
+
+        $nombre = null;
+        if (preg_match('#^/?([A-Za-z0-9][A-Za-z0-9._-]*)$#', $ruta, $coincidencia)) {
+            $nombre = $coincidencia[1];
+        } elseif (preg_match('#(?:^|/)(?:img|files)/informes/([A-Za-z0-9][A-Za-z0-9._-]*)$#i', $ruta, $coincidencia)) {
+            $nombre = $coincidencia[1];
+        } elseif (preg_match('#(?:^|/)storage/images/informes/([A-Za-z0-9][A-Za-z0-9._-]*)$#i', $ruta, $coincidencia)) {
+            $nombre = $coincidencia[1];
+        }
+
+        if (!$nombre || !preg_match('/\.(?:jpe?g|png|gif|webp)$/i', $nombre)) {
+            return null;
+        }
+
+        return basename($nombre);
+    }
+
+    public static function resolverRutaImagen($valor)
+    {
+        $nombre = self::normalizarNombreImagen($valor);
+        if (!$nombre) {
+            return null;
+        }
+
+        $directorio = realpath(dirname(__DIR__, 2) . '/storage/images/informes');
+        if ($directorio === false) {
+            return null;
+        }
+
+        $ruta = realpath($directorio . DIRECTORY_SEPARATOR . $nombre);
+        $prefijo = rtrim(str_replace('\\', '/', $directorio), '/') . '/';
+        $rutaNormalizada = $ruta === false ? '' : str_replace('\\', '/', $ruta);
+        $compararRuta = DIRECTORY_SEPARATOR === '\\' ? strtolower($rutaNormalizada) : $rutaNormalizada;
+        $compararPrefijo = DIRECTORY_SEPARATOR === '\\' ? strtolower($prefijo) : $prefijo;
+
+        if ($ruta === false || strpos($compararRuta, $compararPrefijo) !== 0 || !is_file($ruta) || !is_readable($ruta)) {
+            error_log('Imagen de informe no encontrada o no legible: ' . $nombre);
+            return null;
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($ruta);
+        if (!in_array($mime, ImageStorage::ALLOWED_TYPES, true) || @getimagesize($ruta) === false) {
+            error_log('Archivo de informe rechazado por MIME o contenido invalido: ' . $nombre);
+            return null;
+        }
+
+        return $rutaNormalizada;
+    }
+
+    private function generarSiguienteNumero()
     {
         $sql = "SELECT COALESCE(MAX(numero), 0) + 1 FROM informes";
         $result = $this->conectar->query($sql);

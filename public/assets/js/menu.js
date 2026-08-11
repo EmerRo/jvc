@@ -98,31 +98,70 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Marcar link activo según URL actual
-    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    const documentosPaths = new Set([
+        '/documentos',
+        '/documentos/informe',
+        '/documentos/cartas',
+        '/documentos/constancias',
+        '/documentos/archivos/internos',
+        '/documentos/otros'
+    ]);
 
-    // Links directos (módulos sin submenú)
-    document.querySelectorAll('.jvc-sidebar-link:not(.jvc-sidebar-dropdown-toggle)').forEach(link => {
-        const href = (link.getAttribute('href') || '').replace(/\/$/, '') || '/';
-        if (href === '#') return;
-        const isActive = href === '/'
-            ? currentPath === '/'
-            : currentPath === href || currentPath.startsWith(href + '/');
-        if (isActive) link.classList.add('active');
-    });
+    const normalizarPath = (value) => {
+        if (!value || value === '#') return null;
 
-    // Items de submenú (submodulos)
-    document.querySelectorAll('.jvc-sidebar-dropdown-item').forEach(link => {
-        const href = (link.getAttribute('href') || '').replace(/\/$/, '');
-        if (!href || href === '#') return;
-        const isActive = currentPath === href || currentPath.startsWith(href + '/');
-        if (isActive) {
-            link.classList.add('active');
-            // Expande el módulo padre automáticamente
-            const parentItem = link.closest('.jvc-sidebar-item');
-            if (parentItem) parentItem.classList.add('active');
+        try {
+            const pathname = new URL(value, window.location.origin).pathname;
+            return pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+        } catch (error) {
+            return null;
         }
-    });
+    };
+
+    const obtenerMejorCoincidencia = (links, currentPath, exactPaths = new Set()) => {
+        return Array.from(links).reduce((bestMatch, link) => {
+            const hrefPath = normalizarPath(link.getAttribute('href'));
+            if (!hrefPath) return bestMatch;
+
+            const isExactPath = exactPaths.has(hrefPath);
+            const isActive = currentPath === hrefPath
+                || (!isExactPath && hrefPath !== '/' && currentPath.startsWith(hrefPath + '/'));
+
+            if (!isActive || (bestMatch && bestMatch.path.length >= hrefPath.length)) {
+                return bestMatch;
+            }
+
+            return { link, path: hrefPath };
+        }, null);
+    };
+
+    const recalcularMenuActivo = () => {
+        const currentPath = normalizarPath(window.location.href);
+        const directLinks = document.querySelectorAll(
+            '.jvc-sidebar-link:not(.jvc-sidebar-dropdown-item):not(.jvc-sidebar-dropdown-toggle)'
+        );
+        const submenuLinks = document.querySelectorAll('.jvc-sidebar-dropdown-item');
+        const activeSubmenuParents = new Set(
+            Array.from(submenuLinks)
+                .filter(link => link.classList.contains('active'))
+                .map(link => link.closest('.jvc-sidebar-item'))
+                .filter(Boolean)
+        );
+
+        directLinks.forEach(link => link.classList.remove('active'));
+        submenuLinks.forEach(link => link.classList.remove('active'));
+        activeSubmenuParents.forEach(parent => parent.classList.remove('active'));
+
+        const directMatch = obtenerMejorCoincidencia(directLinks, currentPath);
+        directMatch?.link.classList.add('active');
+
+        const submenuMatch = obtenerMejorCoincidencia(submenuLinks, currentPath, documentosPaths);
+        if (submenuMatch) {
+            submenuMatch.link.classList.add('active');
+            submenuMatch.link.closest('.jvc-sidebar-item')?.classList.add('active');
+        }
+    };
+
+    recalcularMenuActivo();
+    window.addEventListener('popstate', recalcularMenuActivo);
   })
-  
-  

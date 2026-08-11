@@ -1,9 +1,4 @@
 
-// Configuración global de PDF.js
-if (window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-}
-
 /**
  * Clase principal para gestionar documentos
  */
@@ -26,7 +21,29 @@ class DocumentosUtils {
         this.plantillaActual = null;
         this.documentoActual = null;
         this.pdfsRenderizados = new Set(); // Cache de PDFs ya renderizados
+        this.pdfLoadingTasks = new Map();
+        this.pdfRenderTasks = new Map();
         this.timeoutBusqueda = null; // Para debounce de búsqueda
+        this.eventNamespace = `.documentos-${this.config.tipo}`;
+        this.rootElement = config.rootElement || document.querySelector(this.config.elementos.vistaLista);
+        this.swalCargaActiva = false;
+        this.destroyed = false;
+
+        const selectoresModales = this.config.modalesPropios || [
+            this.config.elementos.modalEliminar,
+            this.config.elementos.modalPreview,
+            this.config.elementos.modalPlantilla,
+            this.config.elementos.modalMembretes
+        ].filter(Boolean);
+        this.modalElements = selectoresModales
+            .map((selector) => document.querySelector(selector))
+            .filter(Boolean);
+
+        [this.rootElement, ...this.modalElements].forEach((element) => {
+            if (element) {
+                element.__documentosUtilsOwner = this;
+            }
+        });
 
         this.init();
     }
@@ -63,6 +80,33 @@ class DocumentosUtils {
         }
     }
 
+    mostrarCarga(titulo, texto) {
+        this.swalCargaActiva = true;
+        Swal.fire({
+            title: titulo,
+            text: texto,
+            allowOutsideClick: false,
+            didOpen: (popup) => {
+                const container = popup.closest('.swal2-container');
+                if (container) {
+                    container.dataset.documentosOwner = this.config.tipo;
+                }
+                Swal.showLoading();
+            }
+        });
+    }
+
+    cerrarCarga() {
+        if (!this.swalCargaActiva) return;
+
+        this.swalCargaActiva = false;
+        const container = document.querySelector(`.swal2-container[data-documentos-owner="${this.config.tipo}"]`);
+        if (container) {
+            Swal.close();
+            container.remove();
+        }
+    }
+
     /**
      * Configurar eventos principales
      */
@@ -70,20 +114,20 @@ class DocumentosUtils {
         const self = this;
 
         // Botones de navegación
-        $(this.config.elementos.btnLista).on("click", () => this.mostrarVistaLista());
-        $(this.config.elementos.btnNuevo).on("click", () => this.mostrarFormularioNuevo());
-        $(this.config.elementos.btnEditarPlantilla).on("click", () => this.editarPlantilla());
-        $(this.config.elementos.btnGestionarMembretes).on("click", () => this.gestionarMembretes());
+        $(this.config.elementos.btnLista).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarVistaLista());
+        $(this.config.elementos.btnNuevo).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarFormularioNuevo());
+        $(this.config.elementos.btnEditarPlantilla).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.editarPlantilla());
+        $(this.config.elementos.btnGestionarMembretes).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.gestionarMembretes());
 
         // Modal de confirmación para eliminar
-        $(this.config.elementos.modalEliminar).on('show.bs.modal', function(event) {
+        $(this.config.elementos.modalEliminar).off(this.eventNamespace).on(`show.bs.modal${this.eventNamespace}`, function(event) {
             const button = $(event.relatedTarget);
             const id = button.data('id');
-            $(self.config.elementos.btnConfirmarEliminar).off('click').on('click', () => self.eliminarDocumento(id));
+            $(self.config.elementos.btnConfirmarEliminar).off(self.eventNamespace).on(`click${self.eventNamespace}`, () => self.eliminarDocumento(id));
         });
 
         // Búsqueda con Debounce
-        $(this.config.elementos.inputBuscar).on("keyup", () => {
+        $(this.config.elementos.inputBuscar).off(this.eventNamespace).on(`keyup${this.eventNamespace}`, () => {
             clearTimeout(this.timeoutBusqueda);
             this.timeoutBusqueda = setTimeout(() => {
                 this.buscarDocumentos();
@@ -92,32 +136,32 @@ class DocumentosUtils {
 
 
         // Formulario
-        $(this.config.elementos.btnCancelar).on("click", () => this.mostrarVistaLista());
-        $(this.config.elementos.btnGuardar).on("click", () => this.guardarDocumento());
-        $(this.config.elementos.btnPreview).on("click", () => this.mostrarVistaPrevia());
+        $(this.config.elementos.btnCancelar).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarVistaLista());
+        $(this.config.elementos.btnGuardar).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.guardarDocumento());
+        $(this.config.elementos.btnPreview).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarVistaPrevia());
 
         // Plantilla
-        $(this.config.elementos.btnGuardarPlantilla).on("click", () => this.guardarPlantilla());
-        $(this.config.elementos.btnPreviewPlantilla).on("click", () => this.mostrarVistaPreviewPlantilla());
+        $(this.config.elementos.btnGuardarPlantilla).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.guardarPlantilla());
+        $(this.config.elementos.btnPreviewPlantilla).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarVistaPreviewPlantilla());
 
         // Membretes
-        $(this.config.elementos.btnGuardarMembretes).on("click", () => this.guardarMembretes());
-        $(this.config.elementos.btnPreviewMembretes).on("click", () => this.mostrarVistaPreviewMembretes());
+        $(this.config.elementos.btnGuardarMembretes).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.guardarMembretes());
+        $(this.config.elementos.btnPreviewMembretes).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => this.mostrarVistaPreviewMembretes());
 
         // Imágenes de membretes
-        $(this.config.elementos.headerImageInput).on("change", (e) => {
+        $(this.config.elementos.headerImageInput).off(this.eventNamespace).on(`change${this.eventNamespace}`, (e) => {
             this.manejarCambioImagen(e, 'membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
         });
 
-        $(this.config.elementos.footerImageInput).on("change", (e) => {
+        $(this.config.elementos.footerImageInput).off(this.eventNamespace).on(`change${this.eventNamespace}`, (e) => {
             this.manejarCambioImagen(e, 'membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
         });
 
-        $(this.config.elementos.resetHeaderBtn).on("click", () => {
+        $(this.config.elementos.resetHeaderBtn).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => {
             this.restablecerImagen('membrete_header_image_data', 'membrete-header-preview', 'header-placeholder-membrete');
         });
 
-        $(this.config.elementos.resetFooterBtn).on("click", () => {
+        $(this.config.elementos.resetFooterBtn).off(this.eventNamespace).on(`click${this.eventNamespace}`, () => {
             this.restablecerImagen('membrete_footer_image_data', 'membrete-footer-preview', 'footer-placeholder-membrete');
         });
 
@@ -132,19 +176,19 @@ class DocumentosUtils {
         const self = this;
 
         // Modal de plantilla
-        $(this.config.elementos.modalPlantilla).on('hidden.bs.modal', function() {
+        $(this.config.elementos.modalPlantilla).off(this.eventNamespace).on(`hidden.bs.modal${this.eventNamespace}`, function() {
             console.log("Modal de plantilla cerrado, destruyendo editor");
             self.destruirEditorPlantilla();
             $(self.config.elementos.editorPlantilla).empty();
         });
 
-        $(this.config.elementos.modalPlantilla).on('show.bs.modal', function() {
+        $(this.config.elementos.modalPlantilla).on(`show.bs.modal${this.eventNamespace}`, function() {
             console.log("Modal de plantilla abriéndose");
             self.destruirEditorPlantilla();
         });
 
         // Modal de vista previa - regresar a membretes
-        $(this.config.elementos.modalPreview).on('hidden.bs.modal', function() {
+        $(this.config.elementos.modalPreview).off(this.eventNamespace).on(`hidden.bs.modal${this.eventNamespace}`, function() {
             if (window.regresarAMembretes) {
                 window.regresarAMembretes = false;
                 setTimeout(() => {
@@ -370,13 +414,13 @@ class DocumentosUtils {
         $(this.config.elementos.contenedorLista).html(html);
 
         // Agregar eventos a los botones de editar
-        $(`.${this.config.tipo}-editar`).on("click", (e) => {
+        $(`.${this.config.tipo}-editar`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
             const id = $(e.currentTarget).data('id');
             this.editarDocumento(id);
         });
 
         // Agregar eventos a los botones de WhatsApp
-        $(`.${this.config.tipo}-whatsapp`).on("click", (e) => {
+        $(`.${this.config.tipo}-whatsapp`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
             const id = $(e.currentTarget).data('id');
             const funcionWhatsApp = `compartirWhatsApp${this.config.tipo.charAt(0).toUpperCase() + this.config.tipo.slice(1)}`;
             if (typeof window[funcionWhatsApp] === 'function') {
@@ -452,7 +496,7 @@ class DocumentosUtils {
             }
         }
 
-        const autocompleteResults = this.elementoSeguro('autocomplete-results');
+        const autocompleteResults = document.getElementById('autocomplete-results');
         if (autocompleteResults) {
             autocompleteResults.style.display = 'none';
         }
@@ -1074,7 +1118,7 @@ class DocumentosUtils {
     /**
      * Guardar documento
      */
-    guardarDocumento() {
+    async guardarDocumento() {
         const titulo = $(this.config.elementos.tituloDocumento).val().trim();
         const contenido = $(this.config.elementos.contenidoDocumento).val().trim();
         const tipo = $(this.config.elementos.tipoDocumento).val().trim();
@@ -1103,54 +1147,58 @@ class DocumentosUtils {
         const documentoId = $(this.config.elementos.idDocumento).val();
         const url = documentoId ? this.config.urls.editar : this.config.urls.insertar;
 
-        Swal.fire({
-            title: 'Guardando',
-            text: `Guardando ${this.config.tipo}...`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        let data = null;
+        let errorSolicitud = null;
+        this.mostrarCarga('Guardando', `Guardando ${this.config.tipo}...`);
 
-        $.ajax({
-            url: url,
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: (data) => {
-                if (data.res) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.msg
-                    }).then(() => {
-                        this.mostrarVistaLista();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.msg || `Error al guardar el ${this.config.tipo}`
-                    });
-                }
-            },
-            error: (xhr, status, error) => {
-                console.error("Error en la solicitud:", status, error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: `Error al guardar el ${this.config.tipo}`
-                });
-            }
+        try {
+            data = await $.ajax({
+                url: url,
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json'
+            });
+        } catch (error) {
+            errorSolicitud = error;
+            console.error("Error en la solicitud para guardar:", error);
+        } finally {
+            this.cerrarCarga();
+        }
+
+        if (this.destroyed) return;
+
+        if (errorSolicitud) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Error al guardar el ${this.config.tipo}`
+            });
+            return;
+        }
+
+        if (data && data.res) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.msg
+            });
+            this.mostrarVistaLista();
+            return;
+        }
+
+        await Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data?.msg || `Error al guardar el ${this.config.tipo}`
         });
     }
 
     /**
      * Mostrar vista previa
      */
-    mostrarVistaPrevia() {
+    async mostrarVistaPrevia() {
         const contenido = $(this.config.elementos.contenidoDocumento).val().trim();
 
         if (!contenido) {
@@ -1162,65 +1210,60 @@ class DocumentosUtils {
             return;
         }
 
-        Swal.fire({
-            title: 'Generando vista previa',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
         const formData = new FormData();
         formData.append('titulo', $(this.config.elementos.tituloDocumento).val().trim());
         formData.append('contenido', contenido);
         formData.append('header_image', document.getElementById('header_image_data').value);
         formData.append('footer_image', document.getElementById('footer_image_data').value);
 
-        $.ajax({
-            url: this.config.urls.vistaPrevia,
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: (data) => {
-                Swal.close();
+        let data = null;
+        let errorSolicitud = null;
+        this.mostrarCarga('Generando vista previa', 'Por favor espere...');
 
-                if (data.success && data.pdfBase64) {
-                    document.getElementById(this.config.elementos.previewFrame.replace('#', '')).src = "data:application/pdf;base64," + data.pdfBase64;
+        try {
+            data = await $.ajax({
+                url: this.config.urls.vistaPrevia,
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json'
+            });
 
-                    const modal = new bootstrap.Modal(document.getElementById(this.config.elementos.modalPreview.replace('#', '')));
-                    modal.show();
+            if (data.success && data.pdfBase64) {
+                document.getElementById(this.config.elementos.previewFrame.replace('#', '')).src = "data:application/pdf;base64," + data.pdfBase64;
 
-                    document.getElementById(this.config.elementos.btnDownloadPdf.replace('#', '')).onclick = () => {
-                        const blob = this.b64toBlob(data.pdfBase64, 'application/pdf');
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${this.config.tipo}_${new Date().getTime()}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    };
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.msg || 'Error al generar la vista previa'
-                    });
-                }
-            },
-            error: (xhr, status, error) => {
-                console.error("Error en la solicitud:", status, error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Error al generar la vista previa'
-                });
+                const modal = new bootstrap.Modal(document.getElementById(this.config.elementos.modalPreview.replace('#', '')));
+                modal.show();
+
+                document.getElementById(this.config.elementos.btnDownloadPdf.replace('#', '')).onclick = () => {
+                    const blob = this.b64toBlob(data.pdfBase64, 'application/pdf');
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.config.tipo}_${new Date().getTime()}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
             }
-        });
+        } catch (error) {
+            errorSolicitud = error;
+            console.error("Error al generar la vista previa:", error);
+        } finally {
+            this.cerrarCarga();
+        }
+
+        if (this.destroyed) return;
+
+        if (errorSolicitud || !data || !data.success || !data.pdfBase64) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data?.msg || 'Error al generar la vista previa'
+            });
+        }
     }
 
     /**
@@ -1798,97 +1841,104 @@ class DocumentosUtils {
     /**
      * Renderizar vista previa de PDF
      */
-    renderPdfPreview(pdfUrl, canvasId) {
+    async renderPdfPreview(pdfUrl, canvasId) {
         if (this.pdfsRenderizados.has(canvasId)) {
             console.log(`Renderizado de ${canvasId} ya en progreso. Omitiendo.`);
             return;
         }
 
         console.log('Renderizando PDF:', pdfUrl, 'en canvas:', canvasId);
-
-        if (typeof pdfjsLib === 'undefined') {
-            console.error('Error: PDF.js no está cargado');
-            const canvas = document.getElementById(canvasId);
-            if (canvas) {
-                canvas.parentNode.innerHTML = `
-                    <div class="text-center p-4">
-                        <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
-                        <p class="mt-2">Error: PDF.js no disponible</p>
-                    </div>
-                `;
-            }
-            return;
-        }
-
         this.pdfsRenderizados.add(canvasId);
+        let loadingTask = null;
+        let renderTask = null;
+        let pdf = null;
+        let page = null;
 
-        pdfjsLib.getDocument(pdfUrl).promise.then((pdf) => {
-            pdf.getPage(1).then((page) => {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) {
-                    console.error('Canvas no encontrado:', canvasId);
-                    this.pdfsRenderizados.delete(canvasId);
-                    return;
-                }
+        try {
+            const pdfjsLib = window.pdfJsReady
+                ? await window.pdfJsReady
+                : window.pdfjsLib;
 
-                const context = canvas.getContext('2d');
-                const container = canvas.parentElement;
-                const containerWidth = container.clientWidth;
-                const containerHeight = container.clientHeight;
-
-                canvas.width = containerWidth * 2;
-                canvas.height = containerHeight * 2;
-
-                const viewport = page.getViewport({ scale: 1.0 });
-                const scale = (canvas.width / viewport.width) * 1.0;
-                const scaledViewport = page.getViewport({ scale: scale });
-
-                const offsetX = (canvas.width - scaledViewport.width) / 2;
-                const offsetY = 0;
-
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: scaledViewport,
-                    transform: [1, 0, 0, 1, offsetX, offsetY],
-                    intent: 'display'
-                };
-
-                context.fillStyle = 'white';
-                context.fillRect(0, 0, canvas.width, canvas.height);
-
-                page.render(renderContext).promise.then(() => {
-                    console.log(`PDF de ${this.config.tipo} renderizado correctamente en`, canvasId);
-                    this.pdfsRenderizados.delete(canvasId);
-                }).catch((error) => {
-                    console.error(`Error al renderizar el PDF de ${this.config.tipo}:`, error);
-                    this.pdfsRenderizados.delete(canvasId);
-                });
-            }).catch((error) => {
-                console.error(`Error al obtener la página del PDF de ${this.config.tipo}:`, error);
-                const canvas = document.getElementById(canvasId);
-                if (canvas) {
-                    canvas.parentNode.innerHTML = `
-                        <div class="text-center p-4">
-                            <i class="fas fa-file-pdf fa-4x text-danger"></i>
-                            <p class="mt-2">Ver PDF</p>
-                        </div>
-                    `;
-                }
-                this.pdfsRenderizados.delete(canvasId);
-            });
-        }).catch((error) => {
-            console.error(`Error al cargar el PDF de ${this.config.tipo}:`, error);
-            const canvas = document.getElementById(canvasId);
-            if (canvas) {
-                canvas.parentNode.innerHTML = `
-                    <div class="text-center p-4">
-                        <i class="fas fa-file-pdf fa-4x text-danger"></i>
-                        <p class="mt-2">Ver PDF</p>
-                    </div>
-                `;
+            if (!pdfjsLib || typeof pdfjsLib.getDocument !== 'function') {
+                throw new Error('PDF.js no está disponible');
             }
+
+            loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
+            this.pdfLoadingTasks.set(canvasId, loadingTask);
+            pdf = await loadingTask.promise;
+            page = await pdf.getPage(1);
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || this.destroyed || (this.rootElement && !this.rootElement.contains(canvas))) {
+                throw new Error(`Canvas no disponible: ${canvasId}`);
+            }
+
+            const context = canvas.getContext('2d');
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth * 2;
+            canvas.height = container.clientHeight * 2;
+
+            const viewport = page.getViewport({ scale: 1.0 });
+            const scaledViewport = page.getViewport({ scale: canvas.width / viewport.width });
+            const renderContext = {
+                canvasContext: context,
+                viewport: scaledViewport,
+                transform: [1, 0, 0, 1, (canvas.width - scaledViewport.width) / 2, 0],
+                intent: 'display'
+            };
+
+            context.fillStyle = 'white';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            renderTask = page.render(renderContext);
+            this.pdfRenderTasks.set(canvasId, renderTask);
+            await renderTask.promise;
+            console.log(`PDF de ${this.config.tipo} renderizado correctamente en`, canvasId);
+        } catch (error) {
+            if (!this.destroyed) {
+                console.error(`No se pudo renderizar el PDF de ${this.config.tipo}:`, error);
+                this.mostrarErrorPdf(canvasId, pdfUrl);
+            }
+        } finally {
             this.pdfsRenderizados.delete(canvasId);
-        });
+            this.pdfLoadingTasks.delete(canvasId);
+            this.pdfRenderTasks.delete(canvasId);
+
+            try {
+                page?.cleanup();
+                await pdf?.cleanup();
+                await loadingTask?.destroy();
+            } catch (cleanupError) {
+                if (!this.destroyed) {
+                    console.warn(`No se pudo liberar completamente ${canvasId}:`, cleanupError);
+                }
+            }
+        }
+    }
+
+    mostrarErrorPdf(canvasId, pdfUrl) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || !canvas.parentNode || (this.rootElement && !this.rootElement.contains(canvas))) return;
+
+        const fallback = document.createElement('div');
+        fallback.className = 'text-center p-4';
+
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-file-pdf fa-4x text-danger';
+
+        const message = document.createElement('p');
+        message.className = 'mt-2 mb-2';
+        message.textContent = 'No se pudo cargar la vista previa.';
+
+        const link = document.createElement('a');
+        link.className = 'btn btn-sm btn-outline-primary';
+        link.href = pdfUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Abrir PDF';
+
+        fallback.append(icon, message, link);
+        canvas.parentNode.replaceChildren(fallback);
     }
 
 
@@ -1920,7 +1970,27 @@ class DocumentosUtils {
      */
     cleanup() {
         console.log(`Limpiando módulo ${this.config.tipo}...`);
-        
+        if (this.destroyed) return;
+
+        const rootElement = this.rootElement;
+        const modalElements = [...this.modalElements];
+        const backdrops = Array.from(document.querySelectorAll('.modal-backdrop'));
+        const perteneceAInstancia = (element) => element?.__documentosUtilsOwner === this;
+
+        this.destroyed = true;
+        clearTimeout(this.timeoutBusqueda);
+
+        this.pdfRenderTasks.forEach((task) => task.cancel());
+        this.pdfLoadingTasks.forEach((task) => {
+            task.destroy().catch((error) => console.warn('Error cancelando carga PDF:', error));
+        });
+
+        Object.values(this.config.elementos).forEach((selector) => {
+            if (typeof selector === 'string') {
+                $(selector).off(this.eventNamespace);
+            }
+        });
+
         // Destruir editores
         this.destruirEditor();
         this.destruirEditorPlantilla();
@@ -1940,9 +2010,50 @@ class DocumentosUtils {
         if (this.pdfsRenderizados) {
             this.pdfsRenderizados.clear();
         }
-        
-        // Ocultar modales
-        $('.modal').modal('hide');
+        this.pdfLoadingTasks.clear();
+        this.pdfRenderTasks.clear();
+
+        // Ocultar solo los nodos capturados y todavía pertenecientes a esta instancia.
+        modalElements.forEach((element) => {
+            if (!perteneceAInstancia(element)) return;
+
+            const modal = window.bootstrap?.Modal?.getInstance(element);
+            if (modal) {
+                modal.hide();
+            } else {
+                $(element).modal('hide');
+            }
+
+            element.classList.remove('show');
+            element.style.display = 'none';
+            element.setAttribute('aria-hidden', 'true');
+            element.removeAttribute('aria-modal');
+        });
+
+        this.cerrarCarga();
+        $(`.swal2-container[data-documentos-owner="${this.config.tipo}"]`).remove();
+        $('#loader-menor').hide();
+
+        setTimeout(() => {
+            const rootSigueSiendoPropio = perteneceAInstancia(rootElement);
+
+            modalElements.forEach((element) => {
+                if (!rootSigueSiendoPropio || !element.isConnected || !perteneceAInstancia(element)) return;
+
+                element.classList.remove('show');
+                element.style.display = 'none';
+                element.setAttribute('aria-hidden', 'true');
+                element.removeAttribute('aria-modal');
+            });
+
+            if (!document.querySelector('.modal.show')) {
+                backdrops.forEach((backdrop) => {
+                    if (backdrop.isConnected) backdrop.remove();
+                });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+            }
+        }, 350);
         
         // Limpiar previews de imágenes
         $('.imagen-preview').attr('src', '').hide();
@@ -1950,7 +2061,16 @@ class DocumentosUtils {
         
         // Resetear inputs de archivos
         $('input[type="file"]').val('');
-        
+
+        window[`${this.config.tipo}ModuleInitialized`] = false;
+        if (window[`${this.config.tipo}ModuleInstance`] === this) {
+            window[`${this.config.tipo}ModuleInstance`] = null;
+        }
+        if (this.config.tipo === 'carta' && window.cartasInitializationRoot === this.rootElement) {
+            window.cartasInitializationPromise = null;
+            window.cartasInitializationRoot = null;
+        }
+
         console.log(`Módulo ${this.config.tipo} limpiado`);
     }
 
@@ -1959,17 +2079,18 @@ class DocumentosUtils {
      */
     reiniciar() {
         console.log(`Reiniciando módulo ${this.config.tipo}...`);
-        
-        // Limpiar módulo
+        if (this.destroyed) return null;
+
+        const reinicializar = this.config.reinicializar;
         this.cleanup();
-        
-        // Mostrar vista lista
-        this.mostrarVistaLista();
-        
-        // Recargar documentos
-        this.cargarDocumentos();
-        
-        console.log(`Módulo ${this.config.tipo} reiniciado exitosamente`);
+
+        if (typeof reinicializar === 'function') {
+            return reinicializar();
+        }
+
+        const nuevaInstancia = new DocumentosUtils(this.config);
+        window[`${this.config.tipo}ModuleInstance`] = nuevaInstancia;
+        return nuevaInstancia;
     }
 }
 

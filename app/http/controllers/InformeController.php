@@ -64,11 +64,16 @@ public function render()
             if ($this->informe->obtenerInforme()) {
                 $data = [
                     'id_informe' => $this->informe->getIdInforme(),
+                    'numero' => $this->informe->getNumero(),
                     'tipo' => $this->informe->getTipo(),
                     'titulo' => $this->informe->getTitulo(),
                     'contenido' => $this->informe->getContenido(),
-                    'imagen1' => $this->informe->getImagen1Url(), // Usar URL en lugar de base64 para web
-                    'imagen2' => $this->informe->getImagen2Url(), // Usar URL en lugar de base64 para web
+                    'imagen1' => $this->informe->getImagen1Url(),
+                    'imagen2' => $this->informe->getImagen2Url(),
+                    'imagen1_url' => $this->informe->getImagen1Url(),
+                    'imagen2_url' => $this->informe->getImagen2Url(),
+                    'imagen1_filename' => $this->informe->getImagen1(),
+                    'imagen2_filename' => $this->informe->getImagen2(),
                     'cliente_id' => $this->informe->getClienteId(),
                     'persona_entregar' => $this->informe->getPersonaEntregar(),
                     'cliente_nombre' => $this->informe->getClienteNombre(),
@@ -86,6 +91,10 @@ public function render()
     // Método para insertar un nuevo informe
     public function insertar()
     {
+        $imagen1 = null;
+        $imagen2 = null;
+        $insertado = false;
+
         if (!empty($_POST)) {
             try {
                 // Validar datos
@@ -104,19 +113,12 @@ public function render()
                 $this->informe->validarClienteRequerido($cliente_id);
                 
                 // Procesar imágenes si se proporcionan
-                $imagen1 = null;
-                $imagen2 = null;
-                
                 if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
                     $imagen1 = $this->procesarImagen($_FILES['imagen1']);
-                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
-                    $imagen1 = $_POST['imagen1_base64'];
                 }
 
                 if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
                     $imagen2 = $this->procesarImagen($_FILES['imagen2']);
-                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
-                    $imagen2 = $_POST['imagen2_base64'];
                 }
                 
                 // Configurar el objeto informe
@@ -128,10 +130,9 @@ public function render()
                 $this->informe->setClienteId($cliente_id);
                 $this->informe->setPersonaEntregar($persona_entregar);
                 $this->informe->setUsuarioId($_SESSION['usuario_id'] ?? 1);
-                $this->informe->setNumero($this->informe->generarSiguienteNumero());
-                
                 // Insertar el informe
                 if ($this->informe->insertar()) {
+                    $insertado = true;
                     echo json_encode([
                         'res' => true, 
                         'msg' => 'Informe creado correctamente',
@@ -143,6 +144,10 @@ public function render()
                 }
                 
             } catch (Exception $e) {
+                if (!$insertado) {
+                    ImageStorage::delete('informes', $imagen1);
+                    ImageStorage::delete('informes', $imagen2);
+                }
                 echo json_encode(['res' => false, 'msg' => $e->getMessage()]);
             }
         } else {
@@ -153,6 +158,10 @@ public function render()
     // Método para editar un informe existente
     public function editar()
     {
+        $imagen1Nueva = null;
+        $imagen2Nueva = null;
+        $actualizado = false;
+
         if (!empty($_POST)) {
             try {
                 // Validar datos
@@ -180,17 +189,17 @@ public function render()
                 // Procesar imágenes si se proporcionan
                 $imagen1 = $this->informe->getImagen1();
                 $imagen2 = $this->informe->getImagen2();
+                $imagen1Anterior = $imagen1;
+                $imagen2Anterior = $imagen2;
                 
                 if (isset($_FILES['imagen1']) && $_FILES['imagen1']['error'] === UPLOAD_ERR_OK) {
-                    $imagen1 = $this->procesarImagen($_FILES['imagen1']);
-                } else if (isset($_POST['imagen1_base64']) && !empty($_POST['imagen1_base64'])) {
-                    $imagen1 = $_POST['imagen1_base64'];
+                    $imagen1Nueva = $this->procesarImagen($_FILES['imagen1']);
+                    $imagen1 = $imagen1Nueva;
                 }
                 
                 if (isset($_FILES['imagen2']) && $_FILES['imagen2']['error'] === UPLOAD_ERR_OK) {
-                    $imagen2 = $this->procesarImagen($_FILES['imagen2']);
-                } else if (isset($_POST['imagen2_base64']) && !empty($_POST['imagen2_base64'])) {
-                    $imagen2 = $_POST['imagen2_base64'];
+                    $imagen2Nueva = $this->procesarImagen($_FILES['imagen2']);
+                    $imagen2 = $imagen2Nueva;
                 }
                 
                 // Configurar el objeto informe
@@ -205,6 +214,13 @@ public function render()
                 
                 // Actualizar el informe
                 if ($this->informe->editar()) {
+                    $actualizado = true;
+                    if ($imagen1Nueva && $imagen1Anterior !== $imagen1Nueva) {
+                        ImageStorage::delete('informes', $imagen1Anterior);
+                    }
+                    if ($imagen2Nueva && $imagen2Anterior !== $imagen2Nueva) {
+                        ImageStorage::delete('informes', $imagen2Anterior);
+                    }
                     echo json_encode([
                         'res' => true, 
                         'msg' => 'Informe actualizado correctamente'
@@ -214,6 +230,10 @@ public function render()
                 }
                 
             } catch (Exception $e) {
+                if (!$actualizado) {
+                    ImageStorage::delete('informes', $imagen1Nueva);
+                    ImageStorage::delete('informes', $imagen2Nueva);
+                }
                 echo json_encode(['res' => false, 'msg' => $e->getMessage()]);
             }
         } else {
@@ -378,9 +398,9 @@ public function render()
                 $footer_image = null;
                 
                 if (isset($_FILES['header_image']) && $_FILES['header_image']['error'] === UPLOAD_ERR_OK) {
-                    $header_image = $this->procesarImagenMembrete($_FILES['header_image']);
+                    $header_image = $this->procesarImagenTemporal($_FILES['header_image']);
                 } else if (isset($_POST['header_image_base64']) && !empty($_POST['header_image_base64'])) {
-                    $header_image = $_POST['header_image_base64'];
+                    $header_image = $this->validarImagenPreview($_POST['header_image_base64']);
                 } else {
                     // Usar la imagen de la plantilla
                     $this->informeTemplate->obtenerTemplateActual();
@@ -388,9 +408,9 @@ public function render()
                 }
                 
                 if (isset($_FILES['footer_image']) && $_FILES['footer_image']['error'] === UPLOAD_ERR_OK) {
-                    $footer_image = $this->procesarImagenMembrete($_FILES['footer_image']);
+                    $footer_image = $this->procesarImagenTemporal($_FILES['footer_image']);
                 } else if (isset($_POST['footer_image_base64']) && !empty($_POST['footer_image_base64'])) {
-                    $footer_image = $_POST['footer_image_base64'];
+                    $footer_image = $this->validarImagenPreview($_POST['footer_image_base64']);
                 } else {
                     // Usar la imagen de la plantilla
                     if (!$this->informeTemplate->getId()) {
@@ -399,8 +419,17 @@ public function render()
                     $footer_image = $this->informeTemplate->getFooterImageUrl();
                 }
                 
-                // Generar vista previa
-                $pdfBase64 = $this->informePDF->generarVistaPreviaPDF($titulo, $contenido, $header_image, $footer_image);
+                $imagen1Informe = $this->obtenerImagenInformePreview('imagen1_informe', 'imagen1_informe_base64');
+                $imagen2Informe = $this->obtenerImagenInformePreview('imagen2_informe', 'imagen2_informe_base64');
+
+                $pdfBase64 = $this->informePDF->generarVistaPreviaPDF(
+                    $titulo,
+                    $contenido,
+                    $header_image,
+                    $footer_image,
+                    $imagen1Informe,
+                    $imagen2Informe
+                );
                 
                 echo json_encode([
                     'success' => true,
@@ -430,6 +459,78 @@ public function render()
     private function procesarImagen($file)
     {
         return ImageStorage::save($file, 'informes');
+    }
+
+    private function obtenerImagenInformePreview($campoArchivo, $campoValor)
+    {
+        if (isset($_FILES[$campoArchivo]) && $_FILES[$campoArchivo]['error'] === UPLOAD_ERR_OK) {
+            return $this->procesarImagenTemporal($_FILES[$campoArchivo]);
+        }
+
+        if (!empty($_POST[$campoValor])) {
+            return $this->validarImagenPreview($_POST[$campoValor]);
+        }
+
+        return null;
+    }
+
+    private function procesarImagenTemporal($file)
+    {
+        if (!$file || !isset($file['tmp_name'], $file['size'], $file['error']) ||
+            $file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
+            throw new RuntimeException('Archivo de vista previa no valido');
+        }
+        if ($file['size'] > ImageStorage::MAX_SIZE) {
+            throw new RuntimeException('El archivo excede el tamano maximo de 5MB');
+        }
+
+        $contenido = file_get_contents($file['tmp_name']);
+        if ($contenido === false) {
+            throw new RuntimeException('No se pudo leer la imagen de vista previa');
+        }
+
+        return $this->crearDataUriValidado($contenido);
+    }
+
+    private function validarImagenPreview($valor)
+    {
+        if (!is_string($valor) || trim($valor) === '') {
+            return null;
+        }
+
+        if (preg_match('#^data:([^;,]+);base64,(.+)$#s', trim($valor), $partes)) {
+            $contenido = base64_decode(preg_replace('/\s+/', '', $partes[2]), true);
+            if ($contenido === false) {
+                throw new RuntimeException('Imagen base64 de vista previa no valida');
+            }
+            return $this->crearDataUriValidado($contenido);
+        }
+
+        $ruta = Informe::resolverRutaImagen($valor);
+        if (!$ruta) {
+            throw new RuntimeException('Imagen de informe no valida para vista previa');
+        }
+        $contenido = file_get_contents($ruta);
+        if ($contenido === false) {
+            throw new RuntimeException('No se pudo leer la imagen para vista previa');
+        }
+
+        return $this->crearDataUriValidado($contenido);
+    }
+
+    private function crearDataUriValidado($contenido)
+    {
+        if (strlen($contenido) > ImageStorage::MAX_SIZE || @getimagesizefromstring($contenido) === false) {
+            throw new RuntimeException('Contenido de imagen no valido');
+        }
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->buffer($contenido);
+        if (!in_array($mime, ImageStorage::ALLOWED_TYPES, true)) {
+            throw new RuntimeException('Tipo de imagen no permitido: ' . $mime);
+        }
+
+        return 'data:' . $mime . ';base64,' . base64_encode($contenido);
     }
     
     // Método auxiliar para procesar imágenes de membretes

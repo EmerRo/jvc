@@ -2206,14 +2206,10 @@ function cleanup() {
             // Añadir las imágenes específicas del informe
             if (imagen1InformeChanged && document.getElementById('imagen1_modal').files[0]) {
                 formData.append('imagen1', document.getElementById('imagen1_modal').files[0]);
-            } else if (currentImagen1Informe) {
-                formData.append('imagen1_base64', currentImagen1Informe);
             }
 
             if (imagen2InformeChanged && document.getElementById('imagen2_modal').files[0]) {
                 formData.append('imagen2', document.getElementById('imagen2_modal').files[0]);
-            } else if (currentImagen2Informe) {
-                formData.append('imagen2_base64', currentImagen2Informe);
             }
 
             // Enviar datos al servidor para editar
@@ -3216,14 +3212,10 @@ function validarContenido() {
             // Añadir las imágenes específicas del informe
             if (imagen1InformeChanged && document.getElementById('imagen1_informe').files[0]) {
                 formData.append('imagen1', document.getElementById('imagen1_informe').files[0]);
-            } else if (currentImagen1Informe && editMode) {
-                formData.append('imagen1_base64', currentImagen1Informe);
             }
 
             if (imagen2InformeChanged && document.getElementById('imagen2_informe').files[0]) {
                 formData.append('imagen2', document.getElementById('imagen2_informe').files[0]);
-            } else if (currentImagen2Informe && editMode) {
-                formData.append('imagen2_base64', currentImagen2Informe);
             }
 
             // Determinar la URL según el modo
