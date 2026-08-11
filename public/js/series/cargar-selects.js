@@ -42,6 +42,11 @@ function inicializarSelectsComunes() {
     $('#equipo_comun').html(opcionesEquipos());
 }
 
+// ─── Inicializar select común edición (máquinas idénticas) ───────────────────
+function inicializarSelectsComunesU() {
+    $('#equipo_comun_u').html(opcionesEquipos());
+}
+
 // ─── Inicializar selects en modales de gestión (sin cambios) ─────────────────
 function inicializarSelectsModales() {
     var opsMarcas = '<option value="">-- Marca --</option>' +
@@ -97,6 +102,32 @@ $(document).on('change', '#equipo_comun', function() {
     $('#modelo_comun').val(modelId);
 });
 
+// ─── Autocompletado al elegir equipo común (edición) ─────────────────────────
+$(document).on('change', '#equipo_comun_u', function() {
+    var $opt     = $(this).find(':selected');
+    var marcaNom = $opt.data('marca-nombre')  || '';
+    var modelNom = $opt.data('modelo-nombre') || '';
+    var marcaId  = $opt.data('marca')  || '';
+    var modelId  = $opt.data('modelo') || '';
+
+    var display = '';
+    if (marcaNom && modelNom)  display = marcaNom + ' / ' + modelNom;
+    else if (marcaNom)         display = marcaNom;
+    else if (modelNom)         display = modelNom;
+
+    $('#marca_modelo_comun_display_u').val(display);
+    $('#marca_comun_u').val(marcaId);
+    $('#modelo_comun_u').val(modelId);
+});
+
+// ─── Bug 6: regenerar series masivas si cambia la cantidad ───────────────────
+$(document).on('change', '#cantidad_equipos', function() {
+    var ultimo = parseInt($('#ultimo_numero_serie').val());
+    if (!isNaN(ultimo) && typeof generarSeriesMasivas === 'function') {
+        generarSeriesMasivas(ultimo);
+    }
+});
+
 // ─── Cascade en modal Equipo (gestión) ───────────────────────────────────────
 $(document).on('change', '#equipo_marca_id', function() {
     var marcaId = $(this).val();
@@ -114,6 +145,7 @@ $(document).ready(function() {
             inicializarSelectsItem($(this));
         });
         inicializarSelectsComunes();
+        inicializarSelectsComunesU();
         inicializarSelectsModales();
     });
 });
@@ -124,7 +156,14 @@ $('#agregar_equipo_diferente').click(function() {
 
     var ultimoNumero;
     if (idx > 0) {
-        ultimoNumero = parseInt($('input[name^="equipos"][name$="[numero_serie]"]').last().val()) || 0;
+        var lastVal = parseInt($('input[name^="equipos"][name$="[numero_serie]"]').last().val());
+        if (!isNaN(lastVal)) {
+            ultimoNumero = lastVal;
+        } else {
+            // AJAX de último número aún pendiente: calcular por posición
+            var base = parseInt($('#ultimo_numero_serie').val()) || 0;
+            ultimoNumero = base + idx;
+        }
     } else {
         ultimoNumero = parseInt($('#ultimo_numero_serie').val()) || 0;
     }

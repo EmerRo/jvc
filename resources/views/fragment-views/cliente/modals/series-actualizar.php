@@ -104,47 +104,22 @@
                                 <!-- Sección para máquinas idénticas (edición - inicialmente oculta) -->
                                 <div id="seccion_maquinas_identicas_u" class="seccion-maquinas-identicas"
                                     style="display: none;">
-                                    <div class="row mb-3">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Marca</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="marca_comun_u" required>
-                                                    <option value="">Seleccionar Marca</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo"
-                                                    id="btn_seleccionar_marca_u" data-bs-toggle="modal"
-                                                    data-bs-target="#modalMarca">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
+                                    <div class="row mb-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Equipo <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="equipo_comun_u" required>
+                                                <option value="">Seleccionar equipo...</option>
+                                            </select>
+                                            <input type="hidden" id="marca_comun_u">
+                                            <input type="hidden" id="modelo_comun_u">
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Modelo</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="modelo_comun_u" required>
-                                                    <option value="">Seleccionar Modelo</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo"
-                                                    id="btn_seleccionar_modelo_u" data-bs-toggle="modal"
-                                                    data-bs-target="#modalModelo">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
+                                            <input type="text" class="form-control" id="marca_modelo_comun_display_u" readonly
+                                                placeholder="Se completa al elegir equipo"
+                                                style="background:#f8f9fa;cursor:default;">
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Equipo</label>
-                                            <div class="input-group">
-                                                <select class="form-select" id="equipo_comun_u" required>
-                                                    <option value="">Seleccionar Equipo</option>
-                                                </select>
-                                                <button type="button" class="btn bg-rojo"
-                                                    id="btn_seleccionar_equipo_u" data-bs-toggle="modal"
-                                                    data-bs-target="#modalEquipo">
-                                                    <i class="fa fa-list"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                             <label class="form-label">Cantidad de equipos</label>
                                             <input type="number" class="form-control" id="cantidad_equipos_nuevos"
                                                 min="1" value="1">

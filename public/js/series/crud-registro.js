@@ -400,50 +400,27 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                 <small class="text-muted producto-seleccionado-info"></small>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label">Marca</label>
-                                <div class="input-group">
-                                    <select class="form-select" name="equipos_existentes[${index}][marca]" required>
-                                        <option value="">Seleccionar Marca</option>
-                                    </select>
-                                    <button type="button" class="btn bg-rojo btn-seleccionar-marca"
-                                        data-bs-toggle="modal" data-bs-target="#modalMarca">
-                                        <i class="fa fa-list"></i>
-                                    </button>
-                                    <input type="hidden" name="equipos_existentes[${index}][id]" 
-                                        value="${equipo.id || ""}">
-                                </div>
+                        <div class="row align-items-end">
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label">Equipo <span class="text-danger">*</span></label>
+                                <select class="form-select select-equipo" name="equipos_existentes[${index}][equipo]" required>
+                                    <option value="">Seleccionar equipo...</option>
+                                </select>
+                                <input type="hidden" name="equipos_existentes[${index}][id]" value="${equipo.id || ''}">
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label">Modelo</label>
-                                <div class="input-group">
-                                    <select class="form-select" name="equipos_existentes[${index}][modelo]" required>
-                                        <option value="">Seleccionar Modelo</option>
-                                    </select>
-                                    <button type="button" class="btn bg-rojo btn-seleccionar-modelo"
-                                        data-bs-toggle="modal" data-bs-target="#modalModelo">
-                                        <i class="fa fa-list"></i>
-                                    </button>
-                                </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
+                                <input type="text" class="form-control input-marca-modelo" readonly
+                                    placeholder="Se completa al elegir equipo"
+                                    style="background:#f8f9fa;cursor:default;">
+                                <input type="hidden" name="equipos_existentes[${index}][marca]" class="hidden-marca">
+                                <input type="hidden" name="equipos_existentes[${index}][modelo]" class="hidden-modelo">
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label">Equipo</label>
-                                <div class="input-group">
-                                    <select class="form-select" name="equipos_existentes[${index}][equipo]" required>
-                                        <option value="">Seleccionar Equipo</option>
-                                    </select>
-                                    <button type="button" class="btn bg-rojo btn-seleccionar-equipo"
-                                        data-bs-toggle="modal" data-bs-target="#modalEquipo">
-                                        <i class="fa fa-list"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-4 mb-2">
                                 <label class="form-label">Número de Serie</label>
-                                <input type="text" class="form-control" 
-                                    name="equipos_existentes[${index}][numero_serie]" 
-                                    value="${equipo.numero_serie || ""}" required>
+                                <input type="text" class="form-control"
+                                    name="equipos_existentes[${index}][numero_serie]"
+                                    value="${equipo.numero_serie || ''}" required>
                                 <div class="feedback-container"></div>
                             </div>
                         </div>
@@ -451,27 +428,9 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                 </div>
             `);
 
-            // Cargar datos en los selects
-            cargarSelectMarcas();
-            cargarSelectModelos();
-            cargarSelectEquipos();
-
-            // Seleccionar los valores correctos para este equipo
-            setTimeout(function () {
-              $(
-                `select[name="equipos_existentes[${index}][marca]"] option[value="${equipo.marca}"]`
-              ).prop("selected", true);
-
-              $(
-                `select[name="equipos_existentes[${index}][modelo]"] option[value="${equipo.modelo}"]`
-              ).prop("selected", true);
-
-              if (equipo.equipo) {
-                $(
-                  `select[name="equipos_existentes[${index}][equipo]"] option[value="${equipo.equipo}"]`
-                ).prop("selected", true);
-              }
-            }, 500);
+            // Inicializar select de equipo con valor correcto desde el API
+            const $item = $('#equipos_existentes .equipo-item').last();
+            inicializarSelectsItem($item, equipo.equipo_id);
           });
 
           // Actualizar contador
@@ -612,10 +571,9 @@ $("#updateRegistroBtn").click(function () {
       const id = $(this).find('input[name$="[id]"]').val();
       equiposData.push({
         id: id,
-        modelo: $(this).find('select[name$="[modelo]"]').val(),
-        marca: $(this).find('select[name$="[marca]"]').val(),
-        equipo: $(this).find('select[name$="[equipo]"]').val(),
-        // NUEVO: id_producto del almacén (opcional)
+        modelo: $(this).find('.hidden-modelo').val(),
+        marca: $(this).find('.hidden-marca').val(),
+        equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
@@ -738,10 +696,9 @@ $("#updateRegistroBtn").click(function () {
       const id = $(this).find('input[name$="[id]"]').val();
       equiposData.push({
         id: id,
-        modelo: $(this).find('select[name$="[modelo]"]').val(),
-        marca: $(this).find('select[name$="[marca]"]').val(),
-        equipo: $(this).find('select[name$="[equipo]"]').val(),
-        // NUEVO: id_producto del almacén (opcional)
+        modelo: $(this).find('.hidden-modelo').val(),
+        marca: $(this).find('.hidden-marca').val(),
+        equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
@@ -750,10 +707,9 @@ $("#updateRegistroBtn").click(function () {
     // Agregar nuevos equipos
     $("#equipos_container_u .equipo-item").each(function () {
       equiposData.push({
-        modelo: $(this).find('select[name$="[modelo]"]').val(),
-        marca: $(this).find('select[name$="[marca]"]').val(),
-        equipo: $(this).find('select[name$="[equipo]"]').val(),
-        // NUEVO: id_producto del almacén (opcional)
+        modelo: $(this).find('.hidden-modelo').val(),
+        marca: $(this).find('.hidden-marca').val(),
+        equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
@@ -821,6 +777,17 @@ $("#updateRegistroBtn").click(function () {
 $("#agregar_equipo_diferente_u").click(function () {
   const index = $("#equipos_container_u .equipo-item").length;
 
+  // Calcular siguiente número de serie (mismo patrón que modal de agregar)
+  var ultimoNumero;
+  var $allSeries = $('#equipos_existentes input[name$="[numero_serie]"], #equipos_container_u input[name$="[numero_serie]"]');
+  var lastVal = parseInt($allSeries.last().val());
+  if ($allSeries.length > 0 && !isNaN(lastVal)) {
+    ultimoNumero = lastVal;
+  } else {
+    ultimoNumero = parseInt($('#ultimo_numero_serie_u').val()) || 0;
+  }
+  var siguiente = ultimoNumero + 1;
+
   // Ocultar el mensaje de "no hay equipos nuevos"
   $("#no_equipos_nuevos_message").hide();
 
@@ -851,57 +818,39 @@ $("#agregar_equipo_diferente_u").click(function () {
                     <small class="text-muted producto-seleccionado-info"></small>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Marca</label>
-                    <div class="input-group">
-                        <select class="form-select" name="equipos_nuevos[${index}][marca]" required>
-                            <option value="">Seleccionar Marca</option>
-                        </select>
-                        <button type="button" class="btn bg-rojo btn-seleccionar-marca"
-                            data-bs-toggle="modal" data-bs-target="#modalMarca">
-                            <i class="fa fa-list"></i>
-                        </button>
-                    </div>
+            <div class="row align-items-end">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Equipo <span class="text-danger">*</span></label>
+                    <select class="form-select select-equipo" name="equipos_nuevos[${index}][equipo]" required>
+                        <option value="">Seleccionar equipo...</option>
+                    </select>
                 </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Modelo</label>
-                    <div class="input-group">
-                        <select class="form-select" name="equipos_nuevos[${index}][modelo]" required>
-                            <option value="">Seleccionar Modelo</option>
-                        </select>
-                        <button type="button" class="btn bg-rojo btn-seleccionar-modelo"
-                            data-bs-toggle="modal" data-bs-target="#modalModelo">
-                            <i class="fa fa-list"></i>
-                        </button>
-                    </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
+                    <input type="text" class="form-control input-marca-modelo" readonly
+                        placeholder="Se completa al elegir equipo"
+                        style="background:#f8f9fa;cursor:default;">
+                    <input type="hidden" name="equipos_nuevos[${index}][marca]" class="hidden-marca">
+                    <input type="hidden" name="equipos_nuevos[${index}][modelo]" class="hidden-modelo">
                 </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Equipo</label>
-                    <div class="input-group">
-                        <select class="form-select" name="equipos_nuevos[${index}][equipo]" required>
-                            <option value="">Seleccionar Equipo</option>
-                        </select>
-                        <button type="button" class="btn bg-rojo btn-seleccionar-equipo"
-                            data-bs-toggle="modal" data-bs-target="#modalEquipo">
-                            <i class="fa fa-list"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-2">
+                <div class="col-md-4 mb-2">
                     <label class="form-label">Número de Serie</label>
-                    <input type="text" class="form-control" name="equipos_nuevos[${index}][numero_serie]" 
-                        placeholder="Número de Serie" required>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="equipos_nuevos[${index}][numero_serie]"
+                            placeholder="Número de Serie" value="${siguiente}" required>
+                        <button type="button" class="btn btn-generar-serie" title="Generar número de serie">
+                            <i class="fa fa-magic"></i>
+                        </button>
+                    </div>
                     <div class="feedback-container"></div>
                 </div>
             </div>
         </div>
     </div>
 `);
-  // Cargar los datos en los selects
-  cargarSelectMarcas();
-  cargarSelectModelos();
-  cargarSelectEquipos();
+  // Inicializar select de equipo con opciones actuales
+  const $nuevo = $('#equipos_container_u .equipo-item').last();
+  inicializarSelectsItem($nuevo);
   // Actualizar contador
   $("#contador_equipos_nuevos").text(index + 1);
 
