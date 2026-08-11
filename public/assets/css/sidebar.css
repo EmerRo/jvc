@@ -370,11 +370,13 @@
 .sidebar-collapsed .main-content {
   margin-left: var(--sidebar-collapsed-width);
 }
-.notification-container {
+.jvc-sidebar-link .notification-container {
   position: relative;
   display: inline-flex;
   align-items: center;
   margin-left: auto;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .notification-icon {

@@ -30,30 +30,30 @@ class OrdenTrabajoController extends Controller
                 error_log("POST recibido: " . print_r($_POST, true));
 
                 $cliente_Rsocial = isset($_POST['cliente_Rsocial']) ?
-                    trim(filter_var($_POST['cliente_Rsocial'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['cliente_Rsocial']) : null;
                 $cliente_Ruc = isset($_POST['num_doc']) ?
-                    trim(filter_var($_POST['num_doc'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['num_doc']) : null;
 
                 $cliente_documento = isset($_POST['cliente_documento']) ?
-                    trim(filter_var($_POST['cliente_documento'], FILTER_SANITIZE_STRING)) : $cliente_Ruc;
+                    Tools::onlyTextNoHtml($_POST['cliente_documento']) : $cliente_Ruc;
 
                 $direccion = '';
                 if (!empty($cliente_Ruc) && strlen($cliente_Ruc) === 11 && substr($cliente_Ruc, 0, 2) === '20') {
                     $direccion = isset($_POST['direccion']) ?
-                        trim(filter_var($_POST['direccion'], FILTER_SANITIZE_STRING)) : '';
+                        Tools::onlyTextNoHtml($_POST['direccion']) : '';
                 }
 
                 $atencion_Encargado = isset($_POST['atencion_Encargado']) ?
-                    trim(filter_var($_POST['atencion_Encargado'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['atencion_Encargado']) : null;
                 $fecha_ingreso = isset($_POST['fecha_ingreso']) ?
-                    trim(filter_var($_POST['fecha_ingreso'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['fecha_ingreso']) : null;
 
                 $fecha_salida = isset($_POST['fecha_salida']) ?
-                    trim(filter_var($_POST['fecha_salida'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['fecha_salida']) : null;
 
 
                 $observaciones = isset($_POST['observaciones']) ?
-                    trim(filter_var($_POST['observaciones'], FILTER_SANITIZE_STRING)) : null;
+                    Tools::onlyTextNoHtml($_POST['observaciones']) : null;
 
                 // Procesar equipos
                 $equipos = isset($_POST['equipos']) ? $_POST['equipos'] : [];

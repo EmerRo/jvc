@@ -262,12 +262,12 @@ class NotificacionController extends Controller
                 return;
             }
 
-            $tipo = filter_var($_POST['tipo'], FILTER_SANITIZE_STRING);
-            $mensaje = filter_var($_POST['mensaje'], FILTER_SANITIZE_STRING);
-            $modulo_origen = filter_var($_POST['modulo_origen'], FILTER_SANITIZE_STRING);
+            $tipo = Tools::onlyTextNoHtml($_POST['tipo'] ?? '');
+            $mensaje = Tools::onlyTextNoHtml($_POST['mensaje'] ?? '');
+            $modulo_origen = Tools::onlyTextNoHtml($_POST['modulo_origen'] ?? '');
             $registro_id = filter_var($_POST['registro_id'], FILTER_SANITIZE_NUMBER_INT);
             $usuario_destino = isset($_POST['usuario_destino']) ?
-                filter_var($_POST['usuario_destino'], FILTER_SANITIZE_STRING) : null;
+                Tools::onlyTextNoHtml($_POST['usuario_destino']) : null;
 
             $usuario_origen = $_SESSION['nombres'];
             if (isset($_SESSION['apellidos']) && !empty($_SESSION['apellidos'])) {

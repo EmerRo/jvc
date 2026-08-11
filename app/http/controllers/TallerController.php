@@ -187,7 +187,7 @@ public function renderUnificado2()
         }
 
         $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
-        $tipo = filter_var($_POST['tipo'], FILTER_SANITIZE_STRING);
+        $tipo = Tools::onlyTextNoHtml($_POST['tipo'] ?? '');
 
         try {
             if ($tipo === 'ORD TRABAJO') {
@@ -220,7 +220,7 @@ public function renderUnificado2()
             }
 
             $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
-            $tipo = filter_var($_POST['tipo'], FILTER_SANITIZE_STRING);
+            $tipo = Tools::onlyTextNoHtml($_POST['tipo'] ?? '');
             
             if ($tipo === 'ORD TRABAJO') {
                 $result = $this->ordenTrabajo->culminarTrabajo($id);
@@ -251,7 +251,7 @@ public function renderUnificado2()
             }
 
             $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
-            $tipo = filter_var($_POST['tipo'], FILTER_SANITIZE_STRING);
+            $tipo = Tools::onlyTextNoHtml($_POST['tipo'] ?? '');
             
             if ($tipo === 'ORD TRABAJO') {
                 $result = $this->ordenTrabajo->delete($id);
@@ -282,7 +282,7 @@ public function renderUnificado2()
             }
 
             $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
-            $tipo = filter_var($_POST['tipo'], FILTER_SANITIZE_STRING);
+            $tipo = Tools::onlyTextNoHtml($_POST['tipo'] ?? '');
 
             if ($tipo === 'ORD TRABAJO') {
                 $tabla = 'orden_trabajo_pre';

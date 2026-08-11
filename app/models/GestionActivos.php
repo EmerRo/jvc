@@ -125,7 +125,7 @@ class GestionActivos
 
     public function setFechaSalida($fecha_salida)
     {
-        $this->fecha_salida = $fecha_salida;
+        $this->fecha_salida = (!empty($fecha_salida) && $fecha_salida !== '0000-00-00') ? $fecha_salida : null;
     }
 
     public function getFechaIngreso()
@@ -135,7 +135,7 @@ class GestionActivos
 
     public function setFechaIngreso($fecha_ingreso)
     {
-        $this->fecha_ingreso = $fecha_ingreso;
+        $this->fecha_ingreso = (!empty($fecha_ingreso) && $fecha_ingreso !== '0000-00-00') ? $fecha_ingreso : null;
     }
 
     public function getObservaciones()

@@ -149,6 +149,8 @@ $(document).ready(function () {
             return;
         }
 
+        var jsonResponse = null;
+
         $.ajax({
             url: _URL + "/ajs/gestion/activos/add",
             type: "POST",
@@ -156,7 +158,7 @@ $(document).ready(function () {
             success: function (response) {
                 console.log("Full response:", response);
                 try {
-                    var jsonResponse = JSON.parse(response);
+                    jsonResponse = JSON.parse(response);
                     if (jsonResponse.res) {
                         Swal.fire({
                             title: "¡Éxito!",

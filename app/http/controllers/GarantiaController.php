@@ -446,12 +446,12 @@ class GarantiaController extends Controller
         if (!empty($_POST)) {
             $id_garantia = trim(filter_var($_POST['id_garantia'], FILTER_SANITIZE_NUMBER_INT));
             $cliente = trim(filter_var($_POST['cliente'], FILTER_SANITIZE_NUMBER_INT));
-            $marca = trim(filter_var($_POST['marca'], FILTER_SANITIZE_STRING));
-            $modelo = trim(filter_var($_POST['modelo'], FILTER_SANITIZE_STRING));
-            $numero_serie = trim(filter_var($_POST['numero_serie'], FILTER_SANITIZE_STRING));
-            $guia_remision = trim(filter_var($_POST['guia_remision'], FILTER_SANITIZE_STRING));
-            $fecha_inicio = trim(filter_var($_POST['fecha_inicio'], FILTER_SANITIZE_STRING));
-            $fecha_caducidad = trim(filter_var($_POST['fecha_caducidad'], FILTER_SANITIZE_STRING));
+            $marca = Tools::onlyTextNoHtml($_POST['marca'] ?? '');
+            $modelo = Tools::onlyTextNoHtml($_POST['modelo'] ?? '');
+            $numero_serie = Tools::onlyTextNoHtml($_POST['numero_serie'] ?? '');
+            $guia_remision = Tools::onlyTextNoHtml($_POST['guia_remision'] ?? '');
+            $fecha_inicio = Tools::onlyTextNoHtml($_POST['fecha_inicio'] ?? '');
+            $fecha_caducidad = Tools::onlyTextNoHtml($_POST['fecha_caducidad'] ?? '');
 
             if ($id_garantia && $cliente && $marca && $modelo && $numero_serie) {
                 $this->garantia->setIdGarantia($id_garantia);

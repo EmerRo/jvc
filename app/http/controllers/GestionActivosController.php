@@ -22,15 +22,15 @@ class GestionActivosController extends Controller {
                 $errores = [];
                 
                 // Filtrado y sanitización de los datos
-                $cliente_razon_social = trim(filter_var($_POST['cliente_razon_social'], FILTER_SANITIZE_STRING));
-                $motivo = trim(filter_var($_POST['motivo'], FILTER_SANITIZE_STRING));
-                $marca = trim(filter_var($_POST['marca'], FILTER_SANITIZE_STRING));
-                $equipo = trim(filter_var($_POST['equipo'], FILTER_SANITIZE_STRING));
-                $modelo = trim(filter_var($_POST['modelo'], FILTER_SANITIZE_STRING));
-                $numero_serie = trim(filter_var($_POST['numero_serie'], FILTER_SANITIZE_STRING));
-                $fecha_ingreso = trim(filter_var($_POST['fecha_ingreso'], FILTER_SANITIZE_STRING));
-                $fecha_salida = trim(filter_var($_POST['fecha_salida'], FILTER_SANITIZE_STRING));
-                $observaciones = isset($_POST['observaciones']) ? trim(filter_var($_POST['observaciones'], FILTER_SANITIZE_STRING)) : null;
+                $cliente_razon_social = Tools::onlyTextNoHtml($_POST['cliente_razon_social'] ?? '');
+                $motivo = Tools::onlyTextNoHtml($_POST['motivo'] ?? '');
+                $marca = Tools::onlyTextNoHtml($_POST['marca'] ?? '');
+                $equipo = Tools::onlyTextNoHtml($_POST['equipo'] ?? '');
+                $modelo = Tools::onlyTextNoHtml($_POST['modelo'] ?? '');
+                $numero_serie = Tools::onlyTextNoHtml($_POST['numero_serie'] ?? '');
+                $fecha_ingreso = Tools::onlyTextNoHtml($_POST['fecha_ingreso'] ?? '');
+                $fecha_salida = Tools::onlyTextNoHtml($_POST['fecha_salida'] ?? '');
+                $observaciones = isset($_POST['observaciones']) ? Tools::onlyTextNoHtml($_POST['observaciones']) : null;
     
                 // Validaciones individuales de campos requeridos
                 if (empty($cliente_razon_social)) {
@@ -172,15 +172,15 @@ class GestionActivosController extends Controller {
                 $id = $_POST['id'];
                 
                 // Filtrado y sanitización de los datos
-                $cliente_razon_social = trim(filter_var($_POST['cliente_razon_social'], FILTER_SANITIZE_STRING));
-                $motivo = trim(filter_var($_POST['motivo'], FILTER_SANITIZE_STRING));
-                $marca = trim(filter_var($_POST['marca'], FILTER_SANITIZE_STRING));
-                $equipo = trim(filter_var($_POST['equipo'], FILTER_SANITIZE_STRING));
-                $modelo = trim(filter_var($_POST['modelo'], FILTER_SANITIZE_STRING));
-                $numero_serie = trim(filter_var($_POST['numero_serie'], FILTER_SANITIZE_STRING));
-                $fecha_ingreso = trim(filter_var($_POST['fecha_ingreso'], FILTER_SANITIZE_STRING));
-                $fecha_salida = trim(filter_var($_POST['fecha_salida'], FILTER_SANITIZE_STRING));
-                $observaciones = isset($_POST['observaciones']) ? trim(filter_var($_POST['observaciones'], FILTER_SANITIZE_STRING)) : null;
+                $cliente_razon_social = Tools::onlyTextNoHtml($_POST['cliente_razon_social'] ?? '');
+                $motivo = Tools::onlyTextNoHtml($_POST['motivo'] ?? '');
+                $marca = Tools::onlyTextNoHtml($_POST['marca'] ?? '');
+                $equipo = Tools::onlyTextNoHtml($_POST['equipo'] ?? '');
+                $modelo = Tools::onlyTextNoHtml($_POST['modelo'] ?? '');
+                $numero_serie = Tools::onlyTextNoHtml($_POST['numero_serie'] ?? '');
+                $fecha_ingreso = Tools::onlyTextNoHtml($_POST['fecha_ingreso'] ?? '');
+                $fecha_salida = Tools::onlyTextNoHtml($_POST['fecha_salida'] ?? '');
+                $observaciones = isset($_POST['observaciones']) ? Tools::onlyTextNoHtml($_POST['observaciones']) : null;
 
                 // Validaciones
                 if (empty($cliente_razon_social)) {

@@ -23,7 +23,7 @@ class RubrosController extends Controller
     public function insertar()
     {
         if (!empty($_POST)) {
-            $nombre = trim(filter_var($_POST['nombre'], FILTER_SANITIZE_STRING));
+            $nombre = Tools::onlyTextNoHtml($_POST['nombre'] ?? '');
             
             if ($nombre !== "") {
                 $this->rubro->setNombre($nombre);
@@ -54,7 +54,7 @@ class RubrosController extends Controller
     public function editar()
     {
         if (!empty($_POST)) {
-            $nombre = trim(filter_var($_POST['nombre'], FILTER_SANITIZE_STRING));
+            $nombre = Tools::onlyTextNoHtml($_POST['nombre'] ?? '');
             $id = $_POST['id_rubro'];
             
             if ($nombre !== "") {

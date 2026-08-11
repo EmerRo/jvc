@@ -45,9 +45,11 @@ $c_prealerta = new PreAlerta();
                 </div>
             </div>
 
-            <?php include __DIR__ . '/partials/_prealerta_modal_detalles.php' ?>
-            <?php include __DIR__ . '/partials/_prealerta_modal_agregar.php' ?>
-            <?php include __DIR__ . '/partials/_prealerta_modal_editar.php' ?>
+            <div id="client">
+                <?php include __DIR__ . '/partials/_prealerta_modal_detalles.php' ?>
+                <?php include __DIR__ . '/partials/_prealerta_modal_agregar.php' ?>
+                <?php include __DIR__ . '/partials/_prealerta_modal_editar.php' ?>
+            </div>
         </div>
     </div>
 </div>
