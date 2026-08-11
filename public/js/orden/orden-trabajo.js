@@ -350,17 +350,17 @@ $(document).ready(() => {
         data: null,
         class: "text-center",
         render: (data, type, row) => `
-          <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-info btn-ver-detalles" data-id="${row.id_orden_trabajo}"
-                    data-bs-toggle="tooltip" title="Ver detalles">
+          <div class="d-inline-flex align-items-center gap-2" role="group">
+            <button type="button" class="btn btn-sm btn-info btn-ver-detalles" data-id="${row.id_orden_trabajo}"
+                    data-bs-toggle="tooltip" title="Ver detalles" aria-label="Ver detalles">
               <i class="fa fa-eye"></i>
             </button>
-            <button data-id="${row.id_orden_trabajo}" class="btn btn-warning btnEditar"
-                    data-bs-toggle="tooltip" title="Editar">
+            <button data-id="${row.id_orden_trabajo}" class="btn btn-sm btn-warning btnEditar"
+                    data-bs-toggle="tooltip" title="Editar" aria-label="Editar">
               <i class="fa fa-edit"></i>
             </button>
-            <button data-id="${row.id_orden_trabajo}" class="btn btn-danger btnBorrar"
-                    data-bs-toggle="tooltip" title="Eliminar">
+            <button data-id="${row.id_orden_trabajo}" class="btn btn-sm btn-danger btnBorrar"
+                    data-bs-toggle="tooltip" title="Eliminar" aria-label="Eliminar">
               <i class="fa fa-trash"></i>
             </button>
           </div>`,

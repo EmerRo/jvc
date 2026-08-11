@@ -48,7 +48,7 @@ if (isset($_GET['coti']) && is_numeric($_GET['coti'])) {
         </div>
     </div>
 
-    <div class="row" id="container-vue">
+    <div id="container-vue">
         <div>
             <input type="hidden" id="fecha-now-app" value="<?php echo date("Y-m-d"); ?>">
             <input type="hidden" id="cotizacion" name="cotizacion"
@@ -362,23 +362,19 @@ if (isset($_GET['coti']) && is_numeric($_GET['coti'])) {
                                                 <div class="col-lg-9">
                                                     <div class="row g-2">
                                                         <div class="col-lg-6">
-                                                            <div class="input-group">
-                                                                <select class="form-select" v-model="transporte.veiculo"
-                                                                    id="select_vehiculo">
-                                                                    <option value="">Seleccione un vehículo</option>
-                                                                </select>
-
-                                                            </div>
+                                                            <label class="form-label small text-muted mb-1">Placa / Vehículo</label>
+                                                            <select class="form-select" v-model="transporte.veiculo"
+                                                                id="select_vehiculo">
+                                                                <option value="">Seleccione un vehículo</option>
+                                                            </select>
                                                         </div>
                                                         <div class="col-lg-6">
-                                                            <div class="input-group">
-                                                                <select class="form-select"
-                                                                    v-model="transporte.chofer_dni"
-                                                                    id="select_licencia">
-                                                                    <option value="">Seleccione una licencia</option>
-                                                                </select>
-
-                                                            </div>
+                                                            <label class="form-label small text-muted mb-1">N° Licencia</label>
+                                                            <select class="form-select"
+                                                                v-model="transporte.chofer_dni"
+                                                                id="select_licencia">
+                                                                <option value="">Seleccione una licencia</option>
+                                                            </select>
                                                         </div>
                                                     </div>
                                                 </div>

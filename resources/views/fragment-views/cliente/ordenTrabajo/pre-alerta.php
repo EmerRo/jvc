@@ -304,7 +304,7 @@
                                     </div>
 
                                     <!-- Lista de equipos -->
-                                    <div v-if="cantidadEquipos > 0 && !maquinasIdenticas" class="equipos-lista">
+                                    <div v-if="cantidadEquipos > 0 && !maquinasIdenticas" class="equipos-lista mt-4">
                                         <div class="bg-gris text-white p-3 mb-3" style="border-radius: 8px;">
                                             <h6 class="mb-0 fw-bold">
                                                 <i class="fa fa-laptop me-2"></i>Equipos Seleccionados ({{
