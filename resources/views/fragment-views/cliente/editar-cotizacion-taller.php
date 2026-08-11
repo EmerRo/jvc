@@ -205,11 +205,11 @@ if (!isset($_SESSION)) {
 
                                                             <!-- Precio -->
                                                             <div class="col-lg-3">
-                                                                <label class="col-form-label">Precio</label>
+                                                                <label class="col-form-label">Precio (PEN)</label>
                                                                 <select class="form-control" v-model="producto.precio">
                                                                     <option v-for="(value, key) in precioProductos"
                                                                         :value="value.precio" :key="key">
-                                                                        {{ value.precio }}
+                                                                        S/ {{ formatoDecimal(value.precio) }} (PEN)
                                                                     </option>
                                                                 </select>
                                                             </div>
@@ -275,10 +275,16 @@ if (!isset($_SESSION)) {
                                                             <input v-if="item.editable" v-model="item.cantidad">
                                                         </td>
                                                         <td>
-                                                            <span v-if="!item.editable">{{item.precioVenta}}</span>
-                                                            <input v-if="item.editable" v-model="item.precioVenta">
-                                                        </td>
-                                                        <td>{{item.precioVenta*item.cantidad}}</td>
+                                                              <span v-if="!item.editable">{{formatearMoneda(item.precioVenta)}}</span>
+                                                              <div v-if="item.editable" class="input-group input-group-sm">
+                                                                  <span class="input-group-text">{{monedaSibol}}</span>
+                                                                  <input class="form-control"
+                                                                      :value="montoEnMoneda(item.precioVenta)"
+                                                                      @input="actualizarPrecioProductoDesdeMoneda(item, $event)"
+                                                                      aria-label="Precio unitario">
+                                                             </div>
+                                                         </td>
+                                                         <td>{{formatearMoneda(item.precioVenta*item.cantidad)}}</td>
                                                         <td>
                                                             <button @click="eliminarItemPro(index)" type="button"
                                                                 class="btn btn-danger btn-sm">
@@ -400,8 +406,14 @@ if (!isset($_SESSION)) {
                                                                             Tasa de cambio
                                                                         </label>
                                                                         <div class="col-lg-12">
-                                                                            <input v-model="venta.tc" type="text"
-                                                                                class="form-control">
+                                                                            <input v-model="venta.tc" @input="invalidarTasaManual"
+                                                                                type="text" inputmode="decimal"
+                                                                                class="form-control"
+                                                                                :class="{'is-invalid': !tasaCambioValida}">
+                                                                            <div v-if="cargandoTasa" class="form-text">Obteniendo tasa de cambio...</div>
+                                                                            <div v-else-if="!tasaCambioValida" class="invalid-feedback">
+                                                                                Ingrese una tasa válida mayor que cero.
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -499,8 +511,7 @@ if (!isset($_SESSION)) {
                                             <div class="bg-rojo text-white pv-15 text-center p-3"
                                                 style="height: 90px; color: white">
                                                 <h1 class="mv-0 font-400" id="lbl_suma_pedido">
-                                                    {{monedaSibol}}
-                                                    {{(totalProdustos/(venta.tc||1)).toFixed(2)}}
+                                                    {{formatearMoneda(totalProdustos)}}
                                                 </h1>
                                                 <div class="text-uppercase">Suma Pedido</div>
                                             </div>
@@ -551,12 +562,12 @@ if (!isset($_SESSION)) {
                         </div>
                     </div>
 
-                    <!-- Modal de días de pago -->
+                    <!-- Modal de configuración de pagos -->
                     <div class="modal fade taller-pagos-modal" id="modal-dias-pagos" tabindex="-1">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
-                                <div class="modal-header">
-                                    <h3 class="modal-title">Días de Pagos</h3>
+                                <div class="modal-header bg-rojo text-white">
+                                    <h3 class="modal-title">Configuración de Pagos</h3>
                                 </div>
                                 <div class="modal-body">
                                     <div class="row mb-3">
@@ -569,39 +580,76 @@ if (!isset($_SESSION)) {
                                         <div class="col-md-6">
                                             <div class="">
                                                 <label class="form-label">Monto Total Venta</label>
-                                                <input :value="'S/ '+venta.total" disabled type="text"
+                                                <input :value="formatearMoneda(venta.total)" disabled type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Días de pagos</label>
-                                        <input placeholder="10,20,30,........" v-model="venta.dias_pago"
-                                            @keypress="onlyNumberComas" type="text" class="form-control">
-                                        <div class="form-text">
-                                            Separar por comas los días de pagos
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox"
+                                                v-model="venta.tiene_inicial" id="checkInicialEditar">
+                                            <label class="form-check-label" for="checkInicialEditar">Incluir pago inicial</label>
+                                        </div>
+                                        <div v-if="venta.tiene_inicial" class="input-group">
+                                            <span class="input-group-text">{{monedaSibol}}</span>
+                                            <input type="number" class="form-control"
+                                                :value="montoEnMoneda(venta.monto_inicial)"
+                                                placeholder="Monto inicial"
+                                                @input="actualizarMontoInicialDesdeMoneda">
+                                            <span class="input-group-text">o</span>
+                                            <input type="number" class="form-control"
+                                                v-model="venta.porcentaje_inicial" placeholder="%" min="0" max="100"
+                                                @input="calcularMontoInicial">
                                         </div>
                                     </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Número de cuotas</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" v-model="numeroCuotas" min="1" max="36">
+                                            <button class="btn bg-rojo text-white" type="button" @click="generarCuotas">Generar</button>
+                                        </div>
+                                    </div>
+
                                     <div class="row">
-                                        <div class="col-md-12">
-                                            <table class="text-center table-sm table table-bordered">
+                                        <div class="col-md-12 table-responsive">
+                                            <table class="table table-sm table-bordered">
                                                 <thead>
                                                     <tr>
                                                         <th>#</th>
+                                                        <th>Tipo</th>
                                                         <th>Fecha</th>
                                                         <th>Monto</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(item,index) in venta.dias_lista">
+                                                    <tr v-if="venta.tiene_inicial">
+                                                        <td>0</td>
+                                                        <td>Inicial</td>
+                                                        <td>{{visualFechaSee(venta.fecha)}}</td>
+                                                        <td>{{formatearMoneda(venta.monto_inicial)}}</td>
+                                                    </tr>
+                                                    <tr v-for="(item,index) in cuotas" :key="index">
                                                         <td>{{index + 1}}</td>
-                                                        <td>{{visualFechaSee(item.fecha)}}</td>
-                                                        <td>S/ {{formatoDecimal(item.monto)}}</td>
+                                                        <td>Cuota</td>
+                                                        <td>
+                                                            <input type="date" class="form-control form-control-sm"
+                                                                v-model="item.fecha" @change="actualizarDiasPago">
+                                                        </td>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <span class="input-group-text">{{monedaSibol}}</span>
+                                                                <input type="number" class="form-control form-control-sm"
+                                                                    :value="montoEnMoneda(item.monto)"
+                                                                    @input="actualizarMontoCuotaDesdeMoneda(index, $event)">
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <th colspan="2">Total</th>
+                                                        <th colspan="3">Total</th>
                                                         <th>{{totalValorListaDias}}</th>
                                                     </tr>
                                                 </tfoot>
@@ -610,9 +658,8 @@ if (!isset($_SESSION)) {
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-dismiss="modal">
-                                        Cerrar
-                                    </button>
+                                    <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                                    <button type="button" class="btn bg-rojo text-white" @click="confirmarPagos">Confirmar</button>
                                 </div>
                             </div>
                         </div>
@@ -670,7 +717,7 @@ if (!isset($_SESSION)) {
                                                             v-model="item.precio_unidad">
                                                             <option v-for="(value, key) in item.precioProductos"
                                                                 :value="value.precio" :key="key">
-                                                                {{ value.precio }}
+                                                                 S/ {{ formatoDecimal(value.precio) }} (PEN)
                                                             </option>
                                                         </select>
                                                     </th>
@@ -852,7 +899,10 @@ if (!isset($_SESSION)) {
                     id_cotizacion: null,
                     fotos: [], // Array para almacenar las fotos
                     condiciones: '',
-                    diagnostico: ''
+                    diagnostico: '',
+                    tiene_inicial: false,
+                    monto_inicial: 0,
+                    porcentaje_inicial: 0
                 },
                 dataKey: '',
                 listaTempProd: [],
@@ -860,6 +910,11 @@ if (!isset($_SESSION)) {
                 pointSel: 1,
                 equiposPreAlerta: [],
                 equipoActivo: null,
+                numeroCuotas: 1,
+                cuotas: [],
+                cargandoTasa: false,
+                tasaRequestVersion: 0,
+                hidratandoCotizacion: false
             },
             mounted() {
                 console.log("Componente montado");
@@ -867,33 +922,6 @@ if (!isset($_SESSION)) {
 
             },
             watch: {
-                'venta.dias_pago'(newValue) {
-                    const listD = (newValue + "").split(",");
-                    this.dias_lista = [];
-                    if (listD.length > 0) {
-                        var listaTemp = listD.filter(ite => ite.length > 0)
-                        const palorInicial = (parseFloat(this.venta.total + "") / listaTemp.length).toFixed(0)
-                        var totalValos = parseFloat(this.venta.total + "");
-                        listaTemp = listaTemp.map((num, index) => {
-                            var fecha_ = new Date(this.venta.fecha)
-                            const dias_ = parseInt(num + "")
-                            fecha_.setDate(fecha_.getDate() + dias_);
-                            var value = 0;
-                            if (index + 1 == listaTemp.length) {
-                                value = totalValos;
-                                this.venta.fechaVen = this.formatDate(fecha_)
-                            } else {
-                                value = palorInicial;
-                                totalValos -= palorInicial;
-                            }
-                            return {
-                                fecha: this.formatDate(fecha_),
-                                monto: value
-                            }
-                        });
-                        this.venta.dias_lista = listaTemp
-                    }
-                },
                 'descuentoGeneral': function (newValue) {
                     // Validamos que sea un número y no exceda 100
                     if (newValue && !isNaN(newValue)) {
@@ -902,6 +930,19 @@ if (!isset($_SESSION)) {
                             this.descuentoGeneral = '100';
                         }
                         // El total se actualizará automáticamente por el computed property
+                    }
+                },
+                'venta.moneda': function (newValue, oldValue) {
+                    this.tasaRequestVersion++;
+                    this.cargandoTasa = false;
+
+                    if (this.hidratandoCotizacion) return;
+                    if (newValue === '1') {
+                        this.venta.tc = '';
+                        return;
+                    }
+                    if (newValue === '2' && oldValue !== '2') {
+                        this.$nextTick(() => this.actualizarTasaCambio());
                     }
                 },
                 productos: {
@@ -913,6 +954,231 @@ if (!isset($_SESSION)) {
                 }
             },
             methods: {
+                esTasaValida(valor = this.venta.tc) {
+                    const tasa = Number(valor);
+                    return Number.isFinite(tasa) && tasa > 0;
+                },
+
+                invalidarTasaManual() {
+                    this.tasaRequestVersion++;
+                    this.cargandoTasa = false;
+                },
+
+                actualizarTasaCambio() {
+                    const requestVersion = ++this.tasaRequestVersion;
+                    this.cargandoTasa = true;
+
+                    $.ajax({
+                        type: 'GET',
+                        url: _URL + '/ajs/cotizaciones/tasa-cambio',
+                        dataType: 'json',
+                        headers: { 'token-app': localStorage.getItem('_token') },
+                        success: (result) => {
+                            if (requestVersion !== this.tasaRequestVersion || this.venta.moneda !== '2') return;
+
+                            const tasa = result && result.data ? Number(result.data.venta) : NaN;
+                            if (result && result.success && Number.isFinite(tasa) && tasa > 0) {
+                                this.venta.tc = String(result.data.venta);
+                            } else {
+                                alertAdvertencia('No se obtuvo una tasa de cambio válida. Ingrésela manualmente.');
+                            }
+                        },
+                        error: () => {
+                            if (requestVersion === this.tasaRequestVersion && this.venta.moneda === '2') {
+                                alertAdvertencia('No se pudo obtener la tasa de cambio. Ingrésela manualmente.');
+                            }
+                        },
+                        complete: () => {
+                            if (requestVersion === this.tasaRequestVersion) this.cargandoTasa = false;
+                        }
+                    });
+                },
+
+                montoEnMoneda(montoPen) {
+                    const monto = Number(montoPen);
+                    if (!Number.isFinite(monto)) return '';
+                    if (this.venta.moneda !== '2') return monto.toFixed(2);
+                    if (!this.esTasaValida()) return '';
+                    return (monto / Number(this.venta.tc)).toFixed(2);
+                },
+
+                montoEnPen(valorMoneda) {
+                    const monto = Number(valorMoneda);
+                    if (!Number.isFinite(monto)) return null;
+                    if (this.venta.moneda !== '2') return monto;
+                    if (!this.esTasaValida()) return null;
+                    return monto * Number(this.venta.tc);
+                },
+
+                actualizarPrecioProductoDesdeMoneda(item, event) {
+                    const precioPen = this.montoEnPen(event.target.value);
+                    if (precioPen !== null) item.precioVenta = precioPen;
+                },
+
+                formatearMoneda(montoPen) {
+                    const montoMostrado = this.montoEnMoneda(montoPen);
+                    if (montoMostrado === '') return this.venta.moneda === '2' ? 'TC requerido' : 'S/ 0.00';
+                    return `${this.monedaSibol} ${montoMostrado}`;
+                },
+
+                formatoDecimal(valor) {
+                    const numero = Number(valor);
+                    return Number.isFinite(numero) ? numero.toFixed(2) : '0.00';
+                },
+
+                visualFechaSee(fecha) {
+                    if (!fecha) return '';
+                    const fechaObj = new Date(`${fecha}T00:00:00`);
+                    return Number.isNaN(fechaObj.getTime()) ? '' : fechaObj.toLocaleDateString('es-PE');
+                },
+
+                actualizarMontoInicialDesdeMoneda(event) {
+                    const montoPen = this.montoEnPen(event.target.value);
+                    if (montoPen === null) return;
+                    this.venta.monto_inicial = montoPen.toFixed(2);
+                    this.calcularCuotasRestantes();
+                },
+
+                actualizarMontoCuotaDesdeMoneda(index, event) {
+                    const montoPen = this.montoEnPen(event.target.value);
+                    if (montoPen === null || !this.cuotas[index]) return;
+                    this.cuotas[index].monto = montoPen.toFixed(2);
+                    this.actualizarDiasPago();
+                },
+
+                validarMontosPago() {
+                    const total = Number(this.venta.total);
+                    const inicial = this.venta.tiene_inicial ? Number(this.venta.monto_inicial || 0) : 0;
+                    if (!Number.isFinite(total) || total <= 0) {
+                        alertAdvertencia('El total debe ser mayor que cero.');
+                        return false;
+                    }
+                    if (!Number.isFinite(inicial) || inicial < 0 || inicial > total) {
+                        alertAdvertencia('El pago inicial debe estar entre cero y el total.');
+                        return false;
+                    }
+                    if (this.cuotas.some(cuota => !Number.isFinite(Number(cuota.monto)) || Number(cuota.monto) <= 0)) {
+                        alertAdvertencia('Todas las cuotas deben tener un monto válido mayor que cero.');
+                        return false;
+                    }
+                    const totalProgramado = inicial + this.cuotas.reduce((suma, cuota) => suma + Number(cuota.monto), 0);
+                    if (this.cuotas.length > 0 && Math.abs(totalProgramado - total) > 0.01) {
+                        alertAdvertencia('El pago inicial y las cuotas deben sumar el total de la cotización.');
+                        return false;
+                    }
+                    return true;
+                },
+
+                generarCuotas() {
+                    const numCuotas = Number(this.numeroCuotas);
+                    const total = Number(this.venta.total);
+                    const inicial = this.venta.tiene_inicial ? Number(this.venta.monto_inicial || 0) : 0;
+                    if (!Number.isInteger(numCuotas) || numCuotas < 1 || numCuotas > 36 ||
+                        !Number.isFinite(total) || total <= 0 || !Number.isFinite(inicial) ||
+                        inicial < 0 || inicial > total || total - inicial <= 0) {
+                        alertAdvertencia('Revise el total, el pago inicial y el número de cuotas.');
+                        return;
+                    }
+
+                    const montoTotal = total - inicial;
+                    const montoPorCuota = Number((montoTotal / numCuotas).toFixed(2));
+                    const fechaBase = new Date(`${this.venta.fecha}T00:00:00`);
+                    if (Number.isNaN(fechaBase.getTime())) {
+                        alertAdvertencia('Ingrese una fecha de emisión válida.');
+                        return;
+                    }
+
+                    this.cuotas = Array.from({ length: numCuotas }, (_, index) => {
+                        const fechaCuota = new Date(fechaBase.getTime());
+                        fechaCuota.setMonth(fechaCuota.getMonth() + index + 1);
+                        const monto = index === numCuotas - 1
+                            ? montoTotal - montoPorCuota * (numCuotas - 1)
+                            : montoPorCuota;
+                        return { fecha: this.formatDate(fechaCuota), monto: monto.toFixed(2) };
+                    });
+                    this.actualizarDiasPago();
+                },
+
+                actualizarDiasPago() {
+                    this.venta.dias_lista = this.cuotas.map(cuota => ({
+                        fecha: cuota.fecha,
+                        monto: cuota.monto
+                    }));
+                    if (this.cuotas.length > 0) this.venta.fechaVen = this.cuotas[this.cuotas.length - 1].fecha;
+                },
+
+                calcularCuotasRestantes() {
+                    const inicial = Number(this.venta.monto_inicial);
+                    const total = Number(this.venta.total);
+                    if (!Number.isFinite(inicial) || !Number.isFinite(total) || total <= 0 || inicial < 0 || inicial > total) return;
+                    this.venta.porcentaje_inicial = ((inicial / total) * 100).toFixed(2);
+                    if (this.cuotas.length > 0 && inicial < total) this.generarCuotas();
+                },
+
+                calcularMontoInicial() {
+                    const porcentaje = Number(this.venta.porcentaje_inicial);
+                    const total = Number(this.venta.total);
+                    if (!Number.isFinite(porcentaje) || porcentaje < 0 || porcentaje > 100 || !Number.isFinite(total) || total <= 0) return;
+                    const monto = total * porcentaje / 100;
+                    this.venta.monto_inicial = monto.toFixed(2);
+                    if (this.cuotas.length > 0 && monto < total) this.generarCuotas();
+                },
+
+                confirmarPagos() {
+                    if (this.venta.moneda === '2' && !this.esTasaValida()) {
+                        alertAdvertencia('Ingrese una tasa de cambio válida antes de configurar los pagos.');
+                        return;
+                    }
+                    if (this.venta.tipo_pago === '2' && this.cuotas.length === 0) {
+                        alertAdvertencia('Debe especificar al menos una cuota para crédito.');
+                        return;
+                    }
+                    if (!this.validarMontosPago()) return;
+
+                    this.actualizarDiasPago();
+                    this.venta.dias_pago = this.cuotas.map(cuota => cuota.fecha).join(',');
+                    $('#modal-dias-pagos').modal('hide');
+                },
+
+                hidratarPagos(data) {
+                    const total = Number(data.total);
+                    let listaGuardada = data.dias_lista;
+                    if (typeof listaGuardada === 'string') {
+                        try {
+                            listaGuardada = JSON.parse(listaGuardada);
+                        } catch (error) {
+                            listaGuardada = [];
+                        }
+                    }
+                    const cronogramaValido = Array.isArray(listaGuardada) && listaGuardada.length > 0 &&
+                        listaGuardada.every(cuota => cuota && cuota.fecha && Number.isFinite(Number(cuota.monto)));
+                    let fechas = [];
+
+                    if (cronogramaValido) {
+                        this.cuotas = listaGuardada.map(cuota => ({
+                            fecha: cuota.fecha,
+                            monto: Number(cuota.monto).toFixed(2)
+                        }));
+                    } else {
+                        fechas = String(data.dias_pago || '').split(',').map(valor => valor.trim()).filter(Boolean);
+                        const montoCuota = fechas.length > 0 && Number.isFinite(total) ? total / fechas.length : 0;
+                        this.cuotas = fechas.map((valor, index) => {
+                            let fecha = valor;
+                            if (!/^\d{4}-\d{2}-\d{2}$/.test(valor) && /^\d+$/.test(valor)) {
+                                const fechaCalculada = new Date(`${data.fecha}T00:00:00`);
+                                fechaCalculada.setDate(fechaCalculada.getDate() + Number(valor));
+                                fecha = this.formatDate(fechaCalculada);
+                            }
+                            const monto = index === fechas.length - 1
+                                ? total - montoCuota * (fechas.length - 1)
+                                : montoCuota;
+                            return { fecha, monto: Number(monto).toFixed(2) };
+                        });
+                    }
+                    this.numeroCuotas = this.cuotas.length || 1;
+                    this.venta.dias_lista = this.cuotas.map(cuota => ({ ...cuota }));
+                },
+
                 recargarDatos() {
                     // Recargar datos cuando se regresa a la página
                     this.productos = [];
@@ -1138,7 +1404,7 @@ if (!isset($_SESSION)) {
 
                             // Agregar datos de la venta
                             Object.keys(this.venta).forEach((key) => {
-                                if (key !== "fotos") {
+                                if (key !== "fotos" && key !== "dias_lista") {
                                     formData.append(key, this.venta[key])
                                 }
                             })
@@ -1362,15 +1628,16 @@ if (!isset($_SESSION)) {
                         console.log("Respuesta recibida:", resp);
                         if (resp.res) {
                             const data = resp.data;
+                            this.hidratandoCotizacion = true;
 
                             // Cargar datos principales
                             this.venta = {
                                 ...this.venta,
                                 id_cotizacion: data.id_cotizacion,
                                 tipo_doc: data.tipo_doc,
-                                moneda: data.moneda,
+                                moneda: String(data.moneda),
                                 tc: data.tc,
-                                tipo_pago: data.tipo_pago,
+                                tipo_pago: String(data.tipo_pago),
                                 fecha: data.fecha,
                                 dias_pago: data.dias_pago,
                                 dir_pos: data.dir_pos,
@@ -1378,7 +1645,10 @@ if (!isset($_SESSION)) {
                                 nom_cli: data.nom_cli,
                                 dir_cli: data.dir_cli,
                                 dir2_cli: data.dir2_cli,
-                                total: data.total
+                                total: data.total,
+                                tiene_inicial: data.tiene_inicial === true || String(data.tiene_inicial) === '1',
+                                monto_inicial: data.monto_inicial || 0,
+                                porcentaje_inicial: data.porcentaje_inicial || 0
                             };
 
                             // Guardar condiciones y diagnóstico en sessionStorage si existen
@@ -1398,6 +1668,7 @@ if (!isset($_SESSION)) {
 
                             // Cargar todos los productos
                             this.productos = data.productos;
+                            this.hidratarPagos(data);
 
                             // Activar primer equipo
                             if (this.equiposPreAlerta.length > 0) {
@@ -1410,6 +1681,10 @@ if (!isset($_SESSION)) {
                                 window.cargarFotosIniciales(data.fotos);
                             }
 
+                            this.$nextTick(() => {
+                                this.hidratandoCotizacion = false;
+                            });
+
                             console.log("Datos cargados:", {
                                 venta: this.venta,
                                 equipos: this.equiposPreAlerta,
@@ -1418,10 +1693,15 @@ if (!isset($_SESSION)) {
                                 condiciones: data.condiciones,
                                 diagnostico: data.diagnostico
                             });
+                        } else {
+                            this.$nextTick(() => {
+                                this.hidratandoCotizacion = false;
+                            });
                         }
                     });
                 },
                 calcularTotales() {
+                    if (this.equipoActivo === null || !this.equiposPreAlerta[this.equipoActivo]) return;
                     let total = 0;
                     this.productos.forEach(producto => {
                         if (producto.id_cotizacion_equipo === this.equiposPreAlerta[this.equipoActivo].id_cotizacion_equipo) {
@@ -1437,6 +1717,16 @@ if (!isset($_SESSION)) {
                     });
                 },
                 actualizarCotizacion() {
+                    if (this.venta.moneda === '2' && !this.esTasaValida()) {
+                        alertAdvertencia('Ingrese una tasa de cambio válida antes de guardar.');
+                        return;
+                    }
+                    if (!Number.isFinite(Number(this.venta.total)) || Number(this.venta.total) <= 0) {
+                        alertAdvertencia('El total de la cotización debe ser mayor que cero.');
+                        return;
+                    }
+                    if (this.venta.tipo_pago === '2' && !this.validarMontosPago()) return;
+
                     if (this.productos.length > 0) {
                         const formData = new FormData();
 
@@ -1445,7 +1735,7 @@ if (!isset($_SESSION)) {
 
                         // Agregar datos de la venta
                         Object.keys(this.venta).forEach((key) => {
-                            if (key !== "fotos") {
+                            if (!["fotos", "id_cotizacion", "dias_lista", "condiciones", "diagnostico"].includes(key)) {
                                 formData.append(key, this.venta[key])
                             }
                         })
@@ -1555,11 +1845,14 @@ if (!isset($_SESSION)) {
                     return (this.venta.moneda == 1 ? 'S/' : '$')
                 },
                 totalValorListaDias() {
-                    var total_ = 0;
-                    this.venta.dias_lista.forEach((el) => {
-                        total_ += parseFloat(el.monto + "")
-                    })
-                    return "S/ " + total_.toFixed(4);
+                    let total = this.venta.tiene_inicial ? Number(this.venta.monto_inicial || 0) : 0;
+                    this.cuotas.forEach(cuota => {
+                        total += Number(cuota.monto || 0);
+                    });
+                    return this.formatearMoneda(total);
+                },
+                tasaCambioValida() {
+                    return this.venta.moneda !== '2' || this.esTasaValida();
                 },
                 isDirreccionCont() {
                     return this.venta.dir2_cli.length > 0;
@@ -1600,7 +1893,9 @@ if (!isset($_SESSION)) {
                     this.cargarDatosCotizacion(cotizacionId);
                 } else {
                     this.buscarSNdoc();
-
+                    this.$nextTick(() => {
+                        this.hidratandoCotizacion = false;
+                    });
                 }
             }
         });

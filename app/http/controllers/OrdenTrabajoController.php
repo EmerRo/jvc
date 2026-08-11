@@ -102,39 +102,6 @@ class OrdenTrabajoController extends Controller
                             }
                         }
 
-                        // NUEVA FUNCIONALIDAD: Crear notificación en tiempo real
-                        try {
-                            require_once 'app/models/Notificacion.php';
-                            $notificacion = new Notificacion();
-
-                            // Construir nombre completo del usuario logueado
-                            $usuario_actual = '';
-                            if (isset($_SESSION['nombres'])) {
-                                $usuario_actual = $_SESSION['nombres'];
-                                if (isset($_SESSION['apellidos']) && !empty($_SESSION['apellidos'])) {
-                                    $usuario_actual .= ' ' . $_SESSION['apellidos'];
-                                }
-                            } else {
-                                $usuario_actual = 'Usuario desconocido';
-                            }
-
-                            $orden_id = $this->ordenTrabajo->idLast();
-                            $mensaje = "El usuario {$usuario_actual} ha agregado un registro de orden de trabajo";
-
-                            $notificacion->crear(
-                                'orden_trabajo',
-                                $mensaje,
-                                $usuario_actual,
-                                'taller',
-                                $orden_id
-                            );
-
-                            // Notificación creada exitosamente
-                        } catch (Exception $e) {
-                            error_log("Error al crear notificación: " . $e->getMessage());
-                            // No fallar el proceso principal si falla la notificación
-                        }
-
                         // Devolver solo el ID para Orden de Trabajo
                         echo $this->ordenTrabajo->idLast();
 
