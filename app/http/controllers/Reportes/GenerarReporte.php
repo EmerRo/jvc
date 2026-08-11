@@ -1246,25 +1246,19 @@ exit;
             $titulo = 'Historial de Stock - Uso en Órdenes Externas';
         }
 
-        // Crear tabla HTML para Excel
+        // Crear tabla HTML para Excel (sin <thead> para evitar bug de fila 0 en PHPSpreadsheet)
         $tabla = '<table border="1">
-            <thead>
-                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
-                    <th colspan="9" style="text-align: center; font-size: 14px;">' . $titulo . '</th>
-                </tr>
-                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
-                    <th>Código</th>
-                    <th>Producto</th>
-                    <th>Movimiento</th>
-                    <th>Cantidad</th>
-                    <th>Costo Compra</th>
-                    <th>Fecha</th>
-                    <th>Usuario</th>
-                    <th>Tipo Origen</th>
-                    <th>Observaciones</th>
-                </tr>
-            </thead>
-            <tbody>';
+            <tr style="background-color: #CA3438; color: white; font-weight: bold;">
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Movimiento</th>
+                <th>Cantidad</th>
+                <th>Costo Compra</th>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Tipo Origen</th>
+                <th>Observaciones</th>
+            </tr>';
 
         $totalRegistros = 0;
         if ($result) while ($row = $result->fetch_assoc()) {
@@ -1294,7 +1288,7 @@ exit;
                 <td style="text-align: center;">' . $totalRegistros . '</td>
                 <td colspan="5"></td>
             </tr>';
-        $tabla .= '</tbody></table>';
+        $tabla .= '</table>';
 
         // Generar archivo Excel
         $nombre_exel = 'historial_stock_' . date('Y-m-d_His') . '.xlsx';
@@ -1303,80 +1297,54 @@ exit;
 
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Ajustar anchos de columnas
-        $sheet->getColumnDimension('A')->setWidth(15);  // Código
-        $sheet->getColumnDimension('B')->setWidth(60);  // Producto (más ancho)
-        $sheet->getColumnDimension('C')->setWidth(15);  // Movimiento
-        $sheet->getColumnDimension('D')->setWidth(12);  // Cantidad
-        $sheet->getColumnDimension('E')->setWidth(15);  // Costo
-        $sheet->getColumnDimension('F')->setWidth(20);  // Fecha
-        $sheet->getColumnDimension('G')->setWidth(18);  // Usuario
-        $sheet->getColumnDimension('H')->setWidth(25);  // Tipo Origen
-        $sheet->getColumnDimension('I')->setWidth(50);  // Observaciones (más ancho)
+        // Insertar fila de título al principio (empuja todo una fila abajo)
+        $sheet->insertNewRowBefore(1, 1);
+        $sheet->setCellValue('A1', $titulo);
+        $sheet->mergeCells('A1:I1');
 
-        // Aplicar estilos al título
+        // Ajustar anchos de columnas
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(60);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(12);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        $sheet->getColumnDimension('G')->setWidth(18);
+        $sheet->getColumnDimension('H')->setWidth(25);
+        $sheet->getColumnDimension('I')->setWidth(50);
+
         $titleStyle = [
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 14
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'CA3438']
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
-            ]
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 14],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CA3438']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER]
         ];
         $sheet->getStyle('A1:I1')->applyFromArray($titleStyle);
-        $sheet->mergeCells('A1:I1');
         $sheet->getRowDimension(1)->setRowHeight(30);
 
-        // Aplicar estilos al encabezado
         $headerStyle = [
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 12
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'CA3438']
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
-            ]
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 12],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CA3438']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER]
         ];
         $sheet->getStyle('A2:I2')->applyFromArray($headerStyle);
         $sheet->getRowDimension(2)->setRowHeight(25);
 
-        // Aplicar bordes a todas las celdas con datos
         $highestRow = $sheet->getHighestRow();
         $borderStyle = [
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000']
-                ]
-            ]
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
         ];
         $sheet->getStyle('A1:I' . $highestRow)->applyFromArray($borderStyle);
 
-        // Centrar columnas específicas
-        $sheet->getStyle('A3:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('C3:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        if ($highestRow >= 3) {
+            $sheet->getStyle('A3:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('C3:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('B3:B' . $highestRow)->getAlignment()->setWrapText(true);
+            $sheet->getStyle('I3:I' . $highestRow)->getAlignment()->setWrapText(true);
+        }
 
-        // Ajustar texto en columnas largas
-        $sheet->getStyle('B3:B' . $highestRow)->getAlignment()->setWrapText(true);
-        $sheet->getStyle('I3:I' . $highestRow)->getAlignment()->setWrapText(true);
-
-        // Congelar las dos primeras filas (título y encabezado)
         $sheet->freezePane('A3');
 
-        ob_clean();
+        if (ob_get_level()) ob_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
         header('Cache-Control: max-age=0');
@@ -1404,21 +1372,18 @@ exit;
 
         $result = $this->conexion->query($sql);
 
-        // Crear tabla HTML para Excel
+        // Crear tabla HTML para Excel (sin <thead> para evitar bug de fila 0 en PHPSpreadsheet)
         $tabla = '<table border="1">
-            <thead>
-                <tr style="background-color: #CA3438; color: white; font-weight: bold;">
-                    <th>Código</th>
-                    <th>Repuesto</th>
-                    <th>Movimiento</th>
-                    <th>Cantidad</th>
-                    <th>Costo Compra</th>
-                    <th>Fecha</th>
-                    <th>Usuario</th>
-                    <th>Observaciones</th>
-                </tr>
-            </thead>
-            <tbody>';
+            <tr style="background-color: #CA3438; color: white; font-weight: bold;">
+                <th>Código</th>
+                <th>Repuesto</th>
+                <th>Movimiento</th>
+                <th>Cantidad</th>
+                <th>Costo Compra</th>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Observaciones</th>
+            </tr>';
 
         if ($result) while ($row = $result->fetch_assoc()) {
             $costo = $row['costo_compra'] ? 'S/ ' . number_format($row['costo_compra'], 2) : '-';
@@ -1439,7 +1404,7 @@ exit;
             </tr>';
         }
 
-        $tabla .= '</tbody></table>';
+        $tabla .= '</table>';
 
         // Generar archivo Excel
         $nombre_exel = 'historial_stock_repuestos_' . date('Y-m-d_His') . '.xlsx';
@@ -1491,18 +1456,18 @@ exit;
         ];
         $sheet->getStyle('A1:H' . $highestRow)->applyFromArray($borderStyle);
 
-        // Centrar columnas específicas
-        $sheet->getStyle('A2:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('C2:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        // Ajustar texto en columnas largas
-        $sheet->getStyle('B2:B' . $highestRow)->getAlignment()->setWrapText(true);
-        $sheet->getStyle('H2:H' . $highestRow)->getAlignment()->setWrapText(true);
+        // Centrar columnas específicas (solo si hay filas de datos)
+        if ($highestRow >= 2) {
+            $sheet->getStyle('A2:A' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('C2:D' . $highestRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('B2:B' . $highestRow)->getAlignment()->setWrapText(true);
+            $sheet->getStyle('H2:H' . $highestRow)->getAlignment()->setWrapText(true);
+        }
 
         // Congelar la primera fila (encabezado)
         $sheet->freezePane('A2');
 
-        ob_clean();
+        if (ob_get_level()) ob_clean();
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $nombre_exel . '"');
         header('Cache-Control: max-age=0');
