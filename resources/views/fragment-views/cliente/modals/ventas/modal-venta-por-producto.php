@@ -23,7 +23,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn bg-rojo text-white">Generar Reporte</button>
-                    <button type="button" class="btn border bg-white text-rojo" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn border bg-white text-rojo" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cerrar</button>
                 </div>
             </form>
 

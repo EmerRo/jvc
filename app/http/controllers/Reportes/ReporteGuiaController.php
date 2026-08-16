@@ -554,6 +554,7 @@ class ReporteGuiaController extends Controller
       $dist = 'I';
       $pdfFilename = $S_N . '-' . $datoEmpresa['razon_social'] . '.pdf';
       if ($dist == 'I') {
+        $this->mpdf->SetTitle($pdfFilename);
         $this->mpdf->Output($pdfFilename, $dist);
       } elseif ($dist == 'F') {
         $this->mpdf->Output(base64_decode((is_string($nombreXML) ? $nombreXML : '')), $dist);

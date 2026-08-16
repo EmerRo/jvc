@@ -1,10 +1,13 @@
 <!-- Modal de Registro de Activos -->
 <div class="modal fade" id="modalRegistroActivo" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg-custom">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold" id="modalTitulo">Agregar Nuevo Registro de Activo</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-rojo text-white">
+                <h5 class="modal-title" id="modalTitulo">
+                    <i class="fa fa-plus-circle me-2"></i>
+                    Agregar Nuevo Registro de Activo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="frmClientesAgregar">
@@ -101,8 +104,12 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="submitRegistroModal" class="btn bg-rojo">Guardar Registro</button>
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-1"></i> Cerrar
+                </button>
+                <button type="button" id="submitRegistroModal" class="btn bg-rojo text-white">
+                    <i class="fa fa-save me-1"></i> Guardar
+                </button>
             </div>
         </div>
     </div>

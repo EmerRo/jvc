@@ -571,7 +571,7 @@ class VentasController extends Controller
 
         $ventaData = DB::selectOne(
             $this->conexion,
-            "SELECT id_cliente, total FROM ventas WHERE id_venta = ?",
+            "SELECT id_cliente, total, estado FROM ventas WHERE id_venta = ?",
             'i',
             [$idVenta]
         );
@@ -583,6 +583,11 @@ class VentasController extends Controller
         if ($this->venta->anular()) {
             $resultado['res'] = true;
             $c_anulada->insertar();
+
+            // Devolver stock al almacén solo si la venta estaba activa (evita doble devolución)
+            if ($ventaData && isset($ventaData['estado']) && $ventaData['estado'] == '1') {
+                $this->devolverStockVenta($idVenta);
+            }
 
             if ($ventaData) {
                 DB::execute(
@@ -596,6 +601,63 @@ class VentasController extends Controller
             }
         }
         return json_encode($resultado);
+    }
+
+    /**
+     * Devuelve el stock al almacén (productos.cantidad) por cada ítem de la venta
+     * y registra el movimiento INGRESO en historial_stock.
+     * Es el inverso del EGRESO que hace ProductoVenta::insertar() al vender.
+     */
+    private function devolverStockVenta($idVenta)
+    {
+        $ventaInfo = DB::selectOne(
+            $this->conexion,
+            "SELECT serie, numero FROM ventas WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+        $refVenta = ($ventaInfo && !empty($ventaInfo['serie']))
+            ? $ventaInfo['serie'] . '-' . $ventaInfo['numero']
+            : 'ID ' . $idVenta;
+        $usuario = $_SESSION['usuario_id'] ?? 'Sistema';
+
+        $items = DB::select(
+            $this->conexion,
+            "SELECT id_producto, cantidad FROM productos_ventas WHERE id_venta = ?",
+            'i',
+            [$idVenta]
+        );
+
+        foreach ($items as $item) {
+            $idProducto = DB::int($item['id_producto']);
+            $cantidad   = DB::float($item['cantidad']);
+            if ($idProducto <= 0 || $cantidad <= 0) {
+                continue;
+            }
+
+            // Restaurar la cantidad (misma lógica inversa al EGRESO al vender)
+            DB::execute(
+                $this->conexion,
+                "UPDATE productos SET cantidad = COALESCE(cantidad, 0) + ? WHERE id_producto = ?",
+                'di',
+                [$cantidad, $idProducto]
+            );
+
+            // Registrar el ingreso en el historial de stock
+            try {
+                DB::execute(
+                    $this->conexion,
+                    "INSERT INTO historial_stock (id_producto, tipo_movimiento, cantidad, fecha_movimiento, usuario, observaciones, tipo_origen)
+                     VALUES (?, 'INGRESO', ?, NOW(), ?, ?, 'ANULACION_VENTA')",
+                    'diss',
+                    [$idProducto, $cantidad, $usuario, 'Anulación venta ' . $refVenta]
+                );
+            } catch (\Throwable $e) {
+                // Si el id_producto no existe en productos (repuestos/servicios),
+                // la FK falla: no es fatal, se omite el historial y se continúa.
+                error_log("devolverStockVenta - historial_stock omitido para id_producto={$idProducto}: " . $e->getMessage());
+            }
+        }
     }
 
     public function listarVentas()

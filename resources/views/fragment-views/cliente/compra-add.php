@@ -594,7 +594,7 @@
                                                                             <td>Inicial</td>
                                                                             <td>{{visualFechaSee(venta.fecha)}}</td>
                                                                             <td>S/
-                                                                                {{formatoDecimal(venta.monto_inicial)}}
+                                                                                {{formatoDecimal(venta.monto_inicial || 0)}}
                                                                             </td>
                                                                         </tr>
                                                                         <!-- Mostrar cuotas con fechas seleccionables -->
@@ -754,6 +754,9 @@
                     total: 0,
                     moneda: "1",
                     tc: '',
+                    tiene_inicial: false,
+                    monto_inicial: 0,
+                    porcentaje_inicial: 0,
                     serie_proveedor: '',
                     numero_proveedor: '',
                     dias_lista: [],
@@ -903,18 +906,22 @@
                 calcularMontoInicial() {
                     if (this.venta.porcentaje_inicial) {
                         this.venta.monto_inicial = (this.venta.total * this.venta.porcentaje_inicial / 100).toFixed(2);
-                        this.recalcularCuotas();
+                        this.calcularCuotasRestantes();
                     }
                 },
 
                 calcularCuotasRestantes() {
-                    if (this.venta.tiene_inicial && this.venta.monto_inicial) {
-                        const montoRestante = this.venta.total - this.venta.monto_inicial;
-                        // Recalcular las cuotas con el monto restante
-                        this.recalcularCuotas(montoRestante);
-                    } else {
-                        // Calcular cuotas con el monto total
-                        this.recalcularCuotas(this.venta.total);
+                    const montoInicial = parseFloat(this.venta.monto_inicial) || 0;
+                    const montoRestante = parseFloat(this.venta.total) - montoInicial;
+                    if (this.cuotas.length > 0) {
+                        const numCuotas = this.cuotas.length;
+                        const montoPorCuota = parseFloat((montoRestante / numCuotas).toFixed(2));
+                        this.cuotas.forEach((cuota, i) => {
+                            cuota.monto = i === numCuotas - 1
+                                ? (montoRestante - montoPorCuota * (numCuotas - 1)).toFixed(2)
+                                : montoPorCuota.toFixed(2);
+                        });
+                        this.actualizarDiasPago();
                     }
                 },
 
@@ -927,9 +934,6 @@
                             this.venta.dias_pago = diasPago;
                         });
                     }
-                },
-                focusDiasPagos() {
-                    this.abrirConfiguracionPagos();
                 },
 
                 // Modificar el método confirmarPagos
@@ -1326,10 +1330,6 @@
                     if ((keyCode < 48 || keyCode > 57) && keyCode !== 44) { // 46 is dot
                         $event.preventDefault();
                     }
-                },
-                focusDiasPagos() {
-                    //console.log("1000000000000000000")
-                    $("#modal-dias-pagos").modal("show")
                 },
                 changeTipoPago(event) {
                     console.log(event.target.value)

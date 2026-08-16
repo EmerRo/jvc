@@ -41,7 +41,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cerrar</button>
             </div>
         </div>
     </div>

@@ -182,7 +182,7 @@
             |
             <div class="modal-footer">
 
-                <button type="button" class="btn border-rojo waves-effect" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn border-rojo waves-effect" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cerrar</button>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -243,7 +243,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn border-rojo" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn border-rojo" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cerrar</button>
             </div>
         </div>
     </div>
@@ -509,7 +509,7 @@
                                 } else {
                                     let bntSend = '';
                                     if (dataParts[1] == '2' || dataParts[1] == '1') {
-                                        bntSend = '<button data-venta="' + desData[0] + '" class="btn-send-sunat btn btn-sm btn-info"><i class="fas fa-location-arrow"></i></button>';
+                                        bntSend = '<button data-venta="' + desData[0] + '" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>';
                                     }
                                     return '<span class="badge bg-warning">Pendiente</span> ' + bntSend;
                                 }
@@ -575,7 +575,7 @@
                         <a class="btn-detalle-vent" data-venta="${desData[0]}">
                             <i class="fa fa-eye text-primary"></i> Ver Detalle
                         </a>
-                        <a class="btn-anular-vent" data-venta="${desData[0]}">
+                        <a class="btn-anular-vent" data-venta="${desData[0]}" data-enviado-sunat="${estadoSunat}" data-tidoc="${row[6].split("-")[1]}">
                             <i class="fa fa-trash text-danger"></i> Anular
                         </a>
                         <a class="btn-editar-venta" data-venta="${desData[0]}">
@@ -730,6 +730,16 @@
         // anular venta sin refresacar
         $("#datatable").on("click", ".btn-anular-vent", function (evt) {
             const iventa = $(evt.currentTarget).attr('data-venta');
+            const enviadoSunat = $(evt.currentTarget).attr('data-enviado-sunat');
+            const idTido = $(evt.currentTarget).attr('data-tidoc');
+
+            // Si es boleta (1) o factura (2) y ya fue enviada a SUNAT, no se anula
+            // directamente: se redirige a Nota Electrónica con los datos precargados
+            if (enviadoSunat === '1' && (idTido === '1' || idTido === '2')) {
+                window.location.href = _URL + '/nota/electronica?venta=' + iventa;
+                return;
+            }
+
             Swal.fire({
                 title: 'Anular Venta',
                 text: "¿Esta seguro de ANULAR este documento?",

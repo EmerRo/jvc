@@ -64,7 +64,14 @@ $listaNE = $conexion->query($sql);
                             <td><?=$ne['fecha']?></td>
                             <td><?=$ne['cliente_ne']?></td>
                             <td><?=$ne['monto']?></td>
-                            <td><?=$ne['estado_sunat']?>-<?=$ne['nota_id']?></td>
+                            <td>
+                                <?php if ($ne['estado_sunat'] == '1'): ?>
+                                    <span class="badge bg-success">Enviado</span>
+                                <?php else: ?>
+                                    <span class="badge bg-warning">Pendiente</span>
+                                    <button data-item="<?=$ne['nota_id']?>" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <a href="<?=URL::to('/nota/electronica/pdf/'.$ne['nota_id'].'/'.$ne['nombre_xml'])?>" target="_blank" class="btn btn-sm" style="color: #dc3545;">
                                     <i class="fas fa-file-pdf fa-lg"></i>
@@ -93,20 +100,6 @@ $listaNE = $conexion->query($sql);
     $(document).ready(function(){
        $("#tabla-notaselect").DataTable({
     order: [[ 0, "desc" ]],
-    columnDefs:[
-        {
-            targets: 4,
-            render(data, type, row) {
-                const desData = data.split('-')
-                if (desData[0] =='1'){
-                    return '<span class=" badge bg-success">Enviado</span>';
-                }else{
-                    var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
-                    return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
-                }
-            }
-        }
-    ],
       language: {
             url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
         },

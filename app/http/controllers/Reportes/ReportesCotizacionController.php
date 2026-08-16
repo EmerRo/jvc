@@ -25,6 +25,18 @@ class ReportesCotizacionController extends Controller
     return PdfHelper::getImagePath($imageName);
   }
 
+  private function generarNombrePdf($datoVenta, $resultC, $prefijo = 'COT')
+  {
+    $numero = str_pad($datoVenta['numero'], 3, '0', STR_PAD_LEFT);
+    $cliente = trim($resultC['datos'] ?? '');
+    $cliente = preg_replace('/[\/\\\\:*?"<>|]/', '', $cliente);
+    $cliente = preg_replace('/\s+/', ' ', $cliente);
+    if (mb_strlen($cliente) > 60) {
+      $cliente = mb_substr($cliente, 0, 60);
+    }
+    return $cliente !== '' ? "{$prefijo}-{$numero} - {$cliente}" : "{$prefijo}-{$numero}";
+  }
+
   public function comprobanteCotizacion($coti, $rutaGuardar = null)
   {
     // Suprimir warnings de mPDF
@@ -851,7 +863,9 @@ if ($datoVenta['aplicar_igv'] == 1) {
     $this->mpdf->WriteHTML($html);
 
     // Generar el PDF
-    $this->mpdf->Output("COTIZACION JVC-{$datoVenta['numero']}.pdf", 'I');
+    $nombrePdf = $this->generarNombrePdf($datoVenta, $resultC);
+    $this->mpdf->SetTitle($nombrePdf);
+    $this->mpdf->Output($nombrePdf . ".pdf", 'I');
   }
 
   public function comprobanteCotizacionMediaA4($coti)
@@ -1118,7 +1132,9 @@ if ($datoVenta['aplicar_igv'] == 1) {
     </div>";
 
     $this->mpdf->WriteHTML($html);
-    $this->mpdf->Output("Cotizacion_Media_A4_{$datoVenta['numero']}.pdf", 'I');
+    $nombrePdf = $this->generarNombrePdf($datoVenta, $resultC);
+    $this->mpdf->SetTitle($nombrePdf);
+    $this->mpdf->Output($nombrePdf . ".pdf", 'I');
   }
 
   public function comprobanteCotizacionVoucher8cm($coti)
@@ -1338,7 +1354,9 @@ if ($datoVenta['aplicar_igv'] == 1) {
     </div>";
 
     $this->mpdf->WriteHTML($html);
-    $this->mpdf->Output("Cotizacion_Voucher_8cm_{$datoVenta['numero']}.pdf", 'I');
+    $nombrePdf = $this->generarNombrePdf($datoVenta, $resultC);
+    $this->mpdf->SetTitle($nombrePdf);
+    $this->mpdf->Output($nombrePdf . ".pdf", 'I');
   }
 
   public function comprobanteCotizacionVoucher5_6cm($coti)
@@ -1558,7 +1576,9 @@ if ($datoVenta['aplicar_igv'] == 1) {
     </div>";
 
     $this->mpdf->WriteHTML($html);
-    $this->mpdf->Output("Cotizacion_Voucher_5_6cm_{$datoVenta['numero']}.pdf", 'I');
+    $nombrePdf = $this->generarNombrePdf($datoVenta, $resultC);
+    $this->mpdf->SetTitle($nombrePdf);
+    $this->mpdf->Output($nombrePdf . ".pdf", 'I');
   }
 
 }

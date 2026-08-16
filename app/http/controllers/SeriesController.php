@@ -446,7 +446,6 @@ class SeriesController extends Controller
      */
     public function verificarGarantias()
     {
-        // error_log("verificarGarantias() llamado con ID: " . ($_POST['id'] ?? 'NO DEFINIDO'));
 
         if (!isset($_POST['id'])) {
             echo json_encode(['success' => false, 'error' => 'ID no proporcionado']);
@@ -494,7 +493,7 @@ class SeriesController extends Controller
                 ]);
             }
 
-            error_log("verificarGarantias() completado exitosamente");
+            // error_log("verificarGarantias() completado exitosamente");
 
         } catch (Exception $e) {
             // error_log("Error en verificarGarantias(): " . $e->getMessage());

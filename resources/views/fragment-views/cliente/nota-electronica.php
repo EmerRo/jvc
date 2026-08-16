@@ -205,7 +205,6 @@
                                     <th>Cantidad</th>
                                     <th>P. Unit.</th>
                                     <th>Parcial</th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -215,12 +214,6 @@
                                     <td>{{item.cantidad}}</td>
                                     <td>{{item.precio}}</td>
                                     <td>{{(parseFloat(item.precio) * parseFloat(item.cantidad)).toFixed(2)}}</td>
-                                    <td>
-                                        <button @click="eliminarItemPro(index)" type="button"
-                                            class="btn btn-danger btn-xs">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </td>
                                 </tr>
                             </tbody>
                             <tfoot>
@@ -346,8 +339,43 @@ echo json_encode($temp);
                         }
                     )
                 },
-                eliminarItemPro(index) {
-                    this.productos.splice(index, 1)
+                cargarVentaDesdeURL() {
+                    // Si se llega desde /ventas (anular de boleta/factura enviada a SUNAT)
+                    // con ?venta=ID, se precarga todo el documento para crear la nota electrónica
+                    const params = new URLSearchParams(window.location.search);
+                    const idVenta = params.get('venta');
+                    if (!idVenta) return;
+
+                    $("#loader-menor").show();
+                    _ajax("/ajs/venta/detalle", "POST", { iventa: idVenta }, function (resp) {
+                        $("#loader-menor").hide();
+                        if (resp && resp.res && resp.data) {
+                            const d = resp.data;
+                            app._data.venta.ventacod = d.id_venta;
+                            app._data.venta.tipo_doc = String(d.id_tido || 1);
+                            app._data.venta.serie = d.serie || '';
+                            app._data.venta.numero = d.numero || '';
+                            app._data.venta.num_doc = d.documento || '';
+                            app._data.venta.nom_cli = d.datos || '';
+                            app._data.venta.total = d.total || d.montoTotal || 0;
+                            // Por defecto Nota de Crédito y completar serie/numero del documento NE
+                            app._data.venta.tipo_docNE = app._data.venta.tipo_docNE || '3';
+                            app.buscarSNdoc();
+                            // Precargar el detalle de la venta
+                            app._data.productos = (d.detalles || []).map(function (item) {
+                                return {
+                                    productoid: item.id_producto || '',
+                                    descripcion: item.nombre || item.descripcion || '',
+                                    cantidad: parseFloat(item.cantidad) || 0,
+                                    precio: parseFloat(item.precio) || 0,
+                                    codigo: item.codigo || '',
+                                    costo: item.costo || '',
+                                };
+                            });
+                        } else {
+                            alertAdvertencia("No se pudo cargar el documento de venta");
+                        }
+                    });
                 },
                 buscarDocumentSS() {
                     if (this.venta.num_doc.length == 8 || this.venta.num_doc.length == 11) {
@@ -459,6 +487,7 @@ echo json_encode($temp);
             },
             mounted() {
                 this.motivos = JSON.parse($("#jsom-motivos").val());
+                this.cargarVentaDesdeURL();
             }
         });
 

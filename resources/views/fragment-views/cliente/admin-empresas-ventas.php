@@ -253,7 +253,7 @@ $listaNE = $conexion->query($sql);
                         if (desData[0] =='1'){
                             return '<span class=" badge bg-success">Enviado</span>';
                         }else{
-                            var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
+                            var bntSend='<button data-item="' + desData[1] + '" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>'
 
                             return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
                         }
@@ -273,7 +273,7 @@ $listaNE = $conexion->query($sql);
                         if (desData[0] =='1'){
                             return '<span class=" badge bg-success">Enviado</span>';
                         }else{
-                            var bntSend='<i  data-item="' + desData[1] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
+                            var bntSend='<button data-item="' + desData[1] + '" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>'
 
                             return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
                         }
@@ -356,7 +356,7 @@ $listaNE = $conexion->query($sql);
                             }else{
                                 var bntSend=''
                                 if (row[8] == 1 && data[1] =='2') {
-                                    bntSend='<i  data-venta="' + desData[0] + '" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>'
+                                    bntSend='<button data-venta="' + desData[0] + '" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>'
                                 }
                                 return '<span class="badge bg-warning">Pendiente</span> '+bntSend;
                             }

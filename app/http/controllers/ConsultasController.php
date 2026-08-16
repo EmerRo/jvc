@@ -429,7 +429,12 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $serieE = $c_tido->getSerie();
             $numeroE = $c_tido->getNumero();
 
-            $sql = "insert into notas_electronicas set id_venta='{$_POST['ventacod']}',
+            // nota_id no es auto_increment: se genera con el patrón del sistema (MAX + 1)
+            $rowNotaId = $this->consulta->exeSQL("SELECT IFNULL(MAX(nota_id) + 1, 1) AS codigo FROM notas_electronicas")->fetch_assoc();
+            $notaId = isset($rowNotaId['codigo']) ? (int) $rowNotaId['codigo'] : 1;
+
+            $sql = "insert into notas_electronicas set nota_id='$notaId',
+      id_venta='{$_POST['ventacod']}',
       tido='{$_POST['tipo_docNE']}',
       fecha='{$_POST['fecha']}',
         id_empresa='{$_SESSION['id_empresa']}',
@@ -445,7 +450,7 @@ WHERE id_venta='{$_POST['idVenta']}'";
             $respuesta = ["res" => false, "error" => ""];
 
             if ($stmt->execute()) {
-                $idNotaElectronica = $stmt->insert_id;
+                $idNotaElectronica = $notaId;
                 $respuesta["res"] = true;
 
                 $empresa = $this->consulta->exeSQL("select * from empresas where id_empresa='{$_SESSION['id_empresa']}'")->fetch_assoc();

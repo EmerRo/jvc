@@ -273,7 +273,7 @@ tr:nth-last-child(-n+3) .dropdown-actions {
                                             <span class="badge bg-success">Enviado</span>
                                         <?php else: ?>
                                             <span class="badge bg-warning">Pendiente</span>
-                                            <i data-item="<?php echo $fila['id_guia_remision'] ?>" class="btn-send-sunat btn-sm btn btn-info fas fa-location-arrow"></i>
+                                            <button data-item="<?php echo $fila['id_guia_remision'] ?>" class="btn-send-sunat btn btn-sm btn-info" title="Enviar a SUNAT"><i class="fas fa-paper-plane fa-lg"></i></button>
                                         <?php endif; ?>
                                     </td>
                                     <td>

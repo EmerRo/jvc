@@ -367,7 +367,9 @@ class ReporteOrdenCompraController extends Controller
         $this->mpdf->WriteHTML($html);
 
         // Generar el PDF
-        $this->mpdf->Output("ORDEN_COMPRA_{$numeroOrden}.pdf", 'I');
+        $nombrePdf = "ORDEN_COMPRA_{$numeroOrden}";
+        $this->mpdf->SetTitle($nombrePdf);
+        $this->mpdf->Output($nombrePdf . ".pdf", 'I');
     }
 
    public function reporteCompraAll()
@@ -517,6 +519,7 @@ class ReporteOrdenCompraController extends Controller
     </div>";
 
     $this->mpdf->WriteHTML($html);
+    $this->mpdf->SetTitle("Reporte_Compras_General");
     $this->mpdf->Output("Reporte_Compras_General.pdf", 'I');
 }
 }

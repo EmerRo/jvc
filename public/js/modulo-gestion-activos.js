@@ -134,8 +134,8 @@ $(document).ready(function () {
                 // Resetear modo edición
                 modoEdicion = false;
                 activoEditandoId = null;
-                $('#modalTitulo').text('Agregar Nuevo Registro de Activo');
-                $('#submitRegistroModal').text('Guardar Registro');
+                $('#modalTitulo').html('<i class="fa fa-plus-circle me-2"></i> Agregar Nuevo Registro de Activo');
+                $('#submitRegistroModal').html('<i class="fa fa-save me-1"></i> Guardar');
             },
             // MÉTODO MEJORADO PARA INICIALIZAR EL AUTOCOMPLETE
             initializeAutocomplete() {
@@ -569,8 +569,8 @@ $(document).ready(function () {
         activoEditandoId = id;
 
         // Cambiar título y botón
-        $('#modalTitulo').text('Editar Registro de Activo');
-        $('#submitRegistroModal').text('Actualizar Registro');
+        $('#modalTitulo').html('<i class="fa fa-pencil me-2"></i> Editar Registro de Activo');
+        $('#submitRegistroModal').html('<i class="fa fa-save me-1"></i> Actualizar Registro');
 
         $.ajax({
             url: _URL + "/ajs/gestion/activos/obtener",

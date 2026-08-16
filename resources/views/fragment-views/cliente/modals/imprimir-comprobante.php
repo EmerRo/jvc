@@ -21,7 +21,7 @@
                         class="fas fa-file-invoice"></i> Voucher 5.8cm</a>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn bg-rojo text-white" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cerrar</button>
             </div>
         </div>
     </div>
