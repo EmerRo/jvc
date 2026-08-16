@@ -32,30 +32,21 @@ class VentasController extends Controller
     {
         $sql = "SELECT
             ie.*,
-            p.nombre,
-            p.codigo,
+            COALESCE(p.nombre, r.nombre) AS nombre,
+            COALESCE(p.codigo, r.codigo) AS codigo,
             u.usuario,
             u.nombres,
-            DATE_FORMAT(ie.fecha_creacion, '%d/%m/%Y %H:%i') as fecha_creacion_formatted,
-            DATE_FORMAT(ie.fecha_actualizacion, '%d/%m/%Y %H:%i') as fecha_actualizacion_formatted,
-            CASE 
-                WHEN ie.almacen_egreso = '1' THEN 'Almacén 1'
-                WHEN ie.almacen_egreso = '2' THEN 'Almacén 2'
-                WHEN ie.almacen_egreso = '3' THEN 'Almacén 3'
-                ELSE 'N/A'
-            END as almacen_egreso_nombre,
-            CASE 
-                WHEN ie.almacen_ingreso = '1' THEN 'Almacén 1'
-                WHEN ie.almacen_ingreso = '2' THEN 'Almacén 2'
-                WHEN ie.almacen_ingreso = '3' THEN 'Almacén 3'
-                ELSE 'N/A'
-            END as almacen_ingreso_nombre
-        FROM
-            ingreso_egreso ie
-            JOIN productos p ON ie.id_producto = p.id_producto
-            INNER JOIN usuarios u on u.usuario_id = ie.id_usuario
-        ORDER BY
-            ie.fecha_creacion DESC";
+            DATE_FORMAT(ie.fecha_creacion, '%d/%m/%Y %H:%i') AS fecha_creacion_formatted,
+            DATE_FORMAT(ie.fecha_actualizacion, '%d/%m/%Y %H:%i') AS fecha_actualizacion_formatted,
+            COALESCE(a_eg.nombre, 'N/A') AS almacen_egreso_nombre,
+            COALESCE(a_in.nombre, 'N/A') AS almacen_ingreso_nombre
+        FROM ingreso_egreso ie
+        LEFT JOIN productos p ON ie.id_producto = p.id_producto AND ie.tipo_item = 'producto'
+        LEFT JOIN repuestos r ON ie.id_repuesto = r.id_repuesto AND ie.tipo_item = 'repuesto'
+        LEFT JOIN usuarios u ON u.usuario_id = ie.id_usuario
+        LEFT JOIN almacenes a_eg ON a_eg.id_almacen = ie.almacen_egreso
+        LEFT JOIN almacenes a_in ON a_in.id_almacen = ie.almacen_ingreso
+        ORDER BY ie.fecha_creacion DESC";
 
         $result = $this->conexion->query($sql);
 

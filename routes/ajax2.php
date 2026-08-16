@@ -20,6 +20,7 @@ Route::post("/ajs/consulta/sucursales/empresa/info/detalle", "ConsultasControlle
 Route::post("/ajs/consulta/sucursales/empresa/edt", "ConsultasController@actualizarSucursal")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/metodo/pago", "ConsultasController@getMetodoPago")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/consulta/stock/almacen", "BusquedaController@consultaStockAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/consulta/stock/almacen/repuesto", "BusquedaController@consultaStockAlmacenRepuesto")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/send/comprobante/email", "ConsultasController@enviarcomprobanteEmail");
 Route::post("/ajs/informacion/venta/fb", "ConsultasController@informacionVentaFb");
 Route::post("/ajs/verificador/token", "ConsultasController@verificadorToken");

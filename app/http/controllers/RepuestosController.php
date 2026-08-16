@@ -505,50 +505,165 @@ class RepuestosController extends Controller
         return json_encode($respuesta);
     }
 
+    public function ingresoAlmacen()
+    {
+        $respuesta = ['res' => false];
+
+        $repuestoId    = (int) ($_POST['productoid']    ?? 0);
+        $tipo          = $this->conexion->real_escape_string($_POST['tipo']          ?? '');
+        $cantidad      = (float) ($_POST['cantidad']      ?? 0);
+        $almacen       = $this->conexion->real_escape_string($_POST['almacen']       ?? '');
+        $idUsuario     = (int) ($_SESSION['usuario_fac'] ?? 0);
+        $observaciones = $this->conexion->real_escape_string($_POST['observaciones'] ?? '');
+
+        if ($repuestoId <= 0 || $cantidad <= 0) {
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $sql = "INSERT INTO ingreso_egreso
+                SET id_repuesto      = ?,
+                    tipo_item        = 'repuesto',
+                    tipo             = ?,
+                    cantidad         = ?,
+                    id_usuario       = ?,
+                    almacen_ingreso  = ?,
+                    observaciones    = ?,
+                    fecha_creacion   = NOW(),
+                    fecha_actualizacion = NOW()";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('isdiss', $repuestoId, $tipo, $cantidad, $idUsuario, $almacen, $observaciones);
+
+        if ($stmt->execute()) {
+            $this->conexion->query(
+                "UPDATE repuestos SET cantidad = cantidad + $cantidad WHERE id_repuesto = $repuestoId AND almacen = '$almacen'"
+            );
+            $respuesta['res'] = true;
+        }
+
+        echo json_encode($respuesta);
+    }
+
+    public function egresoAlmacen()
+    {
+        $respuesta = ['res' => false];
+
+        $repuestoId    = (int) ($_POST['productoid']    ?? 0);
+        $tipo          = $this->conexion->real_escape_string($_POST['tipo']          ?? '');
+        $cantidad      = (float) ($_POST['cantidad']      ?? 0);
+        $almacenOrigen = $this->conexion->real_escape_string($_POST['almacen']       ?? '');
+        $almacenDest   = $this->conexion->real_escape_string($_POST['alAlmacen']     ?? '');
+        $idUsuario     = (int) ($_SESSION['usuario_fac'] ?? 0);
+        $observaciones = $this->conexion->real_escape_string($_POST['observaciones'] ?? '');
+
+        if ($repuestoId <= 0 || $cantidad <= 0) {
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $row = $this->conexion->query(
+            "SELECT cantidad FROM repuestos WHERE id_repuesto = $repuestoId AND almacen = '$almacenOrigen'"
+        )->fetch_assoc();
+
+        if (!$row) {
+            $respuesta['msg'] = 'Repuesto no encontrado en el almacén de origen';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        if ((float) $row['cantidad'] < $cantidad) {
+            $respuesta['msg'] = 'Stock insuficiente';
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $sql = "INSERT INTO ingreso_egreso
+                SET id_repuesto         = ?,
+                    tipo_item           = 'repuesto',
+                    tipo                = ?,
+                    cantidad            = ?,
+                    id_usuario          = ?,
+                    almacen_ingreso     = ?,
+                    almacen_egreso      = ?,
+                    estado              = 0,
+                    observaciones       = ?,
+                    fecha_creacion      = NOW(),
+                    fecha_actualizacion = NOW()";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('isdisss', $repuestoId, $tipo, $cantidad, $idUsuario, $almacenDest, $almacenOrigen, $observaciones);
+
+        if ($stmt->execute()) {
+            $this->conexion->query(
+                "UPDATE repuestos SET cantidad = cantidad - $cantidad WHERE id_repuesto = $repuestoId AND almacen = '$almacenOrigen'"
+            );
+            $respuesta['res'] = true;
+        }
+
+        echo json_encode($respuesta);
+    }
+
     public function confirmarTraslado()
     {
-        $respuesta['res'] = false;
-        $sql = "SELECT id_repuesto,almacen_ingreso,almacen_egreso,cantidad FROM ingreso_egreso WHERE intercambio_id ='{$_POST['cod']}'";
-        $result = $this->conexion->query($sql)->fetch_assoc();
+        $respuesta = ['res' => false];
 
-        $almacen = $result['almacen_ingreso'];
-        $id_repuesto = $result['id_repuesto'];
-        $cantidad = $result['cantidad'];
+        $intercambioId = (int) ($_POST['cod'] ?? 0);
+        if ($intercambioId <= 0) {
+            echo json_encode($respuesta);
+            return;
+        }
 
-        $sql = "SELECT * FROM repuestos WHERE id_repuesto = '{$result['id_repuesto']}'";
-        $result = $this->conexion->query($sql)->fetch_assoc();
+        $row = $this->conexion->query(
+            "SELECT id_repuesto, almacen_ingreso, almacen_egreso, cantidad FROM ingreso_egreso WHERE intercambio_id = $intercambioId"
+        )->fetch_assoc();
 
-        $sql = "SELECT * FROM repuestos WHERE descripcion = '{$result['descripcion']}' AND almacen = '$almacen'";
-        $result2 = $this->conexion->query($sql)->fetch_assoc();
+        if (!$row) {
+            echo json_encode($respuesta);
+            return;
+        }
 
-        if (is_null($result2)) {
-            $sql = "INSERT INTO repuestos 
-            (cod_barra, descripcion, precio,categoria,unidad, costo,cantidad,iscbp,id_empresa,sucursal,ultima_salida,codsunat,usar_barra,precio_mayor,precio_menor,razon_social,ruc,estado,almacen,precio2,precio3)
-            SELECT cod_barra, descripcion, precio,categoria,unidad, costo,$cantidad,iscbp,id_empresa,sucursal,ultima_salida,codsunat,usar_barra,precio_mayor,precio_menor,razon_social,ruc,estado, $almacen,precio2,precio3
-            FROM repuestos
-            WHERE id_repuesto = $id_repuesto";
-            if ($this->conexion->query($sql)) {
-                $sql = "UPDATE repuestos set cantidad = cantidad - $cantidad WHERE id_repuesto = $id_repuesto";
-                if ($this->conexion->query($sql)) {
-                    $respuesta['res'] = true;
-                }
-            }
+        $almacenDest  = $row['almacen_ingreso'];
+        $idRepuesto   = (int) $row['id_repuesto'];
+        $cantidad     = (float) $row['cantidad'];
+
+        $repuesto = $this->conexion->query(
+            "SELECT * FROM repuestos WHERE id_repuesto = $idRepuesto"
+        )->fetch_assoc();
+
+        if (!$repuesto) {
+            echo json_encode($respuesta);
+            return;
+        }
+
+        $existente = $this->conexion->query(
+            "SELECT id_repuesto FROM repuestos WHERE descripcion = '{$repuesto['descripcion']}' AND almacen = '$almacenDest'"
+        )->fetch_assoc();
+
+        if (is_null($existente)) {
+            $sql = "INSERT INTO repuestos
+                    (cod_barra, nombre, descripcion, precio, categoria, unidad, costo, cantidad, iscbp,
+                     id_empresa, sucursal, ultima_salida, codsunat, usar_barra, precio_mayor, precio_menor,
+                     razon_social, ruc, estado, almacen, precio2, precio3, codigo)
+                    SELECT cod_barra, nombre, descripcion, precio, categoria, unidad, costo, $cantidad, iscbp,
+                           id_empresa, sucursal, ultima_salida, codsunat, usar_barra, precio_mayor, precio_menor,
+                           razon_social, ruc, estado, $almacenDest, precio2, precio3, codigo
+                    FROM repuestos WHERE id_repuesto = $idRepuesto";
+            $respuesta['res'] = (bool) $this->conexion->query($sql);
         } else {
-            $idExistente = $result2['id_repuesto'];
-            $sql2 = "UPDATE repuestos set cantidad = cantidad - $cantidad WHERE id_repuesto = $id_repuesto";
-            if ($this->conexion->query($sql2)) {
-                $sql = "UPDATE repuestos set cantidad = cantidad + $cantidad WHERE id_repuesto = $idExistente";
-                if ($this->conexion->query($sql)) {
-                    $respuesta['res'] = true;
-                }
-            }
+            $idExistente = (int) $existente['id_repuesto'];
+            $ok = $this->conexion->query(
+                "UPDATE repuestos SET cantidad = cantidad + $cantidad WHERE id_repuesto = $idExistente"
+            );
+            $respuesta['res'] = (bool) $ok;
         }
+
         if ($respuesta['res']) {
-            $sql = "UPDATE ingreso_egreso set estado = 1 WHERE intercambio_id = '{$_POST['cod']}'";
-            if ($this->conexion->query($sql)) {
-                $respuesta['res'] = true;
-            }
+            $this->conexion->query(
+                "UPDATE ingreso_egreso SET estado = 1 WHERE intercambio_id = $intercambioId"
+            );
         }
+
         echo json_encode($respuesta);
     }
 

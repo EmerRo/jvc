@@ -191,4 +191,39 @@ class BusquedaController extends Controller
         $datos = $this->consulta->exeSQL($sql)->fetch_assoc();
         echo json_encode($datos);
     }
+
+    public function consultaStockAlmacenRepuesto()
+    {
+        $almacen  = (int) ($_POST['almacen']  ?? 0);
+        $repuesto = (int) ($_POST['producto']  ?? 0);
+        $sql = "SELECT * FROM repuestos
+                WHERE id_repuesto = $repuesto
+                  AND almacen = $almacen
+                  AND id_empresa = '{$_SESSION['id_empresa']}'
+                  AND sucursal = '{$_SESSION['sucursal']}'";
+        $datos = $this->consulta->exeSQL($sql)->fetch_assoc();
+        echo json_encode($datos);
+    }
+
+    public function buscarRepuestoCoti()
+    {
+        $term       = filter_input(INPUT_GET, 'term');
+        $resultados = $this->consulta->buscarRepuestoCoti($_SESSION['id_empresa'], $term);
+
+        $resultado = [];
+        foreach ($resultados as $value) {
+            $resultado[] = [
+                'value'           => "{$value['codigo']} | {$value['nombre']} | Stock: {$value['cantidad']}",
+                'codigo'          => $value['id_repuesto'],
+                'codigo_pp'       => $value['codigo'],
+                'nombre'          => $value['nombre'],
+                'descripcion'     => $value['detalle'],
+                'cnt'             => $value['cantidad'],
+                'almacen'         => $value['almacen'],
+                'precio'          => '0',
+                'costo'           => '0',
+            ];
+        }
+        return json_encode($resultado);
+    }
 }

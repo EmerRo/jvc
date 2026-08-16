@@ -33,13 +33,12 @@
             <!-- ═══════════ TAB MARCAS ═══════════ -->
             <div class="tab-pane fade show active" id="tab-marcas" role="tabpanel">
                 <div class="card" style="border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.08)">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fa fa-tag me-2 text-danger"></i> Marcas</h5>
-                        <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarMarca">
-                            <i class="fa fa-plus me-1"></i> Nueva Marca
-                        </button>
-                    </div>
                     <div class="card-body">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarMarca">
+                                <i class="fa fa-plus me-1"></i> Nueva Marca
+                            </button>
+                        </div>
                         <div class="table-responsive">
                             <table id="dtMarcas" class="table table-bordered table-sm table-striped text-center nowrap w-100">
                                 <thead>
@@ -59,13 +58,12 @@
             <!-- ═══════════ TAB MODELOS ═══════════ -->
             <div class="tab-pane fade" id="tab-modelos" role="tabpanel">
                 <div class="card" style="border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.08)">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fa fa-cube me-2 text-danger"></i> Modelos</h5>
-                        <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarModelo">
-                            <i class="fa fa-plus me-1"></i> Nuevo Modelo
-                        </button>
-                    </div>
                     <div class="card-body">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarModelo">
+                                <i class="fa fa-plus me-1"></i> Nuevo Modelo
+                            </button>
+                        </div>
                         <div class="table-responsive">
                             <table id="dtModelos" class="table table-bordered table-sm table-striped text-center nowrap w-100">
                                 <thead>
@@ -86,13 +84,12 @@
             <!-- ═══════════ TAB EQUIPOS ═══════════ -->
             <div class="tab-pane fade" id="tab-equipos" role="tabpanel">
                 <div class="card" style="border-radius:16px;box-shadow:0 4px 6px -1px rgba(0,0,0,.08)">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fa fa-laptop me-2 text-danger"></i> Equipos</h5>
-                        <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarEquipo">
-                            <i class="fa fa-plus me-1"></i> Nuevo Equipo
-                        </button>
-                    </div>
                     <div class="card-body">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button class="btn bg-rojo text-white btn-sm" data-bs-toggle="modal" data-bs-target="#modalAgregarEquipo">
+                                <i class="fa fa-plus me-1"></i> Nuevo Equipo
+                            </button>
+                        </div>
                         <div class="table-responsive">
                             <table id="dtEquipos" class="table table-bordered table-sm table-striped text-center nowrap w-100">
                                 <thead>

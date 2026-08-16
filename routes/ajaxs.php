@@ -7,6 +7,8 @@ Route::get('/ajs/ventas',"VentasController@listarVentas")->Middleware([ValidarTo
 Route::post('/ajs/ventas/add',"VentasController@guardarVentas")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/ingreso/almacen/add',"VentasController@ingresoAlmacen")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/egreso/almacen/add',"VentasController@egresoAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/ingreso/almacen/repuesto/add',"RepuestosController@ingresoAlmacen")->Middleware([ValidarTokenMiddleware::class]);
+Route::post('/ajs/egreso/almacen/repuesto/add',"RepuestosController@egresoAlmacen")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/confirmar/traslado',"VentasController@confirmarTraslado")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/ingresos/egresos/render","VentasController@ingresosEgresosRender")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/ventas/servicios/edit',"VentasController@editVentaServicio")->Middleware([ValidarTokenMiddleware::class]);
@@ -37,6 +39,7 @@ Route::post("/ajs/password/reset", "UsuarioController@resetearPassword");
 Route::get('/ajs/cargar/productos/:id',"BusquedaController@buscarProducto")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/cargar/repuestos/:id',"BusquedaController@buscarRepuesto")->Middleware([ValidarTokenMiddleware::class]);
 Route::get('/ajs/cargar/productos',"BusquedaController@buscarProductoCoti")->Middleware([ValidarTokenMiddleware::class]);
+Route::get('/ajs/cargar/repuestos',"BusquedaController@buscarRepuestoCoti")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/servicios',"ConsultasController@cargarVentaServicios")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/productos',"ConsultasController@cargarVentaProductos")->Middleware([ValidarTokenMiddleware::class]);
 Route::post('/ajs/cargar/venta/info',"ConsultasController@cargarVentaDetalles")->Middleware([ValidarTokenMiddleware::class]);

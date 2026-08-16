@@ -4,6 +4,7 @@ require_once "app/http/controllers/VentasController.php";
 $c_venta = new VentasController();
 $getAll = $c_venta->ingresosEgresosRender();
 ?>
+
 <style>
     .ui-autocomplete {
         z-index: 1065;
@@ -13,6 +14,18 @@ $getAll = $c_venta->ingresosEgresosRender();
         white-space: normal;
         word-wrap: break-word;
         text-align: left;
+    }
+
+    .tipo-item-select {
+        border: 1.5px solid #CA3438 !important;
+        color: #CA3438;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    .tipo-item-select:focus {
+        border-color: #CA3438 !important;
+        box-shadow: 0 0 0 0.2rem rgba(202, 52, 56, 0.2) !important;
+        outline: none;
     }
 </style>
 
@@ -55,9 +68,10 @@ $getAll = $c_venta->ingresosEgresosRender();
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Producto</th>
+                                <th>Ítem</th>
+                                <th>Tipo Ítem</th>
                                 <th>Cantidad</th>
-                                <th>Tipo</th>
+                                <th>Movimiento</th>
                                 <th>Usuario</th>
                                 <th>Egreso</th>
                                 <th>Ingreso</th>
@@ -71,18 +85,21 @@ $getAll = $c_venta->ingresosEgresosRender();
                             <?php foreach ($getAll as $row): ?>
                                 <tr>
                                     <td><?php echo $row['intercambio_id'] ?></td>
-                                    <td class="text-start"><?php echo $row['codigo'] ?> | <?php echo $row['nombre'] ?></td>
+                                    <td class="text-start"><?php echo htmlspecialchars($row['codigo'] ?? '') ?> | <?php echo htmlspecialchars($row['nombre'] ?? '') ?></td>
+                                    <td><?php echo ($row['tipo_item'] ?? 'producto') === 'repuesto' ? '<span class="badge bg-warning text-dark">Repuesto</span>' : '<span class="badge bg-info text-white">Producto</span>' ?></td>
                                     <td><?php echo $row['cantidad'] ?></td>
-                                    <?php $tipo = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida'; ?>
-                                    <td><?php echo $tipo ?></td>
-                                    <td><?php echo $row["nombres"] ?></td>
-                                    <td><?php echo $row['almacen_egreso_nombre'] ?></td>
-                                    <td><?php echo $row['almacen_ingreso_nombre'] ?></td>
+                                    <?php $mov = ($row['tipo'] == 'i') ? 'Ingreso' : 'Salida'; ?>
+                                    <td><?php echo $mov ?></td>
+                                    <td><?php echo htmlspecialchars($row["nombres"] ?? '') ?></td>
+                                    <td><?php echo htmlspecialchars($row['almacen_egreso_nombre'] ?? 'N/A') ?></td>
+                                    <td><?php echo htmlspecialchars($row['almacen_ingreso_nombre'] ?? 'N/A') ?></td>
                                     <td><?php echo $row['fecha_creacion_formatted'] ?? 'N/A' ?></td>
                                     <td><?php echo $row['fecha_actualizacion_formatted'] ?? 'N/A' ?></td>
                                     <td class="text-center">
                                         <?php if ($row['tipo'] == 'e' && $row['estado'] == '0'): ?>
-                                            <button data-item="<?= $row['intercambio_id'] ?>"
+                                            <button
+                                                data-item="<?= $row['intercambio_id'] ?>"
+                                                data-tipo-item="<?= htmlspecialchars($row['tipo_item'] ?? 'producto') ?>"
                                                 class="btn-confirmar btn btn-sm btn-success">
                                                 <i class="fa fa-check"></i>
                                             </button>
@@ -114,49 +131,73 @@ $getAll = $c_venta->ingresosEgresosRender();
                             <form v-on:submit.prevent="addIngreso" class="form-horizontal">
                                 <div class="modal-body">
                                     <div class="row">
-                                        <canvas hidden="" id="qr-canvas2" v-show="toggleCamara2"
-                                            style="width: 300px; padding: 10px;"></canvas>
                                         <div class="mb-3 col-md-12">
-                                            <label>
-                                                <input id="btn-scan-qr2" v-model="usar_scaner2" @click="toggleCamara2"
-                                                    type="checkbox"> Usar Scanner
-                                            </label>
+                                            <label class="control-label fw-semibold">Tipo de ítem</label>
+                                            <select class="form-select form-select-sm tipo-item-select"
+                                                v-model="tipoItem" @change="cambiarTipo(tipoItem)">
+                                                <option value="producto">📦 Producto</option>
+                                                <option value="repuesto">🔧 Repuesto</option>
+                                            </select>
                                         </div>
+                                        <!-- 1. Almacén destino -->
                                         <div class="mb-3 col-md-12">
-                                            <label class="control-label">Producto</label>
-                                            <input type="text" placeholder="Consultar Productos"
-                                                class="form-control ui-autocomplete-input" id="input_buscar_productos"
-                                                autocomplete="off">
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="control-label">Nombre</label>
-                                            <input required v-model="producto.nombre" type="text" placeholder="Nombre"
-                                                class="form-control" readonly="true">
-                                        </div>
-                                        <div class="mb-3 col-md-4">
-                                            <label class="control-label">Cantidad</label>
-                                            <input required v-model="producto.cantidad" type="text" class="form-control"
-                                                @keypress="onlyNumber">
-                                        </div>
-                                        <div class="mb-3 col-md-5">
-                                            <label class="control-label">Ingreso Almacén</label>
+                                            <label class="control-label fw-semibold">Almacén de ingreso</label>
                                             <select name="almacen" id="almacen" v-model="producto.almacen"
-                                                class="form-control" @change="onChangeAlmacen($event)">
-                                                <option value="" disabled selected>Seleccionar</option>
+                                                class="form-control" @change="onChangeAlmacenIngreso($event)">
+                                                <option value="" disabled>Seleccionar almacén</option>
                                                 <option v-for="alm in almacenes" :key="alm.id_almacen" :value="parseInt(alm.id_almacen)">
                                                     {{ alm.nombre }}{{ alm.principal == 1 ? ' ★' : '' }}
                                                 </option>
                                             </select>
                                         </div>
-                                        <div class="mb-3 col-md-3">
-                                            <label class="control-label">Stock Act.</label>
-                                            <input v-model="producto.stock" type="text" class="form-control"
-                                                readonly="true">
+
+                                        <!-- 2. Buscar ítem (habilitado solo si hay almacén) -->
+                                        <div class="mb-3 col-md-12">
+                                            <label class="control-label fw-semibold">
+                                                {{ tipoItem === 'repuesto' ? 'Repuesto' : 'Producto' }}
+                                            </label>
+                                            <input type="text"
+                                                :placeholder="producto.almacen ? (tipoItem === 'repuesto' ? 'Buscar repuesto...' : 'Buscar producto...') : 'Seleccioná un almacén primero'"
+                                                class="form-control ui-autocomplete-input"
+                                                id="input_buscar_productos"
+                                                :disabled="!producto.almacen"
+                                                autocomplete="off">
                                         </div>
+
+                                        <!-- 3. Nombre + Stock -->
+                                        <div class="mb-3 col-md-8">
+                                            <label class="control-label">Nombre</label>
+                                            <input v-model="producto.nombre" type="text"
+                                                class="form-control bg-light" readonly>
+                                        </div>
+                                        <div class="mb-3 col-md-4">
+                                            <label class="control-label">Stock actual</label>
+                                            <input v-model="producto.stock" type="text"
+                                                class="form-control bg-light text-center fw-bold" readonly>
+                                        </div>
+
+                                        <!-- 4. Cantidad -->
+                                        <div class="mb-3 col-md-4">
+                                            <label class="control-label fw-semibold">Cantidad a ingresar</label>
+                                            <input required v-model="producto.cantidad" type="text"
+                                                class="form-control" placeholder="0" @keypress="onlyNumber"
+                                                :disabled="!producto.productoid">
+                                        </div>
+
+                                        <!-- 5. Observaciones -->
                                         <div class="mb-3 col-md-12">
                                             <label class="control-label">Observaciones</label>
-                                            <textarea v-model="producto.observaciones" class="form-control" rows="3"
+                                            <textarea v-model="producto.observaciones" class="form-control" rows="2"
                                                 placeholder="Ingrese observaciones (opcional)"></textarea>
+                                        </div>
+
+                                        <canvas hidden="" id="qr-canvas2" v-show="toggleCamara2"
+                                            style="width: 300px; padding: 10px;"></canvas>
+                                        <div class="col-md-12">
+                                            <label>
+                                                <input id="btn-scan-qr2" v-model="usar_scaner2" @click="toggleCamara2"
+                                                    type="checkbox"> Usar Scanner QR
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -197,7 +238,16 @@ $getAll = $c_venta->ingresosEgresosRender();
 
                                         <!-- Búsqueda de producto -->
                                         <div class="col-md-12">
-                                            <label class="form-label fw-semibold">Producto</label>
+                                            <label class="control-label fw-semibold">Tipo de ítem</label>
+                                            <select class="form-select form-select-sm tipo-item-select"
+                                                v-model="tipoItem" @change="cambiarTipo(tipoItem)">
+                                                <option value="producto">📦 Producto</option>
+                                                <option value="repuesto">🔧 Repuesto</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-semibold">{{ tipoItem === 'repuesto' ? 'Repuesto' : 'Producto' }}</label>
                                             <input type="text" placeholder="Buscar por código o nombre..."
                                                 class="form-control ui-autocomplete-input"
                                                 id="input_buscar_productos_salida" autocomplete="off">
@@ -277,6 +327,7 @@ $getAll = $c_venta->ingresosEgresosRender();
             data: {
                 usar_scaner: false,
                 usar_scaner2: false,
+                tipoItem: 'producto',
                 almacenes: [],
                 producto: {
                     productoid: "",
@@ -294,17 +345,53 @@ $getAll = $c_venta->ingresosEgresosRender();
                 this.cargarAlmacenes();
             },
             methods: {
+                cambiarTipo(tipo) {
+                    this.tipoItem = tipo;
+                    this.resetProducto();
+                    this._actualizarAutocompleteIngreso();
+                },
+                onChangeAlmacenIngreso(event) {
+                    const almacen = parseInt(event.target.value);
+                    this.producto.almacen = almacen;
+                    this.resetProducto(almacen);
+                    this._actualizarAutocompleteIngreso(almacen);
+                },
+                _actualizarAutocompleteIngreso(almacen) {
+                    const alm = almacen || this.producto.almacen;
+                    const base = this.tipoItem === 'repuesto' ? '/ajs/cargar/repuestos' : '/ajs/cargar/productos';
+                    const url  = alm ? (_URL + base + '/' + alm) : (_URL + base);
+                    $("#input_buscar_productos").autocomplete('option', 'source', url);
+                },
+                resetProducto(mantenerAlmacen) {
+                    const principal = this.almacenes.find(a => a.principal == 1);
+                    const defaultAlm = principal || (this.almacenes.length > 0 ? this.almacenes[0] : null);
+                    const defaultId  = defaultAlm ? parseInt(defaultAlm.id_almacen) : '';
+                    this.producto = {
+                        productoid:    "",
+                        nombre:        "",
+                        cantidad:      "",
+                        stock:         "0",
+                        codigo:        "",
+                        almacen:       mantenerAlmacen || defaultId,
+                        alAlmacen:     "",
+                        observaciones: ""
+                    };
+                    $("#input_buscar_productos").val("");
+                },
+                urlIngreso()  { return this.tipoItem === 'repuesto' ? '/ajs/ingreso/almacen/repuesto/add' : '/ajs/ingreso/almacen/add'; },
+                urlEgreso()   { return this.tipoItem === 'repuesto' ? '/ajs/egreso/almacen/repuesto/add'  : '/ajs/egreso/almacen/add'; },
+                urlStock()    { return this.tipoItem === 'repuesto' ? '/ajs/consulta/stock/almacen/repuesto' : '/ajs/consulta/stock/almacen'; },
                 cargarAlmacenes() {
-                    var self = this;
-                    _get('/ajs/almacenes/listar', function(res) {
+                    _get('/ajs/almacenes/listar', (res) => {
                         if (res.estado) {
-                            self.almacenes = res.almacenes;
-                            var principal = res.almacenes.find(a => a.principal == 1);
-                            var defaultAlm = principal || (res.almacenes.length > 0 ? res.almacenes[0] : null);
+                            this.almacenes = res.almacenes;
+                            const principal  = res.almacenes.find(a => a.principal == 1);
+                            const defaultAlm = principal || (res.almacenes.length > 0 ? res.almacenes[0] : null);
                             if (defaultAlm) {
-                                self.producto.almacen = parseInt(defaultAlm.id_almacen);
-                                var other = res.almacenes.find(a => parseInt(a.id_almacen) !== self.producto.almacen);
-                                if (other) self.producto.alAlmacen = parseInt(other.id_almacen);
+                                this.producto.almacen = parseInt(defaultAlm.id_almacen);
+                                const other = res.almacenes.find(a => parseInt(a.id_almacen) !== this.producto.almacen);
+                                if (other) this.producto.alAlmacen = parseInt(other.id_almacen);
+                                this.$nextTick(() => this._actualizarAutocompleteIngreso(this.producto.almacen));
                             }
                         }
                     });
@@ -442,7 +529,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                     });
                 },
                 actualizarStock() {
-                    _ajax("/ajs/consulta/stock/almacen", "POST", {
+                    _ajax(this.urlStock(), "POST", {
                         almacen: this.producto.almacen,
                         producto: this.producto.productoid
                     }, (resp) => {
@@ -450,10 +537,10 @@ $getAll = $c_venta->ingresosEgresosRender();
                     });
                 },
                 btnCerrar() {
-                    var principal = this.almacenes.find(a => a.principal == 1);
-                    var defaultAlm = principal || (this.almacenes.length > 0 ? this.almacenes[0] : null);
-                    var defaultId = defaultAlm ? parseInt(defaultAlm.id_almacen) : '';
-                    var other = this.almacenes.find(a => parseInt(a.id_almacen) !== defaultId);
+                    const principal = this.almacenes.find(a => a.principal == 1);
+                    const defaultAlm = principal || (this.almacenes.length > 0 ? this.almacenes[0] : null);
+                    const defaultId  = defaultAlm ? parseInt(defaultAlm.id_almacen) : '';
+                    const other      = this.almacenes.find(a => parseInt(a.id_almacen) !== defaultId);
 
                     this.producto = {
                         productoid: "",
@@ -465,24 +552,31 @@ $getAll = $c_venta->ingresosEgresosRender();
                         alAlmacen: other ? parseInt(other.id_almacen) : '',
                         observaciones: ""
                     };
+                    $("#input_buscar_productos, #input_buscar_productos_salida").val("");
                 },
                 addIngreso() {
-                    if (this.producto.nombre.length > 0) {
-                        const data = { ...this.producto, tipo: 'i' };
-                        _ajax("/ajs/ingreso/almacen/add", "POST", data, (resp) => {
-                            if (resp.res) {
-                                alertExito('Bien', "Registro Correcto").then(() => location.reload());
-                            } else {
-                                alertAdvertencia("No se pudo Guardar el Ingreso");
-                            }
-                        });
-                    } else {
-                        alertAdvertencia("Busque un producto primero").then(() => {
-                            setTimeout(() => { $("#input_buscar_productos").focus(); }, 500);
-                        });
+                    const label = this.tipoItem === 'repuesto' ? 'repuesto' : 'producto';
+                    if (!this.producto.almacen) {
+                        alertAdvertencia("Seleccioná un almacén primero");
+                        return;
                     }
+                    if (!this.producto.productoid) {
+                        alertAdvertencia(`Buscá y seleccioná un ${label}`).then(() => {
+                            setTimeout(() => { $("#input_buscar_productos").focus(); }, 400);
+                        });
+                        return;
+                    }
+                    const data = { ...this.producto, tipo: 'i' };
+                    _ajax(this.urlIngreso(), "POST", data, (resp) => {
+                        if (resp.res) {
+                            alertExito('Bien', "Ingreso registrado").then(() => location.reload());
+                        } else {
+                            alertAdvertencia(resp.msg || "No se pudo guardar el ingreso");
+                        }
+                    });
                 },
                 addSalida() {
+                    const label = this.tipoItem === 'repuesto' ? 'repuesto' : 'producto';
                     $("#btnguardarSalida").prop('disabled', true);
                     if (this.producto.nombre.length > 0 && this.producto.stock > 0) {
                         if (parseInt(this.producto.cantidad) > parseInt(this.producto.stock)) {
@@ -491,7 +585,7 @@ $getAll = $c_venta->ingresosEgresosRender();
                             return;
                         }
                         const data = { ...this.producto, tipo: 'e' };
-                        _ajax("/ajs/egreso/almacen/add", "POST", data, (resp) => {
+                        _ajax(this.urlEgreso(), "POST", data, (resp) => {
                             if (resp.res) {
                                 alertExito('Bien', "Registro Correcto").then(() => location.reload());
                             } else {
@@ -500,8 +594,8 @@ $getAll = $c_venta->ingresosEgresosRender();
                             }
                         });
                     } else {
-                        alertAdvertencia("Busque un producto primero o verifique stock").then(() => {
-                            setTimeout(() => { $("#input_buscar_productos").focus(); }, 500);
+                        alertAdvertencia(`Busque un ${label} primero o verifique stock`).then(() => {
+                            setTimeout(() => { $("#input_buscar_productos_salida").focus(); }, 500);
                         });
                         $("#btnguardarSalida").prop('disabled', false);
                     }
@@ -524,25 +618,37 @@ $getAll = $c_venta->ingresosEgresosRender();
             }
         });
 
-        $("#input_buscar_productos, #input_buscar_productos_salida").autocomplete({
+        const autocompleteOpts = {
             source: _URL + "/ajs/cargar/productos",
             minLength: 1,
             appendTo: function (element) {
                 return $(element).closest('.modal');
             },
+            response: function (event, ui) {
+                if (!ui.content.length) {
+                    ui.content.push({
+                        label: '⚠ No se encontró en este almacén',
+                        value: '',
+                        noResult: true
+                    });
+                }
+            },
             select: function (event, ui) {
                 event.preventDefault();
+                if (ui.item.noResult) return;
                 app.producto.productoid = ui.item.codigo;
-                app.producto.nombre = ui.item.nombre;
-                app.producto.cantidad = 0;
-                app.producto.stock = ui.item.cnt;
-                app.producto.codigo = ui.item.codigo;
-                app.producto.almacen = parseInt(ui.item.almacen);
+                app.producto.nombre     = ui.item.nombre;
+                app.producto.cantidad   = 0;
+                app.producto.stock      = ui.item.cnt;
+                app.producto.codigo     = ui.item.codigo;
+                app.producto.almacen    = parseInt(ui.item.almacen) || app.producto.almacen;
                 $(this).val("");
-                $('#almacen, #delAlmacen').prop("disabled", false);
                 app.actualizarStock();
             }
-        });
+        };
+
+        $("#input_buscar_productos").autocomplete(autocompleteOpts);
+        $("#input_buscar_productos_salida").autocomplete(autocompleteOpts);
 
         $('#datatable').DataTable({
             responsive: true,
@@ -573,7 +679,9 @@ $getAll = $c_venta->ingresosEgresosRender();
         });
 
         $("#datatable").on("click", ".btn-confirmar", function (evt) {
-            const cod = $(evt.currentTarget).attr("data-item");
+            const cod      = $(evt.currentTarget).attr("data-item");
+            const tipoItem = $(evt.currentTarget).attr("data-tipo-item") || 'producto';
+            const url      = tipoItem === 'repuesto' ? '/ajs/confirmar/traslado/repuesto' : '/ajs/confirmar/traslado';
             Swal.fire({
                 title: '¿Desea confirmar el traslado?',
                 showDenyButton: true,
@@ -581,11 +689,11 @@ $getAll = $c_venta->ingresosEgresosRender();
                 denyButtonText: 'No',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    _ajax("/ajs/confirmar/traslado", "POST", { cod }, function (resp) {
+                    _ajax(url, "POST", { cod }, function (resp) {
                         if (resp.res) {
                             Swal.fire('Buen trabajo', 'Traslado Exitoso', 'success').then(() => location.reload());
                         } else {
-                            alertAdvertencia("Ocurrió un error");
+                            alertAdvertencia("Ocurrió un error al confirmar el traslado");
                         }
                     });
                 }

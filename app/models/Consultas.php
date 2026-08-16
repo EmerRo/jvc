@@ -128,6 +128,24 @@ class Consultas
         return $this->conectar->query($sql);
     }
 
+    function buscarRepuestoCoti($id_empresa, $term)
+    {
+        $term = '%' . $term . '%';
+
+        $sql = "SELECT r.id_repuesto, r.codigo, r.nombre, r.detalle, r.precio, r.precio2,
+                r.precio3, r.precio4, r.precio_unidad, r.costo, r.cantidad, r.descripcion,
+                r.usar_multiprecio, r.precio_mayor, r.precio_menor, r.unidad, r.almacen
+                FROM repuestos r
+                WHERE r.id_empresa = '$id_empresa'
+                AND (r.nombre LIKE '$term' OR r.descripcion LIKE '$term' OR r.codigo LIKE '$term')
+                AND r.sucursal = '{$_SESSION['sucursal']}'
+                AND r.estado = '1'
+                ORDER BY r.nombre ASC
+                LIMIT 500";
+
+        return $this->conectar->query($sql);
+    }
+
     function buscarSNdoc($empresa, $doc)
     {
         $sql = "select * from documentos_empresas where id_empresa='$empresa' and id_tido='$doc' and sucursal='{$_SESSION['sucursal']}'";
