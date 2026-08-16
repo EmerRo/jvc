@@ -1197,54 +1197,21 @@ function cleanup() {
                 contentType: false,
                 dataType: 'json',
                 success: function (data) {
+                    Swal.close();
                     if (data.success) {
-                        // Actualizar las imágenes actuales si se proporcionaron nuevas URLs
-                        if (data.header_image) {
-                            currentHeaderTemplateImage = data.header_image;
-                        }
-
-                        if (data.footer_image) {
-                            currentFooterTemplateImage = data.footer_image;
-                        }
-
-                        // Restablecer los indicadores de cambio
+                        if (data.header_image) currentHeaderTemplateImage = data.header_image;
+                        if (data.footer_image) currentFooterTemplateImage = data.footer_image;
                         headerTemplateImageChanged = false;
                         footerTemplateImageChanged = false;
 
-                        // CERRAR el SweetAlert de loading primero
-                        Swal.close();
-                        
-                        // Forzar cierre completo del modal
-                        const modalElement = document.getElementById('gestionarMembretesInformeModal');
-                        
-                        // Remover todas las clases y atributos problemáticos
-                        $(modalElement).removeClass('show');
-                        modalElement.style.display = 'none';
-                        modalElement.setAttribute('aria-hidden', 'true');
-                        modalElement.removeAttribute('aria-modal');
-                        
-                        // Limpiar completamente el estado del modal
-                        $('.modal-backdrop').remove();
-                        $('body').removeClass('modal-open');
-                        $('body').css({
-                            'overflow': '',
-                            'padding-right': ''
-                        });
-                        
-                        // Restaurar el focus al documento
-                        document.activeElement.blur();
-                        
-                        // Mostrar SweetAlert de éxito DESPUÉS de limpiar
-                        setTimeout(() => {
+                        $('#gestionarMembretesInformeModal').one('hidden.bs.modal', function () {
                             Swal.fire({
                                 title: 'Éxito',
                                 text: 'Los membretes se han guardado correctamente',
                                 icon: 'success'
                             });
-                            
-                            // Restaurar event listeners después de la limpieza
-                            reinitializarEventListenersMembretes();
-                        }, 200);
+                        });
+                        $('#gestionarMembretesInformeModal').modal('hide');
                     } else {
                         Swal.fire({
                             title: 'Error',
@@ -1255,36 +1222,12 @@ function cleanup() {
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al guardar los membretes:", status, error);
-                    
-                    // CERRAR el SweetAlert de loading primero
                     Swal.close();
-                    
-                    // Forzar cierre del modal también en errores
-                    const modalElement = document.getElementById('gestionarMembretesInformeModal');
-                    $(modalElement).removeClass('show');
-                    modalElement.style.display = 'none';
-                    modalElement.setAttribute('aria-hidden', 'true');
-                    modalElement.removeAttribute('aria-modal');
-                    
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    $('body').css({
-                        'overflow': '',
-                        'padding-right': ''
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo conectar con el servidor',
+                        icon: 'error'
                     });
-                    
-                    document.activeElement.blur();
-                    
-                    setTimeout(() => {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'No se pudo conectar con el servidor',
-                            icon: 'error'
-                        });
-                        
-                        // Restaurar event listeners también en caso de error
-                        reinitializarEventListenersMembretes();
-                    }, 200);
                 }
             });
         }

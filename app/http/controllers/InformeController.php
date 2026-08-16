@@ -549,7 +549,7 @@ public function render()
 
     private function crearDataUriValidado($contenido)
     {
-        if (strlen($contenido) > ImageStorage::MAX_SIZE || @getimagesizefromstring($contenido) === false) {
+        if (strlen($contenido) > ImageStorage::MAX_SIZE) {
             throw new RuntimeException('Contenido de imagen no valido');
         }
 
@@ -557,6 +557,11 @@ public function render()
         $mime = $finfo->buffer($contenido);
         if (!in_array($mime, ImageStorage::ALLOWED_TYPES, true)) {
             throw new RuntimeException('Tipo de imagen no permitido: ' . $mime);
+        }
+
+        // SVG es XML — getimagesizefromstring() no lo soporta, se valida solo por mime
+        if ($mime !== 'image/svg+xml' && @getimagesizefromstring($contenido) === false) {
+            throw new RuntimeException('Contenido de imagen no valido');
         }
 
         return 'data:' . $mime . ';base64,' . base64_encode($contenido);

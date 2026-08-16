@@ -1544,15 +1544,22 @@ class DocumentosUtils {
             dataType: 'json',
             success: (data) => {
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.mensaje || 'Plantilla guardada correctamente'
-                    }).then(() => {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById(this.config.elementos.modalPlantilla.replace('#', '')));
+                    this.plantillaActual = null;
+                    const modalEl = document.getElementById(this.config.elementos.modalPlantilla.replace('#', ''));
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    const afterHide = () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.mensaje || 'Plantilla guardada correctamente'
+                        }).then(() => this.mostrarVistaLista());
+                    };
+                    if (modal) {
+                        $(modalEl).one('hidden.bs.modal', afterHide);
                         modal.hide();
-                        this.mostrarVistaLista();
-                    });
+                    } else {
+                        afterHide();
+                    }
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -1760,15 +1767,22 @@ class DocumentosUtils {
             dataType: 'json',
             success: (data) => {
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.mensaje || 'Membretes guardados correctamente'
-                    }).then(() => {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById(this.config.elementos.modalMembretes.replace('#', '')));
+                    this.plantillaActual = null;
+                    const modalEl = document.getElementById(this.config.elementos.modalMembretes.replace('#', ''));
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    const afterHide = () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.mensaje || 'Membretes guardados correctamente'
+                        }).then(() => this.mostrarVistaLista());
+                    };
+                    if (modal) {
+                        $(modalEl).one('hidden.bs.modal', afterHide);
                         modal.hide();
-                        this.mostrarVistaLista();
-                    });
+                    } else {
+                        afterHide();
+                    }
                 } else {
                     Swal.fire({
                         icon: 'error',
