@@ -70,18 +70,20 @@ class CartaTemplate
 
     public function getHeaderImageUrl()
     {
-        if ($this->header_image) {
-            return $this->header_image;
-        }
-        return URL::to('public/img/garantia/header.png'); // Imagen por defecto
+        return $this->resolverUrlImagen($this->header_image, 'public/img/garantia/header.png');
     }
 
     public function getFooterImageUrl()
     {
-        if ($this->footer_image) {
-            return $this->footer_image;
-        }
-        return URL::to('public/img/garantia/footer.png'); // Imagen por defecto
+        return $this->resolverUrlImagen($this->footer_image, 'public/img/garantia/footer.png');
+    }
+
+    private function resolverUrlImagen($value, $default)
+    {
+        if (!$value) return URL::to($default);
+        if (strpos($value, 'data:image/') === 0 || strpos($value, 'http') === 0) return $value;
+        if (strpos($value, '/') !== false) return URL::to($value);
+        return ImageStorage::url('documentos', $value);
     }
 
     // Métodos CRUD

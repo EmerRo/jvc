@@ -99,13 +99,8 @@ class DocumentosUtils {
 
     cerrarCarga() {
         if (!this.swalCargaActiva) return;
-
         this.swalCargaActiva = false;
-        const container = document.querySelector(`.swal2-container[data-documentos-owner="${this.config.tipo}"]`);
-        if (container) {
-            Swal.close();
-            container.remove();
-        }
+        Swal.close();
     }
 
     /**
@@ -1546,19 +1541,27 @@ class DocumentosUtils {
                 if (data.success) {
                     this.plantillaActual = null;
                     const modalEl = document.getElementById(this.config.elementos.modalPlantilla.replace('#', ''));
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    const afterHide = () => {
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) {
+                        $(modalEl).one('hidden.bs.modal', () => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Éxito',
+                                text: data.mensaje || 'Plantilla guardada correctamente',
+                                timer: 1800,
+                                showConfirmButton: false
+                            }).then(() => this.mostrarVistaLista());
+                        });
+                        Swal.close();
+                        bsModal.hide();
+                    } else {
                         Swal.fire({
                             icon: 'success',
                             title: 'Éxito',
-                            text: data.mensaje || 'Plantilla guardada correctamente'
+                            text: data.mensaje || 'Plantilla guardada correctamente',
+                            timer: 1800,
+                            showConfirmButton: false
                         }).then(() => this.mostrarVistaLista());
-                    };
-                    if (modal) {
-                        $(modalEl).one('hidden.bs.modal', afterHide);
-                        modal.hide();
-                    } else {
-                        afterHide();
                     }
                 } else {
                     Swal.fire({
@@ -1749,14 +1752,13 @@ class DocumentosUtils {
             formData.append('footer_image', footerData);
         }
 
-        Swal.fire({
-            title: 'Guardando',
-            text: 'Guardando membretes...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        const btnGuardarSel = this.config.elementos.btnGuardarMembretes || null;
+        const btnGuardar = btnGuardarSel ? document.querySelector(btnGuardarSel) : null;
+        const textoOriginal = btnGuardar ? btnGuardar.innerHTML : null;
+        if (btnGuardar) {
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Guardando...';
+        }
 
         $.ajax({
             url: this.config.urls.guardarMembretes,
@@ -1769,21 +1771,40 @@ class DocumentosUtils {
                 if (data.success) {
                     this.plantillaActual = null;
                     const modalEl = document.getElementById(this.config.elementos.modalMembretes.replace('#', ''));
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    const afterHide = () => {
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) {
+                        $(modalEl).one('hidden.bs.modal', () => {
+                            this.mostrarVistaLista();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Éxito',
+                                text: data.mensaje || 'Membretes guardados correctamente',
+                                toast: true,
+                                position: 'top-end',
+                                timer: 2500,
+                                showConfirmButton: false,
+                                timerProgressBar: true
+                            });
+                        });
+                        bsModal.hide();
+                    } else {
+                        this.mostrarVistaLista();
                         Swal.fire({
                             icon: 'success',
                             title: 'Éxito',
-                            text: data.mensaje || 'Membretes guardados correctamente'
-                        }).then(() => this.mostrarVistaLista());
-                    };
-                    if (modal) {
-                        $(modalEl).one('hidden.bs.modal', afterHide);
-                        modal.hide();
-                    } else {
-                        afterHide();
+                            text: data.mensaje || 'Membretes guardados correctamente',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 2500,
+                            showConfirmButton: false,
+                            timerProgressBar: true
+                        });
                     }
                 } else {
+                    if (btnGuardar) {
+                        btnGuardar.disabled = false;
+                        btnGuardar.innerHTML = textoOriginal;
+                    }
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -1792,6 +1813,10 @@ class DocumentosUtils {
                 }
             },
             error: (xhr, status, error) => {
+                if (btnGuardar) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = textoOriginal;
+                }
                 console.error("Error en la solicitud:", status, error);
                 Swal.fire({
                     icon: 'error',
