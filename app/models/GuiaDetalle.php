@@ -223,7 +223,7 @@ class GuiaDetalle
             '$precio'
         )";
 
-        error_log("SQL a ejecutar: " . $sql);
+        // error_log("SQL a ejecutar: " . $sql);
         
         $result = $this->conectar->query($sql);
         

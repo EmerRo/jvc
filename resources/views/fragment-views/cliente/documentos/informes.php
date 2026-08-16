@@ -111,6 +111,18 @@
             </div>
         </div>
 
+        <!-- Toolbar de selección masiva -->
+        <div id="toolbar-sel-informes" class="d-flex align-items-center gap-2 flex-wrap mb-3 px-2 py-2 rounded border bg-light d-none">
+            <div class="form-check mb-0">
+                <input type="checkbox" class="form-check-input" id="check-all-informes" style="width:1.1rem;height:1.1rem;cursor:pointer;">
+                <label class="form-check-label fw-semibold" for="check-all-informes">Seleccionar todos</label>
+            </div>
+            <span class="badge bg-secondary ms-1" id="count-sel-informes">0 seleccionados</span>
+            <button class="btn btn-danger btn-sm ms-auto" onclick="eliminarInformesSeleccionados()">
+                <i class="fas fa-trash-alt me-1"></i> Eliminar seleccionados
+            </button>
+        </div>
+
         <!-- Grid de informes -->
         <div class="row row-cols-1 row-cols-md-3 g-4" id="lista-informes-container">
             <div class="col-12 text-center py-5">
@@ -498,6 +510,7 @@
         let informeId = null;
         let moduloInformesInicializado = false;
         let vistaPreviewEnProceso = false;
+        let informesSeleccionados = new Set();
 
 // En informes.php, dentro del módulo InformesModule
 function cleanup() {
@@ -1318,8 +1331,69 @@ function cleanup() {
             });
         }
 
+        function actualizarToolbarInformes() {
+            const count = informesSeleccionados.size;
+            $('#toolbar-sel-informes').toggleClass('d-none', count === 0);
+            $('#count-sel-informes').text(`${count} seleccionado${count !== 1 ? 's' : ''}`);
+        }
+
+        function eliminarInformesSeleccionados() {
+            const count = informesSeleccionados.size;
+            if (count === 0) return;
+            const ids = Array.from(informesSeleccionados);
+
+            Swal.fire({
+                title: `¿Eliminar ${count} informe${count !== 1 ? 's' : ''}?`,
+                text: 'Se eliminarán los informes seleccionados.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Continuar',
+                cancelButtonText: 'Cancelar'
+            }).then((r1) => {
+                if (!r1.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Confirmación final',
+                    html: `Está a punto de eliminar <strong>${count} informe${count !== 1 ? 's' : ''}</strong> de forma permanente.<br><br>Esta acción <strong>no se puede deshacer</strong>.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#c0392b',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, eliminar definitivamente',
+                    cancelButtonText: 'Cancelar'
+                }).then((r2) => {
+                    if (!r2.isConfirmed) return;
+
+                    Swal.fire({ title: 'Eliminando...', text: 'Por favor espere', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                    $.ajax({
+                        url: _URL + '/ajs/informe/borrar-masivo',
+                        method: 'POST',
+                        data: { ids: ids },
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.res) {
+                                Swal.fire({ icon: 'success', title: 'Eliminados', text: data.msg, timer: 2000, showConfirmButton: false });
+                                informesSeleccionados.clear();
+                                cargarInformes();
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Error', text: data.msg });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor' });
+                        }
+                    });
+                });
+            });
+        }
+
         function renderizarInformes() {
             console.log(`Renderizando informes - Página: ${window.paginaActual}, Total informes: ${window.informes?.length || 0}`);
+            informesSeleccionados.clear();
+            actualizarToolbarInformes();
             
             if (!window.informes || window.informes.length === 0) {
                 $("#lista-informes-container").html(`
@@ -1362,7 +1436,11 @@ function cleanup() {
             <div class="col">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span class="badge bg-rojo">${informe.tipo}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="checkbox" class="form-check-input informe-sel-check" data-id="${informe.id_informe}"
+                                style="width:1.1rem;height:1.1rem;cursor:pointer;flex-shrink:0;">
+                            <span class="badge bg-rojo">${informe.tipo}</span>
+                        </div>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-link text-dark" type="button" id="dropdownInforme${informe.id_informe}" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-ellipsis-v"></i>
@@ -1424,6 +1502,25 @@ function cleanup() {
 
             // Actualizar grid de informes (solo las tarjetas)
             $("#lista-informes-container").html(html);
+
+            // Eventos de selección masiva
+            $('.informe-sel-check').off('change').on('change', function () {
+                const id = parseInt($(this).data('id'));
+                if ($(this).is(':checked')) informesSeleccionados.add(id);
+                else { informesSeleccionados.delete(id); $('#check-all-informes').prop('checked', false); }
+                actualizarToolbarInformes();
+            });
+
+            $('#check-all-informes').off('change').on('change', function () {
+                const checked = $(this).is(':checked');
+                $('.informe-sel-check').each(function () {
+                    $(this).prop('checked', checked);
+                    const id = parseInt($(this).data('id'));
+                    if (checked) informesSeleccionados.add(id);
+                    else informesSeleccionados.delete(id);
+                });
+                actualizarToolbarInformes();
+            });
 
             // Inicializar dropdowns de Bootstrap para los elementos dinámicos
             setTimeout(() => {
@@ -4254,6 +4351,7 @@ function validarContenido() {
         // Funciones globales para compatibilidad con HTML
         window.mostrarFormularioNuevoInforme = mostrarFormularioNuevoInforme;
         window.editarInforme = editarInforme;
+        window.eliminarInformesSeleccionados = eliminarInformesSeleccionados;
         window.volverAListaInformes = volverAListaInformes;
         window.abrirModalTipos = abrirModalTipos;
         window.agregarTipoInforme = agregarTipoInforme;

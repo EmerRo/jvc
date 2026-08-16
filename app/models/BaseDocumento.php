@@ -419,11 +419,29 @@ abstract class BaseDocumento
         if ($id !== null) {
             $this->id = $id;
         }
-        
+
         try {
             $sql = "DELETE FROM {$this->tableName} WHERE id = ?";
             $stmt = $this->conectar->prepare($sql);
             $stmt->bind_param("i", $this->id);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            return false;
+        }
+    }
+
+    public function eliminarMasivo(array $ids)
+    {
+        if (empty($ids)) return true;
+        $ids = array_values(array_filter(array_map('intval', $ids), fn($id) => $id > 0));
+        if (empty($ids)) return false;
+        try {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $sql = "DELETE FROM {$this->tableName} WHERE id IN ($placeholders)";
+            $stmt = $this->conectar->prepare($sql);
+            $types = str_repeat('i', count($ids));
+            $stmt->bind_param($types, ...$ids);
             return $stmt->execute();
         } catch (Exception $e) {
             error_log($e->getMessage());

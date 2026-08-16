@@ -258,6 +258,35 @@ public function render()
         }
     }
 
+    public function borrarMasivo()
+    {
+        if (!isset($_POST['ids']) || !is_array($_POST['ids'])) {
+            echo json_encode(['res' => false, 'msg' => 'IDs no proporcionados']);
+            return;
+        }
+        $ids = array_filter(array_map('intval', $_POST['ids']), fn($id) => $id > 0);
+        if (empty($ids)) {
+            echo json_encode(['res' => false, 'msg' => 'No se proporcionaron IDs válidos']);
+            return;
+        }
+        $count = count($ids);
+        try {
+            $placeholders = implode(',', array_fill(0, $count, '?'));
+            $sql = "DELETE FROM informes WHERE id_informe IN ($placeholders)";
+            $stmt = $this->conectar->prepare($sql);
+            $types = str_repeat('i', $count);
+            $ids = array_values($ids);
+            $stmt->bind_param($types, ...$ids);
+            if ($stmt->execute()) {
+                echo json_encode(['res' => true, 'msg' => "$count informe" . ($count !== 1 ? "s" : "") . " eliminados correctamente"]);
+            } else {
+                echo json_encode(['res' => false, 'msg' => 'Error al eliminar los informes']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['res' => false, 'msg' => $e->getMessage()]);
+        }
+    }
+
     // Método para generar PDF
     public function generarPDF()
     {

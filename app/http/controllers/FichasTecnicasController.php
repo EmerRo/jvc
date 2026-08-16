@@ -470,6 +470,49 @@ class FichasTecnicasController extends Controller
         exit;
     }
 
+    public function eliminarFichasMasivo()
+    {
+        if (ob_get_level()) ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (!isset($_POST['ids']) || !is_array($_POST['ids'])) {
+            echo json_encode(['res' => false, 'msg' => 'IDs no proporcionados']);
+            return;
+        }
+        $ids = array_filter(array_map('intval', $_POST['ids']), fn($id) => $id > 0);
+        if (empty($ids)) {
+            echo json_encode(['res' => false, 'msg' => 'No se proporcionaron IDs válidos']);
+            return;
+        }
+
+        $eliminados = 0;
+        foreach ($ids as $id_archivo) {
+            try {
+                $rutas = $this->obtenerRutasArchivos($id_archivo);
+                $this->eliminarArchivosFisicosConRutas($rutas);
+
+                $stmt = $this->conexion->prepare("DELETE FROM gestion_adjuntos WHERE id_archivo = ?");
+                $stmt->bind_param("i", $id_archivo);
+                $stmt->execute();
+                $stmt->close();
+
+                $stmt2 = $this->conexion->prepare("DELETE FROM gestion_archivos WHERE id_archivo = ?");
+                $stmt2->bind_param("i", $id_archivo);
+                if ($stmt2->execute()) $eliminados++;
+                $stmt2->close();
+            } catch (Exception $e) {
+                // continuar con los demás si uno falla
+            }
+        }
+
+        $count = $eliminados;
+        echo json_encode([
+            'res' => $eliminados > 0,
+            'msg' => "$count ficha técnica" . ($count !== 1 ? "s" : "") . " eliminada" . ($count !== 1 ? "s" : "") . " correctamente"
+        ]);
+        exit;
+    }
+
     public function obtenerInfoCompleta($id_ficha)
     {
         $respuesta = ["res" => false];

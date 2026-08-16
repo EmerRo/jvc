@@ -91,6 +91,10 @@ class GuiaRemisionController extends Controller
         $c_guia->setNroBultos(filter_input(INPUT_POST, 'num_bultos'));
         $c_guia->setIdEmpresa($_SESSION['id_empresa']);
 
+        // Guardar nombre y documento del destinatario (para guías sin venta/cotización)
+        $c_guia->setDestinatarioNombre(filter_input(INPUT_POST, 'nom_cli'));
+        $c_guia->setDestinatarioDocumento(filter_input(INPUT_POST, 'doc_cli'));
+
         // Configurar documentos
         $c_documentos->setIdTido(11);
         $c_documentos->setIdEmpresa($c_guia->getIdEmpresa());

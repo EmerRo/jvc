@@ -170,6 +170,7 @@ Route::post("/ajs/fichas-tecnicas/actualizar", "FichasTecnicasController@actuali
 Route::post("/ajs/fichas-tecnicas/obtener", "FichasTecnicasController@obtenerFicha")->Middleware([ValidarTokenMiddleware::class]);
 Route::get("/ajs/fichas-tecnicas/info-completa/:id_ficha", "FichasTecnicasController@obtenerInfoCompleta")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/eliminar", "FichasTecnicasController@eliminarFicha")->Middleware([ValidarTokenMiddleware::class]);
+Route::post("/ajs/fichas-tecnicas/eliminar-masivo", "FichasTecnicasController@eliminarFichasMasivo")->Middleware([ValidarTokenMiddleware::class]);
 Route::post("/ajs/fichas-tecnicas/compartir-whatsapp", "FichasTecnicasController@compartirWhatsApp")->Middleware([ValidarTokenMiddleware::class]);
 
 
@@ -179,6 +180,7 @@ Route::post( "/ajs/informe/getOne",  "InformeController@getOne")->Middleware([Va
 Route::post( "/ajs/informe/insertar",  "InformeController@insertar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/informe/editar",  "InformeController@editar")->Middleware([ValidarTokenMiddleware::class]);
 Route::post( "/ajs/informe/borrar",  "InformeController@borrar")->Middleware([ValidarTokenMiddleware::class]);
+Route::post( "/ajs/informe/borrar-masivo",  "InformeController@borrarMasivo")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/generarPDF",  "InformeController@generarPDF")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/generarPDFBase64",  "InformeController@generarPDFBase64")->Middleware([ValidarTokenMiddleware::class]);
 Route::get( "/ajs/informe/obtener-template",  "InformeController@obtenerTemplate")->Middleware([ValidarTokenMiddleware::class]);

@@ -28,6 +28,7 @@ class DocumentosUtils {
         this.rootElement = config.rootElement || document.querySelector(this.config.elementos.vistaLista);
         this.swalCargaActiva = false;
         this.destroyed = false;
+        this.seleccionados = new Set();
 
         const selectoresModales = this.config.modalesPropios || [
             this.config.elementos.modalEliminar,
@@ -336,43 +337,67 @@ class DocumentosUtils {
      * Renderizar documentos
      */
     renderizarDocumentos() {
-        $(this.config.elementos.contenedorLista).empty(); // Limpiar antes de renderizar
+        this.seleccionados.clear();
+        $(this.config.elementos.contenedorLista).empty();
 
         if (!this.documentos || this.documentos.length === 0) {
             this.mostrarNoHayDocumentos();
             return;
         }
 
-        let html = '<div class="row row-cols-1 row-cols-md-3 g-4">';
+        const tipo = this.config.tipo;
+        const toolbarId = `toolbar-sel-${tipo}`;
+        const checkAllId  = `check-all-${tipo}`;
+        const countId     = `count-sel-${tipo}`;
+        const btnElimId   = `btn-elim-sel-${tipo}`;
+
+        let html = `
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-3 px-2 py-2 rounded border bg-light d-none doc-sel-toolbar" id="${toolbarId}">
+                <div class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" id="${checkAllId}" style="width:1.1rem;height:1.1rem;cursor:pointer;">
+                    <label class="form-check-label fw-semibold" for="${checkAllId}">Seleccionar todos</label>
+                </div>
+                <span class="badge bg-secondary ms-1" id="${countId}">0 seleccionados</span>
+                <button class="btn btn-danger btn-sm ms-auto" id="${btnElimId}">
+                    <i class="fas fa-trash-alt me-1"></i> Eliminar seleccionados
+                </button>
+            </div>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+        `;
 
         this.documentos.forEach((documento) => {
             const fecha = new Date(documento.fecha_creacion).toLocaleDateString();
             const cliente = documento.cliente_nombre || 'Sin cliente';
-            const canvasId = `pdf-preview-${this.config.tipo}-${documento.id}`;
-            const idField = this.config.tipo === 'informe' ? 'id_informe' : 'id';
+            const canvasId = `pdf-preview-${tipo}-${documento.id}`;
+            const idField = tipo === 'informe' ? 'id_informe' : 'id';
+            const docId = documento[idField];
 
             html += `
                 <div class="col">
-                    <div class="card ${this.config.tipo}-card h-100">
+                    <div class="card ${tipo}-card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge bg-rojo">${documento.tipo || 'Sin tipo'}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" class="form-check-input doc-sel-check" data-id="${docId}"
+                                    style="width:1.1rem;height:1.1rem;cursor:pointer;flex-shrink:0;">
+                                <span class="badge bg-rojo">${documento.tipo || 'Sin tipo'}</span>
+                            </div>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-link text-dark" type="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="${this.config.urls.generarPDF}?id=${documento[idField]}" target="_blank">
+                                    <li><a class="dropdown-item" href="${this.config.urls.generarPDF}?id=${docId}" target="_blank">
                                         <i class="fas fa-file-pdf me-2"></i> Ver PDF
                                     </a></li>
-                                    <li><a class="dropdown-item ${this.config.tipo}-editar"  data-id="${documento[idField]}">
+                                    <li><a class="dropdown-item ${tipo}-editar" data-id="${docId}">
                                         <i class="fas fa-edit me-2"></i> Editar
                                     </a></li>
-                                    <li><a class="dropdown-item ${this.config.tipo}-whatsapp" data-id="${documento[idField]}">
+                                    <li><a class="dropdown-item ${tipo}-whatsapp" data-id="${docId}">
                                         <i class="fab fa-whatsapp me-2 text-success"></i> Compartir por WhatsApp
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" 
-                                           data-bs-target="${this.config.elementos.modalEliminar}" data-id="${documento[idField]}">
+                                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                           data-bs-target="${this.config.elementos.modalEliminar}" data-id="${docId}">
                                         <i class="fas fa-trash-alt me-2"></i> Eliminar
                                     </a></li>
                                 </ul>
@@ -392,14 +417,14 @@ class DocumentosUtils {
                                 </small>
                             </p>
                             <div class="d-flex justify-content-between mt-2">
-                                <a href="${this.config.urls.generarPDF}?id=${documento[idField]}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <a href="${this.config.urls.generarPDF}?id=${docId}" class="btn btn-sm btn-outline-primary" target="_blank">
                                     <i class="fas fa-file-pdf me-1"></i> Ver PDF
                                 </a>
                                 <div>
-                                    <button class="btn btn-sm btn-outline-success ${this.config.tipo}-whatsapp" data-id="${documento[idField]}">
+                                    <button class="btn btn-sm btn-outline-success ${tipo}-whatsapp" data-id="${docId}">
                                         <i class="fab fa-whatsapp"></i>
                                     </button>
-                                    <button class="btn btn-sm text-rojo ${this.config.tipo}-editar" data-id="${documento[idField]}">
+                                    <button class="btn btn-sm text-rojo ${tipo}-editar" data-id="${docId}">
                                         <i class="fas fa-edit me-1"></i> Editar
                                     </button>
                                 </div>
@@ -413,16 +438,45 @@ class DocumentosUtils {
         html += '</div>';
         $(this.config.elementos.contenedorLista).html(html);
 
+        const container = $(this.config.elementos.contenedorLista);
+
+        // Checkboxes individuales
+        container.find('.doc-sel-check').on('change', (e) => {
+            const id = parseInt($(e.currentTarget).data('id'));
+            if ($(e.currentTarget).is(':checked')) {
+                this.seleccionados.add(id);
+            } else {
+                this.seleccionados.delete(id);
+                container.find(`#${checkAllId}`).prop('checked', false);
+            }
+            this.actualizarToolbarSeleccion();
+        });
+
+        // Seleccionar / deseleccionar todos
+        container.find(`#${checkAllId}`).on('change', (e) => {
+            const checked = $(e.currentTarget).is(':checked');
+            container.find('.doc-sel-check').each((_, el) => {
+                $(el).prop('checked', checked);
+                const id = parseInt($(el).data('id'));
+                if (checked) this.seleccionados.add(id);
+                else this.seleccionados.delete(id);
+            });
+            this.actualizarToolbarSeleccion();
+        });
+
+        // Botón eliminar seleccionados
+        container.find(`#${btnElimId}`).on('click', () => this.eliminarSeleccionados());
+
         // Agregar eventos a los botones de editar
-        $(`.${this.config.tipo}-editar`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
+        $(`.${tipo}-editar`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
             const id = $(e.currentTarget).data('id');
             this.editarDocumento(id);
         });
 
         // Agregar eventos a los botones de WhatsApp
-        $(`.${this.config.tipo}-whatsapp`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
+        $(`.${tipo}-whatsapp`).off(this.eventNamespace).on(`click${this.eventNamespace}`, (e) => {
             const id = $(e.currentTarget).data('id');
-            const funcionWhatsApp = `compartirWhatsApp${this.config.tipo.charAt(0).toUpperCase() + this.config.tipo.slice(1)}`;
+            const funcionWhatsApp = `compartirWhatsApp${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
             if (typeof window[funcionWhatsApp] === 'function') {
                 window[funcionWhatsApp](id);
             } else {
@@ -432,11 +486,80 @@ class DocumentosUtils {
 
         // Inicializar la carga de PDFs
         this.documentos.forEach((documento) => {
-            const idField = this.config.tipo === 'informe' ? 'id_informe' : 'id';
-            const canvasId = `pdf-preview-${this.config.tipo}-${documento.id}`;
+            const idField = tipo === 'informe' ? 'id_informe' : 'id';
+            const canvasId = `pdf-preview-${tipo}-${documento.id}`;
             setTimeout(() => {
                 this.renderPdfPreview(`${this.config.urls.generarPDF}?id=${documento[idField]}`, canvasId);
             }, 100);
+        });
+    }
+
+    actualizarToolbarSeleccion() {
+        const count = this.seleccionados.size;
+        const tipo  = this.config.tipo;
+        const container = $(this.config.elementos.contenedorLista);
+        container.find('.doc-sel-toolbar').toggleClass('d-none', count === 0);
+        container.find(`#count-sel-${tipo}`).text(`${count} seleccionado${count !== 1 ? 's' : ''}`);
+    }
+
+    eliminarSeleccionados() {
+        const count = this.seleccionados.size;
+        if (count === 0) return;
+
+        const tipo = this.config.tipo;
+
+        Swal.fire({
+            title: `¿Eliminar ${count} ${tipo}${count !== 1 ? 's' : ''}?`,
+            text: 'Se eliminarán los documentos seleccionados.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Continuar',
+            cancelButtonText: 'Cancelar'
+        }).then((r1) => {
+            if (!r1.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Confirmación final',
+                html: `Está a punto de eliminar <strong>${count} documento${count !== 1 ? 's' : ''}</strong> de forma permanente.<br><br>Esta acción <strong>no se puede deshacer</strong>.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#c0392b',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar definitivamente',
+                cancelButtonText: 'Cancelar'
+            }).then((r2) => {
+                if (!r2.isConfirmed) return;
+                this._ejecutarBorradoMasivo(Array.from(this.seleccionados));
+            });
+        });
+    }
+
+    _ejecutarBorradoMasivo(ids) {
+        const urlMasivo = this.config.urls.borrar.replace('/borrar', '/borrar-masivo');
+
+        this.mostrarCarga('Eliminando...', 'Por favor espere');
+
+        $.ajax({
+            url: urlMasivo,
+            method: 'POST',
+            data: { ids: ids },
+            dataType: 'json',
+            success: (data) => {
+                this.cerrarCarga();
+                if (data.res) {
+                    Swal.fire({ icon: 'success', title: 'Eliminados', text: data.msg, timer: 2000, showConfirmButton: false });
+                    this.seleccionados.clear();
+                    this.cargarDocumentos();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.msg });
+                }
+            },
+            error: () => {
+                this.cerrarCarga();
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor' });
+            }
         });
     }
 

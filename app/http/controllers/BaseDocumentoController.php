@@ -297,6 +297,25 @@ abstract class BaseDocumentoController extends Controller
         }
     }
 
+    public function borrarMasivo()
+    {
+        if (!isset($_POST['ids']) || !is_array($_POST['ids'])) {
+            echo json_encode(['res' => false, 'msg' => 'IDs no proporcionados']);
+            return;
+        }
+        $ids = array_filter(array_map('intval', $_POST['ids']), fn($id) => $id > 0);
+        if (empty($ids)) {
+            echo json_encode(['res' => false, 'msg' => 'No se proporcionaron IDs válidos']);
+            return;
+        }
+        $count = count($ids);
+        if ($this->modelo->eliminarMasivo(array_values($ids))) {
+            echo json_encode(['res' => true, 'msg' => "$count " . $this->documentType . ($count !== 1 ? "s" : "") . " eliminados correctamente"]);
+        } else {
+            echo json_encode(['res' => false, 'msg' => 'Error al eliminar los documentos']);
+        }
+    }
+
     public function generarPDF()
     {
         if (isset($_GET['id'])) {

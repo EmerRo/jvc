@@ -1201,7 +1201,7 @@ $c_ubigeo = new Ubigeo();
                             if (resp.res) {
                                 alertExito("Guía de Remisión Registrada")
                                     .then(() => {
-                                        $("#backbuttonvp").click();
+                                        window.location.href = "/guias/remision";
                                     });
                             } else {
                                 alertAdvertencia(resp.msg || "No se pudo completar el registro de la GUIA");

@@ -31,6 +31,18 @@
             </div>
         </div>
         
+        <!-- Toolbar de selección masiva -->
+        <div id="toolbar-sel-fichas" class="d-flex align-items-center gap-2 flex-wrap mb-3 px-2 py-2 rounded border bg-light d-none">
+            <div class="form-check mb-0">
+                <input type="checkbox" class="form-check-input" id="check-all-fichas" style="width:1.1rem;height:1.1rem;cursor:pointer;">
+                <label class="form-check-label fw-semibold" for="check-all-fichas">Seleccionar todos</label>
+            </div>
+            <span class="badge bg-secondary ms-1" id="count-sel-fichas">0 seleccionados</span>
+            <button class="btn btn-danger btn-sm ms-auto" onclick="eliminarFichasSeleccionadas()">
+                <i class="fas fa-trash-alt me-1"></i> Eliminar seleccionadas
+            </button>
+        </div>
+
         <div class="row row-cols-1 row-cols-md-3 g-4" id="lista-archivos-ficha_tecnica">
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-rojo" role="status">
@@ -70,6 +82,8 @@
         pdf: { url: null, eliminar: false },
         editable: { url: null, eliminar: false }
     };
+
+    let fichasSeleccionadas = new Set();
     
     // Limpiar eventos duplicados antes de inicializar
     function limpiarEventosDuplicados() {
@@ -206,19 +220,84 @@ function cargarFichas() {
     });
 }
 
+function actualizarToolbarFichas() {
+    const count = fichasSeleccionadas.size;
+    $('#toolbar-sel-fichas').toggleClass('d-none', count === 0);
+    $('#count-sel-fichas').text(`${count} seleccionada${count !== 1 ? 's' : ''}`);
+}
+
+function eliminarFichasSeleccionadas() {
+    const count = fichasSeleccionadas.size;
+    if (count === 0) return;
+    const ids = Array.from(fichasSeleccionadas);
+
+    Swal.fire({
+        title: `¿Eliminar ${count} ficha${count !== 1 ? 's' : ''} técnica${count !== 1 ? 's' : ''}?`,
+        text: 'Se eliminarán las fichas seleccionadas junto con sus archivos.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Continuar',
+        cancelButtonText: 'Cancelar'
+    }).then((r1) => {
+        if (!r1.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Confirmación final',
+            html: `Está a punto de eliminar <strong>${count} ficha técnica${count !== 1 ? 's' : ''}</strong> de forma permanente, incluyendo todos sus archivos adjuntos.<br><br>Esta acción <strong>no se puede deshacer</strong>.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#c0392b',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar definitivamente',
+            cancelButtonText: 'Cancelar'
+        }).then((r2) => {
+            if (!r2.isConfirmed) return;
+
+            Swal.fire({ title: 'Eliminando...', text: 'Por favor espere', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            $.ajax({
+                url: _URL + '/ajs/fichas-tecnicas/eliminar-masivo',
+                method: 'POST',
+                data: { ids: ids },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.res) {
+                        Swal.fire({ icon: 'success', title: 'Eliminadas', text: data.msg, timer: 2000, showConfirmButton: false });
+                        fichasSeleccionadas.clear();
+                        cargarFichas();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.msg || data.error });
+                    }
+                },
+                error: function () {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor' });
+                }
+            });
+        });
+    });
+}
+
 function renderizarFichas(fichas) {
+    fichasSeleccionadas.clear();
+    actualizarToolbarFichas();
     const contenedor = $('#lista-archivos-ficha_tecnica');
     let html = '';
-    
+
     fichas.forEach(ficha => {
         html += `
             <div class="col">
                 <div class="card h-100">
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-start gap-2">
+                        <input type="checkbox" class="form-check-input ficha-sel-check mt-1" data-id="${ficha.id_archivo}"
+                            style="width:1.1rem;height:1.1rem;cursor:pointer;flex-shrink:0;">
+                        <div class="flex-grow-1">
                         <h5 class="card-title mb-0">${ficha.numero ? `<span class="badge bg-light text-dark me-2">#${ficha.numero}</span>` : ''}${ficha.titulo || 'Sin título'}</h5>
                         <div class="mt-1">
                            <!-- <span class="badge bg-primary">v${ficha.version || '1.0'}</span> -->
                          ${ficha.id_producto ? `<span class="badge bg-secondary ms-1" style="color: #CA3438" title="${escapeHtml(ficha.nombre_producto || 'Producto asociado')}">${ficha.nombre_producto || 'Producto asociado'}</span>` : ''}
+                        </div>
                         </div>
                     </div>
                     <!-- Eliminamos el padding del card-body para la vista previa -->
@@ -255,6 +334,24 @@ function renderizarFichas(fichas) {
     
     contenedor.html(html);
 
+    // Eventos de selección masiva
+    $('.ficha-sel-check').off('change').on('change', function () {
+        const id = parseInt($(this).data('id'));
+        if ($(this).is(':checked')) fichasSeleccionadas.add(id);
+        else { fichasSeleccionadas.delete(id); $('#check-all-fichas').prop('checked', false); }
+        actualizarToolbarFichas();
+    });
+
+    $('#check-all-fichas').off('change').on('change', function () {
+        const checked = $(this).is(':checked');
+        $('.ficha-sel-check').each(function () {
+            $(this).prop('checked', checked);
+            const id = parseInt($(this).data('id'));
+            if (checked) fichasSeleccionadas.add(id);
+            else fichasSeleccionadas.delete(id);
+        });
+        actualizarToolbarFichas();
+    });
 }
 
 function getPreviewHTML(ficha) {
@@ -2199,6 +2296,8 @@ window.eliminarFicha = eliminarFicha;
 window.compartirWhatsApp = compartirWhatsApp;
 window.cargarFichas = cargarFichas;
 window.reiniciarModuloFichas = reiniciarModuloFichas;
+window.eliminarFichasSeleccionadas = eliminarFichasSeleccionadas;
+window.actualizarToolbarFichas = actualizarToolbarFichas;
 window.ampliarImagen = ampliarImagen;
 window.eliminarImagenSeleccionada = eliminarImagenSeleccionada;
 window.limpiarTodasLasImagenes = limpiarTodasLasImagenes;

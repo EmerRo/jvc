@@ -15,6 +15,7 @@ class DocumentRouteGenerator
             ['method' => 'POST', 'path' => "/ajs/{$documentType}/insertar", 'action' => 'insertar'],
             ['method' => 'POST', 'path' => "/ajs/{$documentType}/editar", 'action' => 'editar'],
             ['method' => 'POST', 'path' => "/ajs/{$documentType}/borrar", 'action' => 'borrar'],
+            ['method' => 'POST', 'path' => "/ajs/{$documentType}/borrar-masivo", 'action' => 'borrarMasivo'],
             
             // Rutas para PDF
             ['method' => 'GET', 'path' => "/ajs/{$documentType}/generarPDF", 'action' => 'generarPDF'],
