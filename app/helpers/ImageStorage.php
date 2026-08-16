@@ -5,7 +5,7 @@ require_once __DIR__ . '/ThumbnailHelper.php';
 class ImageStorage
 {
     const BASE_PATH = 'storage/images/';
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
     private static function ensureDir($dir)
@@ -18,10 +18,11 @@ class ImageStorage
     private static function extByMime($mime)
     {
         $map = [
-            'image/jpeg' => 'jpg',
-            'image/png'  => 'png',
-            'image/gif'  => 'gif',
-            'image/webp' => 'webp',
+            'image/jpeg'    => 'jpg',
+            'image/png'     => 'png',
+            'image/gif'     => 'gif',
+            'image/webp'    => 'webp',
+            'image/svg+xml' => 'svg',
         ];
         return $map[$mime] ?? 'jpg';
     }
