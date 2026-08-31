@@ -210,13 +210,27 @@ $("#submitRegistro").click(function () {
 
     $("#equipos_container .equipo-item").each(function () {
       const $item = $(this);
-      const $selectEquipo = $item.find(".select-equipo");
+      const $inputMarca  = $item.find('input[name$="[marca]"]');
+      const $inputModelo = $item.find('input[name$="[modelo]"]');
+      const $inputEquipo = $item.find('input[name$="[equipo]"]');
       const $inputSerie  = $item.find('input[name$="[numero_serie]"]');
 
-      if (!$selectEquipo.val()) {
-        marcarInvalido($selectEquipo);
+      if (!$inputMarca.val().trim()) {
+        marcarInvalido($inputMarca);
       } else {
-        $selectEquipo.removeClass("is-invalid");
+        $inputMarca.removeClass("is-invalid");
+      }
+
+      if (!$inputModelo.val().trim()) {
+        marcarInvalido($inputModelo);
+      } else {
+        $inputModelo.removeClass("is-invalid");
+      }
+
+      if (!$inputEquipo.val().trim()) {
+        marcarInvalido($inputEquipo);
+      } else {
+        $inputEquipo.removeClass("is-invalid");
       }
 
       if (!$inputSerie.val().trim()) {
@@ -236,9 +250,9 @@ $("#submitRegistro").click(function () {
     var equiposData = [];
     $("#equipos_container .equipo-item").each(function (index) {
       equiposData.push({
-        modelo: $(this).find('.hidden-modelo').val() || $(this).find('input[name$="[modelo]"]').val(),
-        marca:  $(this).find('.hidden-marca').val()  || $(this).find('input[name$="[marca]"]').val(),
-        equipo: $(this).find('.select-equipo').val() || $(this).find('select[name$="[equipo]"]').val(),
+        modelo: $(this).find('input[name$="[modelo]"]').val().trim(),
+        marca:  $(this).find('input[name$="[marca]"]').val().trim(),
+        equipo: $(this).find('input[name$="[equipo]"]').val().trim(),
         // NUEVO: id_producto del almacén (opcional)
         id_producto: $(this).find('input.input-id-producto').val() || "",
         numero_serie: $(this)
@@ -292,10 +306,14 @@ $("#submitRegistro").click(function () {
             // Marcar campos inválidos sin alerta
             let primeroCampo = null;
             $("#equipos_container .equipo-item").each(function () {
-              const $sel = $(this).find(".select-equipo");
-              const $ns  = $(this).find('input[name$="[numero_serie]"]');
-              if (!$sel.val()) { $sel.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $sel; }
-              if (!$ns.val().trim()) { $ns.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $ns; }
+              const $marca  = $(this).find('input[name$="[marca]"]');
+              const $modelo = $(this).find('input[name$="[modelo]"]');
+              const $equipo = $(this).find('input[name$="[equipo]"]');
+              const $ns     = $(this).find('input[name$="[numero_serie]"]');
+              if (!$marca.val().trim())  { $marca.addClass("is-invalid");  if (!primeroCampo) primeroCampo = $marca; }
+              if (!$modelo.val().trim()) { $modelo.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $modelo; }
+              if (!$equipo.val().trim()) { $equipo.addClass("is-invalid"); if (!primeroCampo) primeroCampo = $equipo; }
+              if (!$ns.val().trim())     { $ns.addClass("is-invalid");     if (!primeroCampo) primeroCampo = $ns; }
             });
             if (!$("#fecha_creacion").val()) {
               $("#fecha_creacion").addClass("is-invalid");

@@ -123,8 +123,6 @@ class SeriesController extends Controller
             return;
         }
 
-        $this->conectar->begin_transaction();
-
         try {
             // Decodificar equipos
             $equipos = is_string($_POST['equipos']) ? json_decode($_POST['equipos'], true) : $_POST['equipos'];
@@ -175,10 +173,14 @@ class SeriesController extends Controller
                     throw new Exception($errorEquipo);
                 }
 
+                $marcaId  = $this->resolverOCrearMarca($equipo['marca']);
+                $modeloId = $this->resolverOCrearModelo($equipo['modelo'], $marcaId);
+                $equipoId = $this->resolverOCrearEquipo($equipo['equipo'], $marcaId, $modeloId);
+
                 $this->detalleSerieModel->setNumeroSerieId($serie_id);
-                $this->detalleSerieModel->setModeloId($equipo['modelo']);
-                $this->detalleSerieModel->setMarcaId($equipo['marca']);
-                $this->detalleSerieModel->setEquipoId($equipo['equipo']);
+                $this->detalleSerieModel->setModeloId($modeloId);
+                $this->detalleSerieModel->setMarcaId($marcaId);
+                $this->detalleSerieModel->setEquipoId($equipoId);
                 // NUEVO: vínculo opcional al producto del almacén
                 $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
                     ? (int)$equipo['id_producto']
@@ -199,7 +201,6 @@ class SeriesController extends Controller
 
         } catch (Exception $e) {
             error_log("Error en saveSerie: " . $e->getMessage());
-            $this->conectar->rollback();
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
@@ -216,8 +217,6 @@ class SeriesController extends Controller
             echo json_encode(['success' => false, 'error' => 'Faltan datos requeridos']);
             return;
         }
-
-        $this->conectar->begin_transaction();
 
         try {
             $serie_id = $_POST['id'];
@@ -281,10 +280,14 @@ class SeriesController extends Controller
                     throw new Exception($errorEquipo);
                 }
 
+                $marcaId  = $this->resolverOCrearMarca($equipo['marca']);
+                $modeloId = $this->resolverOCrearModelo($equipo['modelo'], $marcaId);
+                $equipoId = $this->resolverOCrearEquipo($equipo['equipo'], $marcaId, $modeloId);
+
                 $this->detalleSerieModel->setNumeroSerieId($serie_id);
-                $this->detalleSerieModel->setModeloId($equipo['modelo']);
-                $this->detalleSerieModel->setMarcaId($equipo['marca']);
-                $this->detalleSerieModel->setEquipoId($equipo['equipo']);
+                $this->detalleSerieModel->setModeloId($modeloId);
+                $this->detalleSerieModel->setMarcaId($marcaId);
+                $this->detalleSerieModel->setEquipoId($equipoId);
                 // NUEVO: vínculo opcional al producto del almacén
                 $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
                     ? (int)$equipo['id_producto']
@@ -305,7 +308,6 @@ class SeriesController extends Controller
 
         } catch (Exception $e) {
             error_log("Error en updateSerie: " . $e->getMessage());
-            $this->conectar->rollback();
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
@@ -502,6 +504,95 @@ class SeriesController extends Controller
     }
 
     // ==================== MÉTODOS PRIVADOS DE VALIDACIÓN ====================
+
+    /**
+     * Resolver o crear una marca por nombre. Si el valor es numérico se asume
+     * que ya es un ID (flujos que usan selects: máquinas idénticas, edición).
+     */
+    private function resolverOCrearMarca($valor)
+    {
+        $valor = trim((string)$valor);
+        if ($valor === '') return null;
+        if (is_numeric($valor)) return (int)$valor;
+
+        $sql = "SELECT id FROM marcas WHERE LOWER(nombre) = LOWER(?) LIMIT 1";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("s", $valor);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) return (int)$row['id'];
+
+        $sql = "INSERT INTO marcas (nombre) VALUES (?)";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("s", $valor);
+        if (!$stmt->execute()) {
+            throw new Exception("No se pudo crear la marca '{$valor}'");
+        }
+        return (int)$this->conectar->insert_id;
+    }
+
+    /**
+     * Resolver o crear un modelo por nombre (asociado a su marca).
+     */
+    private function resolverOCrearModelo($valor, $marcaId)
+    {
+        $valor = trim((string)$valor);
+        if ($valor === '') return null;
+        if (is_numeric($valor)) return (int)$valor;
+
+        $sql = "SELECT id FROM modelos WHERE LOWER(nombre) = LOWER(?) ";
+        $sql .= $marcaId ? "AND marca_id = ?" : "AND marca_id IS NULL";
+        $sql .= " LIMIT 1";
+        $stmt = $this->conectar->prepare($sql);
+        if ($marcaId) {
+            $stmt->bind_param("si", $valor, $marcaId);
+        } else {
+            $stmt->bind_param("s", $valor);
+        }
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) return (int)$row['id'];
+
+        $sql = "INSERT INTO modelos (nombre, marca_id) VALUES (?, ?)";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("si", $valor, $marcaId);
+        if (!$stmt->execute()) {
+            throw new Exception("No se pudo crear el modelo '{$valor}'");
+        }
+        return (int)$this->conectar->insert_id;
+    }
+
+    /**
+     * Resolver o crear un equipo por nombre (asociado a su marca y modelo).
+     */
+    private function resolverOCrearEquipo($valor, $marcaId, $modeloId)
+    {
+        $valor = trim((string)$valor);
+        if ($valor === '') return null;
+        if (is_numeric($valor)) return (int)$valor;
+
+        $sql = "SELECT id FROM equipos WHERE LOWER(nombre) = LOWER(?) ";
+        $sql .= $marcaId ? "AND marca_id = ?" : "AND marca_id IS NULL";
+        $sql .= $modeloId ? " AND modelo_id = ?" : " AND modelo_id IS NULL";
+        $sql .= " LIMIT 1";
+        $stmt = $this->conectar->prepare($sql);
+        $params = [$valor];
+        $types  = "s";
+        if ($marcaId)  { $params[] = $marcaId;  $types .= "i"; }
+        if ($modeloId) { $params[] = $modeloId; $types .= "i"; }
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) return (int)$row['id'];
+
+        $sql = "INSERT INTO equipos (nombre, marca_id, modelo_id) VALUES (?, ?, ?)";
+        $stmt = $this->conectar->prepare($sql);
+        $stmt->bind_param("sii", $valor, $marcaId, $modeloId);
+        if (!$stmt->execute()) {
+            throw new Exception("No se pudo crear el equipo '{$valor}'");
+        }
+        return (int)$this->conectar->insert_id;
+    }
 
     /**
      * Validar que los números de serie no estén duplicados

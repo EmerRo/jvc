@@ -195,23 +195,35 @@ $('#agregar_equipo_diferente').click(function() {
                         <small class="text-muted producto-seleccionado-info"></small>
                     </div>
                 </div>
-                <div class="row align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label">Equipo <span class="text-danger">*</span></label>
-                        <select class="form-select select-equipo" name="equipos[${idx}][equipo]" required>
-                            <option value="">Seleccionar equipo...</option>
-                        </select>
+                <div class="row align-items-end g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fa fa-tag me-1"></i> Marca <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control"
+                            name="equipos[${idx}][marca]"
+                            placeholder="Marca" autocomplete="off" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted"><i class="fa fa-tag me-1"></i>Marca / Modelo</label>
-                        <input type="text" class="form-control input-marca-modelo" readonly
-                            placeholder="Se completa al elegir equipo"
-                            style="background:#f8f9fa;cursor:default;">
-                        <input type="hidden" name="equipos[${idx}][marca]" class="hidden-marca">
-                        <input type="hidden" name="equipos[${idx}][modelo]" class="hidden-modelo">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fa fa-cube me-1"></i> Modelo <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control"
+                            name="equipos[${idx}][modelo]"
+                            placeholder="Modelo" autocomplete="off" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Número de Serie</label>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control"
+                            name="equipos[${idx}][equipo]"
+                            placeholder="Equipo" autocomplete="off" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fa fa-barcode me-1"></i> N° De Serie <span class="text-danger">*</span>
+                        </label>
                         <div class="input-group">
                             <input type="text" class="form-control"
                                 name="equipos[${idx}][numero_serie]"
