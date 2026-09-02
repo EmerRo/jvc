@@ -178,11 +178,20 @@ $('#agregar_equipo_diferente').click(function() {
                         <i class="fa fa-trash"></i>
                     </button>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-md-12">
+                <div class="row mb-2 producto-repuesto-row">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fa fa-tags me-1 text-rojo"></i> Tipo
+                        </label>
+                        <select class="form-select tipo-item-selector" name="equipos[${idx}][tipo_producto]">
+                            <option value="producto">Producto</option>
+                            <option value="repuesto">Repuesto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
                         <label class="form-label">
                             <i class="fa fa-box me-1 text-rojo"></i>
-                            Producto del almacén <small class="text-muted">(opcional)</small>
+                            Producto/Repuesto del almacén <small class="text-muted">(opcional)</small>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa fa-search"></i></span>

@@ -410,8 +410,8 @@
                                     <button data-id="${Number(row.id)}" class="btn btn-sm btn-danger btnBorrar" title="Eliminar">
                                         <i class="fa fa-trash"></i>
                                     </button>
-                                    <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia" title="Crear Garantía" style="margin: 0; padding: 0; background-color: #DBE8F0;">
-                                        <i class="ri-shield-check-line text-danger" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;font-size: 18px;"></i>
+                                    <a data-id="${Number(row.id)}" class="btn btn-sm btnGarantia btn-success" title="Agregar garantía" style="margin: 0;">
+                                        <i class="fa fa-shield"></i>
                                     </a>
                                 </div>
                             </div>
@@ -1142,8 +1142,10 @@
             $input.autocomplete({
                 source: function (request, response) {
                     const almacen = $('#selector_almacen').val() || '';
+                    const tipo = $input.closest('.producto-repuesto-row').find('.tipo-item-selector').val() || 'producto';
+                    const recurso = tipo === 'repuesto' ? 'repuestos' : 'productos';
                     $.ajax({
-                        url: _URL + "/ajs/cargar/productos/" + almacen,
+                        url: _URL + "/ajs/cargar/" + recurso + "/" + almacen,
                         method: "GET",
                         dataType: "json",
                         data: { term: request.term },
@@ -1163,7 +1165,7 @@
                     $input.val(item.codigo_pp + ' | ' + item.nombre);
                     $input.closest('.input-group').find('.input-id-producto').val(item.codigo);
                     const stockTxt = (item.cnt !== undefined && item.cnt !== null) ? item.cnt : '?';
-                    $input.closest('.col-md-12').find('.producto-seleccionado-info')
+                    $input.closest('.producto-repuesto-row').find('.producto-seleccionado-info')
                         .html(`<i class="fa fa-check text-success me-1"></i>Stock actual: <strong>${stockTxt}</strong>`);
                 },
                 focus: function (event, ui) {
@@ -1177,8 +1179,16 @@
         $(document).on('input', '.input-buscar-producto', function () {
             if ($(this).val().trim() === '') {
                 $(this).closest('.input-group').find('.input-id-producto').val('');
-                $(this).closest('.col-md-12').find('.producto-seleccionado-info').empty();
+                $(this).closest('.producto-repuesto-row').find('.producto-seleccionado-info').empty();
             }
+        });
+
+        // Si cambia el Tipo (Producto/Repuesto), la selección anterior ya no es válida: limpiar
+        $(document).on('change', '.tipo-item-selector', function () {
+            const $row = $(this).closest('.producto-repuesto-row');
+            $row.find('.input-buscar-producto').val('');
+            $row.find('.input-id-producto').val('');
+            $row.find('.producto-seleccionado-info').empty();
         });
 
         // ----------- Completar lote: pedir resumen, mostrar modal y confirmar -----------

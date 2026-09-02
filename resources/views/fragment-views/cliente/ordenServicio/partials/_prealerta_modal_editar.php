@@ -60,7 +60,7 @@
                         </h6>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <label class="form-label">
                                     <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                 </label>
@@ -83,12 +83,21 @@
                                     {{ validationErrors.equipo }}
                                 </p>
                             </div>
-                            <div class="col-md-7">
+                            <div class="col-md-4">
                                 <label class="form-label text-muted">
-                                    <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                    <i class="fa fa-tag me-1"></i> Marca
                                 </label>
                                 <input type="text" class="form-control" readonly
-                                    :value="marcaModeloDisplay(equipoBase)"
+                                    :value="equipoBase.marca"
+                                    placeholder="Se completa al elegir equipo"
+                                    style="background:#f8f9fa;cursor:default;">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">
+                                    <i class="fa fa-cube me-1"></i> Modelo
+                                </label>
+                                <input type="text" class="form-control" readonly
+                                    :value="equipoBase.modelo"
                                     placeholder="Se completa al elegir equipo"
                                     style="background:#f8f9fa;cursor:default;">
                             </div>
@@ -144,7 +153,7 @@
                                 </button>
                             </div>
                             <div class="row g-3">
-                                <div class="col-md-5">
+                                <div class="col-md-3">
                                     <label class="form-label">
                                         <i class="fa fa-laptop me-1"></i> Equipo <span class="text-danger">*</span>
                                     </label>
@@ -166,14 +175,23 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-muted">
-                                        <i class="fa fa-tag me-1"></i> Marca / Modelo
+                                        <i class="fa fa-tag me-1"></i> Marca
                                     </label>
                                     <input type="text" class="form-control" readonly
-                                        :value="marcaModeloDisplay(equipo)"
+                                        :value="equipo.marca"
                                         placeholder="Se completa al elegir equipo"
                                         style="background:#f8f9fa;cursor:default;">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted">
+                                        <i class="fa fa-cube me-1"></i> Modelo
+                                    </label>
+                                    <input type="text" class="form-control" readonly
+                                        :value="equipo.modelo"
+                                        placeholder="Se completa al elegir equipo"
+                                        style="background:#f8f9fa;cursor:default;">
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label">
                                         <i class="fa fa-barcode me-1"></i> Número de Serie <span class="text-danger">*</span>
                                     </label>

@@ -253,8 +253,9 @@ $("#submitRegistro").click(function () {
         modelo: $(this).find('input[name$="[modelo]"]').val().trim(),
         marca:  $(this).find('input[name$="[marca]"]').val().trim(),
         equipo: $(this).find('input[name$="[equipo]"]').val().trim(),
-        // NUEVO: id_producto del almacén (opcional)
+        // NUEVO: id_producto o id_repuesto del almacén (opcional)
         id_producto: $(this).find('input.input-id-producto').val() || "",
+        tipo_producto: $(this).find('select.tipo-item-selector').val() || 'producto',
         numero_serie: $(this)
           .find('input[name^="equipos"][name$="[numero_serie]"]')
           .val(),
@@ -398,11 +399,21 @@ $("#tabla_clientes").on("click", ".btnEditar", function () {
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
-                        <div class="row mb-2">
-                            <div class="col-md-12">
+                        <div class="row mb-2 producto-repuesto-row">
+                            <div class="col-md-3">
+                                <label class="form-label">
+                                    <i class="fa fa-tags me-1 text-rojo"></i> Tipo
+                                </label>
+                                <select class="form-select tipo-item-selector"
+                                    name="equipos_existentes[${index}][tipo_producto]">
+                                    <option value="producto" ${(equipo.tipo_producto || 'producto') === 'producto' ? 'selected' : ''}>Producto</option>
+                                    <option value="repuesto" ${equipo.tipo_producto === 'repuesto' ? 'selected' : ''}>Repuesto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-9">
                                 <label class="form-label">
                                     <i class="fa fa-box me-1 text-rojo"></i>
-                                    Producto del almacén
+                                    Producto/Repuesto del almacén
                                     <small class="text-muted">(opcional)</small>
                                 </label>
                                 <div class="input-group">
@@ -593,6 +604,7 @@ $("#updateRegistroBtn").click(function () {
         marca: $(this).find('.hidden-marca').val(),
         equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
+        tipo_producto: $(this).find('select.tipo-item-selector').val() || 'producto',
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
@@ -718,6 +730,7 @@ $("#updateRegistroBtn").click(function () {
         marca: $(this).find('.hidden-marca').val(),
         equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
+        tipo_producto: $(this).find('select.tipo-item-selector').val() || 'producto',
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
@@ -729,6 +742,7 @@ $("#updateRegistroBtn").click(function () {
         marca: $(this).find('.hidden-marca').val(),
         equipo: $(this).find('.select-equipo').val(),
         id_producto: $(this).find('input.input-id-producto').val() || "",
+        tipo_producto: $(this).find('select.tipo-item-selector').val() || 'producto',
         numero_serie: $(this).find('input[name$="[numero_serie]"]').val(),
       });
     });
@@ -818,11 +832,20 @@ $("#agregar_equipo_diferente_u").click(function () {
                     <i class="fa fa-trash"></i>
                 </button>
             </div>
-            <div class="row mb-2">
-                <div class="col-md-12">
+            <div class="row mb-2 producto-repuesto-row">
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fa fa-tags me-1 text-rojo"></i> Tipo
+                    </label>
+                    <select class="form-select tipo-item-selector" name="equipos_nuevos[${index}][tipo_producto]">
+                        <option value="producto">Producto</option>
+                        <option value="repuesto">Repuesto</option>
+                    </select>
+                </div>
+                <div class="col-md-9">
                     <label class="form-label">
                         <i class="fa fa-box me-1 text-rojo"></i>
-                        Producto del almacén
+                        Producto/Repuesto del almacén
                         <small class="text-muted">(opcional)</small>
                     </label>
                     <div class="input-group">

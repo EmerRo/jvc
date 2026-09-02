@@ -105,6 +105,7 @@ class ReportesCotizacionController extends Controller
     }
 
     if ($datoVenta["id_tipo_pago"] == '2') {
+      $monedaVisualCuotas = $datoVenta['moneda'] == 1 ? 'SOLES' : 'DOLARES';
       $rowTempCuo = '';
       $resulTempCuo = $this->service->obtenerCuotas($coti);
       $contadorCuota = 0;
@@ -115,40 +116,44 @@ class ReportesCotizacionController extends Controller
         }
 
         $contadorCuota++;
-        $tempNum = Tools::numeroParaDocumento($contadorCuota, 2);
         $tempFecha = Tools::formatoFechaVisual($cuotTemp['fecha']);
         $montoCuota = $datoVenta['moneda'] == 2 ? $cuotTemp['monto'] / $datoVenta['cm_tc'] : $cuotTemp['monto'];
         $tempMonto = Tools::money($montoCuota);
 
         // Si es cuota inicial, mostrarla como "INICIAL" en lugar de número
-        $etiquetaCuota = (isset($cuotTemp['tipo']) && $cuotTemp['tipo'] == 'inicial') ? 'INICIAL' : "Cuota $tempNum";
+        $etiquetaCuota = (isset($cuotTemp['tipo']) && $cuotTemp['tipo'] == 'inicial') ? 'INICIAL' : $contadorCuota;
 
         $rowTempCuo .= "
-       <tr style=''>
-           <td style='padding: 3px; text-align: center;'>$etiquetaCuota</td>
-           <td style='padding: 3px; text-align: center;'>$tempFecha</td>
-           <td style='padding: 3px; text-align: center;'>$simbolfff22 $tempMonto</td>
-       </tr>
-   ";
+              <tr>
+                <td style='border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px;'>$etiquetaCuota</td>
+                <td style='border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px;'>$tempFecha</td>
+                <td style='border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px;'>$monedaVisualCuotas</td>
+                <td style='border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px;'>$simbolfff22 $tempMonto</td>
+                <td style='border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px;'>Pendiente</td>
+              </tr>";
       }
 
-
-      // IMPORTANTE: Aseguramos que la tabla de cuotas tenga page-break-inside: avoid
+      // Mismo diseño que el detalle de forma de pago del comprobante de venta
+      // (ver ReportesVentaController::comprobanteVenta), con page-break-inside: avoid
+      // para que la tabla de cuotas no se corte entre páginas.
       $tabla_cuotas = '
-   <div style="width: 100%; margin: 1px 0; page-break-inside: avoid;">
-       <table style="width: 50%; margin: auto; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10.5px; border: 1px solid #CA3438;">
-           <thead>
-               <tr style="background-color: #CA3438; ">
-                   <th style="padding: 3px; text-align: center; color:#fff;">CUOTA</th>
-                   <th style="padding: 3px; text-align: center; color:#fff;">FECHA</th>
-                   <th style="padding: 3px; text-align: center; color:#fff;">MONTO</th>
-               </tr>
-           </thead>
-           <tbody>
-               ' . $rowTempCuo . '
-           </tbody>
-       </table>
-   </div>';
+        <div style="width: 100%; margin-top: 10px; margin-bottom: 10px; text-align: center; page-break-inside: avoid;">
+          <div style="text-align: center; font-weight: bold; padding: 5px; margin-bottom: 0; font-family: Calibri, Helvetica Neue, sans-serif; font-size: 12px;">
+            DETALLE DE LA FORMA DE PAGO: CRÉDITO
+          </div>
+          <div style="display: flex; justify-content: center;">
+            <table style="width: 60%; border-collapse: collapse; table-layout: auto; margin: 0 auto;">
+              <tr style="background-color: #CA3438; color: white;">
+                <th style="border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px; white-space: nowrap; color: #ffffff">N°</th>
+                <th style="border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px; white-space: nowrap; color: #ffffff">Fecha de Vencimiento</th>
+                <th style="border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px; white-space: nowrap; color: #ffffff">Moneda</th>
+                <th style="border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px; white-space: nowrap; color: #ffffff">Monto</th>
+                <th style="border: 1px solid #CA3438; padding: 3px; text-align: center; font-size: 10px; white-space: nowrap; color: #ffffff">Estado</th>
+              </tr>
+              ' . $rowTempCuo . '
+            </table>
+          </div>
+        </div>';
     }
 
     $formatter = new NumeroALetras;

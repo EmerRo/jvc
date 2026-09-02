@@ -7,7 +7,8 @@ class DetalleSerie
     private $modelo_id;
     private $marca_id;
     private $equipo_id;
-    private $id_producto;   // NUEVO: vínculo a productos del almacén
+    private $id_producto;   // NUEVO: vínculo a productos o repuestos del almacén
+    private $tipo_producto; // 'producto' o 'repuesto' — a qué tabla apunta id_producto
     private $numero_serie;
     private $estado;
     private $estado_prealerta;
@@ -79,6 +80,18 @@ class DetalleSerie
         $this->id_producto = $id_producto;
     }
 
+    public function getTipoProducto()
+    {
+        return $this->tipo_producto;
+    }
+
+    public function setTipoProducto($tipo_producto)
+    {
+        $this->tipo_producto = in_array($tipo_producto, ['producto', 'repuesto'], true)
+            ? $tipo_producto
+            : 'producto';
+    }
+
     public function getNumeroSerie()
     {
         return $this->numero_serie;
@@ -118,15 +131,16 @@ class DetalleSerie
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
                 e.nombre as equipo_nombre,
-                p.codigo as producto_codigo,
-                p.nombre as producto_nombre,
-                p.precio as producto_precio,
-                p.cantidad as producto_stock
+                COALESCE(p.codigo, r.codigo) as producto_codigo,
+                COALESCE(p.nombre, r.nombre) as producto_nombre,
+                COALESCE(p.precio, r.precio) as producto_precio,
+                COALESCE(p.cantidad, r.cantidad) as producto_stock
                 FROM detalle_serie ds
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
-                LEFT JOIN productos p ON ds.id_producto = p.id_producto
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto AND ds.tipo_producto = 'producto'
+                LEFT JOIN repuestos r ON ds.id_producto = r.id_repuesto AND ds.tipo_producto = 'repuesto'
                 WHERE ds.numero_serie_id = ?
                 ORDER BY ds.id ASC";
 
@@ -152,15 +166,16 @@ class DetalleSerie
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
                 e.nombre as equipo_nombre,
-                p.codigo as producto_codigo,
-                p.nombre as producto_nombre,
-                p.precio as producto_precio,
-                p.cantidad as producto_stock
+                COALESCE(p.codigo, r.codigo) as producto_codigo,
+                COALESCE(p.nombre, r.nombre) as producto_nombre,
+                COALESCE(p.precio, r.precio) as producto_precio,
+                COALESCE(p.cantidad, r.cantidad) as producto_stock
                 FROM detalle_serie ds
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
-                LEFT JOIN productos p ON ds.id_producto = p.id_producto
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto AND ds.tipo_producto = 'producto'
+                LEFT JOIN repuestos r ON ds.id_producto = r.id_repuesto AND ds.tipo_producto = 'repuesto'
                 WHERE ds.id = ?";
 
         $stmt = $this->conectar->prepare($sql);
@@ -185,14 +200,15 @@ class DetalleSerie
                 m.nombre as modelo_nombre,
                 ma.nombre as marca_nombre,
                 e.nombre as equipo_nombre,
-                p.codigo as producto_codigo,
-                p.nombre as producto_nombre
+                COALESCE(p.codigo, r.codigo) as producto_codigo,
+                COALESCE(p.nombre, r.nombre) as producto_nombre
                 FROM detalle_serie ds
                 INNER JOIN numero_series ns ON ds.numero_serie_id = ns.id
                 LEFT JOIN modelos m ON ds.modelo_id = m.id
                 LEFT JOIN marcas ma ON ds.marca_id = ma.id
                 LEFT JOIN equipos e ON ds.equipo_id = e.id
-                LEFT JOIN productos p ON ds.id_producto = p.id_producto
+                LEFT JOIN productos p ON ds.id_producto = p.id_producto AND ds.tipo_producto = 'producto'
+                LEFT JOIN repuestos r ON ds.id_producto = r.id_repuesto AND ds.tipo_producto = 'repuesto'
                 WHERE ds.numero_serie = ?";
 
         $stmt = $this->conectar->prepare($sql);
@@ -239,17 +255,19 @@ class DetalleSerie
     public function insertar()
     {
         try {
-            $sql = "INSERT INTO detalle_serie (numero_serie_id, modelo_id, marca_id, equipo_id, id_producto, numero_serie, estado, estado_prealerta)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO detalle_serie (numero_serie_id, modelo_id, marca_id, equipo_id, id_producto, tipo_producto, numero_serie, estado, estado_prealerta)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             $stmt = $this->conectar->prepare($sql);
+            $tipoProducto = $this->tipo_producto ?: 'producto';
             $stmt->bind_param(
-                "iiiiisss",
+                "iiiiissss",
                 $this->numero_serie_id,
                 $this->modelo_id,
                 $this->marca_id,
                 $this->equipo_id,
                 $this->id_producto,
+                $tipoProducto,
                 $this->numero_serie,
                 $this->estado,
                 $this->estado_prealerta
@@ -278,18 +296,21 @@ class DetalleSerie
                         marca_id = ?,
                         equipo_id = ?,
                         id_producto = ?,
+                        tipo_producto = ?,
                         numero_serie = ?,
                         estado = ?,
                         estado_prealerta = ?
                     WHERE id = ?";
 
             $stmt = $this->conectar->prepare($sql);
+            $tipoProducto = $this->tipo_producto ?: 'producto';
             $stmt->bind_param(
-                "iiiisssi",
+                "iiiissssi",
                 $this->modelo_id,
                 $this->marca_id,
                 $this->equipo_id,
                 $this->id_producto,
+                $tipoProducto,
                 $this->numero_serie,
                 $this->estado,
                 $this->estado_prealerta,

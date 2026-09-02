@@ -181,11 +181,12 @@ class SeriesController extends Controller
                 $this->detalleSerieModel->setModeloId($modeloId);
                 $this->detalleSerieModel->setMarcaId($marcaId);
                 $this->detalleSerieModel->setEquipoId($equipoId);
-                // NUEVO: vínculo opcional al producto del almacén
+                // NUEVO: vínculo opcional al producto o repuesto del almacén
                 $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
                     ? (int)$equipo['id_producto']
                     : null;
                 $this->detalleSerieModel->setIdProducto($idProducto);
+                $this->detalleSerieModel->setTipoProducto($equipo['tipo_producto'] ?? 'producto');
                 $this->detalleSerieModel->setNumeroSerie($equipo['numero_serie']);
                 $this->detalleSerieModel->setEstado('disponible');
                 $this->detalleSerieModel->setEstadoPrealerta('disponible');
@@ -288,11 +289,12 @@ class SeriesController extends Controller
                 $this->detalleSerieModel->setModeloId($modeloId);
                 $this->detalleSerieModel->setMarcaId($marcaId);
                 $this->detalleSerieModel->setEquipoId($equipoId);
-                // NUEVO: vínculo opcional al producto del almacén
+                // NUEVO: vínculo opcional al producto o repuesto del almacén
                 $idProducto = isset($equipo['id_producto']) && !empty($equipo['id_producto'])
                     ? (int)$equipo['id_producto']
                     : null;
                 $this->detalleSerieModel->setIdProducto($idProducto);
+                $this->detalleSerieModel->setTipoProducto($equipo['tipo_producto'] ?? 'producto');
                 $this->detalleSerieModel->setNumeroSerie($equipo['numero_serie']);
                 $this->detalleSerieModel->setEstado($equipo['estado'] ?? 'disponible');
                 $this->detalleSerieModel->setEstadoPrealerta($equipo['estado_prealerta'] ?? 'disponible');
@@ -662,15 +664,18 @@ class SeriesController extends Controller
 
             $equipos = $this->detalleSerieModel->getByNumeroSerieId($serie_id);
 
-            // Agrupar por id_producto para mostrar cuánto va a aumentar/registrar
+            // Agrupar por (tipo, id_producto) para mostrar cuánto va a aumentar/registrar
+            // (el mismo número de id puede ser un producto O un repuesto distinto)
             $resumenProductos = [];
             $sinVincular = 0;
             foreach ($equipos as $eq) {
                 if (!empty($eq['id_producto'])) {
-                    $key = $eq['id_producto'];
+                    $tipo = $eq['tipo_producto'] ?? 'producto';
+                    $key = $tipo . '_' . $eq['id_producto'];
                     if (!isset($resumenProductos[$key])) {
                         $resumenProductos[$key] = [
                             'id_producto'    => $eq['id_producto'],
+                            'tipo_producto'  => $tipo,
                             'codigo'         => $eq['producto_codigo'] ?? '',
                             'nombre'         => $eq['producto_nombre'] ?? '',
                             'stock_actual'   => $eq['producto_stock'] ?? 0,
@@ -777,30 +782,42 @@ class SeriesController extends Controller
             ? 'Ingreso por lote NS interno (producción para stock)'
             : 'Ingreso por lote NS externo (producción para cliente)';
 
-        // Agrupar por id_producto para hacer UPDATE atómico por producto
-        $cantidadPorProducto = [];
+        // Agrupar por (tipo, id_producto) para hacer UPDATE atómico por producto/repuesto
+        $cantidadPorItem = [];
         foreach ($equipos as $eq) {
             if (empty($eq['id_producto'])) {
-                continue; // equipo no vinculado a producto, se registra solo la serie
+                continue; // equipo no vinculado a producto/repuesto, se registra solo la serie
             }
+            $tipo = $eq['tipo_producto'] ?? 'producto';
             $idP = (int)$eq['id_producto'];
-            if (!isset($cantidadPorProducto[$idP])) {
-                $cantidadPorProducto[$idP] = 0;
+            $key = $tipo . '_' . $idP;
+            if (!isset($cantidadPorItem[$key])) {
+                $cantidadPorItem[$key] = ['tipo' => $tipo, 'id' => $idP, 'cantidad' => 0];
             }
-            $cantidadPorProducto[$idP] += 1;
+            $cantidadPorItem[$key]['cantidad'] += 1;
         }
 
-        foreach ($cantidadPorProducto as $idProducto => $cantidad) {
+        foreach ($cantidadPorItem as $item) {
+            $tipo = $item['tipo'];
+            $idItem = $item['id'];
+            $cantidad = $item['cantidad'];
+
             if ($esInterno) {
-                $sql = "UPDATE productos SET cantidad = cantidad + ? WHERE id_producto = ?";
+                $tabla = $tipo === 'repuesto' ? 'repuestos' : 'productos';
+                $pk = $tipo === 'repuesto' ? 'id_repuesto' : 'id_producto';
+                $sql = "UPDATE {$tabla} SET cantidad = cantidad + ? WHERE {$pk} = ?";
                 $stmt = $this->conectar->prepare($sql);
-                $stmt->bind_param("ii", $cantidad, $idProducto);
+                $stmt->bind_param("ii", $cantidad, $idItem);
                 if (!$stmt->execute()) {
-                    throw new Exception("Error al aumentar stock del producto {$idProducto}: " . $stmt->error);
+                    throw new Exception("Error al aumentar stock de {$tabla} {$idItem}: " . $stmt->error);
                 }
             }
 
-            $this->registrarMovimientoKardex($idProducto, 'INGRESO', $cantidad, $obs, $serie_id, $tipoOrigen);
+            if ($tipo === 'repuesto') {
+                $this->registrarMovimientoKardexRepuesto($idItem, 'INGRESO', $cantidad, $obs);
+            } else {
+                $this->registrarMovimientoKardex($idItem, 'INGRESO', $cantidad, $obs, $serie_id, $tipoOrigen);
+            }
         }
     }
 
@@ -811,34 +828,49 @@ class SeriesController extends Controller
     {
         $equipos = $this->detalleSerieModel->getByNumeroSerieId($serie_id);
 
-        $cantidadPorProducto = [];
+        $cantidadPorItem = [];
         foreach ($equipos as $eq) {
             if (empty($eq['id_producto'])) continue;
+            $tipo = $eq['tipo_producto'] ?? 'producto';
             $idP = (int)$eq['id_producto'];
-            $cantidadPorProducto[$idP] = ($cantidadPorProducto[$idP] ?? 0) + 1;
+            $key = $tipo . '_' . $idP;
+            if (!isset($cantidadPorItem[$key])) {
+                $cantidadPorItem[$key] = ['tipo' => $tipo, 'id' => $idP, 'cantidad' => 0];
+            }
+            $cantidadPorItem[$key]['cantidad'] += 1;
         }
 
-        foreach ($cantidadPorProducto as $idProducto => $cantidad) {
+        foreach ($cantidadPorItem as $item) {
+            $tipo = $item['tipo'];
+            $idItem = $item['id'];
+            $cantidad = $item['cantidad'];
+
             if ($esInterno) {
                 // Restar del stock (sin permitir negativos)
-                $sql = "UPDATE productos
+                $tabla = $tipo === 'repuesto' ? 'repuestos' : 'productos';
+                $pk = $tipo === 'repuesto' ? 'id_repuesto' : 'id_producto';
+                $sql = "UPDATE {$tabla}
                         SET cantidad = GREATEST(0, cantidad - ?)
-                        WHERE id_producto = ?";
+                        WHERE {$pk} = ?";
                 $stmt = $this->conectar->prepare($sql);
-                $stmt->bind_param("ii", $cantidad, $idProducto);
+                $stmt->bind_param("ii", $cantidad, $idItem);
                 if (!$stmt->execute()) {
-                    throw new Exception("Error al revertir stock del producto {$idProducto}: " . $stmt->error);
+                    throw new Exception("Error al revertir stock de {$tabla} {$idItem}: " . $stmt->error);
                 }
             }
 
-            $this->registrarMovimientoKardex(
-                $idProducto,
-                'EGRESO',
-                $cantidad,
-                'Reversión por eliminación de lote NS',
-                $serie_id,
-                $esInterno ? 'LOTE_NS_INTERNO_REVERSION' : 'LOTE_NS_EXTERNO_REVERSION'
-            );
+            if ($tipo === 'repuesto') {
+                $this->registrarMovimientoKardexRepuesto($idItem, 'EGRESO', $cantidad, 'Reversión por eliminación de lote NS');
+            } else {
+                $this->registrarMovimientoKardex(
+                    $idItem,
+                    'EGRESO',
+                    $cantidad,
+                    'Reversión por eliminación de lote NS',
+                    $serie_id,
+                    $esInterno ? 'LOTE_NS_INTERNO_REVERSION' : 'LOTE_NS_EXTERNO_REVERSION'
+                );
+            }
         }
     }
 
@@ -887,6 +919,50 @@ class SeriesController extends Controller
         } catch (Exception $e) {
             error_log("Error en registrarMovimientoKardex: " . $e->getMessage());
             throw $e; // re-lanzar para que la transacción haga rollback
+        }
+    }
+
+    /**
+     * Insertar un movimiento en historial_stock_repuestos (kardex de repuestos).
+     * Tabla espejo de historial_stock, pero sin columnas tipo_origen / id_orden_trabajo.
+     */
+    private function registrarMovimientoKardexRepuesto($idRepuesto, $tipoMov, $cantidad, $observaciones)
+    {
+        try {
+            $usuario = isset($_SESSION['usuario_nombre']) ? $_SESSION['usuario_nombre']
+                       : ($_SESSION['usuario_id'] ?? 'Sistema');
+
+            $costo = 0;
+            $sqlCosto = "SELECT costo FROM repuestos WHERE id_repuesto = ?";
+            $stmtC = $this->conectar->prepare($sqlCosto);
+            $stmtC->bind_param("i", $idRepuesto);
+            $stmtC->execute();
+            $resC = $stmtC->get_result();
+            if ($rowC = $resC->fetch_assoc()) {
+                $costo = (float)($rowC['costo'] ?? 0);
+            }
+
+            $sql = "INSERT INTO historial_stock_repuestos
+                    (id_repuesto, tipo_movimiento, cantidad, costo_compra, fecha_movimiento, usuario, observaciones)
+                    VALUES (?, ?, ?, ?, NOW(), ?, ?)";
+            $stmt = $this->conectar->prepare($sql);
+            $stmt->bind_param(
+                "isidss",
+                $idRepuesto,
+                $tipoMov,
+                $cantidad,
+                $costo,
+                $usuario,
+                $observaciones
+            );
+
+            if (!$stmt->execute()) {
+                throw new Exception("Error al registrar movimiento de kardex de repuesto: " . $stmt->error);
+            }
+            return true;
+        } catch (Exception $e) {
+            error_log("Error en registrarMovimientoKardexRepuesto: " . $e->getMessage());
+            throw $e;
         }
     }
 }

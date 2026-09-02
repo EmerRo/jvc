@@ -367,13 +367,6 @@ $(document).ready(() => {
         prepararEdicionEquiposIdenticos(this);
       },
 
-      marcaModeloDisplay(equipo) {
-        const marca = equipo.marca || "";
-        const modelo = equipo.modelo || "";
-        if (marca && modelo) return marca + " / " + modelo;
-        return marca || modelo || "";
-      },
-
       alCambiarEquipo(item) {
         const idx = this.equipos.indexOf(item);
         if (idx === -1) return;
